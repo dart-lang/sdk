@@ -236,18 +236,14 @@ void f(C c) {
 }
 ''');
     assertResolvedNodeText(result.findNode.variableDeclaration('value ='), r'''
-VariableDeclaration
+LocalVariable
   name: value
   equals: =
-  initializer2: UnqualifiedNameExpression
+  initializer: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::f::@formalParameter::c
       type: C
-    staticType: C
-  initializer(v1): SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   declaredFragment: isPublic value@64
     element: hasImplicitType isPublic

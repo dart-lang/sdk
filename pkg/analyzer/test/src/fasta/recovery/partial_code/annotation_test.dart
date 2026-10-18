@@ -738,13 +738,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -754,7 +773,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -813,13 +832,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -881,13 +915,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -949,13 +998,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -1016,8 +1080,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -1026,7 +1090,7 @@ CompilationUnit
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             DoStatement
@@ -1037,6 +1101,29 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -1099,13 +1186,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -1160,8 +1259,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -1170,7 +1269,7 @@ CompilationUnit
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             ForStatement
@@ -1187,6 +1286,32 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1251,8 +1376,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -1261,7 +1386,7 @@ CompilationUnit
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             IfStatement
@@ -1271,6 +1396,27 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1329,13 +1475,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: l
+                    name: SimpleIdentifier
+                      token: l
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: l
                 variables
@@ -1566,13 +1727,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 keyword: var
@@ -1629,13 +1803,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -1696,13 +1885,35 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -1712,9 +1923,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -1775,13 +1984,34 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
                     expression: ParsedUnqualifiedName
                       name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
@@ -1854,8 +2084,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -1864,7 +2094,7 @@ CompilationUnit
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             WhileStatement
@@ -1874,6 +2104,27 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1932,8 +2183,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -1964,6 +2215,31 @@ CompilationUnit
                                   literal: true
                               rightParenthesis: )
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpressionInvocation
+                          function: SimpleIdentifier
+                            token: assert
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            arguments
+                              BooleanLiteral
+                                literal: true
+                            rightParenthesis: )
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -2045,8 +2321,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2062,6 +2338,26 @@ CompilationUnit
                             rightBracket: }
                             isMap: false
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SetOrMapLiteral
+                          leftBracket: {
+                          rightBracket: }
+                          isMap: false
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -2135,8 +2431,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2153,6 +2449,27 @@ CompilationUnit
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -2228,8 +2545,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2246,6 +2563,27 @@ CompilationUnit
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -2320,8 +2658,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2347,7 +2685,7 @@ CompilationUnit
                           token: <empty> <synthetic>
                       rightParenthesis: ) <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             DoStatement
@@ -2358,6 +2696,35 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -2427,8 +2794,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2439,6 +2806,21 @@ CompilationUnit
                       argumentList: ArgumentList
                         leftParenthesis: (
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -2501,8 +2883,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2528,7 +2910,7 @@ CompilationUnit
                           token: <empty> <synthetic>
                       rightParenthesis: ) <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             ForStatement
@@ -2545,6 +2927,38 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2617,8 +3031,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2644,7 +3058,7 @@ CompilationUnit
                           token: <empty> <synthetic>
                       rightParenthesis: ) <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             IfStatement
@@ -2654,6 +3068,33 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2720,8 +3161,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2740,6 +3181,29 @@ CompilationUnit
                               rightBracket: }
                               isMap: false
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        NamedArgument
+                          name: l
+                          colon: :
+                          argumentExpression: SetOrMapLiteral
+                            leftBracket: {
+                            rightBracket: }
+                            isMap: false
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -2819,8 +3283,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2840,6 +3304,30 @@ CompilationUnit
                                 leftBracket: {
                                 rightBracket: }
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpression
+                          parameters: FormalParameterList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                          body: BlockFunctionBody
+                            block: Block
+                              leftBracket: {
+                              rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -2921,8 +3409,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -2942,6 +3430,30 @@ CompilationUnit
                                 leftBracket: {
                                 rightBracket: }
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpression
+                          parameters: FormalParameterList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                          body: BlockFunctionBody
+                            block: Block
+                              leftBracket: {
+                              rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -3020,8 +3532,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -3038,6 +3550,25 @@ CompilationUnit
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -3107,8 +3638,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -3125,6 +3656,24 @@ CompilationUnit
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -3192,8 +3741,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -3215,6 +3764,30 @@ CompilationUnit
                             leftBracket: {
                             rightBracket: }
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SwitchExpression
+                          switchKeyword: switch
+                          leftParenthesis: (
+                          expression: SimpleIdentifier
+                            token: x
+                          rightParenthesis: )
+                          leftBracket: {
+                          rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -3295,8 +3868,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -3313,6 +3886,33 @@ CompilationUnit
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
                     name: SimpleIdentifier
                       token: a
                     arguments: ArgumentList
@@ -3399,8 +3999,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 metadata
                   Annotation
                     atSign: @
@@ -3426,7 +4026,7 @@ CompilationUnit
                           token: <empty> <synthetic>
                       rightParenthesis: ) <synthetic>
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             WhileStatement
@@ -3436,6 +4036,33 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

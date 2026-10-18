@@ -1229,6 +1229,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: y
+                    equals: =
+                    initializer: IntegerLiteral
+                      literal: 0
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -1237,7 +1249,7 @@ CompilationUnit
                   VariableDeclaration
                     name: y
                     equals: =
-                    initializer2: IntegerLiteral
+                    initializer: IntegerLiteral
                       literal: 0
               semicolon: ;
           rightBracket: } <synthetic>

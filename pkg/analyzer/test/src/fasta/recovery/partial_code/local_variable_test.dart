@@ -832,6 +832,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1199,6 +1207,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1209,7 +1232,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -1262,6 +1285,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1319,6 +1353,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1376,6 +1421,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1431,11 +1487,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             DoStatement
@@ -1446,6 +1502,25 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -1566,11 +1641,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             ForStatement
@@ -1587,6 +1662,28 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1645,6 +1742,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1655,10 +1769,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1715,6 +1829,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: a
+                variables
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1725,9 +1858,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -1784,13 +1915,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 type: NamedType
                   name: a
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: int
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -1878,11 +2009,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -1972,6 +2103,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2035,6 +2181,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2090,6 +2247,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2100,9 +2275,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -2157,6 +2330,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2224,6 +2414,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2234,10 +2441,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2293,6 +2500,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2305,7 +2529,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -2362,6 +2586,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2424,6 +2661,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2486,6 +2736,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2547,6 +2810,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2558,12 +2842,12 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -2624,6 +2908,16 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2679,6 +2973,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2696,12 +3016,10 @@ CompilationUnit
                   keyword: var
                   name: x
                 inKeyword: in
-                iterable2: ParsedUnqualifiedName
-                  name: y
-                iterable(v1): SimpleIdentifier
+                iterable: SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2764,6 +3082,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2776,10 +3113,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2838,6 +3175,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2848,9 +3204,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -2907,13 +3261,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: int
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -3003,13 +3357,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -3105,6 +3459,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3174,6 +3545,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3235,6 +3619,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3247,9 +3651,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -3308,6 +3710,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3381,6 +3802,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3393,10 +3833,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3452,6 +3892,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3464,7 +3921,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -3519,6 +3976,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3580,6 +4050,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3641,6 +4124,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3700,6 +4196,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3711,12 +4228,12 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -3775,6 +4292,16 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3828,6 +4355,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3845,12 +4398,10 @@ CompilationUnit
                   keyword: var
                   name: x
                 inKeyword: in
-                iterable2: ParsedUnqualifiedName
-                  name: y
-                iterable(v1): SimpleIdentifier
+                iterable: SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3911,6 +4462,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3923,10 +4493,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3982,6 +4552,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3996,7 +4584,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement2: Block
+              statement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4051,13 +4639,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: b
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -4151,13 +4739,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: b
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -4251,6 +4839,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4318,6 +4923,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4377,6 +4995,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4389,9 +5027,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -4448,6 +5084,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4519,6 +5174,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4531,10 +5205,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4590,6 +5264,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4602,7 +5293,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -4657,6 +5348,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4718,6 +5422,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4779,6 +5496,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4838,6 +5568,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4849,12 +5600,12 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -4913,6 +5664,16 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4966,6 +5727,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4983,12 +5770,10 @@ CompilationUnit
                   keyword: var
                   name: x
                 inKeyword: in
-                iterable2: ParsedUnqualifiedName
-                  name: y
-                iterable(v1): SimpleIdentifier
+                iterable: SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5049,6 +5834,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5061,10 +5865,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5120,6 +5924,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5134,7 +5956,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement2: Block
+              statement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5189,13 +6011,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -5289,13 +6111,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -5389,6 +6211,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5456,6 +6295,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5515,6 +6367,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5527,9 +6399,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -5586,6 +6456,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5657,6 +6546,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5669,10 +6577,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5730,6 +6638,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5744,7 +6671,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -5803,6 +6730,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5869,6 +6811,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5935,6 +6892,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6000,6 +6972,29 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6013,12 +7008,12 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -6081,6 +7076,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6140,6 +7147,34 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6159,12 +7194,10 @@ CompilationUnit
                   keyword: var
                   name: x
                 inKeyword: in
-                iterable2: ParsedUnqualifiedName
-                  name: y
-                iterable(v1): SimpleIdentifier
+                iterable: SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6229,6 +7262,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6243,10 +7297,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6307,6 +7361,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6319,9 +7394,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -6380,15 +7453,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: int
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -6482,15 +7555,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -6590,6 +7663,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6663,6 +7755,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6728,6 +7835,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6742,9 +7871,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -6805,6 +7932,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6882,6 +8030,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6896,10 +8065,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6957,6 +8126,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6971,7 +8159,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -7028,6 +8216,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7093,6 +8296,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7158,6 +8376,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7221,6 +8454,29 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7234,12 +8490,12 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -7300,6 +8556,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7357,6 +8625,34 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7376,12 +8672,10 @@ CompilationUnit
                   keyword: var
                   name: x
                 inKeyword: in
-                iterable2: ParsedUnqualifiedName
-                  name: y
-                iterable(v1): SimpleIdentifier
+                iterable: SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7444,6 +8738,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7458,10 +8773,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7519,6 +8834,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7535,7 +8870,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement2: Block
+              statement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7592,15 +8927,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: b
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -7698,15 +9033,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: const
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
-                  VariableDeclaration
+                  LocalVariable
                     name: b
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -7804,6 +9139,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7875,6 +9229,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7938,6 +9307,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7952,9 +9343,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -8013,6 +9402,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -8088,6 +9498,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: const
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+                  LocalVariable
+                    name: b
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -8102,10 +9533,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8165,6 +9596,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8175,7 +9621,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -8230,6 +9676,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8288,6 +9745,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8346,6 +9814,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8403,11 +9882,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             DoStatement
@@ -8418,6 +9897,25 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -8476,6 +9974,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8527,11 +10033,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             ForStatement
@@ -8548,6 +10054,28 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8608,6 +10136,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8618,10 +10163,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8678,6 +10223,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8686,9 +10248,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -8889,6 +10449,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8940,6 +10508,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8997,6 +10576,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9007,9 +10604,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -9066,6 +10661,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9135,6 +10747,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9145,10 +10774,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -9202,6 +10831,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9212,7 +10856,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -9265,6 +10909,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9322,6 +10977,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9379,6 +11045,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9434,11 +11111,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             DoStatement
@@ -9449,6 +11126,25 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -9505,6 +11201,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9554,11 +11258,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             ForStatement
@@ -9575,6 +11279,28 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -9633,6 +11359,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9643,10 +11386,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -9703,6 +11446,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: a
+                variables
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9713,9 +11475,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -9772,13 +11532,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 type: NamedType
                   name: a
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: int
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -9866,11 +11626,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -9960,6 +11720,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10023,6 +11798,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10078,6 +11864,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10088,9 +11892,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -10145,6 +11947,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10212,6 +12031,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10222,10 +12058,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10279,6 +12115,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10291,7 +12144,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -10346,6 +12199,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10407,6 +12273,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10468,6 +12347,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10527,6 +12419,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10538,12 +12451,12 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -10602,6 +12515,16 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10655,6 +12578,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10672,12 +12621,10 @@ CompilationUnit
                   keyword: var
                   name: x
                 inKeyword: in
-                iterable2: ParsedUnqualifiedName
-                  name: y
-                iterable(v1): SimpleIdentifier
+                iterable: SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10738,6 +12685,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10750,10 +12716,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10809,6 +12775,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10823,7 +12807,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement2: Block
+              statement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10878,13 +12862,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -10978,13 +12962,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -11078,6 +13062,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -11145,6 +13146,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -11204,6 +13218,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -11216,9 +13250,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -11275,6 +13307,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -11346,6 +13397,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -11358,10 +13428,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11886,6 +13956,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -11895,9 +13983,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -11953,12 +14039,12 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: int
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -12135,6 +14221,18 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: int
               expression(v1): SimpleIdentifier
+                token: int
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ExpressionStatement
+              expression: SimpleIdentifier
                 token: int
               semicolon: ; <synthetic>
             VariableDeclarationStatement
@@ -12430,6 +14528,22 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12441,7 +14555,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -12495,6 +14609,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12554,6 +14680,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12613,6 +14751,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12670,12 +14820,12 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             DoStatement
@@ -12686,6 +14836,26 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -12743,6 +14913,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12794,12 +14973,12 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             ForStatement
@@ -12816,6 +14995,29 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12875,6 +15077,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12886,10 +15106,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12944,6 +15164,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12957,7 +15194,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement2: Block
+              statement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -13011,12 +15248,12 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -13108,12 +15345,12 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 type: NamedType
                   name: int
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -13205,6 +15442,22 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13270,6 +15523,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13327,6 +15592,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13338,9 +15622,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -13396,6 +15678,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13465,6 +15765,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: int
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13476,10 +15794,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -13536,6 +15854,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13546,7 +15879,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -13601,6 +15934,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13659,6 +16003,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13717,6 +16072,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13774,11 +16140,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             DoStatement
@@ -13789,6 +16155,25 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -13847,6 +16232,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13898,11 +16291,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: <empty> <synthetic>
               semicolon: ; <synthetic>
             ForStatement
@@ -13919,6 +16312,28 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -13979,6 +16394,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13989,10 +16421,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14049,6 +16481,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14057,9 +16506,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -14260,6 +16707,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14311,6 +16766,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14368,6 +16834,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14378,9 +16862,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -14437,6 +16919,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14506,6 +17005,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14516,10 +17032,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14573,6 +17089,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14583,7 +17114,7 @@ CompilationUnit
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -14636,6 +17167,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14693,6 +17235,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14750,6 +17303,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14805,11 +17369,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             DoStatement
@@ -14820,6 +17384,25 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -14876,6 +17459,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14925,11 +17516,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             ForStatement
@@ -14946,6 +17537,28 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15004,6 +17617,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15014,10 +17644,10 @@ CompilationUnit
             IfStatement
               ifKeyword: if
               leftParenthesis: (
-              expression2: BooleanLiteral
+              expression: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement2: Block
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15076,6 +17706,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                type: NamedType
+                  name: a
+                variables
+                  LocalVariable
+                    name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15086,9 +17735,7 @@ CompilationUnit
                     name: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -15147,13 +17794,13 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 type: NamedType
                   name: a
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: int
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -15241,11 +17888,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
@@ -15335,6 +17982,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15398,6 +18060,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15453,6 +18126,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15463,9 +18154,7 @@ CompilationUnit
             SwitchStatement
               switchKeyword: switch
               leftParenthesis: (
-              expression2: ParsedUnqualifiedName
-                name: x
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -15520,6 +18209,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15587,6 +18293,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15597,10 +18320,10 @@ CompilationUnit
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body2: Block
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15652,14 +18375,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: CallInvocation
+                    initializer: CallInvocation
                       receiver: ParsedUnqualifiedName
                         name: assert
                       argumentList: ArgumentList
@@ -15668,7 +18391,16 @@ CompilationUnit
                           BooleanLiteral
                             literal: true
                         rightParenthesis: )
-                    initializer(v1): FunctionExpressionInvocation
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: FunctionExpressionInvocation
                       function: SimpleIdentifier
                         token: assert
                       argumentList: ArgumentList
@@ -15730,6 +18462,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: SetOrMapLiteral
+                      leftBracket: {
+                      rightBracket: }
+                      isMap: false
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15737,7 +18482,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: SetOrMapLiteral
+                    initializer: SetOrMapLiteral
                       leftBracket: {
                       rightBracket: }
                       isMap: false
@@ -15792,6 +18537,20 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15799,9 +18558,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: <empty> <synthetic>
               semicolon: ; <synthetic>
             BreakStatement
@@ -15858,6 +18615,20 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15865,9 +18636,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: <empty> <synthetic>
               semicolon: ; <synthetic>
             ContinueStatement
@@ -15923,17 +18692,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
-                      token: <empty> <synthetic>
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
@@ -15943,6 +18710,28 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -16004,6 +18793,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16011,9 +18811,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: <empty> <synthetic>
               semicolon: ; <synthetic>
           rightBracket: }
@@ -16063,17 +18861,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
-                      token: <empty> <synthetic>
               semicolon: ; <synthetic>
             ForStatement
               forKeyword: for
@@ -16089,6 +18885,31 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16152,17 +18973,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
-                      token: <empty> <synthetic>
               semicolon: ; <synthetic>
             IfStatement
               ifKeyword: if
@@ -16171,6 +18990,26 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16230,6 +19069,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: l
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16237,15 +19096,11 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: l
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: l
               semicolon: ; <synthetic>
             ExpressionStatement
-              expression2: ParsedUnqualifiedName
-                name: <empty> <synthetic>
-              expression(v1): SimpleIdentifier
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             Block
@@ -16305,6 +19160,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          rightBracket: }
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16312,7 +19184,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: FunctionExpression
+                    initializer: FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
                         rightParenthesis: )
@@ -16374,6 +19246,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          rightBracket: }
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16381,7 +19270,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: FunctionExpression
+                    initializer: FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
                         rightParenthesis: )
@@ -16443,6 +19332,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16450,9 +19357,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: <empty> <synthetic>
               semicolon: ; <synthetic>
             VariableDeclarationStatement
@@ -16516,6 +19421,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16523,9 +19439,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: <empty> <synthetic>
               semicolon: ;
           rightBracket: }
@@ -16573,6 +19487,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: SwitchExpression
+                      switchKeyword: switch
+                      leftParenthesis: (
+                      expression2: ParsedUnqualifiedName
+                        name: x
+                      expression(v1): SimpleIdentifier
+                        token: x
+                      rightParenthesis: )
+                      leftBracket: {
+                      rightBracket: }
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16580,12 +19513,10 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: SwitchExpression
+                    initializer: SwitchExpression
                       switchKeyword: switch
                       leftParenthesis: (
-                      expression2: ParsedUnqualifiedName
-                        name: x
-                      expression(v1): SimpleIdentifier
+                      expression: SimpleIdentifier
                         token: x
                       rightParenthesis: )
                       leftBracket: {
@@ -16644,6 +19575,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16651,9 +19602,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: <empty> <synthetic>
               semicolon: ; <synthetic>
             TryStatement
@@ -16721,17 +19670,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: <empty> <synthetic>
-                    initializer(v1): SimpleIdentifier
-                      token: <empty> <synthetic>
               semicolon: ; <synthetic>
             WhileStatement
               whileKeyword: while
@@ -16740,6 +19687,26 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16796,6 +19763,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16803,15 +19788,13 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
-              condition2: BooleanLiteral
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -16867,6 +19850,20 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16874,9 +19871,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             Block
@@ -16932,6 +19927,20 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16939,9 +19948,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             BreakStatement
@@ -16997,6 +20004,20 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17004,9 +20025,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             ContinueStatement
@@ -17060,17 +20079,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
@@ -17080,6 +20097,28 @@ CompilationUnit
               whileKeyword: while
               leftParenthesis: (
               condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
                 literal: true
               rightParenthesis: )
               semicolon: ;
@@ -17139,6 +20178,17 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17146,9 +20196,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
           rightBracket: }
@@ -17196,17 +20244,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             ForStatement
               forKeyword: for
@@ -17222,6 +20268,31 @@ CompilationUnit
                   token: y
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17283,17 +20354,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             IfStatement
               ifKeyword: if
@@ -17302,6 +20371,26 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17358,17 +20447,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             LabeledStatement
               labels
@@ -17376,6 +20463,25 @@ CompilationUnit
                   name: l
                   colon: :
               statement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17431,17 +20537,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
               returnType: NamedType
@@ -17536,17 +20640,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             LocalFunctionDeclaration
               returnType: NamedType
@@ -17641,6 +20743,24 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17648,9 +20768,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             VariableDeclarationStatement
@@ -17712,6 +20830,20 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17719,9 +20851,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             ReturnStatement
@@ -17775,17 +20905,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             SwitchStatement
               switchKeyword: switch
@@ -17793,6 +20921,25 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: x
               expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression: SimpleIdentifier
                 token: x
               rightParenthesis: )
               leftBracket: {
@@ -17850,6 +20997,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: a
+                    equals: =
+                    initializer: ParsedUnqualifiedName
+                      name: b
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17857,9 +21024,7 @@ CompilationUnit
                   VariableDeclaration
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
-                      name: b
-                    initializer(v1): SimpleIdentifier
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             TryStatement
@@ -17925,17 +21090,15 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: a
                     equals: =
-                    initializer2: ParsedUnqualifiedName
+                    initializer: ParsedUnqualifiedName
                       name: b
-                    initializer(v1): SimpleIdentifier
-                      token: b
               semicolon: ; <synthetic>
             WhileStatement
               whileKeyword: while
@@ -17944,6 +21107,26 @@ CompilationUnit
                 literal: true
               rightParenthesis: )
               body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

@@ -152,6 +152,15 @@ MethodDeclaration
     block: Block
       leftBracket: {
       statements2
+        LocalVariablesDeclarationStatement
+          declaration: LocalVariablesDeclaration
+            type: NamedType
+              name: await
+            variables
+              LocalVariable
+                name: x
+          semicolon: ;
+      statements(v1)
         VariableDeclarationStatement
           variables: VariableDeclarationList
             type: NamedType

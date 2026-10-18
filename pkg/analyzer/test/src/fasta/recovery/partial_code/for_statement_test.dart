@@ -950,7 +950,14 @@ CompilationUnit
                   token: <empty> <synthetic>
                 rightSeparator: ; <synthetic>
               rightParenthesis: )
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -1329,13 +1336,13 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
-                  keyword: var
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
                   variables
-                    VariableDeclaration
+                    LocalVariable
                       name: i
                       equals: =
-                      initializer2: CallInvocation
+                      initializer: CallInvocation
                         receiver: ParsedUnqualifiedName
                           name: assert
                         argumentList: ArgumentList
@@ -1344,7 +1351,13 @@ CompilationUnit
                             BooleanLiteral
                               literal: true
                           rightParenthesis: )
-                      initializer(v1): FunctionExpressionInvocation
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: FunctionExpressionInvocation
                         function: SimpleIdentifier
                           token: assert
                         argumentList: ArgumentList
@@ -1436,13 +1449,23 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: SetOrMapLiteral
+                        leftBracket: {
+                        rightBracket: }
+                        isMap: false
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: SetOrMapLiteral
+                      initializer: SetOrMapLiteral
                         leftBracket: {
                         rightBracket: }
                         isMap: false
@@ -1529,15 +1552,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -1629,15 +1658,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -1729,15 +1764,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -1824,15 +1865,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -1915,15 +1962,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -2015,15 +2068,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -2190,13 +2249,27 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: FunctionExpression
+                      initializer: FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
                           rightParenthesis: )
@@ -2288,13 +2361,27 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: FunctionExpression
+                      initializer: FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
                           rightParenthesis: )
@@ -2389,15 +2476,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -2487,15 +2580,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -2573,18 +2672,32 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
-                  keyword: var
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
                   variables
-                    VariableDeclaration
+                    LocalVariable
                       name: i
                       equals: =
-                      initializer2: SwitchExpression
+                      initializer: SwitchExpression
                         switchKeyword: switch
                         leftParenthesis: (
                         expression2: ParsedUnqualifiedName
                           name: x
                         expression(v1): SimpleIdentifier
+                          token: x
+                        rightParenthesis: )
+                        leftBracket: {
+                        rightBracket: }
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SwitchExpression
+                        switchKeyword: switch
+                        leftParenthesis: (
+                        expression: SimpleIdentifier
                           token: x
                         rightParenthesis: )
                         leftBracket: {
@@ -2676,15 +2789,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -2776,15 +2895,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
-                      initializer(v1): SimpleIdentifier
+                      initializer: SimpleIdentifier
                         token: <empty> <synthetic>
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -2871,13 +2996,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: CallInvocation
@@ -2976,13 +3109,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: SetOrMapLiteral
@@ -3067,13 +3208,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -3165,13 +3314,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -3263,13 +3420,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -3356,13 +3521,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -3445,13 +3618,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -3543,13 +3724,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -3641,13 +3830,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -3736,13 +3933,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: FunctionExpression
@@ -3832,13 +4037,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: FunctionExpression
@@ -3931,13 +4144,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -4027,13 +4248,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -4111,13 +4340,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: SwitchExpression
@@ -4212,13 +4449,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -4310,13 +4555,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 condition2: ParsedUnqualifiedName
@@ -4405,13 +4658,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: CallInvocation
@@ -4512,13 +4773,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: SetOrMapLiteral
@@ -4603,13 +4872,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -4701,13 +4978,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -4799,13 +5084,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -4892,13 +5185,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -4981,13 +5282,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -5079,13 +5388,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -5179,13 +5496,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -5276,13 +5601,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: FunctionExpression
@@ -5374,13 +5707,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: FunctionExpression
@@ -5473,13 +5814,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -5571,13 +5920,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -5657,13 +6014,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: SwitchExpression
@@ -5758,13 +6123,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -5856,13 +6229,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ; <synthetic>
                 condition2: ParsedUnqualifiedName
@@ -6820,6 +7201,25 @@ CompilationUnit
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             VariableDeclarationStatement
@@ -7948,7 +8348,13 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  type: NamedType
+                    name: int
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
                   type: NamedType
                     name: int
                   variables
@@ -8040,7 +8446,13 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  type: NamedType
+                    name: void
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
                   type: NamedType
                     name: void
                   variables
@@ -8130,7 +8542,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -8542,13 +8959,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -8619,13 +9044,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -8688,13 +9121,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -8757,13 +9198,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -8826,13 +9275,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -8915,13 +9372,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -8988,13 +9453,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9081,13 +9554,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9162,13 +9643,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9241,13 +9730,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9341,13 +9838,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9441,18 +9946,33 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
               rightParenthesis: )
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -9518,13 +10038,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9587,13 +10115,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9668,13 +10204,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9749,13 +10293,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9836,13 +10388,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -9944,13 +10504,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10035,13 +10603,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10125,13 +10701,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10215,13 +10799,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10302,13 +10894,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10383,13 +10983,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10473,13 +11081,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10562,13 +11178,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10651,13 +11275,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10749,13 +11381,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10848,13 +11488,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -10939,13 +11587,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -11026,13 +11682,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -11127,13 +11791,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -11217,13 +11889,21 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
                       name: i
                       equals: =
-                      initializer2: IntegerLiteral
+                      initializer: IntegerLiteral
                         literal: 0
                 leftSeparator: ;
                 rightSeparator: ;
@@ -11308,7 +11988,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -11411,7 +12096,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -11496,7 +12186,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -11588,7 +12283,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -11680,7 +12380,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -11767,7 +12472,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -11850,7 +12560,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -11942,7 +12657,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12109,7 +12829,14 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  type: NamedType
+                    name: int
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
                   keyword: var
                   type: NamedType
                     name: int
@@ -12205,7 +12932,14 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  type: NamedType
+                    name: void
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
                   keyword: var
                   type: NamedType
                     name: void
@@ -12299,7 +13033,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12383,7 +13122,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12465,7 +13209,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12560,7 +13309,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12652,7 +13406,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12741,7 +13500,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12842,7 +13606,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -12927,7 +13696,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13019,7 +13793,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13111,7 +13890,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13198,7 +13982,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13281,7 +14070,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13373,7 +14167,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13548,7 +14347,14 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  type: NamedType
+                    name: i
+                  variables
+                    LocalVariable
+                      name: int
+                variables(v1): VariableDeclarationList
                   keyword: var
                   type: NamedType
                     name: i
@@ -13644,7 +14450,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13737,7 +14548,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13829,7 +14645,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -13909,7 +14730,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -14004,7 +14830,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -14096,7 +14927,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration

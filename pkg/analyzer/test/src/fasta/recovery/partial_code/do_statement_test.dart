@@ -941,6 +941,25 @@ CompilationUnit
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -2140,7 +2159,14 @@ CompilationUnit
           statements2
             DoStatement
               doKeyword: do
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -3421,6 +3447,14 @@ CompilationUnit
               body2: Block
                 leftBracket: {
                 statements2
+                  LocalVariablesDeclarationStatement
+                    declaration: LocalVariablesDeclaration
+                      constFinalOrVarKeyword: var
+                      variables
+                        LocalVariable
+                          name: x
+                    semicolon: ;
+                statements(v1)
                   VariableDeclarationStatement
                     variables: VariableDeclarationList
                       keyword: var
@@ -4658,6 +4692,25 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -5946,6 +5999,25 @@ CompilationUnit
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -7179,6 +7251,25 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: a
               condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: a
               rightParenthesis: )
               semicolon: ; <synthetic>
@@ -8451,6 +8542,25 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>

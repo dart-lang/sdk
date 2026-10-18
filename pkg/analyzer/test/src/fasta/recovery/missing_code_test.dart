@@ -1052,11 +1052,11 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: x
               semicolon: ;
             ExpressionStatement
@@ -1067,6 +1067,22 @@ CompilationUnit
                 value: ParsedUnqualifiedName
                   name: <empty> <synthetic>
               expression(v1): AssignmentExpression
+                leftHandSide: SimpleIdentifier
+                  token: x
+                operator: =
+                rightHandSide: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+            ExpressionStatement
+              expression: AssignmentExpression
                 leftHandSide: SimpleIdentifier
                   token: x
                 operator: =
@@ -3553,14 +3569,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: var
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: v
                     equals: =
-                    initializer2: SimpleStringLiteral
+                    initializer: SimpleStringLiteral
                       literal: 'String'
               semicolon: ;
             ExpressionStatement
@@ -3570,6 +3586,25 @@ CompilationUnit
                 operator: .
                 name: <empty> <synthetic>
               expression(v1): PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: v
+                period: .
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: v
+                    equals: =
+                    initializer: SimpleStringLiteral
+                      literal: 'String'
+              semicolon: ;
+            ExpressionStatement
+              expression: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: v
                 period: .

@@ -1489,19 +1489,28 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
-      keyword: var
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
       variables
-        VariableDeclaration
+        LocalVariable
           name: i
           equals: =
-          initializer2: UnqualifiedNameExpression
+          initializer: UnqualifiedNameExpression
             name: i
             resolution: VariableReadResolution
               element: i@28
               type: dynamic
             staticType: dynamic
-          initializer(v1): SimpleIdentifier
+          declaredFragment: isPublic i@28
+            element: hasImplicitType isPublic
+              type: dynamic
+    variables(v1): VariableDeclarationList
+      keyword: var
+      variables
+        VariableDeclaration
+          name: i
+          equals: =
+          initializer: SimpleIdentifier
             token: i
             element: i@28
             staticType: dynamic
@@ -1594,19 +1603,28 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
-      keyword: var
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
       variables
-        VariableDeclaration
+        LocalVariable
           name: i2
           equals: =
-          initializer2: UnqualifiedNameExpression
+          initializer: UnqualifiedNameExpression
             name: i
             resolution: VariableReadResolution
               element: <testLibrary>::@function::f::@formalParameter::i
               type: int
             staticType: int
-          initializer(v1): SimpleIdentifier
+          declaredFragment: isPublic i2@28
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
+      keyword: var
+      variables
+        VariableDeclaration
+          name: i2
+          equals: =
+          initializer: SimpleIdentifier
             token: i
             element: <testLibrary>::@function::f::@formalParameter::i
             staticType: int
@@ -1699,13 +1717,37 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        LocalVariable
+          name: i
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+            staticType: int
+          declaredFragment: isPublic i@23
+            element: hasImplicitType isPublic
+              type: int
+        LocalVariable
+          name: j
+          equals: =
+          initializer: UnqualifiedNameExpression
+            name: i
+            resolution: VariableReadResolution
+              element: i@23
+              type: int
+            staticType: int
+          declaredFragment: isPublic j@30
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
       keyword: var
       variables
         VariableDeclaration
           name: i
           equals: =
-          initializer2: IntegerLiteral
+          initializer: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@23
@@ -1714,13 +1756,7 @@ ForElement
         VariableDeclaration
           name: j
           equals: =
-          initializer2: UnqualifiedNameExpression
-            name: i
-            resolution: VariableReadResolution
-              element: i@23
-              type: int
-            staticType: int
-          initializer(v1): SimpleIdentifier
+          initializer: SimpleIdentifier
             token: i
             element: i@23
             staticType: int

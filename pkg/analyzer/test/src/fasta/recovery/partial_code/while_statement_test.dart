@@ -787,7 +787,14 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -1861,7 +1868,14 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -2950,7 +2964,14 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables

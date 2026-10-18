@@ -791,7 +791,14 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement2: VariableDeclarationStatement
+              thenStatement2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              thenStatement(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -1867,7 +1874,14 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement2: VariableDeclarationStatement
+              thenStatement2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              thenStatement(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -2958,7 +2972,14 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement2: VariableDeclarationStatement
+              thenStatement2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              thenStatement(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables

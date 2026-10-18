@@ -813,6 +813,19 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            YieldStatement
+              yieldKeyword: yield
+              expression: SimpleIdentifier
+                token: a
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -1863,6 +1876,19 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            YieldStatement
+              yieldKeyword: yield
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             VariableDeclarationStatement
@@ -3365,6 +3391,20 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            YieldStatement
+              yieldKeyword: yield
+              star: *
+              expression: SimpleIdentifier
+                token: a
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -4064,6 +4104,20 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            YieldStatement
+              yieldKeyword: yield
+              star: *
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               semicolon: ; <synthetic>
             VariableDeclarationStatement

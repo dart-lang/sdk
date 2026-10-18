@@ -792,14 +792,14 @@ ForStatement
   body2: Block
     leftBracket: {
     statements2
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: i
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@61
                 element: hasImplicitType isPublic
@@ -813,6 +813,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: i
+          element: i@61
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: i
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic i@61
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: i
           element: i@61
           staticType: String
@@ -1326,14 +1346,14 @@ ForStatement
   body2: Block
     leftBracket: {
     statements2
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: v
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: isPublic v@68
@@ -1348,6 +1368,27 @@ ForStatement
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
+          token: v
+          element: v@68
+          staticType: int
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: v
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+                staticType: int
+              declaredFragment: isPublic v@68
+                element: hasImplicitType isPublic
+                  type: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: v
           element: v@68
           staticType: int
@@ -1990,14 +2031,14 @@ ForStatement
   body2: Block
     leftBracket: {
     statements2
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: a
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@67
@@ -2012,6 +2053,27 @@ ForStatement
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
+          token: a
+          element: a@67
+          staticType: int
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: a
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: isPublic a@67
+                element: hasImplicitType isPublic
+                  type: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: a
           element: a@67
           staticType: int
@@ -2822,14 +2884,14 @@ ForStatement
   body2: Block
     leftBracket: {
     statements2
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: a
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@53
@@ -2844,6 +2906,27 @@ ForStatement
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
+          token: a
+          element: a@53
+          staticType: int
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: a
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: isPublic a@53
+                element: hasImplicitType isPublic
+                  type: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: a
           element: a@53
           staticType: int
@@ -2931,13 +3014,25 @@ BlockFunctionBody
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForPartsWithDeclarations
-          variables: VariableDeclarationList
+          variables2: LocalVariablesDeclaration
+            constFinalOrVarKeyword: var
+            variables
+              LocalVariable
+                name: i
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+                  staticType: int
+                declaredFragment: isPublic i@27
+                  element: hasImplicitType isPublic
+                    type: int
+          variables(v1): VariableDeclarationList
             keyword: var
             variables
               VariableDeclaration
                 name: i
                 equals: =
-                initializer2: IntegerLiteral
+                initializer: IntegerLiteral
                   literal: 0
                   staticType: int
                 declaredFragment: isPublic i@27
@@ -3038,13 +3133,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        LocalVariable
+          name: i
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+            staticType: int
+          declaredFragment: isPublic i@33
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
       keyword: var
       variables
         VariableDeclaration
           name: i
           equals: =
-          initializer2: IntegerLiteral
+          initializer: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@33
@@ -3113,14 +3220,14 @@ ForStatement
   body2: Block
     leftBracket: {
     statements2
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: i
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@63
                 element: hasImplicitType isPublic
@@ -3134,6 +3241,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: i
+          element: i@63
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: i
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic i@63
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: i
           element: i@63
           staticType: String
@@ -3157,13 +3284,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        LocalVariable
+          name: i
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+            staticType: int
+          declaredFragment: isPublic i@22
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
       keyword: var
       variables
         VariableDeclaration
           name: i
           equals: =
-          initializer2: IntegerLiteral
+          initializer: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
@@ -3265,19 +3404,28 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
-      keyword: var
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
       variables
-        VariableDeclaration
+        LocalVariable
           name: i
           equals: =
-          initializer2: UnqualifiedNameExpression
+          initializer: UnqualifiedNameExpression
             name: i
             resolution: VariableReadResolution
               element: i@27
               type: dynamic
             staticType: dynamic
-          initializer(v1): SimpleIdentifier
+          declaredFragment: isPublic i@27
+            element: hasImplicitType isPublic
+              type: dynamic
+    variables(v1): VariableDeclarationList
+      keyword: var
+      variables
+        VariableDeclaration
+          name: i
+          equals: =
+          initializer: SimpleIdentifier
             token: i
             element: i@27
             staticType: dynamic
@@ -3363,19 +3511,28 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
-      keyword: var
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
       variables
-        VariableDeclaration
+        LocalVariable
           name: i2
           equals: =
-          initializer2: UnqualifiedNameExpression
+          initializer: UnqualifiedNameExpression
             name: i
             resolution: VariableReadResolution
               element: <testLibrary>::@function::f::@formalParameter::i
               type: int
             staticType: int
-          initializer(v1): SimpleIdentifier
+          declaredFragment: isPublic i2@27
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
+      keyword: var
+      variables
+        VariableDeclaration
+          name: i2
+          equals: =
+          initializer: SimpleIdentifier
             token: i
             element: <testLibrary>::@function::f::@formalParameter::i
             staticType: int
@@ -3461,13 +3618,37 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        LocalVariable
+          name: i
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+            staticType: int
+          declaredFragment: isPublic i@22
+            element: hasImplicitType isPublic
+              type: int
+        LocalVariable
+          name: j
+          equals: =
+          initializer: UnqualifiedNameExpression
+            name: i
+            resolution: VariableReadResolution
+              element: i@22
+              type: int
+            staticType: int
+          declaredFragment: isPublic j@29
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
       keyword: var
       variables
         VariableDeclaration
           name: i
           equals: =
-          initializer2: IntegerLiteral
+          initializer: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
@@ -3476,13 +3657,7 @@ ForStatement
         VariableDeclaration
           name: j
           equals: =
-          initializer2: UnqualifiedNameExpression
-            name: i
-            resolution: VariableReadResolution
-              element: i@22
-              type: int
-            staticType: int
-          initializer(v1): SimpleIdentifier
+          initializer: SimpleIdentifier
             token: i
             element: i@22
             staticType: int
@@ -3739,14 +3914,14 @@ ForStatement
   body2: Block
     leftBracket: {
     statements2
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: i
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@56
                 element: hasImplicitType isPublic
@@ -3760,6 +3935,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: i
+          element: i@56
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: i
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic i@56
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: i
           element: i@56
           staticType: String
@@ -4279,14 +4474,14 @@ ForStatement
   body2: Block
     leftBracket: {
     statements2
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: a
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic a@65
                 element: hasImplicitType isPublic
@@ -4300,6 +4495,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: a
+          element: a@65
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: a
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic a@65
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: a
           element: a@65
           staticType: String

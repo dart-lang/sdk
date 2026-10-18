@@ -873,6 +873,24 @@ CompilationUnit
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -2035,6 +2053,21 @@ CompilationUnit
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -3167,6 +3200,21 @@ CompilationUnit
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -4246,6 +4294,21 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -5472,6 +5535,24 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -6716,6 +6797,24 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: )
               semicolon: ; <synthetic>
@@ -7976,6 +8075,24 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>

@@ -168,19 +168,15 @@ class C {
 ''');
     var node = result.findNode.variableDeclaration('_ = _;');
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+LocalVariable
   name: _
   equals: =
-  initializer2: UnqualifiedNameExpression
+  initializer: UnqualifiedNameExpression
     name: _
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_
       invokeType: int Function()
       type: int
-    staticType: int
-  initializer(v1): SimpleIdentifier
-    token: _
-    element: <testLibrary>::@class::C::@getter::_
     staticType: int
   declaredFragment: isPrivate _@51
     element: isPrivate

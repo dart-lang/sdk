@@ -993,7 +993,14 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -2439,6 +2446,29 @@ CompilationUnit
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -3793,7 +3823,12 @@ CompilationUnit
               forKeyword: for
               leftParenthesis: (
               forLoopParts: ForPartsWithDeclarations
-                variables: VariableDeclarationList
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                variables(v1): VariableDeclarationList
                   keyword: var
                   variables
                     VariableDeclaration
@@ -5129,7 +5164,14 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: b
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -6486,7 +6528,14 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -7827,7 +7876,14 @@ CompilationUnit
                 identifier: SimpleIdentifier
                   token: a
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -9106,7 +9162,14 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -10341,7 +10404,14 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: b
               rightParenthesis: ) <synthetic>
-              body2: VariableDeclarationStatement
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables

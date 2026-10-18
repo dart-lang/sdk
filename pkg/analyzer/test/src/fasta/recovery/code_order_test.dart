@@ -1263,6 +1263,27 @@ CompilationUnit
               finallyBlock: Block
                 leftBracket: {
                 rightBracket: }
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: on
+                variables
+                  LocalVariable
+                    name: String
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
