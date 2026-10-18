@@ -6,9 +6,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/fine/library_manifest_ids.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
-import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -392,7 +392,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     var libraryUri = topLevelElement.library!.uri;
 
     // Prepare the external library manifest.
-    var manifest = libraryManifests[libraryUri]?.instance;
+    var manifest = libraryManifests[libraryUri]?.ids;
     if (manifest == null) {
       return null;
     }
@@ -404,7 +404,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
       return id;
     }
 
-    ManifestItem? topLevelItem;
+    InstanceItemIds? topLevelItem;
     switch (topLevelElement) {
       case ClassElement():
         topLevelItem = manifest.declaredClasses[topLevelName];
@@ -417,15 +417,15 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
       case MixinElement():
         topLevelItem = manifest.declaredMixins[topLevelName];
       case GetterElement():
-        return manifest.declaredGetters[topLevelName]!.id;
+        return manifest.declaredGetters[topLevelName]!;
       case SetterElement():
-        return manifest.declaredSetters[topLevelName]!.id;
+        return manifest.declaredSetters[topLevelName]!;
       case TopLevelFunctionElement():
-        return manifest.declaredFunctions[topLevelName]!.id;
+        return manifest.declaredFunctions[topLevelName]!;
       case TopLevelVariableElement():
-        return manifest.declaredVariables[topLevelName]!.id;
+        return manifest.declaredVariables[topLevelName]!;
       case TypeAliasElement():
-        return manifest.declaredTypeAliases[topLevelName]!.id;
+        return manifest.declaredTypeAliases[topLevelName]!;
     }
 
     if (topLevelItem == null) {
@@ -441,7 +441,6 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // If not top-level element, then a member in [InstanceElement].
     var memberName = memberElement.lookupName!.asLookupName;
-    topLevelItem as InstanceItem;
 
     switch (element) {
       case FieldElement():
@@ -464,7 +463,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // If we get here, the top-level container is not [ExtensionElement].
     // So, it must be [InterfaceElement].
-    topLevelItem as InterfaceItem;
+    topLevelItem as InterfaceItemIds;
 
     if (element is ConstructorElement) {
       return topLevelItem.getConstructorId(memberName)!;

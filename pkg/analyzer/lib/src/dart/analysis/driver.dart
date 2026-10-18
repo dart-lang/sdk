@@ -112,7 +112,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 745;
+  static const int DATA_VERSION = 746;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -693,7 +693,7 @@ class AnalysisDriver {
     }
     _hasDiscardedMemoryExpensiveData = true;
     currentSession.clearHierarchies();
-    libraryContext.elementFactory.discardLibraryManifestInstances();
+    libraryContext.elementFactory.discardDecodedLibraryManifests();
   }
 
   /// Completes after all potentially available files have been added to
