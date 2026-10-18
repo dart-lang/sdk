@@ -114,9 +114,9 @@ class LinkedElementFactory {
     }
   }
 
-  void discardLibraryManifestInstances() {
+  void discardDecodedLibraryManifests() {
     for (var handle in libraryManifests.values) {
-      handle.discardInstance();
+      handle.discardDecoded();
     }
   }
 

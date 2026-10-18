@@ -781,28 +781,6 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     inheritedConstructors = {};
   }
 
-  ManifestItemId? getConstructorId(LookupName name) {
-    return declaredConstructors[name]?.id ??
-        inheritedConstructors[name] ??
-        declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredFieldId(LookupName name) {
-    return declaredFields[name]?.id ?? declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredGetterId(LookupName name) {
-    return declaredGetters[name]?.id ?? declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredMethodId(LookupName name) {
-    return declaredMethods[name]?.id ?? declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredSetterId(LookupName name) {
-    return declaredSetters[name]?.id ?? declaredConflicts[name];
-  }
-
   @override
   bool match(MatchContext context, E element) {
     context.addTypeParameters(element.typeParameters);
@@ -868,22 +846,6 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
 
   @override
   _InterfaceItemFlags get flags => super.flags as _InterfaceItemFlags;
-
-  ManifestItemId? getImplementedMethodId(LookupName name) {
-    return interface.implemented[name];
-  }
-
-  ManifestItemId? getInterfaceMethodId(LookupName name) {
-    return interface.map[name];
-  }
-
-  ManifestItemId? getSuperImplementedMethodId(int index, LookupName name) {
-    if (index < interface.superImplemented.length) {
-      return interface.superImplemented[index][name];
-    } else {
-      return null;
-    }
-  }
 
   /// Intentionally omits [hasNonFinalField], which is tracked as a separate
   /// requirement.
