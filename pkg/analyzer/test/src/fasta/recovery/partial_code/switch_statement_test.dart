@@ -854,6 +854,22 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
               leftBracket: { <synthetic>
               rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              leftBracket: { <synthetic>
+              rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -2009,6 +2025,22 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              leftBracket: { <synthetic>
+              rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: ( <synthetic>
+              expression: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               leftBracket: { <synthetic>
@@ -3985,6 +4017,22 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
               leftBracket: { <synthetic>
               rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              leftBracket: { <synthetic>
+              rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -5112,6 +5160,22 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: a
               expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              leftBracket: { <synthetic>
+              rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression: SimpleIdentifier
                 token: a
               rightParenthesis: )
               leftBracket: { <synthetic>

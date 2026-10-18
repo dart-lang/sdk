@@ -2562,14 +2562,14 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
-                keyword: final
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: final
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: c
                     equals: =
-                    initializer2: ParsedValueArguments
+                    initializer: ParsedValueArguments
                       operand: ParsedTypeArguments
                         operand: ParsedUnqualifiedName
                           name: C
@@ -2599,7 +2599,16 @@ CompilationUnit
                       argumentList: ArgumentList
                         leftParenthesis: (
                         rightParenthesis: )
-                    initializer(v1): MethodInvocation
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: c
+                    equals: =
+                    initializer: MethodInvocation
                       methodName: SimpleIdentifier
                         token: C
                       typeArguments: TypeArgumentList
@@ -3910,12 +3919,12 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     lateKeyword: late
-    keyword: final
+    constFinalOrVarKeyword: final
     variables
-      VariableDeclaration
+      LocalVariable
         name: a
   semicolon: ;
 ''');
@@ -3931,11 +3940,11 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     lateKeyword: late
     variables
-      VariableDeclaration
+      LocalVariable
         name: a
   semicolon: ;
 ''');
@@ -3949,12 +3958,12 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     lateKeyword: late
-    keyword: final
+    constFinalOrVarKeyword: final
     variables
-      VariableDeclaration
+      LocalVariable
         name: a
   semicolon: ;
 ''');
@@ -3970,14 +3979,14 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     lateKeyword: late
     variables
-      VariableDeclaration
+      LocalVariable
         name: a
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -3991,13 +4000,13 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     lateKeyword: late
     type: NamedType
       name: A
     variables
-      VariableDeclaration
+      LocalVariable
         name: a
   semicolon: ;
 ''');
@@ -4011,12 +4020,12 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     lateKeyword: late
-    keyword: var
+    constFinalOrVarKeyword: var
     variables
-      VariableDeclaration
+      LocalVariable
         name: a
   semicolon: ;
 ''');
@@ -4030,15 +4039,15 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     lateKeyword: late
-    keyword: var
+    constFinalOrVarKeyword: var
     variables
-      VariableDeclaration
+      LocalVariable
         name: a
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');

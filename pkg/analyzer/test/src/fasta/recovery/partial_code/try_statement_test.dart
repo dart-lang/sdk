@@ -1557,6 +1557,29 @@ CompilationUnit
                   body: Block
                     leftBracket: { <synthetic>
                     rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -2993,6 +3016,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -4473,6 +4522,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -6063,6 +6138,29 @@ CompilationUnit
                   body: Block
                     leftBracket: { <synthetic>
                     rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -6698,6 +6796,29 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -7856,6 +7977,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -9587,6 +9734,33 @@ CompilationUnit
               finallyBlock: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -10807,6 +10981,23 @@ CompilationUnit
               finallyBlock: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -11850,6 +12041,19 @@ CompilationUnit
               body: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -12851,6 +13055,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -14995,6 +15212,32 @@ CompilationUnit
                   body: Block
                     leftBracket: { <synthetic>
                     rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16530,6 +16773,35 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -18113,6 +18385,35 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -19820,6 +20121,32 @@ CompilationUnit
                   body: Block
                     leftBracket: { <synthetic>
                     rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -20500,6 +20827,32 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -21742,6 +22095,35 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -23678,6 +24060,27 @@ CompilationUnit
                   body: Block
                     leftBracket: { <synthetic>
                     rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -24419,6 +24822,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block

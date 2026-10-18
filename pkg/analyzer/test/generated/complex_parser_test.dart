@@ -548,6 +548,21 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: x
+        variables
+          LocalVariable
+            name: xor
+      semicolon: ; <synthetic>
+    ExpressionStatement
+      expression2: ParsedUnqualifiedName
+        name: y
+      expression(v1): SimpleIdentifier
+        token: y
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -557,9 +572,7 @@ Block
             name: xor
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression2: ParsedUnqualifiedName
-        name: y
-      expression(v1): SimpleIdentifier
+      expression: SimpleIdentifier
         token: y
       semicolon: ;
   rightBracket: }

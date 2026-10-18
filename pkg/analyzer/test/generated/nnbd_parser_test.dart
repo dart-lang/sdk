@@ -28,6 +28,40 @@ D? foo(X? x) {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x1
+      semicolon: ;
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x2
+            equals: =
+            initializer: BinaryOperatorInvocation
+              leftOperand: ParsedUnqualifiedName
+                name: x
+              operator: +
+              rightOperand: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: bar
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    IntegerLiteral
+                      literal: 7
+                  rightParenthesis: )
+              binaryOperator: add
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -46,21 +80,7 @@ Block
           VariableDeclaration
             name: x2
             equals: =
-            initializer2: BinaryOperatorInvocation
-              leftOperand: ParsedUnqualifiedName
-                name: x
-              operator: +
-              rightOperand: ParsedValueArguments
-                operand: ParsedUnqualifiedName
-                  name: bar
-                argumentList: ArgumentList
-                  leftParenthesis: (
-                  arguments2
-                    IntegerLiteral
-                      literal: 7
-                  rightParenthesis: )
-              binaryOperator: add
-            initializer(v1): BinaryExpression
+            initializer: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: x
               operator: +
@@ -94,25 +114,25 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: A
           question: ?
         variables
-          VariableDeclaration
+          LocalVariable
             name: a
       semicolon: ;
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: String
           question: ?
         variables
-          VariableDeclaration
+          LocalVariable
             name: s
             equals: =
-            initializer2: SimpleStringLiteral
+            initializer: SimpleStringLiteral
               literal: ''
       semicolon: ;
     ExpressionStatement
@@ -188,6 +208,66 @@ Block
             propertyName: SimpleIdentifier
               token: length
       semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: A
+          question: ?
+        variables
+          VariableDeclaration
+            name: a
+      semicolon: ;
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: String
+          question: ?
+        variables
+          VariableDeclaration
+            name: s
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: ''
+      semicolon: ;
+    ExpressionStatement
+      expression: CascadeExpression
+        target: SimpleIdentifier
+          token: a
+        cascadeSections
+          PropertyAccess
+            target: MethodInvocation
+              operator: ?..
+              methodName: SimpleIdentifier
+                token: foo
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            operator: .
+            propertyName: SimpleIdentifier
+              token: length
+          AssignmentExpression
+            leftHandSide: PropertyAccess
+              operator: ..
+              propertyName: SimpleIdentifier
+                token: x27
+            operator: =
+            rightHandSide: PostfixExpression
+              operand: SimpleIdentifier
+                token: s
+              operator: !
+          PropertyAccess
+            target: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: toString
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            operator: .
+            propertyName: SimpleIdentifier
+              token: length
+      semicolon: ;
   rightBracket: }
 ''');
   }
@@ -204,6 +284,28 @@ D? foo(X? x) {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x1
+      semicolon: ;
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x2
+            equals: =
+            initializer: ParsedUnqualifiedName
+              name: x
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -222,9 +324,7 @@ Block
           VariableDeclaration
             name: x2
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: x
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: x
       semicolon: ;
   rightBracket: }
@@ -243,13 +343,13 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: Function
           question: ?
         variables
-          VariableDeclaration
+          LocalVariable
             name: f1
       semicolon: ;
     ExpressionStatement
@@ -265,6 +365,29 @@ Block
               literal: 42
           rightParenthesis: )
       expression(v1): FunctionExpressionInvocation
+        function: PostfixExpression
+          operand: SimpleIdentifier
+            token: f1
+          operator: !
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: Function
+          question: ?
+        variables
+          VariableDeclaration
+            name: f1
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
         function: PostfixExpression
           operand: SimpleIdentifier
             token: f1
@@ -292,12 +415,12 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: Function
         variables
-          VariableDeclaration
+          LocalVariable
             name: f2
       semicolon: ;
     ExpressionStatement
@@ -319,6 +442,34 @@ Block
               literal: 42
           rightParenthesis: )
       expression(v1): FunctionExpressionInvocation
+        function: PostfixExpression
+          operand: SimpleIdentifier
+            token: f2
+          operator: !
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: Function
+        variables
+          VariableDeclaration
+            name: f2
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
         function: PostfixExpression
           operand: SimpleIdentifier
             token: f2
@@ -784,14 +935,23 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -924,7 +1084,17 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+            question: ?
+          variables
+            LocalVariable
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
             question: ?
@@ -932,7 +1102,7 @@ Block
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -1090,6 +1260,24 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: C
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1104,7 +1292,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1122,6 +1310,24 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: C
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1136,7 +1342,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1154,6 +1360,25 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: C
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1169,7 +1394,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1187,6 +1412,31 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            returnType: NamedType
+              name: C
+              question: ?
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1208,7 +1458,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1226,6 +1476,28 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            importPrefix: ImportPrefixReference
+              name: C
+              period: .
+            name: a
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1244,7 +1516,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1834,6 +2106,19 @@ void f(int? y) {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: ParsedUnqualifiedName
+                name: y
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -1841,11 +2126,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: ParsedUnqualifiedName
-                name: y
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: SimpleIdentifier
                 token: y
               operator: !
@@ -1865,14 +2146,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedNameAccess
                 operand: NullAssertionExpression
                   operand: ParsedNameAccess
@@ -1887,7 +2168,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: PrefixedIdentifier
@@ -1919,14 +2209,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedNameAccess
                 operand: NullAssertionExpression
                   operand: ParsedValueArguments
@@ -1945,7 +2235,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: MethodInvocation
@@ -1980,14 +2279,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedNameAccess
                 operand: NullAssertionExpression
                   operand: ParsedUnqualifiedName
@@ -1999,7 +2298,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: SimpleIdentifier
@@ -2076,14 +2384,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedValueArguments
                 operand: ParsedNameAccess
                   operand: NullAssertionExpression
@@ -2099,7 +2407,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: MethodInvocation
                 target: PostfixExpression
                   operand: SimpleIdentifier
@@ -2130,14 +2447,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedUnqualifiedName
@@ -2150,7 +2467,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   methodName: SimpleIdentifier
@@ -2178,14 +2504,14 @@ void f(int? y) {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ReceiverIndexExpression
                   receiver: ParsedUnqualifiedName
@@ -2199,7 +2525,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: IndexExpression
                   target: SimpleIdentifier
@@ -2228,14 +2563,14 @@ void f(int? y) {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ReceiverIndexExpression
                   receiver: ParsedNameAccess
@@ -2252,7 +2587,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: IndexExpression
                   target: PropertyAccess
@@ -2285,14 +2629,14 @@ void f(int? y) {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedUnqualifiedName
                   name: y
@@ -2301,7 +2645,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: SimpleIdentifier
                   token: y
@@ -2325,14 +2678,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedNameAccess
@@ -2348,7 +2701,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SimpleIdentifier
@@ -2379,14 +2741,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedNameAccess
@@ -2402,7 +2764,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SimpleIdentifier
@@ -2433,14 +2804,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedNameAccess
@@ -2456,7 +2827,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SuperExpression
@@ -2487,14 +2867,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: ConstructorInvocation
                 keyword: const
                 constructorReference: ConstructorReference2
@@ -2504,7 +2884,16 @@ Block
                   leftParenthesis: (
                   rightParenthesis: )
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: InstanceCreationExpression
                 keyword: const
                 constructorName: ConstructorName
@@ -2530,14 +2919,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: ConstructorInvocation
                 keyword: new
                 constructorReference: ConstructorReference2
@@ -2547,7 +2936,16 @@ Block
                   leftParenthesis: (
                   rightParenthesis: )
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
@@ -2861,6 +3259,19 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: DoubleLiteral
+                literal: 1.2
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2868,11 +3279,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: DoubleLiteral
-                literal: 1.2
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: DoubleLiteral
                 literal: 1.2
               operator: !
@@ -2892,6 +3299,19 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: IntegerLiteral
+                literal: 0
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2899,11 +3319,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: IntegerLiteral
-                literal: 0
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: IntegerLiteral
                 literal: 0
               operator: !
@@ -2923,14 +3339,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: ListLiteral
                 leftBracket: [
                 elements2
@@ -2940,7 +3356,16 @@ Block
                     literal: 2
                 rightBracket: ]
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: ListLiteral
                 leftBracket: [
                 elements
@@ -2966,14 +3391,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements2
@@ -2986,7 +3411,16 @@ Block
                 rightBracket: }
                 isMap: false
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements
@@ -3015,14 +3449,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements2
@@ -3033,7 +3467,16 @@ Block
                 rightBracket: }
                 isMap: false
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements
@@ -3060,6 +3503,19 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: SimpleStringLiteral
+                literal: "seven"
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3067,11 +3523,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: SimpleStringLiteral
-                literal: "seven"
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: SimpleStringLiteral
                 literal: "seven"
               operator: !
@@ -3091,6 +3543,19 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: NullLiteral
+                literal: null
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3098,11 +3563,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: NullLiteral
-                literal: null
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: NullLiteral
                 literal: null
               operator: !
@@ -3227,6 +3688,21 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: SymbolLiteral
+                poundSign: #
+                components
+                  seven
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3234,13 +3710,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: SymbolLiteral
-                poundSign: #
-                components
-                  seven
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: SymbolLiteral
                 poundSign: #
                 components
@@ -3262,14 +3732,14 @@ void f(Point p) {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: ParsedUnqualifiedName
@@ -3281,7 +3751,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PrefixedIdentifier
                   prefix: SimpleIdentifier
@@ -3309,14 +3788,14 @@ void f(int? y) {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParenthesizedExpression
                   leftParenthesis: (
@@ -3330,7 +3809,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: ParenthesizedExpression
                   leftParenthesis: (
@@ -3357,14 +3845,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: ParsedUnqualifiedName
@@ -3376,7 +3864,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PrefixedIdentifier
                   prefix: SimpleIdentifier
@@ -3404,14 +3901,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: ParsedUnqualifiedName
@@ -3423,7 +3920,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PropertyAccess
                   target: SimpleIdentifier
@@ -3451,14 +3957,14 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: SuperReference
@@ -3470,7 +3976,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PropertyAccess
                   target: SuperExpression

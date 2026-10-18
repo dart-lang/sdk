@@ -714,6 +714,17 @@ CompilationUnit
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -1721,6 +1732,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            ContinueStatement
+              continueKeyword: continue
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             ContinueStatement
               continueKeyword: continue
               label: LabelReference

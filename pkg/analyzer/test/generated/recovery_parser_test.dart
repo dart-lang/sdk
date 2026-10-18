@@ -2230,8 +2230,8 @@ CompilationUnit
                 expression2: NullLiteral
                   literal: null
                 semicolon: ;
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 type: NamedType
                   name: Map
                   typeArguments: TypeArgumentList
@@ -2243,29 +2243,13 @@ CompilationUnit
                         name: dynamic
                     rightBracket: >
                 variables
-                  VariableDeclaration
+                  LocalVariable
                     name: result
                     equals: =
-                    initializer2: ConstructorInvocation
+                    initializer: ConstructorInvocation
                       keyword: new
                       constructorReference: ConstructorReference2
                         typeReference: ConstructorTypeReference
-                          name: Map
-                          typeArguments: TypeArgumentList
-                            leftBracket: <
-                            arguments
-                              NamedType
-                                name: Symbol
-                              NamedType
-                                name: dynamic
-                            rightBracket: >
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        rightParenthesis: )
-                    initializer(v1): InstanceCreationExpression
-                      keyword: new
-                      constructorName: ConstructorName
-                        type: NamedType
                           name: Map
                           typeArguments: TypeArgumentList
                             leftBracket: <
@@ -2407,6 +2391,107 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: result
               expression(v1): SimpleIdentifier
+                token: result
+              semicolon: ;
+          statements(v1)
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: map
+                operator: ==
+                rightOperand: NullLiteral
+                  literal: null
+              rightParenthesis: )
+              thenStatement: ReturnStatement
+                returnKeyword: return
+                expression: NullLiteral
+                  literal: null
+                semicolon: ;
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: Map
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: Symbol
+                      NamedType
+                        name: dynamic
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: result
+                    equals: =
+                    initializer: InstanceCreationExpression
+                      keyword: new
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: Map
+                          typeArguments: TypeArgumentList
+                            leftBracket: <
+                            arguments
+                              NamedType
+                                name: Symbol
+                              NamedType
+                                name: dynamic
+                            rightBracket: >
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              semicolon: ;
+            ExpressionStatement
+              expression: MethodInvocation
+                target: SimpleIdentifier
+                  token: map
+                operator: .
+                methodName: SimpleIdentifier
+                  token: forEach
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        parameter: RegularFormalParameter
+                          name: name
+                        parameter: RegularFormalParameter
+                          name: value
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          statements
+                            ExpressionStatement
+                              expression: AssignmentExpression
+                                leftHandSide: IndexExpression
+                                  target: SimpleIdentifier
+                                    token: result
+                                  leftBracket: [
+                                  index: InstanceCreationExpression
+                                    keyword: new
+                                    constructorName: ConstructorName
+                                      type: NamedType
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                rightHandSide: SimpleIdentifier
+                                  token: value
+                              semicolon: ;
+                          rightBracket: }
+                  rightParenthesis: )
+              semicolon: ;
+            ReturnStatement
+              returnKeyword: return
+              expression: SimpleIdentifier
                 token: result
               semicolon: ;
           rightBracket: }
@@ -2901,7 +2986,13 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        LocalVariable
+          name: item
+    variables(v1): VariableDeclarationList
       type: NamedType
         name: String
       variables
@@ -2936,7 +3027,13 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        LocalVariable
+          name: item
+    variables(v1): VariableDeclarationList
       type: NamedType
         name: String
       variables
@@ -2966,12 +3063,12 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     type: NamedType
       name: String
     variables
-      VariableDeclaration
+      LocalVariable
         name: v
   semicolon: ; <synthetic>
 ''');
@@ -2990,11 +3087,11 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
-    keyword: final
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    constFinalOrVarKeyword: final
     variables
-      VariableDeclaration
+      LocalVariable
         name: <empty> <synthetic>
   semicolon: ; <synthetic>
 ''');
@@ -3010,12 +3107,12 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     type: NamedType
       name: String
     variables
-      VariableDeclaration
+      LocalVariable
         name: v
   semicolon: ; <synthetic>
 ''');
@@ -3031,12 +3128,12 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     type: NamedType
       name: String
     variables
-      VariableDeclaration
+      LocalVariable
         name: v
   semicolon: ; <synthetic>
 ''');
@@ -3052,12 +3149,12 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     type: NamedType
       name: String
     variables
-      VariableDeclaration
+      LocalVariable
         name: v
   semicolon: ; <synthetic>
 ''');
@@ -3073,8 +3170,8 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     type: NamedType
       name: List
       typeArguments: TypeArgumentList
@@ -3084,7 +3181,7 @@ VariableDeclarationStatement
             name: String
         rightBracket: >
     variables
-      VariableDeclaration
+      LocalVariable
         name: v
   semicolon: ; <synthetic>
 ''');

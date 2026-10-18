@@ -165,6 +165,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  LocalVariable
+                    name: v
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -228,6 +243,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  LocalVariable
+                    name: v
+              semicolon: ;
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -298,8 +328,8 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
-            VariableDeclarationStatement
-              variables: VariableDeclarationList
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
                 type: NamedType
                   name: C
                   typeArguments: TypeArgumentList
@@ -380,6 +410,106 @@ CompilationUnit
                             rightDelimiter: ]
                           rightParenthesis: )
                         parameters(v1): FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                            name: i
+                          leftDelimiter: [
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                            name: j
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: K
+                          rightDelimiter: ]
+                          rightParenthesis: )
+                      NamedType
+                        name: A
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: B
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: C
+                                rightBracket: >
+                          rightBracket: >
+                      NamedType
+                        name: W
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: X
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: Y
+                                    typeArguments: TypeArgumentList
+                                      leftBracket: <
+                                      arguments
+                                        NamedType
+                                          name: Z
+                                      rightBracket: >
+                                rightBracket: >
+                          rightBracket: >
+                    rightBracket: >
+                variables
+                  LocalVariable
+                    name: v
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: F
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: G
+                          rightBracket: >
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                          leftDelimiter: {
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: Bar
+                            name: b
+                          rightDelimiter: }
+                          rightParenthesis: )
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: void
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: H
+                          rightBracket: >
+                        parameters: FormalParameterList
                           leftParenthesis: (
                           parameter: RegularFormalParameter
                             type: NamedType
@@ -1761,13 +1891,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1794,13 +1932,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1827,7 +1973,7 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
           metadata
             Annotation
               atSign: @
@@ -1835,12 +1981,25 @@ Block
                 name: A
               name: SimpleIdentifier
                 token: A
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: A
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1867,7 +2026,7 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
           metadata
             Annotation
               atSign: @
@@ -1875,12 +2034,25 @@ Block
                 name: A
               name: SimpleIdentifier
                 token: A
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
+          metadata
+            Annotation
+              atSign: @
+              name: SimpleIdentifier
+                token: A
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -1907,13 +2079,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -1953,13 +2133,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -1999,13 +2187,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -2057,13 +2253,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -2115,21 +2319,33 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+            LocalVariable
+              name: j
+              equals: =
+              initializer: ParsedUnqualifiedName
+                name: count
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
             VariableDeclaration
               name: j
               equals: =
-              initializer2: ParsedUnqualifiedName
-                name: count
-              initializer(v1): SimpleIdentifier
+              initializer: SimpleIdentifier
                 token: count
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -2191,21 +2407,33 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+            LocalVariable
+              name: j
+              equals: =
+              initializer: ParsedUnqualifiedName
+                name: count
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
             VariableDeclaration
               name: j
               equals: =
-              initializer2: ParsedUnqualifiedName
-                name: count
-              initializer(v1): SimpleIdentifier
+              initializer: SimpleIdentifier
                 token: count
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -2267,13 +2495,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -2312,13 +2548,21 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
@@ -2852,6 +3096,15 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: int
+        variables
+          LocalVariable
+            name: i
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -3622,6 +3875,19 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        variables
+          LocalVariable
+            name: Function
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: final
@@ -3631,7 +3897,7 @@ Block
           VariableDeclaration
             name: Function
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
   rightBracket: }
@@ -3649,8 +3915,8 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: NamedType
             name: int
@@ -3663,6 +3929,23 @@ Block
                   name: int
             rightParenthesis: )
           parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: NamedType
+            name: int
+          functionKeyword: Function
+          parameters: FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3688,8 +3971,8 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: GenericFunctionType
             returnType: NamedType
@@ -3753,6 +4036,51 @@ Block
               name: x
             rightParenthesis: )
         variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            returnType: NamedType
+              name: Function
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+                name: x1
+              leftDelimiter: {
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Function
+                name: x
+              rightDelimiter: }
+              rightParenthesis: )
+          functionKeyword: Function
+          typeParameters: TypeParameterList
+            leftBracket: <
+            typeParameters
+              TypeParameter
+                name: B
+                extendsKeyword: extends
+                bound: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: core
+                    period: .
+                  name: int
+            rightBracket: >
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+            rightParenthesis: )
+        variables
           VariableDeclaration
             name: v
       semicolon: ;
@@ -3772,8 +4100,8 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: GenericFunctionType
             functionKeyword: Function
@@ -3805,6 +4133,29 @@ Block
                 name: int
             rightParenthesis: )
         variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+              rightParenthesis: )
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
           VariableDeclaration
             name: v
       semicolon: ;
@@ -3824,8 +4175,8 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: GenericFunctionType
             returnType: NamedType
@@ -3859,6 +4210,31 @@ Block
                 name: int
             rightParenthesis: )
         variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            returnType: NamedType
+              name: int
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+              rightParenthesis: )
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
           VariableDeclaration
             name: v
       semicolon: ;
@@ -3878,8 +4254,8 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           functionKeyword: Function
           parameters: FormalParameterList
@@ -3890,6 +4266,21 @@ Block
                   name: int
             rightParenthesis: )
           parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          functionKeyword: Function
+          parameters: FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3914,6 +4305,26 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: int
+          functionKeyword: Function
+          typeParameters: TypeParameterList
+            leftBracket: <
+            typeParameters
+              TypeParameter
+                name: T
+            rightBracket: >
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -3949,6 +4360,20 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: void
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -3977,6 +4402,21 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+            rightBracket: >
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -4006,6 +4446,21 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+            rightBracket: >
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -4035,8 +4490,8 @@ void f() {
 Block
   leftBracket: {
   statements2
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: C
           typeArguments: TypeArgumentList
@@ -4055,6 +4510,30 @@ Block
                       name: s
                   rightParenthesis: )
                 parameters(v1): FormalParameterList
+                  leftParenthesis: (
+                  parameter: RegularFormalParameter
+                    type: NamedType
+                      name: String
+                    name: s
+                  rightParenthesis: )
+            rightBracket: >
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              GenericFunctionType
+                returnType: NamedType
+                  name: T
+                functionKeyword: Function
+                parameters: FormalParameterList
                   leftParenthesis: (
                   parameter: RegularFormalParameter
                     type: NamedType
@@ -4083,6 +4562,21 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: <empty> <synthetic>
+            rightBracket: >
+        variables
+          LocalVariable
+            name: c
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -5264,6 +5758,18 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: int
+        variables
+          LocalVariable
+            name: set
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -5272,7 +5778,7 @@ Block
           VariableDeclaration
             name: set
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
   rightBracket: }
@@ -5524,6 +6030,18 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+          LocalVariable
+            name: y
+          LocalVariable
+            name: z
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -5550,6 +6068,14 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var

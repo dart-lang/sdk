@@ -1327,6 +1327,23 @@ CompilationUnit
                   token: x
                 rightBracket: ] <synthetic>
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -2580,6 +2597,23 @@ CompilationUnit
                   name: <empty> <synthetic>
                 rightBracket: ] <synthetic>
               expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
                 target: SimpleIdentifier
                   token: intList
                 leftBracket: [

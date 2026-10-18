@@ -914,14 +914,14 @@ void f() {
 
     var node = result.findNode.singleVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
-    keyword: var
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    constFinalOrVarKeyword: var
     variables
-      VariableDeclaration
+      LocalVariable
         name: _
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
           staticType: int
         declaredFragment: isPrivate _@17
@@ -941,17 +941,17 @@ void f() {
 
     var node = result.findNode.singleVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
-VariableDeclarationStatement
-  variables: VariableDeclarationList
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
     type: NamedType
       name: int
       element: dart:core::@class::int
       type: int
     variables
-      VariableDeclaration
+      LocalVariable
         name: _
         equals: =
-        initializer2: ThrowExpression
+        initializer: ThrowExpression
           throwKeyword: throw
           expression2: IntegerLiteral
             literal: 0

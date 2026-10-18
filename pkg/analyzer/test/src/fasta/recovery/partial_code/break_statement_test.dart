@@ -710,6 +710,17 @@ CompilationUnit
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            BreakStatement
+              breakKeyword: break
+              semicolon: ; <synthetic>
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -1693,6 +1704,19 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            BreakStatement
+              breakKeyword: break
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
             BreakStatement
               breakKeyword: break
               label: LabelReference
