@@ -9,8 +9,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 import 'arg_parser.dart';
+import 'bazel_uri_converter.dart';
 import 'dds_backend.dart';
 
 const _enableLoggingFlag = 'enable-logging';
@@ -163,6 +165,14 @@ ${parser.usage}''');
       : null;
   final appName =
       argResults[DartDevelopmentServiceOptions.appNameOption] as String?;
+  final google3WorkspaceRoot =
+      argResults[DartDevelopmentServiceOptions.google3WorkspaceRootOption]
+          as String?;
+  final uriConverter = google3WorkspaceRoot != null
+      ? BazelUriConverter(
+          path.normalize(path.absolute(google3WorkspaceRoot)),
+        ).uriToPath
+      : null;
 
   if (enableLogging) {
     Logger.root.level = Level.ALL;
@@ -189,6 +199,7 @@ ${parser.usage}''');
         devtoolsServerAddress: devToolsServerAddress,
         frontend: frontend,
         serveDevTools: serveDevTools,
+        uriConverter: uriConverter,
       ),
       config: DartRuntimeServiceOptions(
         disableAuthCodes: disableServiceAuthCodes,

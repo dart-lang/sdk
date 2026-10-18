@@ -26,6 +26,10 @@ import 'dds_rpcs.dart';
 import 'dds_stream_manager.dart';
 import 'rpc_extensions.dart';
 
+/// A function that converts a package or custom scheme [uri] to a local file
+/// path, or returns `null` if the URI cannot be resolved locally.
+typedef UriConverter = String? Function(String uri);
+
 final _logger = Logger('DartRuntimeServiceDdsBackend');
 
 /// A [DartRuntimeServiceBackend] implementation that provides the Dart
@@ -41,6 +45,7 @@ class DartRuntimeServiceDdsBackend
     this.customDevToolsPath,
     this.devtoolsServerAddress,
     this.serveDevTools = false,
+    this.uriConverter,
   });
 
   /// The [Uri] of the target VM Service.
@@ -61,6 +66,10 @@ class DartRuntimeServiceDdsBackend
 
   /// The application name to register with DTD.
   final String? appName;
+
+  /// A converter used to resolve package and custom scheme URIs to local file
+  /// paths.
+  final UriConverter? uriConverter;
 
   HostedDtdInfo? _hostedDartToolingDaemon;
   DtdInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
