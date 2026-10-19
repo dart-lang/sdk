@@ -182,6 +182,12 @@ final class SandboxClient {
       return await _peer.sendRequest(method, params) as T;
     } on RpcException catch (e) {
       rethrowAsDartPadException(e);
+    } finally {
+      // `Client.withoutJson` fails pending requests on a `Completer.sync()`
+      // before `_peer.listen().whenComplete` runs `_cleanup()`.
+      if (_peer.isClosed) {
+        _cleanup();
+      }
     }
   }
 
