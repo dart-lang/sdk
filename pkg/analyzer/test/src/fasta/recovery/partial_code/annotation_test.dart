@@ -33,7 +33,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -45,6 +45,22 @@ CompilationUnit
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -95,12 +111,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: <empty> <synthetic>
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -130,12 +158,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: <empty> <synthetic>
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -144,7 +187,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -168,12 +211,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: <empty> <synthetic>
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -182,7 +240,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -428,7 +486,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -457,6 +515,28 @@ CompilationUnit
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -509,7 +589,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -526,6 +606,24 @@ CompilationUnit
                       SimpleIdentifier
                         token: <empty> <synthetic>
                     rightParenthesis: ) <synthetic>
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
@@ -588,7 +686,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -613,13 +711,34 @@ CompilationUnit
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
             fields: VariableDeclarationList
               keyword: final
               variables
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }

@@ -55,7 +55,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -63,11 +63,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -203,12 +202,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -278,15 +276,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -359,15 +356,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -785,7 +781,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -793,11 +789,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -933,12 +928,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -1008,15 +1002,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -1089,15 +1082,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -2012,7 +2004,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -2020,11 +2012,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -2118,12 +2109,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -2172,15 +2162,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -2232,15 +2221,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3140,7 +3128,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -3148,11 +3136,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3259,12 +3246,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3320,15 +3306,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3387,15 +3372,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3743,7 +3727,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -3751,11 +3735,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3867,12 +3850,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3930,15 +3912,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -3999,15 +3980,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -4366,7 +4346,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -4374,11 +4354,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -4493,12 +4472,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -4558,15 +4536,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -4629,15 +4606,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -5012,7 +4988,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -5020,11 +4996,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -5164,12 +5139,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -5241,15 +5215,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -5324,15 +5297,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -5760,7 +5732,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -5768,11 +5740,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -5912,12 +5883,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -5989,15 +5959,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -6072,15 +6041,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -7023,7 +6991,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -7031,11 +6999,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -7133,12 +7100,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -7189,15 +7155,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -7251,15 +7216,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -8187,7 +8151,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -8195,11 +8159,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -8310,12 +8273,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -8373,15 +8335,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -8442,15 +8403,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -8808,7 +8768,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -8816,11 +8776,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -8936,12 +8895,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -9001,15 +8959,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -9072,15 +9029,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -9449,7 +9405,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -9457,11 +9413,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -9580,12 +9535,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -9647,15 +9601,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -9720,15 +9673,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -10114,7 +10066,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -10122,11 +10074,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -10274,12 +10225,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -10355,15 +10305,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -10442,15 +10391,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -10898,7 +10846,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -10906,11 +10854,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -11058,12 +11005,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -11139,15 +11085,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -11226,15 +11171,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -12233,7 +12177,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -12241,11 +12185,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -12351,12 +12294,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -12411,15 +12353,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -12477,15 +12418,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -13469,7 +13409,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -13477,11 +13417,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -13600,12 +13539,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -13667,15 +13605,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -13740,15 +13677,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -14126,7 +14062,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -14134,11 +14070,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -14262,12 +14197,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -14331,15 +14265,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -14406,15 +14339,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -14803,7 +14735,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -14811,11 +14743,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -14942,12 +14873,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -15013,15 +14943,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -15090,15 +15019,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -15501,7 +15429,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -15509,11 +15437,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -15657,12 +15584,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -15736,15 +15662,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -15821,15 +15746,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -16267,7 +16191,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -16275,11 +16199,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -16423,12 +16346,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -16502,15 +16424,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -16587,15 +16508,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -17566,7 +17486,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -17574,11 +17494,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -17680,12 +17599,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -17738,15 +17656,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -17802,15 +17719,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -18766,7 +18682,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -18774,11 +18690,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -18893,12 +18808,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -18958,15 +18872,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -19029,15 +18942,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -19405,7 +19317,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -19413,11 +19325,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -19537,12 +19448,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -19604,15 +19514,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -19677,15 +19586,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -20064,7 +19972,7 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -20072,11 +19980,10 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -20199,12 +20106,11 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -20268,15 +20174,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration
@@ -20343,15 +20248,14 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ;
         members(v1)
           MethodDeclaration

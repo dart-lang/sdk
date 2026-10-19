@@ -733,6 +733,39 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> foo@49
+        semicolon: ;
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: bar
+            equals: =
+            initializer: IntegerLiteral
+              literal: 1
+              staticType: int
+            declaredFragment: <testLibraryFragment> bar@77
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -745,7 +778,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@49
@@ -763,7 +796,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@77
@@ -3847,6 +3880,22 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        fields
+          Field
+            name: int
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: 'not a type'
+            declaredFragment: <testLibraryFragment> int@49
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -3859,7 +3908,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@49
         semicolon: ;
@@ -3917,6 +3966,22 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        fields
+          Field
+            name: int
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: 'not a type'
+            declaredFragment: <testLibraryFragment> int@65
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -3929,7 +3994,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@65
         semicolon: ;

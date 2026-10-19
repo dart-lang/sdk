@@ -839,14 +839,25 @@ enum E {
 
     var node = result.findNode.fieldDeclaration('foo =');
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: foo
+      equals: =
+      initializer: IntegerLiteral
+        literal: 42
+        staticType: int
+      declaredFragment: <testLibraryFragment> foo@22
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     variables
       VariableDeclaration
         name: foo
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 42
           staticType: int
         declaredFragment: <testLibraryFragment> foo@22
@@ -1613,6 +1624,18 @@ EnumDeclaration
         declaredFragment: <testLibraryFragment> v@23
     semicolon: ;
     members2
+      FieldsDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: a
+            declaredFragment: <testLibraryFragment> a@41
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -2635,20 +2658,28 @@ enum A(int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@34
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2668,20 +2699,28 @@ enum A(final int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@40
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2705,7 +2744,21 @@ enum A(int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@39
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: final
@@ -2713,12 +2766,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2740,7 +2788,21 @@ enum A(int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@39
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   fields: VariableDeclarationList
     keyword: var
@@ -2748,12 +2810,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType

@@ -846,6 +846,18 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -855,7 +867,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -881,6 +893,19 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -891,7 +916,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -931,6 +956,18 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -940,7 +977,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -979,6 +1016,18 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -988,7 +1037,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }

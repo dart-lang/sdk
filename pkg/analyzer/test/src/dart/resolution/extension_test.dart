@@ -60,6 +60,22 @@ ExtensionDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: f
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> f@34
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -71,7 +87,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: f
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> f@34

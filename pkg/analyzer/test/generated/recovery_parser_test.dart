@@ -1588,6 +1588,32 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: v
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: a
+                equals: =
+                expression: RecordLiteral
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -2804,6 +2830,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2835,6 +2868,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2866,6 +2906,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: c
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2896,6 +2943,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: c
+            fields
+              Field
+                name: x
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2929,6 +2985,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -2959,6 +3021,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -3259,6 +3328,21 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: > <synthetic>
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3429,6 +3513,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: SetOrMapLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: A
+                      NamedType
+                        name: B
+                    rightBracket: >
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -3436,7 +3540,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SetOrMapLiteral
+                  initializer: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: <
                       arguments
@@ -3472,6 +3576,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: G
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                  NamedType
+                    name: double
+                rightBracket: >
+            fields
+              Field
+                name: g
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType

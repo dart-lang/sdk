@@ -2364,6 +2364,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: a
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2371,7 +2381,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -2443,6 +2453,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: a
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2450,7 +2470,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -2617,11 +2637,10 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: mixin
+          FieldsDeclaration
+            fields
+              Field
+                name: mixin
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: M
@@ -2726,16 +2745,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: A
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: B
-                  initializer(v1): SimpleIdentifier
-                    token: B
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: B
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: Function
@@ -2793,6 +2809,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: a
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var

@@ -191,7 +191,19 @@ class A<T> {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  type: NamedType
+    name: T
+    question: ?
+    element: #E0 T
+    type: InvalidType
+  fields
+    Field
+      name: foo
+      declaredFragment: <testLibraryFragment> foo@25
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   fields: VariableDeclarationList
     type: NamedType
@@ -706,6 +718,39 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> foo@59
+        semicolon: ;
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: bar
+            equals: =
+            initializer: IntegerLiteral
+              literal: 1
+              staticType: int
+            declaredFragment: <testLibraryFragment> bar@87
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -718,7 +763,7 @@ ClassDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@59
@@ -736,7 +781,7 @@ ClassDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@87
@@ -797,6 +842,18 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: a
+            declaredFragment: <testLibraryFragment> a@34
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -2183,20 +2240,28 @@ class A(int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@25
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2215,20 +2280,28 @@ class A(final int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@31
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2249,7 +2322,21 @@ class A(int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@30
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: var
@@ -2257,12 +2344,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2283,7 +2365,21 @@ class A(int foo) {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@32
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   fields: VariableDeclarationList
     keyword: var
@@ -2291,12 +2387,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType

@@ -4624,13 +4624,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
             semicolon: ;
           ConstructorDeclaration
             typeName2: C
@@ -4643,6 +4642,25 @@ CompilationUnit
                   name: this
               rightParenthesis: )
             parameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: this
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
@@ -4674,13 +4692,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
             semicolon: ;
           ConstructorDeclaration
             typeName2: C
@@ -4695,6 +4712,27 @@ CompilationUnit
                   name: p
               rightParenthesis: )
             parameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: this
+              parameter: RegularFormalParameter
+                name: p
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
@@ -4728,13 +4766,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
             semicolon: ;
           ConstructorDeclaration
             typeName2: C
@@ -4749,6 +4786,27 @@ CompilationUnit
                   name: <empty> <synthetic>
               rightParenthesis: )
             parameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: FieldFormalParameter
+                thisKeyword: this
+                period: .
+                name: <empty> <synthetic>
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this
@@ -4782,13 +4840,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
             semicolon: ;
           ConstructorDeclaration
             typeName2: C
@@ -4805,6 +4862,29 @@ CompilationUnit
                   name: p
               rightParenthesis: )
             parameters(v1): FormalParameterList
+              leftParenthesis: (
+              parameter: FieldFormalParameter
+                thisKeyword: this
+                period: .
+                name: <empty> <synthetic>
+              parameter: RegularFormalParameter
+                name: p
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this

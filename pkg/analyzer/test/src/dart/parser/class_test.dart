@@ -1558,6 +1558,17 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        type: NamedType
+          name: int
+          question: ?
+        fields
+          Field
+            name: foo
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract
@@ -1590,6 +1601,17 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        type: NamedType
+          name: int
+          question: ?
+        fields
+          Field
+            name: foo
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract
@@ -1620,6 +1642,18 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -1629,7 +1663,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1651,6 +1685,19 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        covariantKeyword: covariant
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         covariantKeyword: covariant
@@ -1661,7 +1708,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1683,6 +1730,16 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        lateKeyword: late
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -1712,6 +1769,19 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1722,7 +1792,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1744,6 +1814,20 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1755,7 +1839,7 @@ ClassDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -1776,6 +1860,17 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        type: NamedType
+          name: int
+          question: ?
+        fields
+          Field
+            name: foo
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract
@@ -1808,6 +1903,17 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        staticKeyword: static
+        abstractKeyword: abstract
+        type: NamedType
+          name: int
+          question: ?
+        fields
+          Field
+            name: foo
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract

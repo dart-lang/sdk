@@ -874,6 +874,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: x
+            semicolon: ;
+          ConstructorDeclaration
+            typeName2: A
+            typeName(v1): SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -884,8 +904,7 @@ CompilationUnit
                   name: x
             semicolon: ;
           ConstructorDeclaration
-            typeName2: A
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: A
             parameters: FormalParameterList
               leftParenthesis: (
@@ -935,6 +954,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -5934,13 +5960,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
             semicolon: ;
           GetterDeclaration
             returnType: NamedType

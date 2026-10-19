@@ -912,6 +912,18 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -921,7 +933,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -944,6 +956,19 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -954,7 +979,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -977,6 +1002,20 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -988,7 +1027,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }

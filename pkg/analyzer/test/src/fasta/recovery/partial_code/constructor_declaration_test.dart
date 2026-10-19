@@ -57,12 +57,42 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -114,12 +144,42 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -214,6 +274,31 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -264,6 +349,34 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -271,7 +384,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -317,6 +430,34 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -324,7 +465,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -766,6 +907,31 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -818,12 +984,42 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -884,12 +1080,48 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -1002,6 +1234,37 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -1061,6 +1324,40 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1068,7 +1365,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1123,6 +1420,40 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -1130,7 +1461,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1622,6 +1953,31 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -1674,6 +2030,34 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1681,7 +2065,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1729,6 +2113,34 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: f
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -1736,7 +2148,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1874,12 +2286,44 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -1990,6 +2434,33 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -2048,6 +2519,36 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2055,7 +2556,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2109,6 +2610,36 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PostfixExpression
+                  operand: SimpleIdentifier
+                    token: f
+                  operator: ++
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2116,7 +2647,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2826,6 +3357,34 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2833,7 +3392,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2881,6 +3440,34 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2888,7 +3475,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3192,12 +3779,40 @@ CompilationUnit
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -3288,6 +3903,29 @@ CompilationUnit
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -3336,6 +3974,32 @@ CompilationUnit
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -3343,7 +4007,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3387,6 +4051,32 @@ CompilationUnit
                   token: <empty> <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3394,7 +4084,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3857,12 +4547,41 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -3918,12 +4637,44 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -4022,6 +4773,33 @@ CompilationUnit
                 period: .
                 constructorName: SimpleIdentifier
                   token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
             body: BlockFunctionBody
               block: Block
                 leftBracket: { <synthetic>
@@ -4130,6 +4908,36 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -4137,7 +4945,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4580,6 +5388,30 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -4627,6 +5459,33 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -4634,7 +5493,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4677,6 +5536,33 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -4684,7 +5570,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4985,12 +5871,44 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -5095,6 +6013,33 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -5150,6 +6095,36 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -5157,7 +6132,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5208,6 +6183,36 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: ?.
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -5215,7 +6220,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }

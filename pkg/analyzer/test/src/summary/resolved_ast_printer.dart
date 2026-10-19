@@ -929,6 +929,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (_view == _AstView.v2) {
+      _writeFieldDeclarationAsFieldsDeclaration(node);
+      return;
+    }
+
     _sink.writeln('FieldDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2568,6 +2573,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    if (_view == _AstView.v2) {
+      _writeVariableDeclarationAsField(node);
+      return;
+    }
+
     _sink.writeln('VariableDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2670,6 +2680,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     } else if (node case StatementImpl statement) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Statement(statement);
+    }
+
+    // TODO(scheglov): Remove when fields are parsed as FieldsDeclaration,
+    // which has a distinct V1 projection.
+    if (node is FieldDeclaration) {
+      _withInlineV1ChildEntities(false, () => writeNode(node));
+      _sink.writeWithIndent('V1: ');
+      _withView(_AstView.v1, () => _acceptInView(node));
+      return;
     }
 
     if (v1 == null || identical(v1, node)) {
@@ -2939,6 +2958,31 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  /// Writes a field [node] as it will be printed once fields are parsed as
+  /// `FieldsDeclaration`.
+  // TODO(scheglov): Remove when fields are parsed as FieldsDeclaration.
+  void _writeFieldDeclarationAsFieldsDeclaration(FieldDeclaration node) {
+    node as FieldDeclarationImpl;
+    var fields = node.fields;
+    _sink.writeln('FieldsDeclaration');
+    _sink.withIndent(() {
+      for (var entity in node.namedChildEntities2) {
+        if (entity.name == 'fields') {
+          for (var listEntity in fields.namedChildEntities2) {
+            var name = switch (listEntity.name) {
+              'keyword' => 'constFinalOrVarKeyword',
+              'variables' => 'fields',
+              var name => name,
+            };
+            _writeNamedChildEntity(fields, listEntity, name: name);
+          }
+        } else {
+          _writeNamedChildEntity(node, entity);
+        }
+      }
+    });
+  }
+
   void _writeFormalParameterFragments(
     List<FormalParameterFragmentImpl> fragments,
   ) {
@@ -3164,7 +3208,8 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          !_sameChildEntityValue(entity2.value, entity.value)) {
+          (!_sameChildEntityValue(entity2.value, entity.value) ||
+              _hasFieldDeclarations(entity2.value))) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3456,6 +3501,21 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  /// Writes a field [node] as it will be printed once fields are parsed as
+  /// `Field`.
+  // TODO(scheglov): Remove when fields are parsed as FieldsDeclaration.
+  void _writeVariableDeclarationAsField(VariableDeclaration node) {
+    node as VariableDeclarationImpl;
+    _sink.writeln('Field');
+    _sink.withIndent(() {
+      for (var entity in node.namedChildEntities2) {
+        var name = entity.name == 'initializer2' ? 'initializer' : entity.name;
+        _writeNamedChildEntity(node, entity, name: name);
+      }
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
   void _writeVariableElementFlags(VariableElementImpl element) {
     _sink.writeIf(element.hasImplicitType, ' hasImplicitType');
     _sink.writeIf(element.isConst, ' isConst');
@@ -3535,6 +3595,15 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
+  }
+
+  /// Whether [value] is a member list with a [FieldDeclaration], which will
+  /// differ from its V1 projection once fields are parsed as
+  /// `FieldsDeclaration`.
+  // TODO(scheglov): Remove when fields are parsed as FieldsDeclaration.
+  static bool _hasFieldDeclarations(Object value) {
+    return value is List<AstNode> &&
+        value.any((node) => node is FieldDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

@@ -35,6 +35,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -42,17 +65,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -84,6 +103,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -91,9 +120,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -119,6 +146,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -126,9 +169,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -161,6 +202,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -168,20 +230,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -217,6 +266,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -224,9 +292,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -236,7 +302,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -260,17 +326,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -320,6 +383,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -327,21 +414,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -367,6 +448,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -374,14 +479,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -412,17 +511,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -479,6 +575,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -486,15 +605,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -524,6 +641,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -531,7 +658,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -555,6 +682,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -562,7 +705,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -593,6 +736,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -600,7 +762,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -610,7 +772,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -634,6 +796,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -641,7 +822,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -651,7 +832,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -675,15 +856,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -737,15 +917,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -808,15 +987,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -877,15 +1055,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -944,6 +1121,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -955,8 +1152,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -986,6 +1181,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1014,6 +1216,19 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1049,6 +1264,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1063,7 +1294,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1087,6 +1318,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1101,7 +1348,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1125,14 +1372,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -1181,14 +1427,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -1246,12 +1491,11 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -1362,6 +1606,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1373,8 +1637,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -1406,6 +1668,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1434,6 +1703,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1462,6 +1738,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1469,7 +1755,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1493,6 +1779,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -1500,7 +1796,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1715,6 +2011,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -1722,17 +2041,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -1764,6 +2079,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -1771,9 +2096,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -1799,6 +2122,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -1806,9 +2145,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1841,6 +2178,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -1848,20 +2206,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -1897,6 +2242,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -1904,9 +2268,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -1916,7 +2278,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -1940,17 +2302,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -2000,6 +2359,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2007,21 +2390,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -2047,6 +2424,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2054,14 +2455,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -2092,17 +2487,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -2159,6 +2551,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2166,15 +2581,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -2204,6 +2617,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2211,7 +2634,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -2235,6 +2658,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2242,7 +2681,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -2273,6 +2712,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2280,7 +2738,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -2290,7 +2748,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2314,6 +2772,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2321,7 +2798,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -2331,7 +2808,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2355,15 +2832,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -2417,15 +2893,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -2488,15 +2963,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -2557,15 +3031,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -2624,6 +3097,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2635,8 +3128,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -2666,6 +3157,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2694,6 +3192,19 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2729,6 +3240,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2743,7 +3270,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2767,6 +3294,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2781,7 +3324,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -2805,14 +3348,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -2861,14 +3403,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -2926,12 +3467,11 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -3042,6 +3582,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3053,8 +3613,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -3086,6 +3644,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3114,6 +3679,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3142,6 +3714,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3149,7 +3731,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3173,6 +3755,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3180,7 +3772,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3395,6 +3987,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3403,17 +4019,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -3445,6 +4057,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3453,9 +4076,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -3481,6 +4102,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3489,9 +4127,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -3524,6 +4160,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3532,20 +4190,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -3581,6 +4226,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3589,9 +4254,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -3601,7 +4264,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -3625,18 +4288,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -3687,6 +4347,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3695,21 +4380,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -3735,6 +4414,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3743,14 +4447,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -3781,18 +4479,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -3850,6 +4545,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3858,15 +4577,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -3896,6 +4613,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3904,7 +4632,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -3928,6 +4656,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3936,7 +4681,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -3967,6 +4712,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -3975,7 +4740,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -3985,7 +4750,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4009,6 +4774,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4017,7 +4802,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -4027,7 +4812,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4051,16 +4836,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -4115,16 +4899,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -4188,16 +4971,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -4259,16 +5041,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -4328,6 +5109,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4340,8 +5142,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -4371,6 +5171,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4400,6 +5208,20 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4436,6 +5258,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4451,7 +5290,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4475,6 +5314,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4490,7 +5346,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4514,15 +5370,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+            constFinalOrVarKeyword: const
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -4572,15 +5427,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+            constFinalOrVarKeyword: const
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -4639,13 +5493,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: const
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -4759,6 +5612,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4771,8 +5645,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -4804,6 +5676,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4833,6 +5713,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4862,6 +5750,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4870,7 +5769,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -4894,6 +5793,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -4902,7 +5812,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5125,6 +6035,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5133,17 +6067,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -5175,6 +6105,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5183,9 +6124,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -5211,6 +6150,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5219,9 +6175,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5254,6 +6208,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5262,20 +6238,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -5311,6 +6274,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5319,9 +6302,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5331,7 +6312,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5355,18 +6336,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -5417,6 +6395,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5425,21 +6428,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -5465,6 +6462,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5473,14 +6495,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -5511,18 +6527,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -5580,6 +6593,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5588,15 +6625,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -5626,6 +6661,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5634,7 +6680,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -5658,6 +6704,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5666,7 +6729,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5697,6 +6760,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5705,7 +6788,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5715,7 +6798,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5739,6 +6822,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -5747,7 +6850,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -5757,7 +6860,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -5781,16 +6884,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -5845,16 +6947,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -5918,16 +7019,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -5989,16 +7089,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -6058,6 +7157,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6070,8 +7190,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -6101,6 +7219,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6130,6 +7256,20 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6166,6 +7306,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6181,7 +7338,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6205,6 +7362,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6220,7 +7394,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6244,15 +7418,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -6302,15 +7475,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -6369,13 +7541,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: final
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -6489,6 +7660,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6501,8 +7693,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -6534,6 +7724,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6563,6 +7761,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6592,6 +7798,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6600,7 +7817,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6624,6 +7841,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6632,7 +7860,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -6855,6 +8083,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6864,17 +8117,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -6906,6 +8155,18 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6915,9 +8176,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -6943,6 +8202,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6952,9 +8229,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -6987,6 +8262,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -6996,20 +8294,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -7045,6 +8330,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7054,9 +8360,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7066,7 +8370,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7090,19 +8394,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -7154,6 +8455,32 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7163,21 +8490,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -7203,6 +8524,32 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7212,14 +8559,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -7250,19 +8591,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -7321,6 +8659,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7330,15 +8693,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -7368,6 +8729,18 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7377,7 +8750,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -7401,6 +8774,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7410,7 +8801,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7441,6 +8832,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7450,7 +8862,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7460,7 +8872,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7484,6 +8896,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7493,7 +8926,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -7503,7 +8936,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7527,17 +8960,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -7593,17 +9025,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -7668,17 +9099,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -7741,17 +9171,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -7812,6 +9241,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7825,8 +9276,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -7856,6 +9305,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7886,6 +9344,21 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7923,6 +9396,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7939,7 +9430,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -7963,6 +9454,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -7979,7 +9488,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -8003,14 +9512,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -8063,14 +9571,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -8132,14 +9639,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -8199,14 +9705,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -8265,6 +9770,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8276,8 +9801,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -8308,6 +9831,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8337,6 +9867,19 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8373,6 +9916,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8387,7 +9946,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -8412,6 +9971,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8426,7 +10001,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -8450,14 +10025,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: int
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -8506,14 +10080,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: int
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -8572,12 +10145,11 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: A
+            fields
+              Field
+                name: A
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -8688,6 +10260,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8696,17 +10292,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -8738,6 +10330,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8746,9 +10349,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -8774,6 +10375,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8782,9 +10400,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -8817,6 +10433,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8825,20 +10463,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -8874,6 +10499,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8882,9 +10527,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -8894,7 +10537,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -8918,18 +10561,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -8980,6 +10620,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -8988,21 +10653,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -9028,6 +10687,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9036,14 +10720,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -9074,18 +10752,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -9143,6 +10818,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9151,15 +10850,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -9189,6 +10886,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9197,7 +10905,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -9221,6 +10929,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9229,7 +10954,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -9260,6 +10985,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9268,7 +11013,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -9278,7 +11023,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9302,6 +11047,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9310,7 +11075,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -9320,7 +11085,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9344,16 +11109,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -9408,16 +11172,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -9481,16 +11244,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -9552,16 +11314,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -9621,6 +11382,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9633,8 +11415,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -9664,6 +11444,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9693,6 +11481,20 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9729,6 +11531,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9744,7 +11563,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9768,6 +11587,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -9783,7 +11619,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -9809,15 +11645,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -9869,15 +11704,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -9936,13 +11770,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
+          FieldsDeclaration
             staticKeyword: static
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -10056,6 +11889,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -10068,8 +11922,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -10101,6 +11953,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -10130,6 +11990,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -10159,6 +12027,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -10167,7 +12046,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -10191,6 +12070,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            staticKeyword: static
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -10199,7 +12089,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -10422,6 +12312,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10430,17 +12344,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -10472,6 +12382,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10480,9 +12401,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -10508,6 +12427,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10516,9 +12452,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -10551,6 +12485,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10559,20 +12515,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -10608,6 +12551,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10616,9 +12579,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -10628,7 +12589,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -10652,18 +12613,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -10714,6 +12672,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10722,21 +12705,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -10762,6 +12739,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10770,14 +12772,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -10808,18 +12804,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -10877,6 +12870,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10885,15 +12902,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -10923,6 +12938,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10931,7 +12957,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -10955,6 +12981,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -10963,7 +13006,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -10994,6 +13037,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11002,7 +13065,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -11012,7 +13075,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -11036,6 +13099,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11044,7 +13127,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -11054,7 +13137,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -11078,16 +13161,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -11142,16 +13224,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -11215,16 +13296,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -11286,16 +13366,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -11355,6 +13434,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11367,8 +13467,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -11400,6 +13498,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11414,8 +13535,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -11447,6 +13566,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11480,6 +13609,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11520,6 +13665,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11537,7 +13701,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -11563,6 +13727,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11580,7 +13763,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -11604,15 +13787,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -11662,15 +13844,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -11731,15 +13912,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: <empty> <synthetic>
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -11800,15 +13980,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: set
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+              Field
+                name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -11865,6 +14044,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11894,6 +14081,20 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11930,6 +14131,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11945,7 +14163,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -11969,6 +14187,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -11984,7 +14219,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12008,13 +14243,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -12066,13 +14300,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -12133,13 +14366,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -12198,13 +14430,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -12262,6 +14493,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -12272,8 +14522,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -12304,6 +14552,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -12332,6 +14586,18 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -12367,6 +14633,21 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -12380,7 +14661,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12405,6 +14686,21 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -12418,7 +14714,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12442,13 +14738,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -12496,13 +14791,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: A
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            type: NamedType
+              name: A
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -12560,11 +14854,10 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: A
+          FieldsDeclaration
+            fields
+              Field
+                name: A
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -12672,6 +14965,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -12679,17 +14995,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -12721,6 +15033,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -12728,9 +15050,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
         rightBracket: }
@@ -12756,6 +15076,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -12763,9 +15099,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -12798,6 +15132,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: DirectAssignment
+                  target: InvalidExpressionAssignmentTarget
+                    expression: ConstructorInvocation
+                      keyword: const
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: f
+                      argumentList: ArgumentList
+                        leftParenthesis: ( <synthetic>
+                        rightParenthesis: ) <synthetic>
+                  operator: =
+                  value: IntegerLiteral
+                    literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -12805,20 +15160,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: DirectAssignment
-                    target: InvalidExpressionAssignmentTarget
-                      expression: ConstructorInvocation
-                        keyword: const
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: f
-                        argumentList: ArgumentList
-                          leftParenthesis: ( <synthetic>
-                          rightParenthesis: ) <synthetic>
-                    operator: =
-                    value: IntegerLiteral
-                      literal: 0
-                  initializer(v1): AssignmentExpression
+                  initializer: AssignmentExpression
                     leftHandSide: InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName
@@ -12854,6 +15196,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -12861,9 +15222,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: <empty> <synthetic>
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -12873,7 +15232,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -12897,17 +15256,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: int
-                  initializer(v1): SimpleIdentifier
-                    token: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -12957,6 +15313,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: IntegerLiteral
+                      literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -12964,21 +15344,15 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: IntegerLiteral
+                      expression: IntegerLiteral
                         literal: 0
             semicolon: ;
         rightBracket: }
@@ -13004,6 +15378,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    requiredPositionalFormalParameters
+                      RegularFormalParameter
+                        name: b
+                    rightParenthesis: )
+                  parameters(v1): FormalParameterList
+                    leftParenthesis: (
+                    parameter: RegularFormalParameter
+                      name: b
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13011,14 +15409,8 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: FunctionExpression
+                  initializer: FunctionExpression
                     parameters: FormalParameterList
-                      leftParenthesis: (
-                      requiredPositionalFormalParameters
-                        RegularFormalParameter
-                          name: b
-                      rightParenthesis: )
-                    parameters(v1): FormalParameterList
                       leftParenthesis: (
                       parameter: RegularFormalParameter
                         name: b
@@ -13049,17 +15441,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: set
-                  initializer(v1): SimpleIdentifier
-                    token: set
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -13116,6 +15505,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13123,15 +15535,13 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -13161,6 +15571,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13168,7 +15588,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
         rightBracket: }
@@ -13192,6 +15612,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13199,7 +15635,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -13230,6 +15666,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13237,7 +15692,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -13247,7 +15702,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -13271,6 +15726,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13278,7 +15752,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
           FieldDeclaration
@@ -13288,7 +15762,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -13312,15 +15786,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           GetterDeclaration
             returnType: NamedType
@@ -13374,15 +15847,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -13445,15 +15917,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -13514,15 +15985,14 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                  equals: =
-                  initializer2: IntegerLiteral
-                    literal: 0
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
             semicolon: ; <synthetic>
           SetterDeclaration
             setKeyword: set
@@ -13581,6 +16051,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13592,8 +16082,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -13625,6 +16113,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13638,8 +16148,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -13671,6 +16179,15 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13703,6 +16220,21 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13742,6 +16274,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13758,7 +16308,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -13784,6 +16334,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -13800,7 +16368,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -13824,14 +16392,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -13880,14 +16447,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -13947,14 +16513,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: <empty> <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: <empty> <synthetic>
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -14014,14 +16579,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
-                VariableDeclaration
-                  name: set
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+              Field
+                name: set
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -14077,6 +16641,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14105,6 +16676,19 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14140,6 +16724,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14154,7 +16754,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -14178,6 +16778,22 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14192,7 +16808,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -14218,14 +16834,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           GetterDeclaration
             getKeyword: get
@@ -14276,14 +16891,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              type: NamedType
-                name: f
-              variables
-                VariableDeclaration
-                  name: int
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            type: NamedType
+              name: f
+            fields
+              Field
+                name: int
             semicolon: ; <synthetic>
           MethodDeclaration2
             name: a
@@ -14341,12 +16955,11 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              keyword: var
-              variables
-                VariableDeclaration
-                  name: f
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
             semicolon: ; <synthetic>
           MethodDeclaration2
             returnType: NamedType
@@ -14457,6 +17070,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14468,8 +17101,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -14501,6 +17132,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14529,6 +17167,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14557,6 +17202,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14564,7 +17219,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -14588,6 +17243,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -14595,7 +17260,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }

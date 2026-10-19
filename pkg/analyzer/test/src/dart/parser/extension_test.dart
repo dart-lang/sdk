@@ -291,6 +291,19 @@ ExtensionDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -301,7 +314,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -322,6 +335,20 @@ ExtensionDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -333,7 +360,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }

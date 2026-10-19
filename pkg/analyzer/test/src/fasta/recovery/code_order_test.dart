@@ -869,13 +869,12 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: dynamic
+          FieldsDeclaration
+            fields
+              Field
+                name: dynamic
             semicolon: ; <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -904,6 +903,35 @@ CompilationUnit
                           leftParenthesis: (
                           rightParenthesis: )
                     rightParenthesis: )
+                name: SimpleIdentifier
+                  token: A
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    InstanceCreationExpression
+                      keyword: const
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  rightParenthesis: )
+            fields
+              Field
+                name: x
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: dynamic
+            semicolon: ; <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: A
                 arguments: ArgumentList

@@ -119,7 +119,18 @@ mixin M<T> {
 
     var node = result.findNode.singleFieldDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  type: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  fields
+    Field
+      name: f
+      declaredFragment: <testLibraryFragment> f@22
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     type: NamedType

@@ -1782,7 +1782,15 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  covariantKeyword: covariant
+  type: NamedType
+    name: T
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   covariantKeyword: covariant
   fields: VariableDeclarationList
     type: NamedType
@@ -1802,7 +1810,50 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: N
+            rightBracket: >
+      rightBracket: >
+  fields
+    Field
+      name: _allComponents
+      equals: =
+      initializer: ConstructorInvocation
+        keyword: new
+        constructorReference: ConstructorReference2
+          typeReference: ConstructorTypeReference
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: List
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: N
+                    rightBracket: >
+              rightBracket: >
+          selector: ConstructorSelector
+            period: .
+            name2: empty
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: NamedType
       name: List
@@ -1822,30 +1873,7 @@ FieldDeclaration
       VariableDeclaration
         name: _allComponents
         equals: =
-        initializer2: ConstructorInvocation
-          keyword: new
-          constructorReference: ConstructorReference2
-            typeReference: ConstructorTypeReference
-              name: List
-              typeArguments: TypeArgumentList
-                leftBracket: <
-                arguments
-                  NamedType
-                    name: List
-                    typeArguments: TypeArgumentList
-                      leftBracket: <
-                      arguments
-                        NamedType
-                          name: N
-                      rightBracket: >
-                rightBracket: >
-            selector: ConstructorSelector
-              period: .
-              name2: empty
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-        initializer(v1): InstanceCreationExpression
+        initializer: InstanceCreationExpression
           keyword: new
           constructorName: ConstructorName
             type: NamedType
@@ -1880,19 +1908,35 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: GenericFunctionType
+    returnType: GenericFunctionType
+      functionKeyword: Function
+      parameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+        rightParenthesis: )
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: String
+      rightParenthesis: )
+  fields
+    Field
+      name: v
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: GenericFunctionType
       returnType: GenericFunctionType
         functionKeyword: Function
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1900,13 +1944,6 @@ FieldDeclaration
           rightParenthesis: )
       functionKeyword: Function
       parameters: FormalParameterList
-        leftParenthesis: (
-        requiredPositionalFormalParameters
-          RegularFormalParameter
-            type: NamedType
-              name: String
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -1927,21 +1964,28 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: GenericFunctionType
+    functionKeyword: Function
+    parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+        RegularFormalParameter
+          type: NamedType
+            name: String
+      rightParenthesis: )
+  fields
+    Field
+      name: v
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: GenericFunctionType
       functionKeyword: Function
       parameters: FormalParameterList
-        leftParenthesis: (
-        requiredPositionalFormalParameters
-          RegularFormalParameter
-            type: NamedType
-              name: int
-          RegularFormalParameter
-            type: NamedType
-              name: String
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -1965,7 +2009,17 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: NamedType
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+    name: A
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1987,7 +2041,13 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: get
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
@@ -2005,7 +2065,13 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: operator
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
@@ -2023,16 +2089,28 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: operator
+      equals: =
+      initializer: ParenthesizedExpression
+        leftParenthesis: (
+        expression2: IntegerLiteral
+          literal: 5
+        rightParenthesis: )
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
       VariableDeclaration
         name: operator
         equals: =
-        initializer2: ParenthesizedExpression
+        initializer: ParenthesizedExpression
           leftParenthesis: (
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 5
           rightParenthesis: )
   semicolon: ;
@@ -2047,7 +2125,13 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: set
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
@@ -2067,7 +2151,13 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: for
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
@@ -2087,7 +2177,13 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: <empty> <synthetic>
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
@@ -2107,7 +2203,13 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: <empty> <synthetic>
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: var
     variables
@@ -2125,7 +2227,15 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  type: NamedType
+    name: A
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   fields: VariableDeclarationList
     type: NamedType
@@ -2147,7 +2257,19 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: f
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: final
@@ -2157,7 +2279,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -4336,7 +4458,15 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  abstractKeyword: abstract
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   abstractKeyword: abstract
   fields: VariableDeclarationList
     type: NamedType
@@ -4358,7 +4488,16 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  externalKeyword: external
+  abstractKeyword: abstract
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   externalKeyword: external
   abstractKeyword: abstract
   fields: VariableDeclarationList
@@ -4381,7 +4520,17 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  abstractKeyword: abstract
+  lateKeyword: late
+  type: NamedType
+    name: int
+    question: ?
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   abstractKeyword: abstract
   fields: VariableDeclarationList
     lateKeyword: late
@@ -4405,7 +4554,18 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  abstractKeyword: abstract
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+    question: ?
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   abstractKeyword: abstract
   fields: VariableDeclarationList
     lateKeyword: late
@@ -4430,7 +4590,19 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: const
+  type: NamedType
+    name: T
+  fields
+    Field
+      name: f
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: const
@@ -4440,7 +4612,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -4454,7 +4626,15 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  externalKeyword: external
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   externalKeyword: external
   fields: VariableDeclarationList
     type: NamedType
@@ -4476,7 +4656,16 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  externalKeyword: external
+  abstractKeyword: abstract
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   externalKeyword: external
   abstractKeyword: abstract
   fields: VariableDeclarationList
@@ -4499,7 +4688,17 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  externalKeyword: external
+  lateKeyword: late
+  type: NamedType
+    name: int
+    question: ?
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   externalKeyword: external
   fields: VariableDeclarationList
     lateKeyword: late
@@ -4523,7 +4722,18 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  externalKeyword: external
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: int
+    question: ?
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   externalKeyword: external
   fields: VariableDeclarationList
     lateKeyword: late
@@ -4546,7 +4756,17 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  externalKeyword: external
+  staticKeyword: static
+  type: NamedType
+    name: int
+    question: ?
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   externalKeyword: external
   staticKeyword: static
   fields: VariableDeclarationList
@@ -4570,7 +4790,16 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: T
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: final
@@ -4591,7 +4820,15 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  type: NamedType
+    name: T
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     type: NamedType
@@ -4613,7 +4850,19 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: const
+  type: NamedType
+    name: T
+  fields
+    Field
+      name: f
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: const
@@ -4623,7 +4872,7 @@ FieldDeclaration
       VariableDeclaration
         name: f
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -4637,7 +4886,16 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  type: NamedType
+    name: T
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: final
@@ -4658,7 +4916,14 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: var
@@ -4677,7 +4942,14 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: NamedType
       name: int
@@ -4696,7 +4968,14 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: NamedType
+    name: int
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: NamedType
       name: int
@@ -4715,7 +4994,17 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  abstractKeyword: abstract
+  type: NamedType
+    name: int
+    question: ?
+  fields
+    Field
+      name: i
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   abstractKeyword: abstract
   fields: VariableDeclarationList
@@ -4739,7 +5028,14 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: f
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: var
@@ -4831,7 +5127,28 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  staticKeyword: static
+  type: NamedType
+    name: T
+  fields
+    Field
+      name: a
+      equals: =
+      initializer: IntegerLiteral
+        literal: 1
+    Field
+      name: b
+    Field
+      name: c
+      equals: =
+      initializer: IntegerLiteral
+        literal: 3
+  semicolon: ;
+V1: FieldDeclaration
   documentationComment: Comment
     tokens
       /// Doc
@@ -4843,14 +5160,14 @@ FieldDeclaration
       VariableDeclaration
         name: a
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 1
       VariableDeclaration
         name: b
       VariableDeclaration
         name: c
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 3
   semicolon: ;
 ''');
@@ -4865,7 +5182,27 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  staticKeyword: static
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: a
+      equals: =
+      initializer: IntegerLiteral
+        literal: 1
+    Field
+      name: b
+    Field
+      name: c
+      equals: =
+      initializer: IntegerLiteral
+        literal: 3
+  semicolon: ;
+V1: FieldDeclaration
   documentationComment: Comment
     tokens
       /// Doc
@@ -4876,14 +5213,14 @@ FieldDeclaration
       VariableDeclaration
         name: a
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 1
       VariableDeclaration
         name: b
       VariableDeclaration
         name: c
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 3
   semicolon: ;
 ''');

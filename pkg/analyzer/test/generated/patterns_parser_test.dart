@@ -8160,6 +8160,22 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      FieldsDeclaration
+        constFinalOrVarKeyword: var
+        fields
+          Field
+            name: <empty> <synthetic>
+            equals: =
+            initializer: RecordLiteral
+              leftParenthesis: (
+              fields2
+                IntegerLiteral
+                  literal: 0
+                IntegerLiteral
+                  literal: 1
+              rightParenthesis: )
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: var
@@ -8167,9 +8183,9 @@ ClassDeclaration
             VariableDeclaration
               name: <empty> <synthetic>
               equals: =
-              initializer2: RecordLiteral
+              initializer: RecordLiteral
                 leftParenthesis: (
-                fields2
+                fields
                   IntegerLiteral
                     literal: 0
                   IntegerLiteral
