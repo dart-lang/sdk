@@ -75,7 +75,7 @@
 
   async function onRcpMessage(ev) {
     if (ev.data === null) {
-      originalConsole.log.call(console, 'Sandbox RPC port closed by host.');
+      originalConsole.log('Sandbox RPC port closed by host.');
       rpcPort.onmessage = null;
       rpcPort.close();
       for (const { reject } of pendingRequests.values()) {
@@ -108,18 +108,14 @@
         }
       }
     } catch (e) {
-      originalConsole.error.call(console, 'Ignoring malformed RPC message:', e);
+      originalConsole.error('Ignoring malformed RPC message:', e);
       return;
     }
 
     if (!m.method) {
       const pending = pendingRequests.get(m.id);
       if (!pending) {
-        originalConsole.error.call(
-          console,
-          'Ignoring unexpected RPC message:',
-          m,
-        );
+        originalConsole.error('Ignoring unexpected RPC message:', m);
         return;
       }
       pendingRequests.delete(m.id);
@@ -170,8 +166,7 @@
       }
     } catch (e) {
       if (m.id === undefined) {
-        originalConsole.error.call(
-          console, `RPC Notification Error (${m.method}):`, e);
+        originalConsole.error(`RPC Notification Error (${m.method}):`, e);
         return;
       }
       const { code, message } = asRpcError(e);
@@ -396,11 +391,11 @@
   }
 
   const originalConsole = {
-    debug: console.debug,
-    log: console.log,
-    info: console.info,
-    warn: console.warn,
-    error: console.error,
+    debug: console.debug.bind(console),
+    log: console.log.bind(console),
+    info: console.info.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
   };
 
   // Proxy console over RPC
@@ -411,12 +406,12 @@
       sendNotification('console', { level, message });
 
       // Pass to actual browser console for DevTools debugging
-      originalConsole[level].apply(console, args);
+      originalConsole[level](...args);
     };
   }
 
   console.debug = function (...args) {
-    originalConsole.debug.apply(console, args);
+    originalConsole.debug(...args);
     if (args[0] === 'dart.developer.log' && args[1] && typeof args[1] === 'object') {
       const items = args[1];
       sendNotification('log', {
@@ -466,7 +461,10 @@
       : `Uncaught: ${e.message}`;
     sendNotification('console', { level: 'error', message });
 
-    originalConsole.error.call(console, 'Uncaught sandbox error:', e.error || e.message || e);
+    originalConsole.error(
+      'Uncaught sandbox error:',
+      e.error || e.message || e,
+    );
   });
   window.addEventListener('unhandledrejection', (e) => {
     const message = e.reason instanceof Error
@@ -474,7 +472,7 @@
       : `Unhandled Rejection: ${safeSerialize(e.reason)}`;
     sendNotification('console', { level: 'error', message });
 
-    originalConsole.error.call(console, 'Unhandled sandbox rejection:', e.reason);
+    originalConsole.error('Unhandled sandbox rejection:', e.reason);
   });
 
   // Inject event handler to receive extension events from the running app
