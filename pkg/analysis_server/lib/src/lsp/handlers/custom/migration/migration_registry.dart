@@ -23,6 +23,10 @@ final Map<Version, List<String>> cleanUpLintsRegistry = {
     LintNames.unnecessary_const_in_enum_constructor,
     LintNames.unnecessary_primary_constructor_body,
   ],
+  Version(3, 15, 0): [
+    LintNames.unnecessary_this,
+    LintNames.unnecessary_this_alias,
+  ],
 };
 
 /// An ordered list of all supported SDK versions for migration.
@@ -43,6 +47,7 @@ final List<Version> knownSdkVersions = [
   Version(3, 12, 0),
   Version(3, 13, 0),
   Version(3, 14, 0),
+  Version(3, 15, 0),
 ];
 
 /// A registry mapping target SDK versions to preparatory lint rules that should
