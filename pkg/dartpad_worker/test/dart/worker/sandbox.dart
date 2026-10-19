@@ -103,4 +103,19 @@ void main() {
     await sandbox.close();
     await iframe.close();
   });
+
+  testDartWorkspace('sandbox packageRoot', (ws) async {
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    await ws.writeFileFromText('bin/main.dart', 'void main() {}');
+
+    await sandbox.run('bin/main.dart', mode: 'console');
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..packageRoot.equals(ws.workspaceFolder)),
+    );
+
+    await sandbox.close();
+    await iframe.close();
+  });
 }

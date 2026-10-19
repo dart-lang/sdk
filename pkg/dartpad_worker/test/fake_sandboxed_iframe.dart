@@ -39,7 +39,12 @@ final class LoadModulesEvent extends ModulesEvent {
 final class RunEvent extends SandboxEvent {
   final String libraryUri;
   final String mode;
-  RunEvent._({required this.libraryUri, required this.mode});
+  final String packageRoot;
+  RunEvent._({
+    required this.libraryUri,
+    required this.mode,
+    required this.packageRoot,
+  });
 }
 
 /// Triggered by [Sandbox.hotReload].
@@ -86,9 +91,16 @@ final class FakeSandboxedIframe {
     _peer.registerMethod('run', (Parameters params) {
       final mode = _mode = params['mode'].asString;
       final libraryUri = _libraryUri = params['libraryUri'].asString;
+      final packageRoot = params['packageRoot'].asString;
 
       emitIsolateStart(libraryUri, mode);
-      _addEvent(RunEvent._(libraryUri: libraryUri, mode: mode));
+      _addEvent(
+        RunEvent._(
+          libraryUri: libraryUri,
+          mode: mode,
+          packageRoot: packageRoot,
+        ),
+      );
       return <String, dynamic>{};
     });
 
@@ -265,6 +277,7 @@ extension ModulesEventChecks on Subject<ModulesEvent> {
 extension RunMainEventChecks on Subject<RunEvent> {
   Subject<String> get libraryUri => has((e) => e.libraryUri, 'libraryUri');
   Subject<String> get mode => has((e) => e.mode, 'mode');
+  Subject<String> get packageRoot => has((e) => e.packageRoot, 'packageRoot');
 }
 
 extension InvokeExtensionEventChecks on Subject<InvokeExtensionEvent> {

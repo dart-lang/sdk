@@ -197,7 +197,11 @@ final class Sandbox {
           final r = await c.compile();
 
           await _client.loadModules(modules: r.modules);
-          await _client.run(r.entrypointLibraryUri, mode: mode.mode);
+          await _client.run(
+            r.entrypointLibraryUri,
+            mode: mode.mode,
+            packageRoot: r.packageRoot,
+          );
 
           return (log: r.log);
         } catch (_) {

@@ -173,6 +173,7 @@ void main() {
       external _DartPadWorkspace get _workspace;
 
       extension type _DartPadWorkspace._(JSObject _) implements JSObject {
+        external String? get packageRoot;
         external JSPromise<JSString> readFileAsText(String path);
         external JSPromise<JSUint8Array> readFileAsBytes(String path);
         external JSPromise<_Stat> stat(String path);
@@ -190,6 +191,7 @@ void main() {
       }
 
       Future<void> main() async {
+        print('packageRoot=${_workspace.packageRoot}');
         final text = (await _workspace.readFileAsText('assets/hello.txt').toDart).toDart;
         print('text=$text');
         final bytes = (await _workspace.readFileAsBytes('assets/hello.txt').toDart).toDart;
@@ -209,6 +211,9 @@ void main() {
     await ctx.ws.pub(command: 'get');
     await ctx.sandbox.run('main.dart', mode: 'console');
 
+    await ctx.checkConsole(
+      .it()..equals('packageRoot=${ctx.ws.workspaceFolder}'),
+    );
     await ctx.checkConsole(.it()..equals('text=hello'));
     await ctx.checkConsole(.it()..equals('bytes=[104, 101, 108, 108, 111]'));
     await ctx.checkConsole(.it()..equals('stat=file:5'));

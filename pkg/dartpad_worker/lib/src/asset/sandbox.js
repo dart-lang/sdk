@@ -220,6 +220,7 @@
   }
 
   self.$dartpadWorkspace = {
+    packageRoot: null,
     async readFileAsText(path) {
       const { text } = await sendRequest('readFileAsText', { path });
       return text;
@@ -265,7 +266,7 @@
   //
   // Must stay relative: Chrome resolves a `//# sourceURL` starting with `/`
   // against the document, which breaks the lookup in `setupStackTraceMapper`.
-  const packageRoot = 'dartpad';
+  const sourceMapPackagesRoot = 'dartpad';
 
   // DDC will resolve file urls to absolute URLs using `Uri.base` which when
   // running on web is `window.location`. As dartpad_worker normally runs from
@@ -297,12 +298,12 @@
   //
   // See `createAndRegisterBlob` which attaches `//# sourceURL` comment.
   function setupStackTraceMapper() {
-    self.$dartLoader.rootDirectories.push(packageRoot);
+    self.$dartLoader.rootDirectories.push(sourceMapPackagesRoot);
 
     self.$dartStackTraceUtility.setSourceMapProvider((scriptUrl) => {
       const scriptName = scriptUrl.replace(/\.js\?\d+$/, '');
-      const moduleName = scriptName.startsWith(`${packageRoot}/`)
-        ? scriptName.substring(packageRoot.length + 1)
+      const moduleName = scriptName.startsWith(`${sourceMapPackagesRoot}/`)
+        ? scriptName.substring(sourceMapPackagesRoot.length + 1)
         : scriptName;
       const sourceMap =
         self.dartDevEmbedder?.debugger?.getSourceMap(moduleName) ?? null;
@@ -494,7 +495,7 @@
   function createAndRegisterBlob(moduleName, code) {
     // Name given to the script holding <moduleName>, see `//# sourceURL` below.
     const scriptName = moduleName.startsWith('packages/')
-      ? `${packageRoot}/${moduleName}`
+      ? `${sourceMapPackagesRoot}/${moduleName}`
       : moduleName;
     // sourceUrl is used by browsers to name files in stack traces.
     // We use it because blob-urls are ugly, and we don't want them in our
@@ -576,7 +577,7 @@
   let activeMode = null;
 
   rpcMethods.run = async (params) => {
-    const { libraryUri, mode, options = {} } = params;
+    const { libraryUri, mode, packageRoot, options = {} } = params;
 
     if (!libraryUri) {
       throw new RpcError(
@@ -587,6 +588,12 @@
     if (!mode) {
       throw new RpcError(
         "mode is required.",
+        errorCode.INVALID_PARAMS
+      );
+    }
+    if (!packageRoot) {
+      throw new RpcError(
+        "packageRoot is required.",
         errorCode.INVALID_PARAMS
       );
     }
@@ -608,6 +615,7 @@
     activeRunMode = runMode;
     activeEntrypointUri = libraryUri;
     activeMode = mode;
+    self.$dartpadWorkspace.packageRoot = packageRoot;
     sendNotification('isolateStart', { entrypointUri: libraryUri, mode });
     try {
       await activeRunMode.run(() => {
