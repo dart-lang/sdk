@@ -1438,14 +1438,12 @@ extension ElementExtension on Element {
   /// The `mounted` getter which is associated with `this`, if this static
   /// element is `BuildContext` from Flutter.
   Element? get associatedMountedGetter {
-    if (this is PropertyAccessorElement) {
-      var enclosingElement = this.enclosingElement;
-      if (enclosingElement is InterfaceElement && enclosingElement.isState) {
-        // The BuildContext object is the field on Flutter's State class.
-        // This object can only be guarded by async gaps with a mounted
-        // check on the State.
-        return enclosingElement.mountedGetter;
-      }
+    if (this case PropertyAccessorElement(
+      enclosingElement: InterfaceElement(isState: true) && var enclosingElement,
+    )) {
+      // The BuildContext object is the field on Flutter's State class. This
+      // can only be guarded by async gaps with a mounted check on the State.
+      return enclosingElement.mountedGetter;
     }
 
     var buildContextElement = switch (this) {

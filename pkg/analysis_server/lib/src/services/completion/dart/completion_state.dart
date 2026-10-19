@@ -83,12 +83,9 @@ class CompletionState {
 // TODO(brianwilkerson): Move to 'package:analysis_server/src/utilities/extensions/ast.dart'
 extension on ClassMember {
   /// Whether this member is a static member.
-  bool get isStatic {
-    if (this is MethodDeclaration) {
-      return this.isStatic;
-    } else if (this is FieldDeclaration) {
-      return this.isStatic;
-    }
-    return false;
-  }
+  bool get isStatic => switch (this) {
+    MethodDeclaration(:var isStatic) ||
+    FieldDeclaration(:var isStatic) => isStatic,
+    _ => false,
+  };
 }

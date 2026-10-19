@@ -202,19 +202,15 @@ extension AstNodeNullableExtension on AstNode? {
 
   /// Whether the expression is null-aware, or if one of its recursive targets
   /// is null-aware.
-  bool get containsNullAwareInvocationInChain {
-    if (this is PropertyAccess) {
-      if (isNullAware) return true;
-      return target.containsNullAwareInvocationInChain;
-    } else if (this is MethodInvocation) {
-      if (isNullAware) return true;
-      return target.containsNullAwareInvocationInChain;
-    } else if (this is IndexExpression) {
-      if (isNullAware) return true;
-      return target.containsNullAwareInvocationInChain;
-    }
-    return false;
-  }
+  bool get containsNullAwareInvocationInChain => switch (this) {
+    PropertyAccess() =>
+      isNullAware || target.containsNullAwareInvocationInChain,
+    MethodInvocation() =>
+      isNullAware || target.containsNullAwareInvocationInChain,
+    IndexExpression() =>
+      isNullAware || target.containsNullAwareInvocationInChain,
+    _ => false,
+  };
 
   bool get isFieldNameShortcut {
     var node = this;
