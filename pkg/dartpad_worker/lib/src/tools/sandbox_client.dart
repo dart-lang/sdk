@@ -13,6 +13,22 @@ import '../shared.dart';
 import '../util/message_port.dart';
 import '../util/parameters_ext.dart';
 
+/// Read-only workspace file operations exposed as JSON-RPC handlers to the
+/// sandbox.
+abstract interface class WorkspaceFileReader {
+  /// Handles the `readFileAsText` RPC.
+  Object? readFileAsText(Parameters params);
+
+  /// Handles the `readFileAsBytes` RPC.
+  Object? readFileAsBytes(Parameters params);
+
+  /// Handles the `stat` RPC.
+  Object? stat(Parameters params);
+
+  /// Handles the `listDirectory` RPC.
+  Object? listDirectory(Parameters params);
+}
+
 /// Structured `dart:developer.log` entry emitted by the sandbox.
 typedef SandboxLogRecord = ({
   String message,
@@ -79,9 +95,12 @@ final class SandboxClient {
   /// [port].
   ///
   /// When [port] is closed, [onClosed] will be called.
-  SandboxClient(MessagePort port, void Function() onClosed)
-    : _peer = Peer.withoutJson(port.jsonRpcChannel()),
-      _onClosed = onClosed {
+  SandboxClient(
+    MessagePort port, {
+    required WorkspaceFileReader fileReader,
+    required void Function() onClosed,
+  }) : _peer = Peer.withoutJson(port.jsonRpcChannel()),
+       _onClosed = onClosed {
     // Register notification handlers
     _peer.registerMethod('console', (Parameters params) {
       final level = params['level'].asString;
@@ -140,6 +159,12 @@ final class SandboxClient {
         SandboxIsolateReloaded(libraries: _loadedLibraries.toList()),
       );
     });
+
+    // Register read-only filesystem RPC handlers
+    _peer.registerMethod('readFileAsText', fileReader.readFileAsText);
+    _peer.registerMethod('readFileAsBytes', fileReader.readFileAsBytes);
+    _peer.registerMethod('stat', fileReader.stat);
+    _peer.registerMethod('listDirectory', fileReader.listDirectory);
 
     // Start listening
     _peer.listen().whenComplete(() {

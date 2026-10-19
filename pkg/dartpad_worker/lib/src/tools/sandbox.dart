@@ -18,6 +18,8 @@ import 'frontend_server_compiler.dart';
 import 'sandbox_client.dart';
 import 'vm_service/vm_service.dart';
 
+export 'sandbox_client.dart' show WorkspaceFileReader;
+
 final class Sandbox {
   final SandboxClient _client;
   final ResourceProvider _rp;
@@ -38,15 +40,20 @@ final class Sandbox {
   static Future<Sandbox> create({
     required MessagePort port,
     required ResourceProvider resourceProvider,
+    required WorkspaceFileReader fileReader,
     required DartPadConfig config,
     required VersionInfo version,
     required void Function() onClosed,
   }) async {
     Sandbox? sandbox;
-    final client = SandboxClient(port, () {
-      onClosed();
-      sandbox?.close().ignore();
-    });
+    final client = SandboxClient(
+      port,
+      fileReader: fileReader,
+      onClosed: () {
+        onClosed();
+        sandbox?.close().ignore();
+      },
+    );
     final DartRuntimeService vmService;
     try {
       vmService = await createDartPadVmService(

@@ -70,11 +70,21 @@
   // such as `constructor` aren't mistaken for methods.
   const rpcMethods = Object.create(null);
 
+  let nextRpcId = 1;
+  const pendingRequests = new Map();
+
   async function onRcpMessage(ev) {
     if (ev.data === null) {
       originalConsole.log.call(console, 'Sandbox RPC port closed by host.');
       rpcPort.onmessage = null;
       rpcPort.close();
+      for (const { reject } of pendingRequests.values()) {
+        reject(new RpcError(
+          'Sandbox RPC port closed by host.',
+          errorCode.INVALID_SANDBOX_STATE,
+        ));
+      }
+      pendingRequests.clear();
       return;
     }
 
@@ -86,7 +96,7 @@
       m = JSON.parse(ev.data.payload);
 
       // Ignore invalid payloads!
-      if (!m || m.jsonrpc !== '2.0' || !m.method) return;
+      if (!m || m.jsonrpc !== '2.0') return;
 
       for (const prop of ['port', 'bytes']) {
         if (ev.data[prop]) {
@@ -99,6 +109,27 @@
       }
     } catch (e) {
       originalConsole.error.call(console, 'Ignoring malformed RPC message:', e);
+      return;
+    }
+
+    if (!m.method) {
+      const pending = pendingRequests.get(m.id);
+      if (!pending) {
+        originalConsole.error.call(
+          console,
+          'Ignoring unexpected RPC message:',
+          m,
+        );
+        return;
+      }
+      pendingRequests.delete(m.id);
+      if (m.error) {
+        pending.reject(
+          new RpcError(m.error.message || 'RPC error', m.error.code),
+        );
+      } else {
+        pending.resolve(m.result);
+      }
       return;
     }
 
@@ -164,6 +195,51 @@
       }),
     });
   }
+
+  function sendRequest(method, params = {}) {
+    if (!rpcPort.onmessage) {
+      return Promise.reject(
+        new RpcError(
+          'Sandbox RPC port closed by host.',
+          errorCode.INVALID_SANDBOX_STATE,
+        ),
+      );
+    }
+    return new Promise((resolve, reject) => {
+      const id = nextRpcId++;
+      pendingRequests.set(id, { resolve, reject });
+      rpcPort.postMessage({
+        payload: JSON.stringify({
+          jsonrpc: '2.0',
+          id,
+          method,
+          params,
+        }),
+      });
+    });
+  }
+
+  self.$dartpadWorkspace = {
+    async readFileAsText(path) {
+      const { text } = await sendRequest('readFileAsText', { path });
+      return text;
+    },
+    async readFileAsBytes(path) {
+      const { bytes } = await sendRequest('readFileAsBytes', { path });
+      return bytes;
+    },
+    async stat(path) {
+      return await sendRequest('stat', { path });
+    },
+    async listDirectory(path, { recursive = false, ignoreHidden = false } = {}) {
+      const { entries } = await sendRequest('listDirectory', {
+        path,
+        recursive,
+        ignoreHidden,
+      });
+      return entries;
+    },
+  };
 
   function loadScript(scriptUrl) {
     return new Promise((resolve, reject) => {
@@ -267,6 +343,7 @@
         'pagehide',
         () => {
           rpcPort.postMessage(null);
+          rpcPort.onmessage = null;
           rpcPort.close();
         },
         { once: true },

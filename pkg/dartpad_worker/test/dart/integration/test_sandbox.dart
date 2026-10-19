@@ -163,4 +163,55 @@ void main() {
     check(response.json?['hello']).equals('world');
     await service.dispose();
   });
+
+  testDartIntegration(r'sandbox $dartpadWorkspace', (ctx) async {
+    await ctx.ws.writeFileFromText('assets/hello.txt', 'hello');
+    await ctx.ws.writeFileFromText('main.dart', r'''
+      import 'dart:js_interop';
+
+      @JS(r'$dartpadWorkspace')
+      external _DartPadWorkspace get _workspace;
+
+      extension type _DartPadWorkspace._(JSObject _) implements JSObject {
+        external JSPromise<JSString> readFileAsText(String path);
+        external JSPromise<JSUint8Array> readFileAsBytes(String path);
+        external JSPromise<_Stat> stat(String path);
+        external JSPromise<JSArray<_Entry>> listDirectory(String path);
+      }
+
+      extension type _Stat._(JSObject _) implements JSObject {
+        external String get type;
+        external int? get size;
+      }
+
+      extension type _Entry._(JSObject _) implements JSObject {
+        external String get path;
+        external String get type;
+      }
+
+      Future<void> main() async {
+        final text = (await _workspace.readFileAsText('assets/hello.txt').toDart).toDart;
+        print('text=$text');
+        final bytes = (await _workspace.readFileAsBytes('assets/hello.txt').toDart).toDart;
+        print('bytes=$bytes');
+        final s = await _workspace.stat('assets/hello.txt').toDart;
+        print('stat=${s.type}:${s.size}');
+        final entries = (await _workspace.listDirectory('assets').toDart).toDart;
+        print('entries=${entries.map((e) => '${e.path}:${e.type}').join(',')}');
+      }
+    ''');
+
+    await ctx.ws.writeFileFromText('pubspec.yaml', '''
+      name: pad
+      environment:
+        sdk: ^3.11.0
+    ''');
+    await ctx.ws.pub(command: 'get');
+    await ctx.sandbox.run('main.dart', mode: 'console');
+
+    await ctx.checkConsole(.it()..equals('text=hello'));
+    await ctx.checkConsole(.it()..equals('bytes=[104, 101, 108, 108, 111]'));
+    await ctx.checkConsole(.it()..equals('stat=file:5'));
+    await ctx.checkConsole(.it()..equals('entries=hello.txt:file'));
+  });
 }

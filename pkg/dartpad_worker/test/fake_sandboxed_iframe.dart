@@ -7,7 +7,9 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:dartpad/src/exceptions.dart' show rethrowAsDartPadException;
 import 'package:dartpad/src/message_port/message_port.dart';
 import 'package:dartpad_worker/src/shared.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
@@ -186,6 +188,47 @@ final class FakeSandboxedIframe {
       'kind': kind,
       'data': jsonEncode(data),
     });
+  }
+
+  Future<T> _sendRequest<T>(
+    String method, [
+    Map<String, Object?> params = const {},
+  ]) async {
+    try {
+      return await _peer.sendRequest(method, params) as T;
+    } on RpcException catch (e) {
+      rethrowAsDartPadException(e);
+    }
+  }
+
+  Future<String> readFileAsText(String path) async {
+    final result = await _sendRequest<Map>('readFileAsText', {'path': path});
+    return result['text'] as String;
+  }
+
+  Future<Uint8List> readFileAsBytes(String path) async {
+    final result = await _sendRequest<Map>('readFileAsBytes', {'path': path});
+    return result['bytes'] as Uint8List;
+  }
+
+  Future<Map<String, Object?>> stat(String path) async {
+    final result = await _sendRequest<Map>('stat', {'path': path});
+    return result.cast<String, Object?>();
+  }
+
+  Future<List<Map<String, Object?>>> listDirectory(
+    String path, {
+    bool recursive = false,
+    bool ignoreHidden = false,
+  }) async {
+    final result = await _sendRequest<Map>('listDirectory', {
+      'path': path,
+      'recursive': recursive,
+      'ignoreHidden': ignoreHidden,
+    });
+    return (result['entries'] as List)
+        .map((e) => (e as Map).cast<String, Object?>())
+        .toList();
   }
 
   Future<void> close() async {
