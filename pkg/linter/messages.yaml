@@ -1629,8 +1629,32 @@ LinterLintCode:
       stable: "2.8"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when string interpolation or 
+      string literals use escaped inner quotes that can be avoided by 
+      choosing a different set of surrounding quotes.
+
+      #### Example
+
+      The following code produces this diagnostic because single quotes are
+      escaped inside a single-quoted string:
+
+      ```dart
+      var s = [!'It\'s not fun'!];
+      ```
+
+      #### Common fixes
+
+      Change the surrounding quotes so that you don't need to escape the inner
+      quotes:
+
+      ```dart
+      var s = "It's not fun";
+      ```
     deprecatedDetails: |-
-      Avoid escaping inner quotes by converting surrounding quotes.
+      **AVOID** escaping inner quotes by converting surrounding quotes.
 
       **BAD:**
       ```dart
