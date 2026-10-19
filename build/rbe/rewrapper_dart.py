@@ -421,6 +421,7 @@ trace to find the place to insert the appropriate support.
                     '-O2',
                     '-O3',
                     '-O4',
+                    '--enable-experimental-wasm-interop',
                     '--minify',
                     '--no-source-maps',
             ]:
