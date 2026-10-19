@@ -1851,10 +1851,10 @@ DEFINE_RUNTIME_ENTRY(FfiCall, 2) {
       zone, function, first_argument_parameter_offset, c_signature, &error);
   // AbiSpecificTypes can have an incomplete mapping.
   if (error != nullptr) {
-    const auto& language_error = Error::Handle(
+    const auto& language_error = LanguageError::Handle(
         LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
                            Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
+    Exceptions::ThrowCompileTimeError(language_error);
   }
 
   RELEASE_ASSERT(marshaller_ptr != nullptr);
@@ -2184,10 +2184,10 @@ extern "C" void DLRT_DoInterpretedFfiCallback(
       compiler::ffi::CallbackMarshaller::FromFunction(zone, function, &error);
   // AbiSpecificTypes can have an incomplete mapping.
   if (error != nullptr) {
-    const auto& language_error = Error::Handle(
+    const auto& language_error = LanguageError::Handle(
         LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
                            Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
+    Exceptions::ThrowCompileTimeError(language_error);
   }
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
