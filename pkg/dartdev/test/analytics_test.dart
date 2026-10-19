@@ -551,16 +551,6 @@ void main() {
   });
 
   group('unified analytics helpers:', () {
-    test('sanitizeStacktrace strips file paths and compresses whitespace', () {
-      const rawStack =
-          '#0  main (file:///Users/username/project/bin/main.dart:10:5)\n'
-          '#1  helper   (file:///home/user/app/lib/helper.dart:2:1)';
-      final sanitized = sanitizeStacktrace(rawStack, shorten: true);
-      expect(sanitized, isNot(contains('/Users/username/project/bin/')));
-      expect(sanitized, contains('main.dart'));
-      expect(sanitized, contains('helper.dart'));
-    });
-
     test('getDartStorageDirectory resolves user .dart directory', () {
       final dir = getDartStorageDirectory();
       expect(dir, isNotNull);

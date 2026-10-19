@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:math' as math;
 
 import 'package:analyzer/source/line_info.dart';
@@ -12,55 +10,10 @@ import 'package:args/args.dart';
 import 'package:language_server_protocol/protocol_generated.dart' as lsp;
 import 'package:path/path.dart' as p;
 
-import 'core.dart';
-import 'sdk.dart';
-
 /// For commands where we are able to initialize the [ArgParser], this value
 /// is used as the usageLineLength.
 int? get dartdevUsageLineLength =>
     stdout.hasTerminal ? stdout.terminalColumns : null;
-
-/// Runs a tool's snapshot in an isolate.
-///
-/// Waits for the spawned isolate to exit before returning.
-Future<int> runFromSnapshot({
-  required String snapshot,
-  required List<String> args,
-  required bool verbose,
-}) async {
-  if (!checkArtifactExists(snapshot)) return 255;
-
-  int retval = 0;
-  final result = Completer<int>();
-  final exitPort = ReceivePort()
-    ..listen((msg) {
-      result.complete(0);
-    });
-  final errorPort = ReceivePort()
-    ..listen((error) {
-      log.stderr(error.toString());
-      result.complete(255);
-    });
-  try {
-    await Isolate.spawnUri(
-      Uri.file(snapshot),
-      args,
-      null,
-      onExit: exitPort.sendPort,
-      onError: errorPort.sendPort,
-    );
-    retval = await result.future;
-  } catch (e, st) {
-    log.stderr(e.toString());
-    if (verbose) {
-      log.stderr(st.toString());
-    }
-    retval = 255;
-  }
-  errorPort.close();
-  exitPort.close();
-  return retval;
-}
 
 /// Global options for dartdev.
 ///
@@ -149,15 +102,6 @@ ArgParser globalDartdevOptionsParser({bool verbose = false}) {
 
 /// Emit the given word with the correct pluralization.
 String pluralize(String word, int count) => count == 1 ? word : '${word}s';
-
-/// Make an absolute [filePath] relative to [dir] (for display purposes).
-String relativePath(String filePath, Directory dir) {
-  var root = dir.absolute.path;
-  if (filePath.startsWith(root)) {
-    return filePath.substring(root.length + 1);
-  }
-  return filePath;
-}
 
 /// String utility to trim some suffix from the end of a [String].
 String trimEnd(String s, String? suffix) {
