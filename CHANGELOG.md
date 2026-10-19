@@ -139,6 +139,11 @@
   Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
   arguments as an array rather than as separate arguments to the Dart function.
 
+- Added the `JSError` type to represent the JavaScript `Error` class, as well as
+  `JSErrorToError`, `ExceptionToJSError`, and `ErrorToJSError` extension types
+  to convert to and from Dart exceptions. JS errors are represented as the new
+  `WrappedJSError` type when converted explicitly to Dart.
+
 - `Function.toJS` and `Function.toJSCaptureThis` now support functions without
   optional positional parameters that return `Future<T>` (where `T` is `void` or
   a subtype of `JSAny?`), automatically converting the returned `Future` to a

@@ -618,11 +618,6 @@ class NullRejectionException implements Exception {
 
 /// The JavaScript `Error` type.
 ///
-/// Checking this type with [NullableObjectUtilExtension.isA] uses
-/// [`Error.isError`] on browsers where it's supported. Because Safari has
-/// [known bugs] in its implementation, `isA<JSError>()` will return true if
-/// either `Error.isError()` or `instanceof Error` returns true.
-///
 /// [`Error.isError`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
 /// [known bugs]: https://bugs.webkit.org/show_bug.cgi?id=292727
 @JS('Error')
@@ -1242,6 +1237,10 @@ extension NullableObjectUtilExtension on Object? {
   ///   [FunctionToJSExportedDartFunction.toJS] or
   ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call and that the
   ///   Dart function the value forwards to is a function of type `U`.
+  /// - `JSError`: `isA<JSError>` will use [`Error.isError`] on browsers where
+  ///   it's supported. Because Safari has [known bugs] in its implementation,
+  ///   `isA<JSError>()` will return true if either `Error.isError()` or
+  ///   `instanceof Error` returns true.
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the
