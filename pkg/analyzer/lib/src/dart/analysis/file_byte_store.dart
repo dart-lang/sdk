@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/fletcher16.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:path/path.dart';
 
 /// The request that is sent from the main isolate to the clean-up isolate.
@@ -250,7 +251,7 @@ class FileByteStore implements ByteStore {
   /// very slow and cause `dart analyze` and analysis_server shutdowns to take
   /// a long time.
   Future<void> flush() {
-    return Platform.isWindows
+    return platform.isWindows
         // No-op on Windows, see https://github.com/dart-lang/sdk/issues/64190
         ? Future.value()
         : _pool.waitForIdle();
