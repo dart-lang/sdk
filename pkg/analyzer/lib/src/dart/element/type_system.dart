@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -799,9 +800,8 @@ class TypeSystemImpl implements TypeSystem {
           hasProgress = true;
           break;
         } else if (freeParameters.every(defaults.containsKey)) {
-          defaults[parameter] = Substitution.fromMap(
-            defaults,
-          ).substituteType(value);
+          defaults[parameter] = Substitution.fromMap(defaults)
+              .substituteType(value);
           partials.remove(parameter);
           hasProgress = true;
           break;
@@ -1334,9 +1334,8 @@ class TypeSystemImpl implements TypeSystem {
     TypeImpl type, {
     required bool allowSuperBounded,
   }) {
-    return TypeBoundedHelper(
-      this,
-    ).isWellBounded(type, allowSuperBounded: allowSuperBounded);
+    return TypeBoundedHelper(this)
+        .isWellBounded(type, allowSuperBounded: allowSuperBounded);
   }
 
   /// Returns the least closure of [type] with respect to [typeParameters].
@@ -1677,6 +1676,7 @@ class TypeSystemImpl implements TypeSystem {
     required TypeImpl contextReturnType,
     DiagnosticReporter? diagnosticReporter,
     SyntacticEntity? errorEntity,
+    InvocationTarget? invocationTarget,
     required bool genericMetadataIsEnabled,
     required bool inferenceUsingBoundsIsEnabled,
     bool isConst = false,
@@ -1695,6 +1695,7 @@ class TypeSystemImpl implements TypeSystem {
       typeParameters,
       diagnosticReporter: diagnosticReporter,
       errorEntity: errorEntity,
+      invocationTarget: invocationTarget,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: strictInference,

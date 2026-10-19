@@ -3106,9 +3106,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
     node.typeArguments?.accept2(this);
 
-    var receiverContextType = ExtensionMemberResolver(
-      this,
-    ).computeOverrideReceiverContextType(node);
+    var receiverContextType = ExtensionMemberResolver(this)
+        .computeOverrideReceiverContextType(node);
     InvocationTargetExtensionOverride? target;
     if (receiverContextType != null) {
       target = InvocationTargetExtensionOverride(
@@ -5055,6 +5054,28 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
   }
 
+  /// Completes [node] after its resolution has been recorded.
+  void _completeNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+  }) {
+    node.recordStaticType(
+      node.resolution?.type ?? node.typeOrThrow,
+      typeAnalyzer: this,
+    );
+
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallTearOff(replacement, contextType: contextType);
+  }
+
   /// Helper function used to print information to the console in debug mode.
   /// This method returns `true` so that it can be conveniently called inside of
   /// an `assert` statement.
@@ -5069,6 +5090,29 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     return _bodyContext!.computeInferredReturnType(
       endOfBlockIsReachable: flow == null || flow.isReachable,
     );
+  }
+
+  /// Infers [node] as an invocation of [target], and returns the inferred
+  /// type.
+  ///
+  /// The caller records the resolution of [node] after the inference.
+  TypeImpl _inferNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+    required InvocationTarget? target,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+  }) {
+    checkUnreachableNode(node);
+    node.typeArguments?.accept2(this);
+    return NamedFunctionInvocationInferrer(
+          typeAnalyzer: this,
+          node: node,
+          argumentList: node.argumentList,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+          target: target,
+        ).resolveInvocation()
+        as TypeImpl;
   }
 
   /// Infers type arguments corresponding to [typeParameters] used it the
@@ -5239,12 +5283,72 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     statement.mayCompleteNormally = flowAnalysis.flow?.isReachable ?? true;
   }
 
+  /// Re-infers [node], invoking the target recorded by its previous
+  /// resolution.
   void _resolveDirectNamedFunctionInvocation(
     NamedFunctionInvocationImpl node, {
     required TypeImpl contextType,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    _resolveNamedFunctionInvocation(node, contextType: contextType);
+    var previousResolution = node.resolution;
+    var previousInvokeType = node.staticInvokeType;
+    // Re-inference of `..call()` needs the receiver's generic signature,
+    // rather than the invocation type instantiated by the previous pass.
+    var cascadeReceiverType = node is CascadeMethodInvocationImpl
+        ? typeSystem.resolveToBound(
+            _activeCascadeExpression!.target2.typeOrThrow,
+          )
+        : null;
+    InvocationTarget? target = switch (previousResolution) {
+      ExecutableInvocationResolutionImpl(:var element) =>
+        InvocationTargetExecutableElement(element),
+      FunctionCallInvocationResolutionImpl(:var invokeType) =>
+        InvocationTargetFunctionTypedExpression(
+          cascadeReceiverType is FunctionTypeImpl
+              ? cascadeReceiverType
+              : invokeType,
+        ),
+      InvalidInvocationResolutionImpl(
+        recovery: ExecutableInvocationResolutionImpl(:var element),
+      ) =>
+        InvocationTargetExecutableElement(element),
+      InvalidInvocationResolutionImpl(
+        recovery: FunctionCallInvocationResolutionImpl(:var invokeType),
+      ) =>
+        InvocationTargetFunctionTypedExpression(invokeType),
+      _ => null,
+    };
+
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    var inferredType = _inferNamedFunctionInvocation(
+      node,
+      contextType: contextType,
+      target: target,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    );
+
+    node.resolution = switch (previousResolution) {
+      ExecutableInvocationResolutionImpl(:var element) =>
+        ExecutableInvocationResolutionImpl(
+          element: element,
+          invokeType: node.staticInvokeType as FunctionTypeImpl,
+          type: inferredType,
+        ),
+      FunctionCallInvocationResolutionImpl() =>
+        FunctionCallInvocationResolutionImpl(
+          invokeType: node.staticInvokeType as FunctionTypeImpl,
+          type: inferredType,
+        ),
+      _ => previousResolution,
+    };
+    if (target == null) {
+      node.staticInvokeType = previousInvokeType;
+    }
+    _completeNamedFunctionInvocation(
+      node,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -5366,88 +5470,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         nullSafetyDeadCodeVerifier.flowEnd(node);
       });
     });
-  }
-
-  void _resolveNamedFunctionInvocation(
-    NamedFunctionInvocationImpl node, {
-    required TypeImpl contextType,
-  }) {
-    checkUnreachableNode(node);
-    node.typeArguments?.accept2(this);
-
-    var previousResolution = node.resolution;
-    var previousInvokeType = node.staticInvokeType;
-    // Re-inference of `..call()` needs the receiver's generic signature,
-    // rather than the invocation type instantiated by the previous pass.
-    var cascadeReceiverType = node is CascadeMethodInvocationImpl
-        ? typeSystem.resolveToBound(
-            _activeCascadeExpression!.target2.typeOrThrow,
-          )
-        : null;
-    InvocationTarget? target = switch (previousResolution) {
-      ExecutableInvocationResolutionImpl(:var element) =>
-        InvocationTargetExecutableElement(element),
-      FunctionCallInvocationResolutionImpl(:var invokeType) =>
-        InvocationTargetFunctionTypedExpression(
-          cascadeReceiverType is FunctionTypeImpl
-              ? cascadeReceiverType
-              : invokeType,
-        ),
-      InvalidInvocationResolutionImpl(
-        recovery: ExecutableInvocationResolutionImpl(:var element),
-      ) =>
-        InvocationTargetExecutableElement(element),
-      InvalidInvocationResolutionImpl(
-        recovery: FunctionCallInvocationResolutionImpl(:var invokeType),
-      ) =>
-        InvocationTargetFunctionTypedExpression(invokeType),
-      _ => null,
-    };
-
-    var whyNotPromotedArguments =
-        <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    var inferredType =
-        NamedFunctionInvocationInferrer(
-              typeAnalyzer: this,
-              node: node,
-              argumentList: node.argumentList,
-              whyNotPromotedArguments: whyNotPromotedArguments,
-              contextType: contextType,
-              target: target,
-            ).resolveInvocation()
-            as TypeImpl;
-
-    node.resolution = switch (previousResolution) {
-      ExecutableInvocationResolutionImpl(:var element) =>
-        ExecutableInvocationResolutionImpl(
-          element: element,
-          invokeType: node.staticInvokeType as FunctionTypeImpl,
-          type: inferredType,
-        ),
-      FunctionCallInvocationResolutionImpl() =>
-        FunctionCallInvocationResolutionImpl(
-          invokeType: node.staticInvokeType as FunctionTypeImpl,
-          type: inferredType,
-        ),
-      _ => previousResolution,
-    };
-    if (target == null) {
-      node.staticInvokeType = previousInvokeType;
-    }
-    node.recordStaticType(
-      node.resolution?.type ?? node.typeOrThrow,
-      typeAnalyzer: this,
-    );
-
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-    checkForArgumentTypesNotAssignableInList(
-      node.argumentList,
-      whyNotPromotedArguments,
-    );
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
   }
 
   void _resolveParsedCascadeInvocation(
@@ -5602,11 +5624,21 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       typeArguments: typeArguments,
       argumentList: node.argumentList,
     )..shorthandContext = shorthandContext;
+    replace(invocation);
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    var inferredType = _inferNamedFunctionInvocation(
+      invocation,
+      contextType: contextType,
+      target: element != null
+          ? InvocationTargetExecutableElement(element)
+          : null,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    );
     if (element != null) {
       invocation.resolution = ExecutableInvocationResolutionImpl(
         element: element,
-        invokeType: element.type,
-        type: element.type.returnType,
+        invokeType: invocation.staticInvokeType as FunctionTypeImpl,
+        type: inferredType,
       );
     } else {
       invocation.resolution = InvalidInvocationResolutionImpl(
@@ -5616,8 +5648,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       );
       invocation.staticInvokeType = InvalidTypeImpl.instance;
     }
-    replace(invocation);
-    _resolveNamedFunctionInvocation(invocation, contextType: contextType);
+    _completeNamedFunctionInvocation(
+      invocation,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
