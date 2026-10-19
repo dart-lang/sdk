@@ -2089,12 +2089,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _runSubscriptions(node, _registry._forMethodDeclaration);
-    node.visitChildren2(this);
-  }
-
   @experimental
   @override
   void visitMethodDeclaration2(MethodDeclaration2 node) {
@@ -4831,8 +4825,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<MethodDeclaration2>> _forMethodDeclaration2 = [];
 
-  final List<_Subscription2<MethodDeclaration>> _forMethodDeclaration = [];
-
   final List<_Subscription2<MixinDeclaration>> _forMixinDeclaration = [];
 
   final List<_Subscription2<MixinOnClause>> _forMixinOnClause = [];
@@ -6115,12 +6107,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addMapPatternEntry(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forMapPatternEntry.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addMethodDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forMethodDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

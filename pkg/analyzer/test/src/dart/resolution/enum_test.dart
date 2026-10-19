@@ -863,7 +863,7 @@ enum E<T> {
 }
 ''');
 
-    var node = result.findNode.methodDeclaration('get foo');
+    var node = result.findNode.getterDeclaration('get foo');
     assertResolvedNodeText(node, r'''
 GetterDeclaration
   returnType: NamedType
@@ -2771,7 +2771,7 @@ enum E<T> {
 }
 ''');
 
-    var node = result.findNode.methodDeclaration('set foo');
+    var node = result.findNode.setterDeclaration('set foo');
     assertResolvedNodeText(node, r'''
 SetterDeclaration
   setKeyword: set

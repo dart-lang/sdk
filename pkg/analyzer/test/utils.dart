@@ -82,9 +82,28 @@ class AstFinder {
     fail('No field named $fieldName in $className');
   }
 
+  /// Return the declaration of the getter with the given [getterName] in the
+  /// class with the given [className] in the given compilation [unit].
+  static GetterDeclaration getGetterInClass(
+    CompilationUnit unit,
+    String className,
+    String getterName,
+  ) {
+    ClassDeclaration unitMember = getClass(unit, className);
+    var classBody = unitMember.body as BlockClassBody;
+    for (var classMember in classBody.members2) {
+      if (classMember is GetterDeclaration) {
+        if (classMember.name.lexeme == getterName) {
+          return classMember;
+        }
+      }
+    }
+    fail('No getter named $getterName in $className');
+  }
+
   /// Return the declaration of the method with the given [methodName] in the
   /// class with the given [className] in the given compilation [unit].
-  static MethodDeclaration getMethodInClass(
+  static MethodDeclaration2 getMethodInClass(
     CompilationUnit unit,
     String className,
     String methodName,
@@ -92,7 +111,7 @@ class AstFinder {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
     for (var classMember in classBody.members2) {
-      if (classMember is MethodDeclaration) {
+      if (classMember is MethodDeclaration2) {
         if (classMember.name.lexeme == methodName) {
           return classMember;
         }

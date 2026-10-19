@@ -332,10 +332,10 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.typeParameters,
         );
-      case MethodDeclarationImpl():
+      case MethodDeclarationV1OriginImpl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
-          node.typeParameters,
+          node.writtenTypeParameters,
         );
       case FunctionExpressionImpl():
         return _FragmentTypeParameters(

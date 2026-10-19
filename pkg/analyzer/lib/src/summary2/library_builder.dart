@@ -358,7 +358,7 @@ class LibraryBuilder {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.body.members2) {
-            if (executable is ast.MethodDeclarationImpl) {
+            if (executable is ast.MethodDeclarationV1OriginImpl) {
               executable.body.accept2(collector);
             }
           }

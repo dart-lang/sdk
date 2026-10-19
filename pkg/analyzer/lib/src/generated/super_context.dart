@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// An indication of the kind of context in which a super reference was found.
 class SuperContext {
@@ -75,8 +75,8 @@ class SuperContext {
         }
       } else if (node is FormalParameterDefaultClause) {
         inDefaultValue = true;
-      } else if (node is MethodDeclaration) {
-        if (node.isStatic) {
+      } else if (node is MethodDeclarationV1OriginImpl) {
+        if (node.staticKeyword != null) {
           return SuperContext.static;
         }
       }

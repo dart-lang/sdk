@@ -179,7 +179,7 @@ class TypesBuilder {
       _genericFunctionType(node);
     } else if (node is GenericTypeAlias2Impl) {
       _genericTypeAlias(node);
-    } else if (node is MethodDeclarationImpl) {
+    } else if (node is MethodDeclarationV1OriginImpl) {
       _methodDeclaration(node);
     } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
@@ -308,16 +308,17 @@ class TypesBuilder {
     );
   }
 
-  void _methodDeclaration(MethodDeclarationImpl node) {
+  void _methodDeclaration(MethodDeclarationV1OriginImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     if (fragment.previousFragment == null) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
-        if (node.isSetter) {
+        if (node is SetterDeclarationImpl) {
           returnType = _voidType;
-        } else if (node.isOperator && node.name.lexeme == '[]=') {
+        } else if (node is OperatorDeclarationImpl &&
+            node.operator.lexeme == '[]=') {
           returnType = _voidType;
         } else {
           returnType = _dynamicType;

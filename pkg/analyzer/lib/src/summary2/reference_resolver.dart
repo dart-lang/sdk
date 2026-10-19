@@ -195,12 +195,18 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
   void visitImplementsClause(ImplementsClause node) {
     node.interfaces.accept2(this);
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
     _scopeContext.visitMethodDeclaration(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
@@ -277,6 +283,12 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitNativeFunctionBody(NativeFunctionBody node) {}
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     _scopeContext.visitPrimaryConstructorBody(
       node,
@@ -319,6 +331,12 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override

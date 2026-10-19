@@ -1918,7 +1918,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('get A');
+    var node = parseResult.findNode.getterDeclaration('get A');
     assertParsedNodeText(node, r'''
 GetterDeclaration
   getKeyword: get
@@ -1946,7 +1946,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     assertParsedNodeText(node, r'''
 GetterDeclaration
   staticKeyword: static
@@ -1977,7 +1977,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     assertParsedNodeText(node, r'''
 GetterDeclaration
   staticKeyword: static
@@ -4537,7 +4537,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
 SetterDeclaration
   setKeyword: set @12
@@ -4576,7 +4576,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
 SetterDeclaration
   setKeyword: set @12
@@ -4615,7 +4615,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
 SetterDeclaration
   setKeyword: set @12
@@ -4654,7 +4654,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
 SetterDeclaration
   setKeyword: set @12
@@ -4693,7 +4693,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
 SetterDeclaration
   setKeyword: set @12
@@ -4730,7 +4730,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     assertParsedNodeText(node, r'''
 SetterDeclaration
   staticKeyword: static
@@ -4772,7 +4772,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     assertParsedNodeText(node, r'''
 SetterDeclaration
   staticKeyword: static

@@ -378,22 +378,26 @@ class _ClassVerifier {
             _checkIllegalConcreteEnumMemberDeclaration(field.name);
           }
         }
-      } else if (member is MethodDeclarationImpl) {
+      } else if (member is MethodDeclarationV1OriginImpl) {
         var hasError = _reportNoCombinedSuperSignature(member);
         if (hasError) {
           continue;
         }
 
+        var isStatic = member.staticKeyword != null;
         _checkDeclaredMember(
-          member.name,
+          member.nameToken,
           member.declaredFragment!.element,
-          methodParameterNodes: member.parameters?.allFormalParameters,
+          methodParameterNodes:
+              member.writtenFormalParameters?.allFormalParameters,
         );
-        if (!(member.isStatic || !member.isComplete || member.isSetter)) {
-          _checkIllegalConcreteEnumMemberDeclaration(member.name);
+        if (!(isStatic ||
+            !member.isComplete ||
+            member is SetterDeclarationImpl)) {
+          _checkIllegalConcreteEnumMemberDeclaration(member.nameToken);
         }
-        if (!member.isStatic && element is! EnumElementImpl) {
-          _checkIllegalEnumValuesDeclaration(member.name);
+        if (!isStatic && element is! EnumElementImpl) {
+          _checkIllegalEnumValuesDeclaration(member.nameToken);
         }
       }
     }
@@ -898,7 +902,7 @@ class _ClassVerifier {
   /// report the more specific error, and return `true`.
   bool _reportConcreteClassWithAbstractMember(String name) {
     bool checkMemberNameCombo(
-      ClassMember member,
+      AstNode member,
       String memberName,
       String displayName,
     ) {
@@ -920,13 +924,13 @@ class _ClassVerifier {
     }
 
     for (var member in members) {
-      if (member is MethodDeclaration) {
+      if (member is MethodDeclarationV1OriginImpl) {
         if (member.augmentKeyword != null) {
           continue;
         }
-        var displayName = member.name.lexeme;
+        var displayName = member.nameToken.lexeme;
         var name = displayName;
-        if (member.isSetter) {
+        if (member is SetterDeclarationImpl) {
           name += '=';
         }
         if (checkMemberNameCombo(member, name, displayName)) return true;
@@ -1026,7 +1030,7 @@ class _ClassVerifier {
     }
   }
 
-  bool _reportNoCombinedSuperSignature(MethodDeclarationImpl node) {
+  bool _reportNoCombinedSuperSignature(MethodDeclarationV1OriginImpl node) {
     var fragment = node.declaredFragment;
     if (fragment is MethodFragmentImpl) {
       var inferenceError = fragment.element.typeInferenceError;
@@ -1037,7 +1041,7 @@ class _ClassVerifier {
                 className: classElement.name ?? '',
                 candidateSignatures: inferenceError.candidateSignatures,
               )
-              .at(node.name),
+              .at(node.nameToken),
         );
         return true;
       }

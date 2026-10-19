@@ -3291,7 +3291,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -3302,7 +3302,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -3335,7 +3335,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleOperatorDeclaration;
     _assertSource(code, node);
   }
 
@@ -3346,7 +3346,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleOperatorDeclaration;
     _assertSource(code, node);
   }
 
@@ -3368,7 +3368,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -3379,7 +3379,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     _assertSource(code, node);
   }
 

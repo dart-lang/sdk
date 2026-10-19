@@ -96,7 +96,7 @@ class _UnitApiSignatureComputer {
         _addConstructorDeclaration(member);
       } else if (member is FieldDeclaration) {
         _addFieldDeclaration(member, hasConstConstructor);
-      } else if (member is MethodDeclarationImpl) {
+      } else if (member is MethodDeclarationV1OriginImpl) {
         _addMethodDeclaration(member);
       } else if (member is PrimaryConstructorBody) {
         _addPrimaryConstructorBody(member);
@@ -159,9 +159,12 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addMethodDeclaration(MethodDeclarationImpl node) {
+  void _addMethodDeclaration(MethodDeclarationV1OriginImpl node) {
     signature.addInt(_kindMethodDeclaration);
-    _addTokens(node.beginToken, node.parameters?.endToken ?? node.name);
+    _addTokens(
+      node.beginToken,
+      node.writtenFormalParameters?.endToken ?? node.nameToken,
+    );
     signature.addBool(node.isComplete);
     _addFunctionBodyModifiers(node.body);
     signature.addBool(node.invokesSuperSelf);

@@ -549,6 +549,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+  }
+
+  @override
   void visitHideCombinator(HideCombinator node) {
     var scope = nameScope.tryCast<LibraryFragmentScope>();
     scope?.importsTrackingActive(false);
@@ -669,7 +674,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
     _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
@@ -702,6 +707,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitNativeFunctionBody(covariant NativeFunctionBodyImpl node) {
     node.localVariableInfo = _localVariableInfo;
     super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
@@ -794,6 +804,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         element.type = _typeProvider.dynamicType;
       }
     }
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override

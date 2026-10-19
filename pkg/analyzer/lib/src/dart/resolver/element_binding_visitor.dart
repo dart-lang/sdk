@@ -796,14 +796,22 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
       switch (member) {
         case ConstructorDeclarationImpl():
           _bindConstructorDeclaration(member, fragments.nextConstructor());
-        case MethodDeclarationImpl():
-          if (member.isGetter) {
-            _bindMethodDeclaration(member, fragments.nextGetter());
-          } else if (member.isSetter) {
-            _bindMethodDeclaration(member, fragments.nextSetter());
-          } else {
-            _bindMethodDeclaration(member, fragments.nextMethod());
-          }
+        case GetterDeclarationImpl():
+          var fragment = fragments.nextGetter();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case MethodDeclaration2Impl():
+          var fragment = fragments.nextMethod();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case OperatorDeclarationImpl():
+          var fragment = fragments.nextMethod();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case SetterDeclarationImpl():
+          var fragment = fragments.nextSetter();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
         case FieldDeclarationImpl():
           member.documentationComment?.accept2(this);
           member.fields.type?.accept2(this);
@@ -812,23 +820,23 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
           }
         case PrimaryConstructorBodyImpl():
           member.accept2(this);
-        case MemberDeclarationImpl():
-          throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
   }
 
   void _bindMethodDeclaration(
-    MethodDeclarationImpl node,
+    MethodDeclarationV1OriginImpl node,
     ExecutableFragmentImpl fragment,
   ) {
-    node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     node.documentationComment?.accept2(this);
     node.returnType?.accept2(this);
-    _bindTypeParameters(node.typeParameters, fragment.typeParameters);
-    _bindFormalParameters(node.parameters, fragment.formalParameters);
+    _bindTypeParameters(node.writtenTypeParameters, fragment.typeParameters);
+    _bindFormalParameters(
+      node.writtenFormalParameters,
+      fragment.formalParameters,
+    );
 
     _withElementHolder(ElementHolder(fragment), () {
       node.body.accept2(this);

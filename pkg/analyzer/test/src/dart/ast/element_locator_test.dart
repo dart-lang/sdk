@@ -565,7 +565,7 @@ class A {
   void foo() {}
 }
 ''');
-    var node = result.findNode.methodDeclaration('foo');
+    var node = result.findNodeV1.methodDeclaration('foo');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo

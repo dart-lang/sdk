@@ -272,8 +272,12 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
                       return variable.offset;
                     }
                   }
-                } else if (member is MethodDeclaration) {
-                  if (member.name.lexeme == name) {
+                } else if (member
+                    case MethodDeclaration2(name: var memberName) ||
+                        OperatorDeclaration(operator: var memberName) ||
+                        GetterDeclaration(name: var memberName) ||
+                        SetterDeclaration(name: var memberName)) {
+                  if (memberName.lexeme == name) {
                     return member.offset;
                   }
                 }

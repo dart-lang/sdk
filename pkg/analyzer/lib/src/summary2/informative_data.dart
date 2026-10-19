@@ -949,13 +949,14 @@ class _InfoBuilder {
     bool processFields = fields == null;
     fields ??= <_InfoFieldDeclaration>[];
     for (var member in members) {
-      if (member is MethodDeclaration) {
-        if (member.isGetter) {
-          getters.add(_buildMethodDeclaration(member));
-        } else if (member.isSetter) {
-          setters.add(_buildMethodDeclaration(member));
-        } else {
-          methods.add(_buildMethodDeclaration(member));
+      if (member is MethodDeclarationV1OriginImpl) {
+        switch (member) {
+          case GetterDeclarationImpl():
+            getters.add(_buildMethodDeclaration(member));
+          case SetterDeclarationImpl():
+            setters.add(_buildMethodDeclaration(member));
+          case MethodDeclaration2Impl() || OperatorDeclarationImpl():
+            methods.add(_buildMethodDeclaration(member));
         }
       } else if (processFields && member is FieldDeclaration) {
         for (var variable in member.fields.variables) {
@@ -1041,19 +1042,21 @@ class _InfoBuilder {
     return _InfoLibraryName(offset: nameOffset, length: nameLength);
   }
 
-  _InfoExecutableDeclaration _buildMethodDeclaration(MethodDeclaration node) {
+  _InfoExecutableDeclaration _buildMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+  ) {
     return _InfoExecutableDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
-      nameOffset: node.name.offsetIfNotEmpty,
+      nameOffset: node.nameToken.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
-      typeParameters: _buildTypeParameters(node.typeParameters),
-      parameters: _buildFormalParameters(node.parameters),
+      typeParameters: _buildTypeParameters(node.writtenTypeParameters),
+      parameters: _buildFormalParameters(node.writtenFormalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        typeParameters: node.typeParameters,
-        formalParameters: node.parameters,
+        typeParameters: node.writtenTypeParameters,
+        formalParameters: node.writtenFormalParameters,
       ),
     );
   }

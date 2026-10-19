@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 class _SuperVisitor extends RecursiveAstVisitor2<void> {
   final String name;
@@ -74,11 +74,11 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
 
 enum _Usage { writing, reading }
 
-extension MethodDeclarationExtension on MethodDeclaration {
+extension MethodDeclarationExtension on MethodDeclarationV1OriginImpl {
   bool get invokesSuperSelf {
     var visitor = _SuperVisitor(
-      name.lexeme,
-      isSetter ? _Usage.writing : _Usage.reading,
+      nameToken.lexeme,
+      this is SetterDeclarationImpl ? _Usage.writing : _Usage.reading,
     );
     body.accept2(visitor);
     return visitor.hasSuperInvocation;

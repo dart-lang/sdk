@@ -234,8 +234,6 @@ class ElementResolver {
 
   void visitLibraryDirective(LibraryDirective node) {}
 
-  void visitMethodDeclaration(MethodDeclaration node) {}
-
   void visitMixinDeclaration(MixinDeclaration node) {}
 
   void visitPartDirective(PartDirective node) {}

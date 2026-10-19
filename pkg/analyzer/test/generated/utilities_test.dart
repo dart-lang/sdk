@@ -1302,17 +1302,17 @@ class A {
 ''');
     var destination = parseResult.findNode.methodDeclaration('a<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<MethodDeclaration>(
+    _assertReplacementForChildren<MethodDeclaration2>(
       destination: destination,
       source: parseResult.findNode.methodDeclaration('b<U>'),
       childAccessors: [
         (node) => node.returnType!,
         (node) => node.typeParameters!,
-        (node) => node.parameters!,
+        (node) => node.formalParameters,
         (node) => node.body,
       ],
     );
-    _assertRemovalForNullableChild<MethodDeclaration>(
+    _assertRemovalForNullableChild<MethodDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );

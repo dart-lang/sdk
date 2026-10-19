@@ -351,7 +351,7 @@ class ScopeContext {
   }
 
   void visitMethodDeclaration(
-    MethodDeclarationImpl node, {
+    MethodDeclarationV1OriginImpl node, {
     required AstVisitor2 visitor,
   }) {
     var fragment = node.declaredFragment!;
@@ -359,13 +359,12 @@ class ScopeContext {
 
     node.metadata.accept2(visitor);
 
-    withInStaticMember(node.isStatic, () {
+    withInStaticMember(node.staticKeyword != null, () {
       withTypeParameterScope(element.typeParameters, () {
         node.nameScope = nameScope;
-        node.typeParameterScope = nameScope;
         node.returnType?.accept2(visitor);
-        node.typeParameters?.accept2(visitor);
-        node.parameters?.accept2(visitor);
+        node.writtenTypeParameters?.accept2(visitor);
+        node.writtenFormalParameters?.accept2(visitor);
 
         withFormalParameterScope(fragment.formalParameters, () {
           node.documentationComment?.accept2(visitor);

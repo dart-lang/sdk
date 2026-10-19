@@ -89,7 +89,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isMethodDeclaration);
+    expect(node, isMethodDeclaration2);
   }
 
   void test_searchWithin_method_afterName_beforeTypeParameters() {
@@ -100,7 +100,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
-    expect(node, isMethodDeclaration);
+    expect(node, isMethodDeclaration2);
   }
 
   void test_searchWithin_namedConstructor_afterName_beforeParameters() {

@@ -1135,23 +1135,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
-    _visitToken(node.externalKeyword, suffix: ' ');
-    _visitToken(node.modifierKeyword, suffix: ' ');
-    _visitNode(node.returnType, suffix: ' ');
-    _visitToken(node.propertyKeyword, suffix: ' ');
-    _visitToken(node.operatorKeyword, suffix: ' ');
-    _visitToken(node.name);
-    if (!node.isGetter) {
-      _visitNode(node.typeParameters);
-      _visitNode(node.parameters);
-    }
-    _visitFunctionBody(node.body);
-  }
-
-  @override
   void visitMethodDeclaration2(MethodDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
@@ -1257,13 +1240,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitOperatorDeclaration(OperatorDeclaration node) {
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitNode(node.returnType, suffix: ' ');
     _visitToken(node.operatorKeyword, suffix: ' ');
     _visitToken(node.operator);
+    _visitNode(node.recoveryTypeParameters);
     _visitNode(node.formalParameters);
     _visitFunctionBody(node.body);
   }

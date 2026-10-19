@@ -1844,6 +1844,14 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    var fragment = GetterFragmentImpl(name: _getFragmentName(node.name));
+    fragment.isOriginDeclaration = true;
+    node.declaredFragment = fragment;
+    _buildMethodDeclaration(node, fragment, isComplete: node.isComplete);
+  }
+
+  @override
   void visitImplementsClause(ImplementsClause node) {
     node.interfaces.accept2(this);
   }
@@ -1860,54 +1868,11 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   void visitLibraryDirective(covariant LibraryDirectiveImpl node) {}
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var nameToken = node.name;
-
-    ExecutableFragmentImpl executableFragment;
-    if (node.isGetter) {
-      var fragment = GetterFragmentImpl(name: _getFragmentName(nameToken));
-      fragment.isAbstract = !node.isComplete;
-      fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isOriginDeclaration = true;
-      fragment.isStatic = node.isStatic;
-      _addChildFragment(fragment);
-      executableFragment = fragment;
-    } else if (node.isSetter) {
-      var fragment = SetterFragmentImpl(name: _getFragmentName(nameToken));
-      fragment.isAbstract = !node.isComplete;
-      fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isOriginDeclaration = true;
-      fragment.isStatic = node.isStatic;
-      _addChildFragment(fragment);
-      executableFragment = fragment;
-    } else {
-      var fragment = MethodFragmentImpl(name: _getFragmentName(nameToken));
-      fragment.isAbstract = !node.isComplete;
-      fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isOriginDeclaration = true;
-      fragment.isStatic = node.isStatic;
-      _addChildFragment(fragment);
-      executableFragment = fragment;
-    }
-    executableFragment.hasImplicitReturnType = node.returnType == null;
-    executableFragment.invokesSuperSelf = node.invokesSuperSelf;
-    executableFragment.isAsynchronous = node.body.isAsynchronous;
-    executableFragment.isExternal =
-        node.externalKeyword != null || node.body is NativeFunctionBody;
-    executableFragment.isGenerator = node.body.isGenerator;
-    executableFragment.isComplete = node.isComplete;
-    executableFragment.metadata = _buildMetadata(node.metadata);
-
-    node.declaredFragment = executableFragment;
-    _linker.setFragmentNode(executableFragment, node);
-
-    _buildExecutableElementChildren(
-      fragment: executableFragment,
-      formalParameters: node.parameters,
-      typeParameters: node.typeParameters,
-    );
-
-    node.returnType?.accept2(this);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    var fragment = MethodFragmentImpl(name: _getFragmentName(node.name));
+    fragment.isOriginDeclaration = true;
+    node.declaredFragment = fragment;
+    _buildMethodDeclaration(node, fragment, isComplete: node.isComplete);
   }
 
   @override
@@ -1949,6 +1914,14 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   @override
   void visitNameWithTypeParameters(NameWithTypeParameters node) {
     node.typeParameters?.accept2(this);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    var fragment = MethodFragmentImpl(name: _getFragmentName(node.operator));
+    fragment.isOriginDeclaration = true;
+    node.declaredFragment = fragment;
+    _buildMethodDeclaration(node, fragment, isComplete: node.isComplete);
   }
 
   @override
@@ -2137,6 +2110,14 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     _buildFunctionTypedParameterSuffix(fragment, node.functionTypedSuffix);
 
     node.type?.accept2(this);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    var fragment = SetterFragmentImpl(name: _getFragmentName(node.name));
+    fragment.isOriginDeclaration = true;
+    node.declaredFragment = fragment;
+    _buildMethodDeclaration(node, fragment, isComplete: node.isComplete);
   }
 
   @override
@@ -2381,6 +2362,35 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         growable: false,
       ),
     );
+  }
+
+  void _buildMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    ExecutableFragmentImpl executableFragment, {
+    required bool isComplete,
+  }) {
+    executableFragment.isAbstract = !isComplete;
+    executableFragment.isAugmentation = node.augmentKeyword != null;
+    executableFragment.isStatic = node.staticKeyword != null;
+    _addChildFragment(executableFragment);
+    executableFragment.hasImplicitReturnType = node.returnType == null;
+    executableFragment.invokesSuperSelf = node.invokesSuperSelf;
+    executableFragment.isAsynchronous = node.body.isAsynchronous;
+    executableFragment.isExternal =
+        node.externalKeyword != null || node.body is NativeFunctionBody;
+    executableFragment.isGenerator = node.body.isGenerator;
+    executableFragment.isComplete = isComplete;
+    executableFragment.metadata = _buildMetadata(node.metadata);
+
+    _linker.setFragmentNode(executableFragment, node);
+
+    _buildExecutableElementChildren(
+      fragment: executableFragment,
+      formalParameters: node.writtenFormalParameters,
+      typeParameters: node.writtenTypeParameters,
+    );
+
+    node.returnType?.accept2(this);
   }
 
   String? _getFragmentName(Token? nameToken) {

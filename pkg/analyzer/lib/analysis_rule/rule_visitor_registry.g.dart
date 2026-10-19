@@ -935,8 +935,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addMapPatternEntry(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addMethodDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   @experimental
   void addMethodDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

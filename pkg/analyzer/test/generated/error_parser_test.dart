@@ -1772,7 +1772,7 @@ class C {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     assertParsedNodeText(node, r'''
 GetterDeclaration
   returnType: NamedType

@@ -41,6 +41,8 @@ class FindNode extends _FindNodeBase {
 
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
 
+  MethodDeclaration get singleMethodDeclaration => _single();
+
   MethodInvocation get singleMethodInvocation => _single();
 
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
@@ -111,6 +113,10 @@ class FindNode extends _FindNodeBase {
 
   InstanceCreationExpression instanceCreation(String search) {
     return _node(search, (node) => node is InstanceCreationExpression);
+  }
+
+  MethodDeclaration methodDeclaration(String search) {
+    return _node(search, (n) => n is MethodDeclaration);
   }
 
   MethodInvocation methodInvocation(String search) {
@@ -198,6 +204,14 @@ class FindNode2 extends _FindNodeBase {
 
   CallInvocation get singleCallInvocation => _single();
 
+  /// The only member of a class-like or enum body.
+  AnnotatedNode get singleClassMember {
+    return [
+      for (var body in _nodes<ClassBody>()) ...body.members2,
+      for (var body in _nodes<EnumBody>()) ...body.members2,
+    ].single;
+  }
+
   CompoundAssignment get singleCompoundAssignment => _single();
 
   ConstructorInvocation get singleConstructorInvocation => _single();
@@ -216,6 +230,8 @@ class FindNode2 extends _FindNodeBase {
   FunctionTypeAlias2 get singleFunctionTypeAlias => _single();
 
   GenericTypeAlias2 get singleGenericTypeAlias => _single();
+
+  GetterDeclaration get singleGetterDeclaration => _single();
 
   IfNull get singleIfNull => _single();
 
@@ -247,9 +263,15 @@ class FindNode2 extends _FindNodeBase {
 
   LogicalOr get singleLogicalOr => _single();
 
+  MethodDeclaration2 get singleMethodDeclaration => _single();
+
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
+  OperatorDeclaration get singleOperatorDeclaration => _single();
+
   ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
+
+  SetterDeclaration get singleSetterDeclaration => _single();
 
   SuperReference get singleSuperReference => _single();
 
@@ -316,6 +338,10 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (n) => n is GenericTypeAlias2);
   }
 
+  GetterDeclaration getterDeclaration(String search) {
+    return _node(search, (n) => n is GetterDeclaration);
+  }
+
   IfNull ifNull(String search) {
     return _node(search, (node) => node is IfNull);
   }
@@ -376,12 +402,24 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is LogicalOr);
   }
 
+  MethodDeclaration2 methodDeclaration(String search) {
+    return _node(search, (n) => n is MethodDeclaration2);
+  }
+
   NullAssertionExpression nullAssertion(String search) {
     return _node(search, (node) => node is NullAssertionExpression);
   }
 
+  OperatorDeclaration operatorDeclaration(String search) {
+    return _node(search, (n) => n is OperatorDeclaration);
+  }
+
   ReceiverMethodInvocation receiverMethodInvocation(String search) {
     return _node(search, (node) => node is ReceiverMethodInvocation);
+  }
+
+  SetterDeclaration setterDeclaration(String search) {
+    return _node(search, (n) => n is SetterDeclaration);
   }
 
   SuperReference superReference(String search) {
@@ -532,8 +570,6 @@ abstract class _FindNodeBase {
 
   ClassDeclaration get singleClassDeclaration => _single();
 
-  ClassMember get singleClassMember => _single();
-
   ClassTypeAlias get singleClassTypeAlias => _single();
 
   Comment get singleComment => _single();
@@ -659,8 +695,6 @@ abstract class _FindNodeBase {
   MapPattern get singleMapPattern => _single();
 
   MapPatternEntry get singleMapPatternEntry => _single();
-
-  MethodDeclaration get singleMethodDeclaration => _single();
 
   MixinDeclaration get singleMixinDeclaration => _single();
 
@@ -1174,10 +1208,6 @@ abstract class _FindNodeBase {
 
   MapPatternEntry mapPatternEntry(String search) {
     return _node(search, (n) => n is MapPatternEntry);
-  }
-
-  MethodDeclaration methodDeclaration(String search) {
-    return _node(search, (n) => n is MethodDeclaration);
   }
 
   MixinDeclaration mixin(String search) {

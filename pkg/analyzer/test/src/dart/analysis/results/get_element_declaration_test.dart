@@ -364,6 +364,38 @@ class A {
     expect(node.isGetter, isTrue);
   }
 
+  test_getter_class_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class A {
+  int get x => 0;
+}
+''');
+    var fragment = unitResult.findElement.getter('x').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+GetterDeclaration
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: x
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+    semicolon: ;
+V1: MethodDeclaration
+  returnType: NamedType
+    name: int
+  propertyKeyword: get
+  name: x
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
+      literal: 0
+    semicolon: ;
+''');
+  }
+
   test_getter_top() async {
     var unitResult = await resolveTestCode(r'''
 int get x => 0;
@@ -437,6 +469,40 @@ class C {
     expect(node.name.lexeme, 'foo');
   }
 
+  test_method_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class C {
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.method('foo').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
   test_mixin() async {
     var unitResult = await resolveTestCode(r'''
 mixin M {}
@@ -445,6 +511,66 @@ mixin M {}
     var result = await getFragmentDeclaration(fragment);
     var node = result!.node as MixinDeclaration;
     expect(node.name.lexeme, 'M');
+  }
+
+  test_operator() async {
+    var unitResult = await resolveTestCode(r'''
+class C {
+  C operator +(C other) => this;
+}
+''');
+    var fragment = unitResult.findElement.method('+').firstFragment;
+    var result = await getFragmentDeclaration(fragment);
+    var node = result!.node as MethodDeclaration;
+    expect(node.name.lexeme, '+');
+    expect(node.isOperator, isTrue);
+  }
+
+  test_operator_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class C {
+  C operator +(C other) => this;
+}
+''');
+    var fragment = unitResult.findElement.method('+').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+OperatorDeclaration
+  returnType: NamedType
+    name: C
+  operatorKeyword: operator
+  operator: +
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: C
+        name: other
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: ThisExpression
+      thisKeyword: this
+    semicolon: ;
+V1: MethodDeclaration
+  returnType: NamedType
+    name: C
+  operatorKeyword: operator
+  name: +
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: C
+      name: other
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: ThisExpression
+      thisKeyword: this
+    semicolon: ;
+''');
   }
 
   test_setter_class() async {
@@ -458,6 +584,43 @@ class A {
     var node = result!.node as MethodDeclaration;
     expect(node.name.lexeme, 'x');
     expect(node.isSetter, isTrue);
+  }
+
+  test_setter_class_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class A {
+  set x(_) {}
+}
+''');
+    var fragment = unitResult.findElement.setter('x').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+SetterDeclaration
+  setKeyword: set
+  name: x
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: _
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  propertyKeyword: set
+  name: x
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      name: _
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
   }
 
   test_setter_top() async {

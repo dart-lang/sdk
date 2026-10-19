@@ -150,22 +150,21 @@ class MemberDuplicateDefinitionVerifier {
               _checkValuesDeclarationInEnum(field.name);
             }
           }
-        case MethodDeclarationImpl():
+        case MethodDeclarationV1OriginImpl():
+          var isStatic = member.staticKeyword != null;
           _checkDuplicateIdentifier(
-            member.isStatic ? staticScope : instanceScope,
-            member.name,
+            isStatic ? staticScope : instanceScope,
+            member.nameToken,
             fragment: member.declaredFragment!,
           );
           if (fragment is EnumFragmentImpl) {
-            if (!(member.isStatic && member.isSetter)) {
-              _checkValuesDeclarationInEnum(member.name);
+            if (!(isStatic && member is SetterDeclarationImpl)) {
+              _checkValuesDeclarationInEnum(member.nameToken);
             }
           }
         case PrimaryConstructorBodyImpl():
           // Not an actual declaration.
           break;
-        case MemberDeclarationImpl():
-          throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
 
@@ -211,9 +210,9 @@ class MemberDuplicateDefinitionVerifier {
             }
           }
         }
-      } else if (member is MethodDeclaration) {
-        if (member.isStatic) {
-          var identifier = member.name;
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        if (member.staticKeyword != null) {
+          var identifier = member.nameToken;
           String name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
             if (firstFragment is InterfaceFragmentImpl) {
@@ -506,9 +505,9 @@ class MemberDuplicateDefinitionVerifier {
             }
           }
         }
-      } else if (member is MethodDeclarationImpl) {
-        if (member.isStatic) {
-          var identifier = member.name;
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        if (member.staticKeyword != null) {
+          var identifier = member.nameToken;
           var name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
             _diagnosticReporter.report(

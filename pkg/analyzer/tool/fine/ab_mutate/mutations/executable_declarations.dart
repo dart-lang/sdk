@@ -12,6 +12,12 @@ class CollectExecutablesVisitor extends RecursiveAstVisitor2<void> {
   new _internal(this._out);
 
   @override
+  void visitGetterDeclaration(GetterDeclaration node) {
+    _out.add(ExecutableDeclaration(node.offset, null, node.returnType));
+    super.visitGetterDeclaration(node);
+  }
+
+  @override
   void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     _out.add(
       ExecutableDeclaration(
@@ -24,11 +30,39 @@ class CollectExecutablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration2(MethodDeclaration2 node) {
     _out.add(
-      ExecutableDeclaration(node.offset, node.parameters, node.returnType),
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
     );
-    super.visitMethodDeclaration(node);
+    super.visitMethodDeclaration2(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(OperatorDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitOperatorDeclaration(node);
+  }
+
+  @override
+  void visitSetterDeclaration(SetterDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitSetterDeclaration(node);
   }
 
   @override

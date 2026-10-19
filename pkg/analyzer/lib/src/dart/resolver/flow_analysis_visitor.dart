@@ -1190,6 +1190,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(GetterDeclaration node) {
+    throw StateError('Should not visit top level declarations');
+  }
+
+  @override
   void visitIfElement(covariant IfElementImpl node) {
     _visitIf(node);
   }
@@ -1258,7 +1263,12 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration2(MethodDeclaration2 node) {
+    throw StateError('Should not visit top level declarations');
+  }
+
+  @override
+  void visitOperatorDeclaration(OperatorDeclaration node) {
     throw StateError('Should not visit top level declarations');
   }
 
@@ -1270,6 +1280,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       assignedVariables.declare(variable);
     }
     super.visitPatternVariableDeclaration(node);
+  }
+
+  @override
+  void visitSetterDeclaration(SetterDeclaration node) {
+    throw StateError('Should not visit top level declarations');
   }
 
   @override

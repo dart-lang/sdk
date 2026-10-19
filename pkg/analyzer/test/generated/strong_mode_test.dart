@@ -98,7 +98,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(
+      MethodDeclaration2 test = AstFinder.getMethodInClass(
         result.unit,
         "A",
         name,
@@ -3004,7 +3004,7 @@ V1: MethodInvocation
       "B",
       "map",
     );
-    MethodDeclaration mapC = AstFinder.getMethodInClass(
+    GetterDeclaration mapC = AstFinder.getGetterInClass(
       result.unit,
       "C",
       "map",
@@ -3824,7 +3824,7 @@ V1: MethodInvocation
    ''');
 
     Expression methodReturnValue(String methodName) {
-      MethodDeclaration method = AstFinder.getMethodInClass(
+      MethodDeclaration2 method = AstFinder.getMethodInClass(
         result.unit,
         "A",
         methodName,

@@ -2796,12 +2796,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
   @experimental
   @override
   R? visitMethodDeclaration2(MethodDeclaration2 node) {
@@ -4479,9 +4473,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitMapPatternEntry(MapPatternEntry node) => null;
 
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) => null;
-
   @experimental
   @override
   R? visitMethodDeclaration2(MethodDeclaration2 node) => null;
@@ -5917,9 +5908,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitMapPatternEntry(MapPatternEntry node) => _throw(node);
-
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) => _throw(node);
 
   @experimental
   @override
@@ -8924,14 +8912,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
-  @override
-  T? visitMethodDeclaration(MethodDeclaration node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitMethodDeclaration(node);
-    stopwatch.stop();
-    return result;
-  }
-
   @experimental
   @override
   T? visitMethodDeclaration2(MethodDeclaration2 node) {
@@ -10865,9 +10845,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitMapPatternEntry(MapPatternEntry node) => visitNode(node);
-
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) => visitNode(node);
 
   @experimental
   @override

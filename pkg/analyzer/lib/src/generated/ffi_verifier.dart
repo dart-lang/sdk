@@ -421,6 +421,11 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
   void visitImportPrefixedFunctionInvocation(
     covariant ImportPrefixedFunctionInvocationImpl node,
   ) {
@@ -465,15 +470,13 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _checkFfiNative(
-      errorNode: node.name,
-      declarationElement: node.declaredFragment!.element,
-      formalParameterList: node.parameters,
-      isExternal: node.externalKeyword != null,
-      metadata: node.metadata,
-    );
-    super.visitMethodDeclaration(node);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -546,6 +549,11 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -2436,6 +2444,20 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         ),
       );
     }
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    _checkFfiNative(
+      errorNode: node.nameToken,
+      declarationElement: node.declaredFragment!.element,
+      formalParameterList: node.writtenFormalParameters,
+      isExternal: node.externalKeyword != null,
+      metadata: node.metadata,
+    );
+    visitSuper();
   }
 }
 

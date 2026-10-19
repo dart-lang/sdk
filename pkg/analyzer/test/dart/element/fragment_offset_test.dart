@@ -499,7 +499,7 @@ class C {
   int get foo => 0;
 }
 ''');
-    var getterDeclaration = result.findNode.methodDeclaration('foo');
+    var getterDeclaration = result.findNode.getterDeclaration('foo');
     checkOffset<GetterFragment>(
       getterDeclaration,
       getterDeclaration.declaredFragment!,
@@ -823,7 +823,7 @@ class C {
   set foo(int value) {}
 }
 ''');
-    var setterDeclaration = result.findNode.methodDeclaration('foo');
+    var setterDeclaration = result.findNode.setterDeclaration('foo');
     checkOffset<SetterFragment>(
       setterDeclaration,
       setterDeclaration.declaredFragment!,

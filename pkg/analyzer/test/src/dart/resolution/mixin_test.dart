@@ -142,7 +142,7 @@ mixin M {
 }
 ''');
 
-    var node = result.findNode.singleMethodDeclaration;
+    var node = result.findNode.singleGetterDeclaration;
     assertResolvedNodeText(node, r'''
 GetterDeclaration
   returnType: NamedType
@@ -384,7 +384,7 @@ mixin M {
 }
 ''');
 
-    var node = result.findNode.singleMethodDeclaration;
+    var node = result.findNode.singleSetterDeclaration;
     assertResolvedNodeText(node, r'''
 SetterDeclaration
   returnType: NamedType

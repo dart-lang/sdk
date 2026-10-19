@@ -1904,7 +1904,7 @@ class C {
   void m^() {}
 }
 ''');
-    node as MethodDeclaration;
+    node as MethodDeclaration2;
   }
 
   Future<void> test_between_periodAndIdentifier() async {
@@ -1977,7 +1977,7 @@ class C {
   void m^m() {}
 }
 ''');
-    node as MethodDeclaration;
+    node as MethodDeclaration2;
   }
 
   Future<void> test_inOperator_assignment() async {

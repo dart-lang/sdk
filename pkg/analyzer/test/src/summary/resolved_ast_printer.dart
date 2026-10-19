@@ -1154,6 +1154,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitGetterDeclaration(GetterDeclaration node) {
+    _sink.writeln('GetterDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitGuardedPattern(GuardedPattern node) {
     _sink.writeln('GuardedPattern');
     _sink.withIndent(() {
@@ -1635,12 +1644,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (_view == _AstView.v2) {
-      _writeMethodDeclarationAsMemberDeclaration(node);
-      return;
-    }
-
     _sink.writeln('MethodDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitMethodDeclaration2(MethodDeclaration2 node) {
+    _sink.writeln('MethodDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -1764,6 +1777,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writePatternMatchedValueType(node);
+    });
+  }
+
+  @override
+  void visitOperatorDeclaration(OperatorDeclaration node) {
+    _sink.writeln('OperatorDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
     });
   }
 
@@ -2207,6 +2229,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitSetterDeclaration(SetterDeclaration node) {
+    _sink.writeln('SetterDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {
     _sink.writeln('ShowCombinator');
     _sink.withIndent(() {
@@ -2630,21 +2661,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     if (node case TopLevelDeclarationImpl declaration) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1CompilationUnitMember(declaration);
+    } else if (node case MemberDeclarationImpl declaration) {
+      // ignore: analyzer_v1_ast_use
+      v1 = V1Projection.toV1ClassMember(declaration);
     } else if (node case ExpressionImpl expression) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Expression(expression);
     } else if (node case StatementImpl statement) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Statement(statement);
-    }
-
-    // TODO(scheglov): Remove when methods are parsed as V2 member nodes,
-    // which have distinct V1 projections.
-    if (node is MethodDeclaration) {
-      _withInlineV1ChildEntities(false, () => writeNode(node));
-      _sink.writeWithIndent('V1: ');
-      _withView(_AstView.v1, () => _acceptInView(node));
-      return;
     }
 
     if (v1 == null || identical(v1, node)) {
@@ -3098,35 +3123,6 @@ Expected parent: (${parent.runtimeType}) $parent
     });
   }
 
-  /// Writes a method [node] as it will be printed once methods are parsed as
-  /// `MethodDeclaration2`, `OperatorDeclaration`, `GetterDeclaration`, or
-  /// `SetterDeclaration`.
-  // TODO(scheglov): Remove when methods are parsed as V2 member nodes.
-  void _writeMethodDeclarationAsMemberDeclaration(MethodDeclaration node) {
-    node as MethodDeclarationImpl;
-    _sink.writeln(switch (node) {
-      MethodDeclaration(isOperator: true) => 'OperatorDeclaration',
-      MethodDeclaration(isGetter: true) => 'GetterDeclaration',
-      MethodDeclaration(isSetter: true) => 'SetterDeclaration',
-      _ => 'MethodDeclaration2',
-    });
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        var name = switch (entity.name) {
-          'modifierKeyword' => 'staticKeyword',
-          'propertyKeyword' => node.isGetter ? 'getKeyword' : 'setKeyword',
-          'name' when node.isOperator => 'operator',
-          'typeParameters' when node.isOperator => 'recoveryTypeParameters',
-          'parameters' when node.isGetter => 'recoveryFormalParameters',
-          'parameters' => 'formalParameters',
-          var name => name,
-        };
-        _writeNamedChildEntity(node, entity, name: name);
-      }
-      _writeDeclaredFragment(node.declaredFragment);
-    });
-  }
-
   void _writeNamedChildEntities(AstNode node) {
     node as AstNodeImpl;
     if (_view == _AstView.v1) {
@@ -3168,8 +3164,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasMethodDeclarations(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3502,7 +3497,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   /// Every [FormalParameter] declares an element, and this element must be
   /// in the list of formal parameter elements of some declaration, e.g. of
-  /// [ConstructorDeclaration], [MethodDeclaration], a local
+  /// [ConstructorDeclaration], [MethodDeclaration2], a local
   /// [FunctionDeclaration], or a [TopLevelFunctionDeclaration].
   static List<FormalParameterFragment> _expectedFormalParameterElements(
     FormalParameter node,
@@ -3524,9 +3519,6 @@ Expected parent: (${parent.runtimeType}) $parent
     } else if (parametersParent is GenericFunctionTypeImpl) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
-    } else if (parametersParent is MethodDeclaration) {
-      var declaredFragment = parametersParent.declaredFragment!;
-      return declaredFragment.formalParameters;
     } else if (parametersParent is PrimaryConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
@@ -3534,7 +3526,7 @@ Expected parent: (${parent.runtimeType}) $parent
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent
-        case TopLevelDeclaration() &&
+        case (TopLevelDeclaration() || MemberDeclaration()) &&
             FragmentDeclaringNode(
               declaredFragment: ExecutableFragment fragment,
             )) {
@@ -3543,14 +3535,6 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a member list with a [MethodDeclaration], which will
-  /// differ from its V1 projection once methods are parsed as V2 member nodes.
-  // TODO(scheglov): Remove when methods are parsed as V2 member nodes.
-  static bool _hasMethodDeclarations(Object value) {
-    return value is List<AstNode> &&
-        value.any((node) => node is MethodDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

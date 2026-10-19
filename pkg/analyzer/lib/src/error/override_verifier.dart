@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
@@ -47,25 +47,13 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    var element = node.declaredFragment!.element;
-    if (element.metadata.hasOverride && !_isOverride(element)) {
-      switch (element) {
-        case MethodElement():
-          _errorReporter.report(
-            diag.overrideOnNonOverridingMethod.at(node.name),
-          );
-        case GetterElement():
-          _errorReporter.report(
-            diag.overrideOnNonOverridingGetter.at(node.name),
-          );
-        case SetterElement():
-          _errorReporter.report(
-            diag.overrideOnNonOverridingSetter.at(node.name),
-          );
-      }
-    }
-    super.visitMethodDeclaration(node);
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -73,6 +61,11 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
     _currentClass = node.declaredFragment?.element;
     super.visitMixinDeclaration(node);
     _currentClass = null;
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -87,6 +80,11 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
       if (fieldElement == null) continue;
       _checkField(fieldElement, parameter.name!);
     }
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -133,5 +131,29 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
     }
 
     return currentClass.element.getOverridden(name) != null;
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    var element = node.declaredFragment!.element;
+    if (element.metadata.hasOverride && !_isOverride(element)) {
+      switch (element) {
+        case MethodElement():
+          _errorReporter.report(
+            diag.overrideOnNonOverridingMethod.at(node.nameToken),
+          );
+        case GetterElement():
+          _errorReporter.report(
+            diag.overrideOnNonOverridingGetter.at(node.nameToken),
+          );
+        case SetterElement():
+          _errorReporter.report(
+            diag.overrideOnNonOverridingSetter.at(node.nameToken),
+          );
+      }
+    }
+    visitSuper();
   }
 }

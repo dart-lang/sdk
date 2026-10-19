@@ -748,8 +748,6 @@ abstract class AstVisitor2<R> {
 
   R? visitMapPatternEntry(MapPatternEntry node);
 
-  R? visitMethodDeclaration(MethodDeclaration node);
-
   @experimental
   R? visitMethodDeclaration2(MethodDeclaration2 node);
 

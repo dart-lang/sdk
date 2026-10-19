@@ -6278,6 +6278,84 @@ class AstBuilder extends StackListener {
     return constructor;
   }
 
+  /// Builds the V2 member declaration for the form of method that is
+  /// written.
+  MethodDeclarationV1OriginImpl _buildMethodDeclaration({
+    required CommentImpl? comment,
+    required List<AnnotationImpl>? metadata,
+    required _Modifiers? modifiers,
+    required TypeAnnotationImpl? returnType,
+    required Token? getOrSet,
+    required Token? operatorKeyword,
+    required Token name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? formalParameters,
+    required FunctionBodyImpl body,
+  }) {
+    // The parser never reports `abstract` as a modifier of a method.
+    assert(modifiers?.abstractKeyword == null);
+    if (operatorKeyword != null) {
+      // The parser drops `static` from an operator.
+      assert(modifiers?.staticKeyword == null);
+      return OperatorDeclarationImpl(
+        comment: comment,
+        metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
+        externalKeyword: modifiers?.externalKeyword,
+        returnType: returnType,
+        operatorKeyword: operatorKeyword,
+        operator: name,
+        recoveryTypeParameters: typeParameters,
+        formalParameters: formalParameters!,
+        body: body,
+      );
+    }
+    if (getOrSet?.keyword == Keyword.GET) {
+      // The parser never builds type parameters for a getter.
+      assert(typeParameters == null);
+      return GetterDeclarationImpl(
+        comment: comment,
+        metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
+        externalKeyword: modifiers?.externalKeyword,
+        staticKeyword: modifiers?.staticKeyword,
+        returnType: returnType,
+        getKeyword: getOrSet!,
+        name: name,
+        recoveryFormalParameters: formalParameters,
+        body: body,
+      );
+    }
+    if (getOrSet?.keyword == Keyword.SET) {
+      // The parser never builds type parameters for a setter.
+      assert(typeParameters == null);
+      return SetterDeclarationImpl(
+        comment: comment,
+        metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
+        externalKeyword: modifiers?.externalKeyword,
+        staticKeyword: modifiers?.staticKeyword,
+        returnType: returnType,
+        setKeyword: getOrSet!,
+        name: name,
+        formalParameters: formalParameters!,
+        body: body,
+      );
+    }
+    return MethodDeclaration2Impl(
+      comment: comment,
+      metadata: metadata,
+      augmentKeyword: modifiers?.augmentKeyword,
+      externalKeyword: modifiers?.externalKeyword,
+      staticKeyword: modifiers?.staticKeyword,
+      returnType: returnType,
+      name: name,
+      typeParameters: typeParameters,
+      formalParameters: formalParameters!,
+      body: body,
+    );
+  }
+
   void _endClassConstructor(
     Token beginToken,
     Token beginParam,
@@ -6432,18 +6510,16 @@ class AstBuilder extends StackListener {
     }
 
     _classLikeBuilder?.members.add(
-      MethodDeclarationImpl(
+      _buildMethodDeclaration(
         comment: comment,
         metadata: metadata,
-        augmentKeyword: modifiers?.augmentKeyword,
-        externalKeyword: modifiers?.externalKeyword,
-        modifierKeyword: modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
+        modifiers: modifiers,
         returnType: returnType,
-        propertyKeyword: getOrSet,
+        getOrSet: getOrSet,
         operatorKeyword: operatorKeyword,
         name: nameId,
         typeParameters: typeParameters,
-        parameters: formalParameters,
+        formalParameters: formalParameters,
         body: body,
       ),
     );
@@ -6895,7 +6971,7 @@ abstract class _ClassLikeDeclarationBuilder {
 
   Token? emptyClassBodySemicolon;
   Token leftBracket;
-  final List<ClassMemberImpl> members = [];
+  final List<ClassMemberV1OrV2Impl> members = [];
   Token rightBracket;
 
   new({
