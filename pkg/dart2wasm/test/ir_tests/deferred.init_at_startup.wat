@@ -54,9 +54,9 @@
     global.set $_deletedDataMarker
     global.get $deferredLoadLists
     i32.const 1
-    i32.const 0
+    i32.const 1
     i32.const 2
-    array.new_data $Array<WasmI8>$data0
+    array.new $Array<WasmI8>
     array.set $Array<WasmArray<WasmI8>?>
   )
   (func $ArgumentError (param $var0 (ref null $#Top)) (param $var1 (ref null $JSExternWrapper)) (result (ref $ArgumentError)) <...>)
@@ -70,5 +70,4 @@
   (func $_jsBigIntToString (param $var0 i64) (param $var1 i64) (result (ref $JSExternWrapper)) <...>)
   (func $_throwIndexError (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) <...>)
   (func $_throwRangeError (param $var0 i64) (param $var1 i64) (param $var2 i64) (param $var3 (ref null $JSExternWrapper)) (param $var4 (ref null $JSExternWrapper)) <...>)
-  (data $data0 <... 2 bytes ...>)
 )

@@ -31,16 +31,15 @@
     global.set $_deletedDataMarker
     global.get $deferredLoadLists
     i32.const 1
-    i32.const 0
+    i32.const 1
     i32.const 2
-    array.new_data $Array<WasmI8>$data0
+    array.new $Array<WasmI8>
     array.set $Array<WasmArray<WasmI8>?>
     global.get $deferredLoadLists
     i32.const 4
+    i32.const 1
     i32.const 2
-    i32.const 2
-    array.new_data $Array<WasmI8>$data0
+    array.new_fixed $Array<WasmI8> 2
     array.set $Array<WasmArray<WasmI8>?>
   )
-  (data $data0 <... 4 bytes ...>)
 )

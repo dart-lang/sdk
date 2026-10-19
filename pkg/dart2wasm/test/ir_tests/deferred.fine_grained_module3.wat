@@ -157,7 +157,6 @@
   (func $foo5Code (param $var0 (ref $#Top))
     (local $var1 (ref $WasmListBase))
     (local $var2 (ref $Object))
-    (local $var3 i64)
     global.get $FooConst5
     i32.const 18
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top))
@@ -281,11 +280,10 @@
     end $label5
     local.tee $var1
     struct.get $WasmListBase $_length
-    local.tee $var3
     i64.eqz
     if
       i64.const 0
-      local.get $var3
+      i64.const 0
       global.get $"\"[]\""
       i32.const 21
       call_indirect $M.cross-module-funcs-0 (param i64 i64 (ref null $JSExternWrapper))
