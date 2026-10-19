@@ -6327,6 +6327,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6395,6 +6396,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6415,6 +6417,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -6491,18 +6494,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType indexType = indexSetTarget.getIndexKeyType(this);
     DartType valueType = indexSetTarget.getIndexSetValueType(this);
 
-    // When `forEffect` is `true`, report assignability errors as argument
-    // errors.
-    // TODO(paulberry): report assignability errors consistently for all index
-    // operations (see https://github.com/dart-lang/sdk/issues/64561).
-    Template<
-      Message Function({
-        required DartType actualType,
-        required DartType expectedType,
-      })
-    >?
-    errorTemplate = node.forEffect ? diag.argumentTypeNotAssignable : null;
-
     ExpressionInferenceResult indexResult = inferExpression(
       node.index,
       indexType,
@@ -6512,7 +6503,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
-      errorTemplate: errorTemplate,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6533,7 +6524,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
-      errorTemplate: errorTemplate,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -6675,6 +6666,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6777,6 +6769,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6788,6 +6781,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -6935,6 +6929,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       readIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -6959,6 +6954,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       writeIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -6970,6 +6966,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -7142,6 +7139,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7149,6 +7147,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7173,6 +7172,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -7399,6 +7399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7422,6 +7423,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7433,6 +7435,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -8536,6 +8539,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       readIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8593,6 +8597,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       writeIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8600,6 +8605,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -8741,6 +8747,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8793,6 +8800,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -8802,6 +8810,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8996,6 +9005,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -9052,12 +9062,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
     binaryResult = ensureAssignableResult(
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;

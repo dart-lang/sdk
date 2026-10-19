@@ -16,8 +16,8 @@ void main() {
   c[a] = a;
   //^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
+  // [cfe] The argument type 'A' can't be assigned to the parameter type 'B'.
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] A value of type 'A' can't be assigned to a variable of type 'B'.
+  // [cfe] The argument type 'A' can't be assigned to the parameter type 'B'.
 }

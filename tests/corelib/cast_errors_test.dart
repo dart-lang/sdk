@@ -29,9 +29,9 @@ void testMapDowncast() {
   dMap[c] = d;
   //   ^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] A value of type 'C' can't be assigned to a variable of type 'D?'.
+  // [cfe] The argument type 'C' can't be assigned to the parameter type 'D?'.
   dMap[d] = c;
   //        ^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] A value of type 'C' can't be assigned to a variable of type 'D?'.
+  // [cfe] The argument type 'C' can't be assigned to the parameter type 'D?'.
 }

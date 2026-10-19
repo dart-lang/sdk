@@ -31,7 +31,7 @@ void testBadValues32() {
   list[0] = "hello";
   //        ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] A value of type 'String' can't be assigned to a variable of type 'double'.
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'double'.
 }
 
 void testIndexOf64() {
@@ -55,7 +55,7 @@ void testBadValues64() {
   list[0] = "hello";
   //        ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
-  // [cfe] A value of type 'String' can't be assigned to a variable of type 'double'.
+  // [cfe] The argument type 'String' can't be assigned to the parameter type 'double'.
 }
 
 main() {

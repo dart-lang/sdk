@@ -504,7 +504,7 @@ indexGet(C27 c, List<int> values) {
   //     ^^^^^
   // [analyzer 39] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 
 class C28 {
@@ -519,7 +519,7 @@ indexSet(C28 c, List<int> values) {
   //     ^^^^^
   // [analyzer 40] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 
 class C29 {
@@ -534,7 +534,7 @@ indexSetCompound(C29 c, List<int> values) {
   //     ^^^^^
   // [analyzer 41] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 
 class C30 {
@@ -549,7 +549,7 @@ indexSetIfNull(C30 c, List<int?> values) {
   //     ^^^^^
   // [analyzer 42] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 
 class C31 {
@@ -565,12 +565,12 @@ indexSetPreIncDec(C31 c, List<int> values) {
   //       ^^^^^
   // [analyzer 43] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //         ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
   --values[c.bad];
   //       ^^^^^
   // [analyzer 44] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //         ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 
 class C32 {
@@ -586,12 +586,12 @@ indexSetPostIncDec(C32 c, List<int> values) {
   //     ^^^^^
   // [analyzer 45] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
   values[c.bad]--;
   //     ^^^^^
   // [analyzer 46] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
 
 extension E33 on int {
@@ -641,5 +641,5 @@ indexSetRhs(C35 c, List<int> x) {
   //     ^^^^^
   // [analyzer 49] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
   //       ^
-  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }
