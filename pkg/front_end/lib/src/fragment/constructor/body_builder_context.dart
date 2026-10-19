@@ -79,7 +79,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
 
   @override
   void prepareInitializers() {
-    _builder.prepareInitializers();
+    _declaration.prepareInitializers();
   }
 
   @override
@@ -87,7 +87,7 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     List<Initializer> initializers, {
     required bool isErroneous,
   }) {
-    _builder.registerInitializers(initializers, isErroneous: isErroneous);
+    _declaration.registerInitializers(initializers, isErroneous: isErroneous);
   }
 
   @override

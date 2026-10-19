@@ -133,9 +133,6 @@ class SetterFragment implements Fragment, FunctionFragment {
 class _SetterFunctionBodyBuildingContext(final SetterFragment _fragment)
     implements FunctionBodyBuildingContext {
   @override
-  bool get isImplementation => _fragment.declaration.isImplementation;
-
-  @override
   ExtensionScope get extensionScope {
     return _fragment.enclosingCompilationUnit.extensionScope;
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.developer;
+part of 'dart:developer';
 
 /// Holds the source code location where an object was created, when its class
 /// was annotated with `@pragma('track-creation-locations')`.

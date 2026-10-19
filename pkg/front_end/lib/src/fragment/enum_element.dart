@@ -260,7 +260,6 @@ class EnumElementDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override

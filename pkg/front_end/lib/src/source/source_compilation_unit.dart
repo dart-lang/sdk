@@ -379,11 +379,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     return _libraryBuilder!;
   }
 
-  List<CompilationUnit>? _augmentations;
+  List<CompilationUnit>? _patches;
 
   @override
-  void registerAugmentation(CompilationUnit augmentation) {
-    (_augmentations ??= []).add(augmentation);
+  void registerPatch(CompilationUnit patch) {
+    (_patches ??= []).add(patch);
   }
 
   @override
@@ -823,6 +823,59 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     );
   }
 
+  void _tryIncludePart({
+    required SourceLibraryBuilder libraryBuilder,
+    required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+    required List<SourceCompilationUnit> includedParts,
+    required Set<Uri> usedParts,
+    required Set<Uri> seenParts,
+    required Uri partFileUri,
+    required int partFileOffset,
+    required CompilationUnit compilationUnit,
+    required bool forPatch,
+  }) {
+    if (compilationUnit == this) {
+      addProblem(diag.partOfSelf, partFileOffset, noLength, partFileUri);
+    } else if (seenParts.add(compilationUnit.fileUri)) {
+      if (compilationUnit.partOfLibrary != null) {
+        addProblem(
+          diag.partOfTwoLibraries.withArguments(uri: compilationUnit.fileUri),
+          partFileOffset,
+          noLength,
+          partFileUri,
+          context: [
+            diag.partOfTwoLibrariesContext.withLocation(
+              compilationUnit.partOfLibrary!.fileUri,
+              -1,
+              noLength,
+            ),
+            diag.partOfTwoLibrariesContext.withLocation(fileUri, -1, noLength),
+          ],
+        );
+      } else {
+        usedParts.add(compilationUnit.importUri);
+        _includePartIfValid(
+          libraryBuilder: libraryBuilder,
+          libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+          parentCompilationUnit: this,
+          includedParts: includedParts,
+          part: compilationUnit,
+          usedParts: usedParts,
+          partOffset: partFileOffset,
+          partUri: fileUri,
+          forPatch: forPatch,
+        );
+      }
+    } else {
+      addProblem(
+        diag.partTwice.withArguments(uri: compilationUnit.fileUri),
+        partFileOffset,
+        noLength,
+        partFileUri,
+      );
+    }
+  }
+
   void _includeParts({
     required SourceLibraryBuilder libraryBuilder,
     required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
@@ -831,70 +884,31 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }) {
     Set<Uri> seenParts = new Set<Uri>();
     for (Part part in _compilationUnitData.parts) {
-      if (part.compilationUnit == this) {
-        addProblem(diag.partOfSelf, part.fileOffset, noLength, part.fileUri);
-      } else if (seenParts.add(part.compilationUnit.fileUri)) {
-        if (part.compilationUnit.partOfLibrary != null) {
-          addProblem(
-            diag.partOfTwoLibraries,
-            part.fileOffset,
-            noLength,
-            part.fileUri,
-            context: [
-              diag.partOfTwoLibrariesContext.withLocation(
-                part.compilationUnit.partOfLibrary!.fileUri,
-                -1,
-                noLength,
-              ),
-              diag.partOfTwoLibrariesContext.withLocation(
-                fileUri,
-                -1,
-                noLength,
-              ),
-            ],
-          );
-        } else {
-          usedParts.add(part.compilationUnit.importUri);
-          _includePartIfValid(
-            libraryBuilder: libraryBuilder,
-            libraryNameSpaceBuilder: libraryNameSpaceBuilder,
-            parentCompilationUnit: this,
-            includedParts: includedParts,
-            part: part.compilationUnit,
-            usedParts: usedParts,
-            partOffset: part.fileOffset,
-            partUri: fileUri,
-          );
-        }
-      } else {
-        addProblem(
-          diag.partTwice.withArguments(uri: part.compilationUnit.fileUri),
-          part.fileOffset,
-          noLength,
-          part.fileUri,
-        );
-      }
+      _tryIncludePart(
+        libraryBuilder: libraryBuilder,
+        libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+        includedParts: includedParts,
+        usedParts: usedParts,
+        seenParts: seenParts,
+        partFileUri: part.fileUri,
+        partFileOffset: part.fileOffset,
+        compilationUnit: part.compilationUnit,
+        forPatch: false,
+      );
     }
-    if (_augmentations != null) {
-      for (CompilationUnit augmentation in _augmentations!) {
-        switch (augmentation) {
-          case SourceCompilationUnit():
-            _includePart(
-              libraryBuilder,
-              libraryNameSpaceBuilder,
-              this,
-              includedParts,
-              augmentation,
-              usedParts,
-              partOffset: -1,
-              partUri: augmentation.fileUri,
-              allowPartInParts: true,
-            );
-          // Coverage-ignore(suite): Not run.
-          case DillCompilationUnit():
-            // TODO(johnniwinther): Report an error here.
-            throw new UnsupportedError("Unexpected augmentation $augmentation");
-        }
+    if (_patches != null) {
+      for (CompilationUnit augmentation in _patches!) {
+        _tryIncludePart(
+          libraryBuilder: libraryBuilder,
+          libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+          includedParts: includedParts,
+          usedParts: usedParts,
+          seenParts: seenParts,
+          partFileUri: fileUri,
+          partFileOffset: TreeNode.noOffset,
+          compilationUnit: augmentation,
+          forPatch: true,
+        );
       }
     }
   }
@@ -908,37 +922,23 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required Set<Uri> usedParts,
     required Uri partUri,
     required int partOffset,
+    required bool forPatch,
   }) {
     switch (part) {
       case SourceCompilationUnit():
-        PartOf? partOf = part.partOfDirective;
-        if (partOf != null) {
-          Uri? partOfUri = partOf.parentUri;
-          if (partOfUri != null) {
-            if (isNotMalformedUriScheme(partOfUri) &&
-                partOfUri != parentCompilationUnit.importUri) {
-              parentCompilationUnit.addProblem(
-                diag.partOfUriMismatch.withArguments(
-                  partUri: part.fileUri,
-                  libraryUri: parentCompilationUnit.importUri,
-                  partOfUri: partOfUri,
-                ),
-                partOffset,
-                noLength,
-                parentCompilationUnit.fileUri,
-              );
-              return;
-            }
-          } else {
-            String partOfName = partOf.name!;
-            String? libraryName = parentCompilationUnit.libraryDirective?.name;
-            if (libraryName != null) {
-              if (partOfName != libraryName) {
+        // TODO(johnniwinther): Add part of directives to patch parts.
+        if (!forPatch) {
+          PartOf? partOf = part.partOfDirective;
+          if (partOf != null) {
+            Uri? partOfUri = partOf.parentUri;
+            if (partOfUri != null) {
+              if (isNotMalformedUriScheme(partOfUri) &&
+                  partOfUri != parentCompilationUnit.importUri) {
                 parentCompilationUnit.addProblem(
-                  diag.partOfLibraryNameMismatch.withArguments(
-                    uri: part.fileUri,
-                    libraryName: libraryName,
-                    partOfName: partOfName,
+                  diag.partOfUriMismatch.withArguments(
+                    partUri: part.fileUri,
+                    libraryUri: parentCompilationUnit.importUri,
+                    partOfUri: partOfUri,
                   ),
                   partOffset,
                   noLength,
@@ -947,39 +947,58 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                 return;
               }
             } else {
+              String partOfName = partOf.name!;
+              String? libraryName =
+                  parentCompilationUnit.libraryDirective?.name;
+              if (libraryName != null) {
+                if (partOfName != libraryName) {
+                  parentCompilationUnit.addProblem(
+                    diag.partOfLibraryNameMismatch.withArguments(
+                      uri: part.fileUri,
+                      libraryName: libraryName,
+                      partOfName: partOfName,
+                    ),
+                    partOffset,
+                    noLength,
+                    parentCompilationUnit.fileUri,
+                  );
+                  return;
+                }
+              } else {
+                parentCompilationUnit.addProblem(
+                  diag.partOfUseUri.withArguments(
+                    partFileUri: part.fileUri,
+                    libraryUri: parentCompilationUnit.fileUri,
+                    partOfName: partOfName,
+                  ),
+                  partOffset,
+                  noLength,
+                  parentCompilationUnit.fileUri,
+                );
+                return;
+              }
+            }
+            LibraryDirective? libraryDirective = part.libraryDirective;
+            if (libraryDirective != null) {
+              part.addProblem(
+                diag.partWithLibraryDirective,
+                libraryDirective.fileOffset,
+                noLength,
+                libraryDirective.fileUri,
+              );
+            }
+          } else {
+            assert(!part.isPart);
+            if (isNotMalformedUriScheme(part.fileUri)) {
               parentCompilationUnit.addProblem(
-                diag.partOfUseUri.withArguments(
-                  partFileUri: part.fileUri,
-                  libraryUri: parentCompilationUnit.fileUri,
-                  partOfName: partOfName,
-                ),
+                diag.missingPartOf.withArguments(uri: part.fileUri),
                 partOffset,
                 noLength,
                 parentCompilationUnit.fileUri,
               );
-              return;
             }
+            return;
           }
-          LibraryDirective? libraryDirective = part.libraryDirective;
-          if (libraryDirective != null) {
-            part.addProblem(
-              diag.partWithLibraryDirective,
-              libraryDirective.fileOffset,
-              noLength,
-              libraryDirective.fileUri,
-            );
-          }
-        } else {
-          assert(!part.isPart);
-          if (isNotMalformedUriScheme(part.fileUri)) {
-            parentCompilationUnit.addProblem(
-              diag.missingPartOf.withArguments(uri: part.fileUri),
-              partOffset,
-              noLength,
-              parentCompilationUnit.fileUri,
-            );
-          }
-          return;
         }
         _includePart(
           libraryBuilder,
@@ -991,6 +1010,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           partOffset: partOffset,
           partUri: partUri,
           allowPartInParts:
+              forPatch ||
               parentCompilationUnit.libraryFeatures.enhancedParts.isEnabled,
         );
       case DillCompilationUnit():

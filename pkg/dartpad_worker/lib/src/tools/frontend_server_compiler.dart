@@ -128,7 +128,7 @@ final class FrontendServerCompiler {
   }
 
   Future<CompileResult> _compile({required bool restart}) async {
-    final entrypoint = _entrypointUri();
+    final (:entrypointLibraryUri, :packageRoot) = _resolveEntrypoint();
     final data = {'entrypoint': targetPath};
 
     var client = _client;
@@ -139,10 +139,10 @@ final class FrontendServerCompiler {
         resourceProvider,
         _arguments,
       );
-      output = await client.compile(entrypoint);
+      output = await client.compile(entrypointLibraryUri);
     } else {
       output = await client.recompile(
-        entrypoint,
+        entrypointLibraryUri,
         _invalidatedUris(),
         restart: restart,
       );
@@ -178,7 +178,8 @@ final class FrontendServerCompiler {
 
     return (
       modules: _readModules(output.dillPath),
-      entrypointLibraryUri: entrypoint,
+      entrypointLibraryUri: entrypointLibraryUri,
+      packageRoot: packageRoot,
       log: output.diagnostics,
     );
   }
@@ -275,8 +276,9 @@ final class FrontendServerCompiler {
   ];
 
   /// How `frontend_server` and DDC address [targetPath] (`package:...` for
-  /// files under `lib/`, `workspace:///...` for other files in the pad).
-  String _entrypointUri() {
+  /// files under `lib/`, `workspace:///...` for other files in the pad),
+  /// along with the root directory of the package containing [targetPath].
+  ({String entrypointLibraryUri, String packageRoot}) _resolveEntrypoint() {
     // Reloaded on every compilation because `pub get` can change it.
     final packages = PackageConfig.parseString(
       resourceProvider.getFile(packageConfigPath).readAsStringSync(),
@@ -288,7 +290,11 @@ final class FrontendServerCompiler {
         (_context.isWithin(_root, targetPath)
             ? _workspaceUri(targetPath)
             : fileUri);
-    return uri.toString();
+    final pkg = packages.packageOf(fileUri);
+    final packageRoot = pkg != null
+        ? _context.normalize(_context.fromUri(pkg.root))
+        : _root;
+    return (entrypointLibraryUri: uri.toString(), packageRoot: packageRoot);
   }
 
   Uri _workspaceUri(String path) => Uri(

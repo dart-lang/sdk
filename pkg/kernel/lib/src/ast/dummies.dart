@@ -4,6 +4,9 @@
 
 part of '../../ast.dart';
 
+final Uint8List emptyUint8List = new Uint8List(0);
+final Uint32List emptyUint32List = new Uint32List(0);
+
 /// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<VariableDeclaration> emptyListOfVariableDeclaration = List.filled(

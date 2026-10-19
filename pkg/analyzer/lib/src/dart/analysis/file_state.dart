@@ -723,6 +723,12 @@ class FileState {
     }
   }
 
+  /// Takes the parsed [CompilationUnitImpl] cached during
+  /// [FileSystemState.withParsedUnitsForLinking], or returns `null` if none.
+  CompilationUnitImpl? takeParsedUnitForLinking() {
+    return _fsState._unlinkedUnitsForLinking?.remove(this);
+  }
+
   @override
   String toString() {
     return '$uri = $path';
@@ -835,6 +841,7 @@ class FileState {
     }
 
     var unit = parse(performance: performance);
+    _fsState._unlinkedUnitsForLinking?[this] = unit;
 
     return performance.run('compute', (performance) {
       var unlinkedUnit = performance.run('serializeAstUnlinked2', (
@@ -1291,6 +1298,15 @@ class FileSystemState {
   /// store here the instance to attach [_newFile] operations.
   OperationPerformanceImpl? newFileOperationPerformance;
 
+  /// Temporary map of parsed AST units created while computing unlinked
+  /// data inside [withParsedUnitsForLinking], so that linking can take and
+  /// reuse the already-parsed unit instead of parsing the file a second time.
+  ///
+  /// This field is `null` outside [withParsedUnitsForLinking], which ensures
+  /// that background file refreshes, API signature checks, or `getFileSync`
+  /// calls never retain ASTs.
+  Map<FileState, CompilationUnitImpl>? _unlinkedUnitsForLinking;
+
   new(
     this._byteStore,
     this.resourceProvider,
@@ -1330,6 +1346,7 @@ class FileSystemState {
 
     _uriToFile.remove(file.uri);
     knownFiles.remove(file);
+    _unlinkedUnitsForLinking?.remove(file);
 
     // The removed file does not reference other files anymore.
     file._kind?.dispose();
@@ -1385,6 +1402,7 @@ class FileSystemState {
     _pathToFile.clear();
     _uriToFile.clear();
     knownFiles.clear();
+    _unlinkedUnitsForLinking?.clear();
     return result;
   }
 
@@ -1579,6 +1597,23 @@ class FileSystemState {
     return unused;
   }
 
+  /// Runs [operation] while retaining newly-parsed unlinked AST units in
+  /// [_unlinkedUnitsForLinking] so they can be taken once by
+  /// [FileState.takeParsedUnitForLinking] during linking, and clears any
+  /// remaining unconsumed units upon completion.
+  T withParsedUnitsForLinking<T>(T Function() operation) {
+    if (_unlinkedUnitsForLinking != null) {
+      return operation();
+    }
+    var units = _unlinkedUnitsForLinking = Map.identity();
+    try {
+      return operation();
+    } finally {
+      units.clear();
+      _unlinkedUnitsForLinking = null;
+    }
+  }
+
   /// Clear all [FileState] data - all maps from path or URI, etc.
   void _clearFiles() {
     _uriToFile.clear();
@@ -1588,6 +1623,7 @@ class FileSystemState {
     _pathToFile.clear();
     _subtypedNameToFiles.clear();
     _libraryNameToFiles.clear();
+    _unlinkedUnitsForLinking?.clear();
     // TODO(jensj): If we use finalizers we shouldn't clear.
     unlinkedUnitStore.clear();
   }
