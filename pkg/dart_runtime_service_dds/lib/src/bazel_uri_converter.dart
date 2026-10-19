@@ -67,9 +67,7 @@ class BazelUriConverter {
     // convert from a package URI and we only need to prepend the root path
     // (i.e. the path that contains the user's workspace name).
     if (uri.isScheme('google3')) {
-      // Remove the first character since uri.path starts with '/', though we
-      // know this is not an absolute path.
-      return _context.join(_root, uri.path.substring(1));
+      return _context.joinAll([_root, ...uri.pathSegments]);
     }
     if (!uri.isScheme('package')) {
       // TODO(b/261234406): Handle `dart:` URIs.
@@ -78,7 +76,7 @@ class BazelUriConverter {
         // more complicated. The purpose of returning something here is to
         // avoid having the external version of URI converter resolving a path
         // that is incorrect in a way that confuse VS Code's stack trace.
-        return _context.join(_root, uri.path);
+        return _context.joinAll([_root, ...uri.pathSegments]);
       }
       return null;
     }
