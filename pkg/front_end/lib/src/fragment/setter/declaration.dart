@@ -85,7 +85,6 @@ abstract class SetterDeclaration {
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   });
 
   void ensureSetterTypes({
@@ -103,14 +102,9 @@ class RegularSetterDeclaration
   final SetterFragment _fragment;
   late final SetterEncoding _encoding;
 
-  late final bool _isImplementation;
-
   new(this._fragment) {
     _fragment.declaration = this;
   }
-
-  @override
-  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -253,9 +247,7 @@ class RegularSetterDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {
-    _isImplementation = isImplementation;
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -371,13 +363,6 @@ abstract class SetterFragmentDeclaration {
   bool get isAbstract;
 
   bool get isExternal;
-
-  /// Whether this declaration hold the implementation for the setter.
-  ///
-  /// For augmentations, only one of the setter declarations is considered
-  /// as the implementation. Other declarations can only provide annotations
-  /// for the generated AST node.
-  bool get isImplementation;
 
   String get name;
 

@@ -562,7 +562,6 @@ class BuilderFactory {
         constructorBuilder: constructorBuilder,
         typeParameterFactory: _typeParameterFactory,
         encodingStrategy: encodingStrategy,
-        isImplementation: declaration == implementation,
       );
     }
     _builderRegistry.registerBuilder(
@@ -1043,7 +1042,6 @@ class BuilderFactory {
         factoryBuilder: factoryBuilder,
         typeParameterFactory: _typeParameterFactory,
         encodingStrategy: encodingStrategy,
-        isImplementation: declaration == implementation,
       );
     }
 
@@ -1153,7 +1151,6 @@ class BuilderFactory {
         builder: methodBuilder,
         encodingStrategy: encodingStrategy,
         typeParameterFactory: _typeParameterFactory,
-        isImplementation: declaration == implementation,
       );
     }
 
@@ -1360,7 +1357,6 @@ class BuilderFactory {
         builder: propertyBuilder,
         encodingStrategy: propertyEncodingStrategy,
         typeParameterFactory: _typeParameterFactory,
-        isImplementation: getterDeclaration == getterImplementation,
       );
     }
 
@@ -1370,7 +1366,6 @@ class BuilderFactory {
         builder: propertyBuilder,
         encodingStrategy: propertyEncodingStrategy,
         typeParameterFactory: _typeParameterFactory,
-        isImplementation: setterDeclaration == setterImplementation,
       );
     }
 

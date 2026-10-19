@@ -56,7 +56,6 @@ abstract class FactoryDeclaration {
     required SourceFactoryBuilder factoryBuilder,
     required TypeParameterFactory typeParameterFactory,
     required FactoryEncodingStrategy encodingStrategy,
-    required bool isImplementation,
   });
 
   void buildOutlineExpressions({
@@ -121,7 +120,6 @@ class FactoryDeclarationImpl
   late final List<SourceNominalParameterBuilder>? _typeParameters;
   late final TypeBuilder _returnType;
   late final FactoryEncoding _encoding;
-  late final bool _isImplementation;
 
   new(this._fragment) {
     _fragment.declaration = this;
@@ -131,18 +129,13 @@ class FactoryDeclarationImpl
   bool get isComplete => _fragment.isComplete;
 
   @override
-  bool get isImplementation => _isImplementation;
-
-  @override
   void createEncoding({
     required ProblemReporting problemReporting,
     required DeclarationBuilder declarationBuilder,
     required SourceFactoryBuilder factoryBuilder,
     required TypeParameterFactory typeParameterFactory,
     required FactoryEncodingStrategy encodingStrategy,
-    required bool isImplementation,
   }) {
-    _isImplementation = isImplementation;
     _fragment.builder = factoryBuilder;
     var (typeParameters, returnType) = encodingStrategy
         .createTypeParametersAndReturnType(
@@ -407,14 +400,6 @@ abstract class FactoryFragmentDeclaration {
   bool get isExternal;
 
   bool get isNative;
-
-  /// Whether this declaration hold the implementation for the factory
-  /// constructor.
-  ///
-  /// For augmentations, only one of the factory constructor declarations is
-  /// considered as the implementation. Other declarations can only provide
-  /// annotations for the generated AST node.
-  bool get isImplementation;
 
   ConstructorReferenceBuilder? get redirectionTarget;
 

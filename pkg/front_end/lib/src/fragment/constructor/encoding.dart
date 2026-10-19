@@ -52,7 +52,10 @@ abstract class ConstructorEncoding {
 
   List<TypeParameter>? get thisTypeParameters;
 
-  void registerInitializers(List<Initializer> initializers);
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  });
 
   /// Mark the constructor as erroneous.
   ///
@@ -181,9 +184,15 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   List<Initializer> get initializers => _constructor.initializers;
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     _constructor.initializers.addAll(initializers);
     setParents(initializers, _constructor);
+    if (isErroneous) {
+      markAsErroneous();
+    }
   }
 
   @override
@@ -493,8 +502,14 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       new FunctionNodeSignature(_constructor.function);
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     this.initializers.addAll(initializers);
+    if (isErroneous) {
+      markAsErroneous();
+    }
   }
 
   @override

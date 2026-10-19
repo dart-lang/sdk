@@ -435,7 +435,6 @@ class Resolver {
         constantContext: constantContext,
         internalThisVariable: internalThisVariable,
         forPrimaryConstructor: false,
-        isImplementation: functionBodyBuildingContext.isImplementation,
       );
       context.performBacklog(result.annotations);
     }
@@ -461,7 +460,6 @@ class Resolver {
     required Token? beginInitializers,
     required bool isConst,
     required bool forPrimaryConstructor,
-    required bool isImplementation,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -519,7 +517,6 @@ class Resolver {
         constantContext: constantContext,
         initializers: initializers,
         forPrimaryConstructor: forPrimaryConstructor,
-        isImplementation: isImplementation,
         parameters: [
           for (FormalParameterBuilder formal
               in bodyBuilderContext.formals ?? [])
@@ -722,7 +719,6 @@ class Resolver {
           constantContext: constantContext,
           internalThisVariable: internalThisVariable,
           forPrimaryConstructor: true,
-          isImplementation: functionBodyBuildingContext.isImplementation,
         );
       }
       context.performBacklog(result.annotations);
@@ -805,7 +801,6 @@ class Resolver {
         thisVariable: functionBodyBuildingContext.thisVariable,
         internalThisVariable: internalThisVariable,
         forPrimaryConstructor: true,
-        isImplementation: functionBodyBuildingContext.isImplementation,
       );
       context.performBacklog(result.annotations);
     }
@@ -1350,7 +1345,6 @@ class Resolver {
     required ConstantContext constantContext,
     required List<InternalInitializer> initializers,
     required bool forPrimaryConstructor,
-    required bool isImplementation,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -1362,7 +1356,6 @@ class Resolver {
       typeInferrer: context.typeInferrer,
       coreTypes: _coreTypes,
       fileUri: fileUri,
-      forImplementation: isImplementation,
     );
     initializerBuilder.processInitializers(
       libraryBuilder: libraryBuilder,
@@ -1430,7 +1423,6 @@ class Resolver {
     required ConstantContext constantContext,
     required InternalThisVariable? internalThisVariable,
     required bool forPrimaryConstructor,
-    required bool isImplementation,
   }) {
     AssignedVariablesImpl assignedVariables = context.assignedVariables;
 
@@ -1496,7 +1488,6 @@ class Resolver {
         constantContext: constantContext,
         initializers: initializers,
         forPrimaryConstructor: forPrimaryConstructor,
-        isImplementation: isImplementation,
         parameters: parameters,
         internalThisVariable: internalThisVariable,
         contextAllocationStrategy: contextAllocationStrategy,

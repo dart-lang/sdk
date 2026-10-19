@@ -87,7 +87,6 @@ abstract class MethodDeclaration {
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   });
 
   void ensureTypes(
@@ -101,14 +100,10 @@ class MethodDeclarationImpl
     implements MethodDeclaration, MethodFragmentDeclaration {
   final MethodFragment _fragment;
   late final MethodEncoding _encoding;
-  late final bool _isImplementation;
 
   new(this._fragment) {
     _fragment.declaration = this;
   }
-
-  @override
-  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -231,9 +226,7 @@ class MethodDeclarationImpl
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {
-    _isImplementation = isImplementation;
     _encoding = encodingStrategy.createMethodEncoding(
       builder,
       _fragment,
@@ -318,13 +311,6 @@ abstract class MethodFragmentDeclaration {
   DartType get returnTypeContext;
 
   bool get isNoSuchMethodForwarder;
-
-  /// Whether this declaration hold the implementation for the method.
-  ///
-  /// For augmentations, only one of the method declarations is considered
-  /// as the implementation. Other declarations can only provide annotations
-  /// for the generated AST node.
-  bool get isImplementation;
 
   TypeBuilder get returnType;
 
