@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This generator reads the analyzer's own AST through the V1 API.
+// ignore_for_file: analyzer_v1_ast_use, unnecessary_ignore
+
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide Element;
@@ -81,9 +84,7 @@ class StringSearchUtilGenerator {
 
   List<MethodDeclarationImpl> _findMethods(ResolvedUnitResult resolvedUnit) {
     List<MethodDeclarationImpl> result = [];
-    var declarations = resolvedUnit
-        .unit
-        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
+    var declarations = resolvedUnit.unit.declarations;
     for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         for (var member in nodeImpl.body.members) {

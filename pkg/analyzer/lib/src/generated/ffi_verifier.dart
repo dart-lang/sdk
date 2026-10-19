@@ -399,12 +399,12 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldsDeclaration(FieldsDeclaration node) {
     if (inCompound) {
       _validateFieldsInCompound(node);
     }
 
-    for (var declared in node.fields.variables) {
+    for (var declared in node.fields) {
       var declaredElement = declared.declaredFragment?.element;
       if (declaredElement != null) {
         _checkFfiNative(
@@ -417,7 +417,12 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
 
-    super.visitFieldDeclaration(node);
+    super.visitFieldsDeclaration(node);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -465,15 +470,13 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _checkFfiNative(
-      errorNode: node.name,
-      declarationElement: node.declaredFragment!.element,
-      formalParameterList: node.parameters,
-      isExternal: node.externalKeyword != null,
-      metadata: node.metadata,
-    );
-    super.visitMethodDeclaration(node);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -546,6 +549,11 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -1212,9 +1220,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   void _validateAbiSpecificIntegerAnnotation(ClassDeclarationImpl node) {
     if ((node.namePart.typeParameters?.length ?? 0) != 0 ||
-        node.body.members.length != 1 ||
-        node.body.members.single is! ConstructorDeclaration ||
-        (node.body.members.single as ConstructorDeclaration).constKeyword ==
+        node.body.members2.length != 1 ||
+        node.body.members2.single is! ConstructorDeclaration ||
+        (node.body.members2.single as ConstructorDeclaration).constKeyword ==
             null) {
       _diagnosticReporter.report(
         diag.abiSpecificIntegerInvalid.at(node.namePart.typeName),
@@ -1716,24 +1724,24 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   /// Validate that the fields declared by the given [node] meet the
   /// requirements for fields within a struct or union class.
-  void _validateFieldsInCompound(FieldDeclaration node) {
-    if (node.isStatic) {
+  void _validateFieldsInCompound(FieldsDeclaration node) {
+    if (node.staticKeyword != null) {
       return;
     }
 
-    VariableDeclarationList fields = node.fields;
+    var firstField = node.fields.first;
     NodeList<Annotation> annotations = node.metadata;
 
     if (node.externalKeyword == null) {
       _diagnosticReporter.report(
-        diag.fieldMustBeExternalInStruct.at(fields.variables[0].name),
+        diag.fieldMustBeExternalInStruct.at(firstField.name),
       );
     }
 
-    var fieldType = fields.type;
+    var fieldType = node.type;
     if (fieldType == null) {
       _diagnosticReporter.report(
-        diag.missingFieldTypeInStruct.at(fields.variables[0].name),
+        diag.missingFieldTypeInStruct.at(firstField.name),
       );
     } else {
       DartType declaredType = fieldType.typeOrThrow;
@@ -1768,8 +1776,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           );
         }
         var arrayDimensions = declaredType.arrayDimensions;
-        var fieldElement =
-            node.fields.variables.first.declaredFragment?.element;
+        var fieldElement = firstField.declaredFragment?.element;
         var lastElement = (fieldElement?.enclosingElement as ClassElement?)
             ?.fields
             .reversed
@@ -2436,6 +2443,20 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         ),
       );
     }
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    _checkFfiNative(
+      errorNode: node.nameToken,
+      declarationElement: node.declaredFragment!.element,
+      formalParameterList: node.writtenFormalParameters,
+      isExternal: node.externalKeyword != null,
+      metadata: node.metadata,
+    );
+    visitSuper();
   }
 }
 

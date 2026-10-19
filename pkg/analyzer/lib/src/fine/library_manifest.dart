@@ -1686,13 +1686,17 @@ class LibraryManifestHandle {
   /// Serializes the [instance] that the builder has filled, and its [ids].
   ///
   /// From now on, the bytes are the source of [ids] and [instance], so these
-  /// can be discarded at any time.
+  /// can be discarded at any time. The [ids] just derived are kept, because
+  /// resolving the libraries that depend on this one records requirements
+  /// against them right away.
   void finishBuilding() {
     assert(_isBuilding);
     var instance = _instance!;
+    var ids = LibraryManifestIds.fromManifest(instance);
     _hashForRequirements = instance.hashForRequirements;
-    _idsBytes = LibraryManifestIds.fromManifest(instance).toBytes();
+    _idsBytes = ids.toBytes();
     _instanceBytes = instance.toBytes();
+    _ids = ids;
     _isBuilding = false;
   }
 

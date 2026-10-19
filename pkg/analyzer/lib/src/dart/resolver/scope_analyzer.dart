@@ -454,14 +454,14 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    _scopeContext.visitFieldDeclaration(node, visitor: this);
-  }
-
-  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _scopeContext.visitFormalParameter(node, visitor: this);
     _setExplicitFormalParameterType(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(covariant FieldsDeclarationImpl node) {
+    _scopeContext.visitFieldsDeclaration(node, visitor: this);
   }
 
   @override
@@ -546,6 +546,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         node.nameScope = nameScope;
       },
     );
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
@@ -669,7 +674,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
     _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
@@ -702,6 +707,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitNativeFunctionBody(covariant NativeFunctionBodyImpl node) {
     node.localVariableInfo = _localVariableInfo;
     super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
@@ -794,6 +804,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         element.type = _typeProvider.dynamicType;
       }
     }
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
@@ -964,30 +979,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     if (scopeLookupResult.getter case JoinPatternVariableElementImpl element) {
       element.references.add(node.name);
     }
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-
-    if (element is LocalVariableElementImpl) {
-      var varList = node.parent2 as VariableDeclarationListImpl;
-      if (varList.type case var typeNode?) {
-        element.type = typeNode.typeOrThrow;
-      } else {
-        // TODO(scheglov): review and improve resolution to not rely on dynamic.
-        element.type = _typeProvider.dynamicType;
-      }
-    }
-
-    node.initializer2?.accept2(this);
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    _scopeContext.visitVariableDeclarationList(node, visitor: this);
   }
 
   @override

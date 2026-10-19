@@ -53,9 +53,22 @@ class C {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: NamedType
+    name: F
+    question: ?
+    element: <testLibrary>::@typeAlias::F
+    type: T Function<T>(int, T)?
+      alias: <testLibrary>::@typeAlias::F
+        nullabilitySuffix: NullabilitySuffix.question
+  fields
+    Field
+      name: f
+      declaredFragment: <testLibraryFragment> f@51
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: NamedType
       name: F

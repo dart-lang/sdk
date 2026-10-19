@@ -261,7 +261,7 @@ class NullSafetyDeadCodeVerifier {
         if (node is FunctionExpression) {
           node = node.body;
         }
-        if (node is MethodDeclaration) {
+        if (node is MethodDeclarationV1OriginImpl) {
           node = node.body;
         }
         if (node is BlockFunctionBody) {

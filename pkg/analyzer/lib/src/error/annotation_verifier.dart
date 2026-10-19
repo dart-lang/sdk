@@ -88,9 +88,8 @@ class AnnotationVerifier {
     }
 
     var parent = node.parent2;
-    if (parent case MethodDeclaration(:var declaredFragment)) {
-      var type = declaredFragment?.element.type;
-      if (type is FunctionType) {
+    if (parent case MethodDeclarationV1OriginImpl(:var declaredFragment)) {
+      if (declaredFragment?.element.type case var type?) {
         checkType(type.returnType);
       }
     } else if (parent is LocalFunctionDeclaration) {
@@ -105,9 +104,9 @@ class AnnotationVerifier {
     } else if (parent is TopLevelSetterDeclaration) {
       var type = parent.declaredFragment?.element.type;
       checkType(type?.returnType);
-    } else if (parent case FieldDeclaration(:var fields)) {
-      for (var field in fields.variables) {
-        checkType(field.declaredFieldElement.type, errorNode: field);
+    } else if (parent case FieldsDeclaration(:var fields)) {
+      for (var field in fields) {
+        checkType(field.declaredElement.type, errorNode: field);
       }
     } else if (parent case TopLevelVariablesDeclaration(:var variables)) {
       for (var variable in variables) {
@@ -235,7 +234,7 @@ class AnnotationVerifier {
       // parameter of a top-level getter or setter is a parser recovery
       // result, and the parser has already reported it.
       var isValidFunction =
-          parameterList.parent2 is MethodDeclaration ||
+          parameterList.parent2 is MethodDeclarationV1OriginImpl ||
           parameterList.parent2 is ConstructorDeclaration ||
           parameterList.parent2 is TopLevelFunctionDeclaration ||
           parameterList.parent2 is TopLevelGetterDeclaration ||
@@ -281,7 +280,7 @@ class AnnotationVerifier {
   /// `@factory` annotation.
   void _checkFactory(Annotation node) {
     var parent = node.parent2;
-    if (parent is! MethodDeclaration) {
+    if (parent is! MethodDeclarationV1OriginImpl) {
       // Warning reported by `_checkKinds`.
       return;
     }
@@ -289,8 +288,8 @@ class AnnotationVerifier {
     if (returnType is VoidType) {
       _diagnosticReporter.report(
         diag.invalidFactoryMethodDecl
-            .withArguments(name: parent.name.lexeme)
-            .at(parent.name),
+            .withArguments(name: parent.nameToken.lexeme)
+            .at(parent.nameToken),
       );
       return;
     }
@@ -319,8 +318,8 @@ class AnnotationVerifier {
 
     _diagnosticReporter.report(
       diag.invalidFactoryMethodImpl
-          .withArguments(name: parent.name.lexeme)
-          .at(parent.name),
+          .withArguments(name: parent.nameToken.lexeme)
+          .at(parent.nameToken),
     );
   }
 
@@ -339,9 +338,9 @@ class AnnotationVerifier {
           );
         }
       }
-    } else if (parent is FieldDeclaration) {
-      for (var variable in parent.fields.variables) {
-        var element = variable.declaredFieldElement;
+    } else if (parent is FieldsDeclaration) {
+      for (var variable in parent.fields) {
+        var element = variable.declaredElement;
         if (element.isPrivate) {
           _diagnosticReporter.report(
             diag.invalidInternalAnnotation.at(variable),
@@ -425,7 +424,7 @@ class AnnotationVerifier {
   /// `@nonVirtual` annotation.
   void _checkNonVirtual(Annotation node) {
     var parent = node.parent2;
-    if (parent is MethodDeclaration) {
+    if (parent is MethodDeclarationV1OriginImpl) {
       if (parent.parent2?.parent2 is ExtensionTypeDeclaration ||
           !parent.isComplete) {
         _diagnosticReporter.report(
@@ -443,7 +442,8 @@ class AnnotationVerifier {
     var parent3 = parent2?.parent2;
     if (parent2 is! BlockClassBody ||
         parent3 is! ExtensionTypeDeclaration ||
-        parent is MethodDeclaration && parent.isStatic) {
+        parent is MethodDeclarationV1OriginImpl &&
+            parent.staticKeyword != null) {
       _diagnosticReporter.report(
         diag.invalidAnnotationTarget
             .withArguments(
@@ -527,8 +527,8 @@ class AnnotationVerifier {
       String? name;
       if (parent is LocalFunctionDeclaration) {
         name = parent.name.lexeme;
-      } else if (parent is MethodDeclaration) {
-        name = parent.name.lexeme;
+      } else if (parent is MethodDeclarationV1OriginImpl) {
+        name = parent.nameToken.lexeme;
       } else if (parent is TopLevelFunctionDeclaration) {
         name = parent.name.lexeme;
       } else if (parent is TopLevelSetterDeclaration) {
@@ -556,7 +556,9 @@ class AnnotationVerifier {
   /// `visibleForOverride`) annotation.
   void _checkVisibility(Annotation node, ElementAnnotation element) {
     var parent = node.parent2;
-    if (parent is! Declaration && parent is! TopLevelDeclaration) {
+    if (parent is! Declaration &&
+        parent is! TopLevelDeclaration &&
+        parent is! MemberDeclaration) {
       // This is reported by `_checkKinds`.
       return;
     }
@@ -580,10 +582,10 @@ class AnnotationVerifier {
           reportInvalidAnnotation(variableName);
         }
       }
-    } else if (parent is FieldDeclaration) {
-      for (VariableDeclaration variable in parent.fields.variables) {
-        var fieldElement = variable.declaredFieldElement;
-        if (parent.isStatic && element.isVisibleForOverriding) {
+    } else if (parent is FieldsDeclaration) {
+      for (var variable in parent.fields) {
+        var fieldElement = variable.declaredElement;
+        if (parent.staticKeyword != null && element.isVisibleForOverriding) {
           // This is reported by `_checkKinds`.
           return;
         }
@@ -632,9 +634,9 @@ class AnnotationVerifier {
         containedDeclaration = constructorDeclaration;
       case EnumConstantDeclaration enumConstant:
         containedDeclaration = enumConstant;
-      case FieldDeclaration fieldDeclaration:
+      case FieldsDeclaration fieldDeclaration:
         containedDeclaration = fieldDeclaration;
-      case MethodDeclaration methodDeclaration:
+      case MethodDeclarationV1OriginImpl methodDeclaration:
         containedDeclaration = methodDeclaration;
       default:
         reportError();
@@ -673,7 +675,8 @@ class AnnotationVerifier {
   Element? _declaredElement(AstNode node) {
     return switch (node) {
       Declaration(:var declaredFragment) => declaredFragment?.element,
-      TopLevelDeclaration() && FragmentDeclaringNode(:var declaredFragment) =>
+      (TopLevelDeclaration() || MemberDeclaration()) &&
+          FragmentDeclaringNode(:var declaredFragment) =>
         declaredFragment?.element,
       _ => null,
     };
@@ -742,8 +745,8 @@ class AnnotationVerifier {
     if (parent is TopLevelSetterDeclarationImpl) {
       return checkParams(parent.formalParameters);
     }
-    if (parent is MethodDeclarationImpl) {
-      return checkParams(parent.parameters);
+    if (parent is MethodDeclarationV1OriginImpl) {
+      return checkParams(parent.writtenFormalParameters);
     }
 
     return null;
@@ -792,10 +795,9 @@ class AnnotationVerifier {
   /// can correspond to multiple element targets.
   List<Element> _targetElements(AstNode target) {
     switch (target) {
-      case FieldDeclaration(:var fields):
+      case FieldsDeclaration(:var fields):
         return [
-          for (var variable in fields.variables)
-            ?variable.declaredFragment?.element,
+          for (var variable in fields) ?variable.declaredFragment?.element,
         ];
       case FormalParameter():
         var element = target.declaredFragment?.element;

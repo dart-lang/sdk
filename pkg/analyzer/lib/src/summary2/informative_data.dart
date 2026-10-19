@@ -670,7 +670,7 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }
@@ -795,13 +795,13 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members,
+        members: node.body.members2,
         fields: [
           ...node.body.constants.map(_buildEnumConstant),
-          ...node.body.members
-              .whereType<FieldDeclaration>()
-              .expand((node) => node.fields.variables)
-              .map((node) => _buildField(node)),
+          for (var declaration
+              in node.body.members2.whereType<FieldsDeclaration>())
+            for (var field in declaration.fields)
+              _buildField(declaration, field),
         ],
       ),
     );
@@ -835,7 +835,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }
@@ -849,23 +849,27 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }
 
-  _InfoFieldDeclaration _buildField(VariableDeclaration node) {
-    var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent2!.parent2 as FieldDeclaration;
+  _InfoFieldDeclaration _buildField(
+    FieldsDeclaration declaration,
+    Field2 node,
+  ) {
+    var codeOffset = node == declaration.fields.first
+        ? declaration.offset
+        : node.offset;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
       codeLength: node.end - codeOffset,
       nameOffset: node.name.offsetIfNotEmpty,
-      documentationComment: _getDocumentationComment(node),
+      documentationComment: _getDocumentationComment(declaration),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer2,
+        constantInitializer: node.initializer,
       ),
     );
   }
@@ -939,7 +943,7 @@ class _InfoBuilder {
     Declaration node, {
     required Token? name,
     required TypeParameterList? typeParameters,
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
     // Build all needed lists based on `members` with a single iteration the list.
@@ -949,17 +953,18 @@ class _InfoBuilder {
     bool processFields = fields == null;
     fields ??= <_InfoFieldDeclaration>[];
     for (var member in members) {
-      if (member is MethodDeclaration) {
-        if (member.isGetter) {
-          getters.add(_buildMethodDeclaration(member));
-        } else if (member.isSetter) {
-          setters.add(_buildMethodDeclaration(member));
-        } else {
-          methods.add(_buildMethodDeclaration(member));
+      if (member is MethodDeclarationV1OriginImpl) {
+        switch (member) {
+          case GetterDeclarationImpl():
+            getters.add(_buildMethodDeclaration(member));
+          case SetterDeclarationImpl():
+            setters.add(_buildMethodDeclaration(member));
+          case MethodDeclaration2Impl() || OperatorDeclarationImpl():
+            methods.add(_buildMethodDeclaration(member));
         }
-      } else if (processFields && member is FieldDeclaration) {
-        for (var variable in member.fields.variables) {
-          fields.add(_buildField(variable));
+      } else if (processFields && member is FieldsDeclaration) {
+        for (var field in member.fields) {
+          fields.add(_buildField(member, field));
         }
       }
     }
@@ -988,7 +993,7 @@ class _InfoBuilder {
     required Token? name,
     required TypeParameterList? typeParameters,
     PrimaryConstructorDeclaration? primaryConstructor,
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
     var instanceData = _buildInstanceData(
@@ -1041,19 +1046,21 @@ class _InfoBuilder {
     return _InfoLibraryName(offset: nameOffset, length: nameLength);
   }
 
-  _InfoExecutableDeclaration _buildMethodDeclaration(MethodDeclaration node) {
+  _InfoExecutableDeclaration _buildMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+  ) {
     return _InfoExecutableDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
-      nameOffset: node.name.offsetIfNotEmpty,
+      nameOffset: node.nameToken.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
-      typeParameters: _buildTypeParameters(node.typeParameters),
-      parameters: _buildFormalParameters(node.parameters),
+      typeParameters: _buildTypeParameters(node.writtenTypeParameters),
+      parameters: _buildFormalParameters(node.writtenFormalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        typeParameters: node.typeParameters,
-        formalParameters: node.parameters,
+        typeParameters: node.writtenTypeParameters,
+        formalParameters: node.writtenFormalParameters,
       ),
     );
   }
@@ -1064,7 +1071,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }
@@ -1200,15 +1207,6 @@ class _InfoBuilder {
       typeParameters.length,
       (index) => _buildTypeParameter(typeParameters[index]),
     );
-  }
-
-  int _codeOffsetForVariable(VariableDeclaration node) {
-    var codeOffset = node.offset;
-    var variableList = node.parent2 as VariableDeclarationList;
-    if (variableList.variables[0] == node) {
-      codeOffset = variableList.parent2!.offset;
-    }
-    return codeOffset;
   }
 
   String? _getDocumentationComment(AnnotatedNode? node) {

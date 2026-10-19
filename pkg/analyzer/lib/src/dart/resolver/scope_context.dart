@@ -219,12 +219,32 @@ class ScopeContext {
     });
   }
 
-  void visitFieldDeclaration(
-    FieldDeclarationImpl node, {
+  void visitFieldsDeclaration(
+    FieldsDeclarationImpl node, {
     required AstVisitor2 visitor,
   }) {
-    withInStaticMember(node.isStatic, () {
-      node.visitChildren2(visitor);
+    var isStatic = node.staticKeyword != null;
+    withInStaticMember(isStatic, () {
+      var fieldsScope = nameScope;
+
+      // Use different scope for instance non-late field initializers.
+      if (!isStatic && node.lateKeyword == null) {
+        var primaryConstructor = node.enclosingPrimaryConstructor;
+        if (primaryConstructor != null) {
+          fieldsScope = _constructorInitializerScope(
+            primaryConstructor.declaredFragment!,
+          );
+        }
+      }
+
+      node.visitChildrenWithHooks(
+        visitor,
+        visitFields: (fields) {
+          withScope(fieldsScope, () {
+            fields.accept2(visitor);
+          });
+        },
+      );
     });
   }
 
@@ -351,7 +371,7 @@ class ScopeContext {
   }
 
   void visitMethodDeclaration(
-    MethodDeclarationImpl node, {
+    MethodDeclarationV1OriginImpl node, {
     required AstVisitor2 visitor,
   }) {
     var fragment = node.declaredFragment!;
@@ -359,13 +379,12 @@ class ScopeContext {
 
     node.metadata.accept2(visitor);
 
-    withInStaticMember(node.isStatic, () {
+    withInStaticMember(node.staticKeyword != null, () {
       withTypeParameterScope(element.typeParameters, () {
         node.nameScope = nameScope;
-        node.typeParameterScope = nameScope;
         node.returnType?.accept2(visitor);
-        node.typeParameters?.accept2(visitor);
-        node.parameters?.accept2(visitor);
+        node.writtenTypeParameters?.accept2(visitor);
+        node.writtenFormalParameters?.accept2(visitor);
 
         withFormalParameterScope(fragment.formalParameters, () {
           node.documentationComment?.accept2(visitor);
@@ -487,32 +506,6 @@ class ScopeContext {
         node.documentationComment?.accept2(visitor);
         node.body.accept2(visitor);
       });
-    });
-  }
-
-  void visitVariableDeclarationList(
-    VariableDeclarationListImpl node, {
-    required AstVisitor2 visitor,
-  }) {
-    node.metadata.accept2(visitor);
-    node.type?.accept2(visitor);
-
-    var variablesScope = nameScope;
-
-    // Use different scope for instance non-late field initializers.
-    if (node.parent2 case FieldDeclarationImpl fieldDeclaration) {
-      if (!fieldDeclaration.isStatic && node.lateKeyword == null) {
-        var primaryConstructor = fieldDeclaration.enclosingPrimaryConstructor;
-        if (primaryConstructor != null) {
-          variablesScope = _constructorInitializerScope(
-            primaryConstructor.declaredFragment!,
-          );
-        }
-      }
-    }
-
-    withScope(variablesScope, () {
-      node.variables.accept2(visitor);
     });
   }
 
@@ -646,7 +639,7 @@ extension LocalScopeExtension on LocalScope {
   }
 }
 
-extension _FieldDeclarationExtension on FieldDeclaration {
+extension _FieldsDeclarationExtension on FieldsDeclaration {
   PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
     return switch (parent2?.parent2) {
       ClassDeclarationImpl(:var namePart) => namePart.tryCast(),

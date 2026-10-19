@@ -194,10 +194,24 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -239,12 +253,10 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -260,6 +272,36 @@ CompilationUnit
                   operator: .
                   name: <empty> <synthetic>
                 expression(v1): PropertyAccess
+                  target: ThisExpression
+                    thisKeyword: this
+                  operator: .
+                  propertyName: SimpleIdentifier
+                    token: <empty> <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          MethodDeclaration2
+            name: <empty> <synthetic>
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                equals: = <synthetic>
+                expression: PropertyAccess
                   target: ThisExpression
                     thisKeyword: this
                   operator: .
@@ -298,10 +340,10 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
-          MethodDeclaration
+        members2
+          MethodDeclaration2
             name: f
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -317,7 +359,12 @@ CompilationUnit
                       leftParenthesis: (
                       rightParenthesis: )
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          MethodDeclaration
+            name: f
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: <empty> <synthetic>

@@ -178,6 +178,12 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(covariant Field2Impl node) {
+    super.visitField2(node);
+    _visitVariable(node);
+  }
+
+  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     super.visitFieldFormalParameter(node);
     _visitFormalParameter(node);
@@ -204,12 +210,6 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   @override
   void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
     super.visitTopLevelVariable2(node);
-    _visitVariable(node);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    super.visitVariableDeclaration(node);
     _visitVariable(node);
   }
 

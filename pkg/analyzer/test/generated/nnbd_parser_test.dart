@@ -1822,29 +1822,25 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: String
-                question: ?
-              variables
-                VariableDeclaration
-                  name: x
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: String
+              question: ?
+            fields
+              Field
+                name: x
             semicolon: ;
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: y
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -1852,14 +1848,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -1886,6 +1874,56 @@ CompilationUnit
                   literal: 0
             body: EmptyFunctionBody
               semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: String
+                question: ?
+              variables
+                VariableDeclaration
+                  name: x
+            semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: y
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Object
+                  question: ?
+                name: o
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: AsExpression
+                  expression: SimpleIdentifier
+                    token: o
+                  asOperator: as
+                  type: NamedType
+                    name: String
+                    question: ?
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: y
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+            body: EmptyFunctionBody
+              semicolon: ;
         rightBracket: }
 ''');
   }
@@ -1909,29 +1947,25 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: String
-                question: ?
-              variables
-                VariableDeclaration
-                  name: x
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: String
+              question: ?
+            fields
+              Field
+                name: x
             semicolon: ;
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: y
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -1939,14 +1973,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -1989,6 +2015,67 @@ CompilationUnit
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: String
+                question: ?
+              variables
+                VariableDeclaration
+                  name: x
+            semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: y
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Object
+                  question: ?
+                name: o
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: y
+                equals: =
+                expression: ConditionalExpression
+                  condition: IsExpression
+                    expression: SimpleIdentifier
+                      token: o
+                    isOperator: is
+                    type: NamedType
+                      name: String
+                      question: ?
+                  question: ?
+                  thenExpression: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: o
+                    period: .
+                    identifier: SimpleIdentifier
+                      token: length
+                  colon: :
+                  elseExpression: NullLiteral
+                    literal: null
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: NullLiteral
+                  literal: null
+            body: EmptyFunctionBody
+              semicolon: ;
         rightBracket: }
 ''');
   }
@@ -2012,29 +2099,25 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: String
-                question: ?
-              variables
-                VariableDeclaration
-                  name: x
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: String
+              question: ?
+            fields
+              Field
+                name: x
             semicolon: ;
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: y
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -2042,14 +2125,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -2088,6 +2163,66 @@ CompilationUnit
                   token: x
                 equals: =
                 expression2: NullLiteral
+                  literal: null
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: String
+                question: ?
+              variables
+                VariableDeclaration
+                  name: x
+            semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: y
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Object
+                  question: ?
+                name: o
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: y
+                equals: =
+                expression: ConditionalExpression
+                  condition: IsExpression
+                    expression: SimpleIdentifier
+                      token: o
+                    isOperator: is
+                    type: NamedType
+                      name: String
+                  question: ?
+                  thenExpression: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: o
+                    period: .
+                    identifier: SimpleIdentifier
+                      token: length
+                  colon: :
+                  elseExpression: NullLiteral
+                    literal: null
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: NullLiteral
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;

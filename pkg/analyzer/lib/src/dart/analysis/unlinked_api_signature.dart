@@ -21,7 +21,7 @@ Uint8List computeUnlinkedApiSignature(CompilationUnitImpl unit) {
 
 class _UnitApiSignatureComputer {
   static const int _kindConstructorDeclaration = 1;
-  static const int _kindFieldDeclaration = 2;
+  static const int _kindFieldsDeclaration = 2;
   static const int _kindMethodDeclaration = 3;
   static const int _kindPrimaryConstructorBody = 4;
   static const int _nullNode = 0;
@@ -83,20 +83,20 @@ class _UnitApiSignatureComputer {
 
   void _addClass(ClassDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    bool hasConstConstructor = node.body.members.any(
+    bool hasConstConstructor = node.body.members2.any(
       (m) => m is ConstructorDeclarationImpl && m.constKeyword != null,
     );
-    _addClassMembers(node.body.members, hasConstConstructor);
+    _addClassMembers(node.body.members2, hasConstConstructor);
   }
 
-  void _addClassMembers(List<ClassMember> members, bool hasConstConstructor) {
+  void _addClassMembers(List<AnnotatedNode> members, bool hasConstConstructor) {
     signature.addInt(members.length);
     for (var member in members) {
       if (member is ConstructorDeclarationImpl) {
         _addConstructorDeclaration(member);
-      } else if (member is FieldDeclaration) {
-        _addFieldDeclaration(member, hasConstConstructor);
-      } else if (member is MethodDeclarationImpl) {
+      } else if (member is FieldsDeclaration) {
+        _addFieldsDeclaration(member, hasConstConstructor);
+      } else if (member is MethodDeclarationV1OriginImpl) {
         _addMethodDeclaration(member);
       } else if (member is PrimaryConstructorBody) {
         _addPrimaryConstructorBody(member);
@@ -115,7 +115,7 @@ class _UnitApiSignatureComputer {
   }
 
   void _addEnum(EnumDeclarationImpl node) {
-    var members = node.body.members;
+    var members = node.body.members2;
 
     // If not enhanced, include the whole node.
     var firstMember = members.firstOrNull;
@@ -130,11 +130,11 @@ class _UnitApiSignatureComputer {
 
   void _addExtension(ExtensionDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members, false);
+    _addClassMembers(node.body.members2, false);
   }
 
-  void _addFieldDeclaration(FieldDeclaration node, bool hasConstConstructor) {
-    signature.addInt(_kindFieldDeclaration);
+  void _addFieldsDeclaration(FieldsDeclaration node, bool hasConstConstructor) {
+    signature.addInt(_kindFieldsDeclaration);
 
     _addToken(node.abstractKeyword);
     _addToken(node.augmentKeyword);
@@ -143,12 +143,26 @@ class _UnitApiSignatureComputer {
     _addToken(node.staticKeyword);
     _addNodeList(node.metadata);
 
-    var variableList = node.fields;
+    _addToken(node.constFinalOrVarKeyword);
+    _addToken(node.lateKeyword);
+    _addNode(node.type);
+
     var includeInitializers =
-        variableList.type == null ||
-        variableList.isConst ||
-        hasConstConstructor && !node.isStatic && variableList.isFinal;
-    _variableList(variableList, includeInitializers);
+        node.type == null ||
+        node.constKeyword != null ||
+        hasConstConstructor &&
+            node.staticKeyword == null &&
+            node.finalKeyword != null;
+    var fields = node.fields;
+    signature.addInt(fields.length);
+
+    for (var field in fields) {
+      _addToken(field.name);
+      signature.addBool(field.initializer != null);
+      if (includeInitializers) {
+        _addNode(field.initializer);
+      }
+    }
   }
 
   void _addFunctionBodyModifiers(FunctionBody? node) {
@@ -159,9 +173,12 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addMethodDeclaration(MethodDeclarationImpl node) {
+  void _addMethodDeclaration(MethodDeclarationV1OriginImpl node) {
     signature.addInt(_kindMethodDeclaration);
-    _addTokens(node.beginToken, node.parameters?.endToken ?? node.name);
+    _addTokens(
+      node.beginToken,
+      node.writtenFormalParameters?.endToken ?? node.nameToken,
+    );
     signature.addBool(node.isComplete);
     _addFunctionBodyModifiers(node.body);
     signature.addBool(node.invokesSuperSelf);
@@ -169,7 +186,7 @@ class _UnitApiSignatureComputer {
 
   void _addMixin(MixinDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members, false);
+    _addClassMembers(node.body.members2, false);
     signature.addStringList(node.superInvokedNames);
   }
 
@@ -246,23 +263,6 @@ class _UnitApiSignatureComputer {
       signature.addBool(variable.initializer != null);
       if (includeInitializers) {
         _addNode(variable.initializer);
-      }
-    }
-  }
-
-  void _variableList(VariableDeclarationList node, bool includeInitializers) {
-    _addToken(node.keyword);
-    _addToken(node.lateKeyword);
-    _addNode(node.type);
-
-    var variables = node.variables;
-    signature.addInt(variables.length);
-
-    for (var variable in variables) {
-      _addToken(variable.name);
-      signature.addBool(variable.initializer2 != null);
-      if (includeInitializers) {
-        _addNode(variable.initializer2);
       }
     }
   }

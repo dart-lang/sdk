@@ -4,9 +4,9 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -16,8 +16,8 @@ class MustCallSuperVerifier {
 
   new(this._diagnosticReporter);
 
-  void checkMethodDeclaration(MethodDeclaration node) {
-    if (node.isStatic || !node.isComplete) {
+  void checkMethodDeclaration(MethodDeclarationV1OriginImpl node) {
+    if ((node.staticKeyword != null) || !node.isComplete) {
       return;
     }
     var element = node.declaredFragment!.element;
@@ -175,19 +175,19 @@ class MustCallSuperVerifier {
   }
 
   void _verifySuperIsCalled(
-    MethodDeclaration node,
+    MethodDeclarationV1OriginImpl node,
     String? methodName,
     String? overriddenEnclosingName,
   ) {
     var declaredFragment = node.declaredFragment!;
-    var declaredElement = declaredFragment.element as ExecutableElementImpl;
+    var declaredElement = declaredFragment.element;
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _diagnosticReporter.report(
         diag.mustCallSuper
             .withArguments(className: overriddenEnclosingName!)
-            .at(node.name),
+            .at(node.nameToken),
       );
     }
     return;

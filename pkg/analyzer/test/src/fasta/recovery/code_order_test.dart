@@ -837,13 +837,11 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
-          ConstructorDeclaration
+        members2
+          ConstructorDeclaration2
             constKeyword: const
-            typeName2: A
-            typeName(v1): SimpleIdentifier
-              token: A
-            parameters: FormalParameterList
+            typeName: A
+            formalParameters: FormalParameterList
               leftParenthesis: (
               delimitedFormalParameters: DelimitedFormalParameters
                 leftDelimiter: [
@@ -852,7 +850,14 @@ CompilationUnit
                     name: x
                 rightDelimiter: ]
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
               leftParenthesis: (
               leftDelimiter: [
               parameter: RegularFormalParameter
@@ -868,14 +873,13 @@ CompilationUnit
         typeName: B
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: dynamic
+        members2
+          FieldsDeclaration
+            fields
+              Field
+                name: dynamic
             semicolon: ; <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -904,6 +908,35 @@ CompilationUnit
                           leftParenthesis: (
                           rightParenthesis: )
                     rightParenthesis: )
+                name: SimpleIdentifier
+                  token: A
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    InstanceCreationExpression
+                      keyword: const
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  rightParenthesis: )
+            fields
+              Field
+                name: x
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: dynamic
+            semicolon: ; <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: A
                 arguments: ArgumentList

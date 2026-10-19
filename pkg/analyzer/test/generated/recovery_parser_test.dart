@@ -1566,12 +1566,10 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
-          ConstructorDeclaration
-            typeName2: A
-            typeName(v1): SimpleIdentifier
-              token: A
-            parameters: FormalParameterList
+        members2
+          ConstructorDeclaration2
+            typeName: A
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -1582,6 +1580,32 @@ CompilationUnit
                   token: a
                 equals: =
                 expression2: RecordLiteral
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: v
+            semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: a
+                equals: =
+                expression: RecordLiteral
                   leftParenthesis: (
                   rightParenthesis: )
             body: BlockFunctionBody
@@ -2803,7 +2827,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2834,7 +2865,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2865,7 +2903,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            staticKeyword: static
+            fields
+              Field
+                name: c
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2895,7 +2940,16 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            staticKeyword: static
+            type: NamedType
+              name: c
+            fields
+              Field
+                name: x
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2928,7 +2982,13 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -2958,7 +3018,14 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -3258,7 +3325,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            type: NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: > <synthetic>
+            fields
+              Field
+                name: f
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3428,7 +3510,27 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: SetOrMapLiteral
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: A
+                      NamedType
+                        name: B
+                    rightBracket: >
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -3436,7 +3538,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: SetOrMapLiteral
+                  initializer: SetOrMapLiteral
                     typeArguments: TypeArgumentList
                       leftBracket: <
                       arguments
@@ -3471,7 +3573,23 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: G
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                  NamedType
+                    name: double
+                rightBracket: >
+            fields
+              Field
+                name: g
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -3548,19 +3666,14 @@ CompilationUnit
           rightBracket: >
       body: BlockClassBody
         leftBracket: {
-        members
-          MethodDeclaration
+        members2
+          MethodDeclaration2
             name: m
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: BlockFunctionBody
               block: Block
@@ -3601,6 +3714,47 @@ CompilationUnit
                         token: <empty> <synthetic>
                       semicolon: ; <synthetic>
                 rightBracket: }
+        members(v1)
+          MethodDeclaration
+            name: m
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements
+                  IfStatement
+                    ifKeyword: if
+                    leftParenthesis: (
+                    expression: IsExpression
+                      expression: SimpleIdentifier
+                        token: x
+                      isOperator: is
+                      type: NamedType
+                        name: <empty> <synthetic>
+                    rightParenthesis: )
+                    thenStatement: ReturnStatement
+                      returnKeyword: return
+                      semicolon: ;
+                  IfStatement
+                    ifKeyword: if
+                    leftParenthesis: (
+                    expression: IsExpression
+                      expression: SimpleIdentifier
+                        token: x
+                      isOperator: is
+                      notOperator: !
+                      type: NamedType
+                        name: <empty> <synthetic>
+                    rightParenthesis: )
+                    thenStatement: ExpressionStatement
+                      expression: SimpleIdentifier
+                        token: <empty> <synthetic>
+                      semicolon: ; <synthetic>
+                rightBracket: }
         rightBracket: }
 ''');
   }
@@ -3623,10 +3777,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3635,7 +3801,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -3658,10 +3824,26 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3697,17 +3879,27 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: ( <synthetic>
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -3730,10 +3922,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3742,7 +3946,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -3767,10 +3971,22 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: named
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: NullLiteral
+                literal: null
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: named
@@ -3779,7 +3995,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: NullLiteral
+              expression: NullLiteral
                 literal: null
               semicolon: ;
         rightBracket: }
@@ -4118,7 +4334,17 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          MethodDeclaration2
+            name: b
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        members(v1)
           MethodDeclaration
             name: b
             parameters: FormalParameterList
@@ -4244,7 +4470,30 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: length
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration2
+            returnType: NamedType
+              name: void
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -4541,10 +4790,10 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
-          MethodDeclaration
+        members2
+          MethodDeclaration2
             name: b
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -4564,7 +4813,14 @@ CompilationUnit
                 RegularFormalParameter
                   name: e
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            name: b
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: c

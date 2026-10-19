@@ -89,6 +89,82 @@ String describe(Object o) => 'value: $o';
 @pragma('wasm:cfg')
 String callDescribe(int x) => describe(x);
 
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int get five => 5;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callGetter(int x) => five + x;
+
+// Unused getter returned values need cleanup so they don't pollute the stack.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callGetterUnused(int x) {
+  five;
+  return x;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+set recordedValue(int x) {
+  record(x);
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callCfgSetter(int x) {
+  recordedValue = x;
+  return recordedValue = x + 1;
+}
+
+// Declared to return `num`, but TFA infers `int`, so the wasm getter returns
+// an unboxed `i64`.
+@pragma('wasm:never-inline')
+num get numFive => 5;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+num callNumGetter() => numFive;
+
+String lastDescribed = '';
+
+// Not compiled via CFG (string interpolation and static field write).
+@pragma('wasm:never-inline')
+set describedObject(Object o) {
+  lastDescribed = 'set: $o';
+}
+
+// Passing an unboxed `int` to an `Object` setter parameter needs boxing, while
+// the assignment expression still evaluates to the unboxed `int`.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callObjectSetter(int x) => describedObject = x;
+
+// The phi for `x > 0 ? a : b` gets a nullable local, but `describedObject`
+// takes a non-nullable `Object`, so the setter argument needs a null check.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callSetterPhi(int x, String a, String b) =>
+    describedObject = (x > 0 ? a : b);
+
+@pragma('wasm:never-inline')
+Never get failGetter => throw ArgumentError('failGetter');
+
+@pragma('wasm:never-inline')
+set failSetter(int x) => throw ArgumentError.value(x);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNeverGetter(int x) => x < 0 ? failGetter : x;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNeverSetter(int x) {
+  if (x < 0) failSetter = x;
+  return x;
+}
+
 void main() {
   final int0 = int.parse('0');
   final int1 = int.parse('1');
@@ -129,4 +205,24 @@ void main() {
   Expect.equals('b', callPickPhi(int0, 'a', 'b'));
   Expect.equals('value: 5', callDescribe(int5));
   Expect.equals('value: s', describe('s'));
+
+  // Static getters and setters.
+  Expect.equals(8, callGetter(int3));
+  Expect.equals(4, callGetterUnused(int4));
+  log.clear();
+  Expect.equals(6, callCfgSetter(int5));
+  Expect.listEquals([5, 6], log);
+  Expect.equals(5, callNumGetter());
+  Expect.equals(5, callObjectSetter(int5));
+  Expect.equals('set: 5', lastDescribed);
+  Expect.equals('a', callSetterPhi(int1, 'a', 'b'));
+  Expect.equals('set: a', lastDescribed);
+  Expect.equals('b', callSetterPhi(int0, 'a', 'b'));
+  Expect.equals('set: b', lastDescribed);
+  describedObject = 's';
+  Expect.equals('set: s', lastDescribed);
+  Expect.equals(int1, callNeverGetter(int1));
+  Expect.throwsArgumentError(() => callNeverGetter(negOne));
+  Expect.equals(int1, callNeverSetter(int1));
+  Expect.throwsArgumentError(() => callNeverSetter(negOne));
 }

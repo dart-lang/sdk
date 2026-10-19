@@ -2363,7 +2363,17 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: a
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2371,7 +2381,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -2442,7 +2452,17 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: a
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2450,7 +2470,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -2475,7 +2495,19 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: f
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2509,7 +2541,19 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: void
+            name: f
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: void
@@ -2543,7 +2587,18 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2551,7 +2606,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: } <synthetic>
@@ -2581,7 +2636,22 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            fields
+              Field
+                name: mixin
+            semicolon: ; <synthetic>
+          MethodDeclaration2
+            name: M
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -2619,17 +2689,25 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
-          MethodDeclaration
-            propertyKeyword: set
+        members2
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2666,21 +2744,18 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: A
-                  equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: B
-                  initializer(v1): SimpleIdentifier
-                    token: B
+        members2
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: B
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: Function
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -2688,7 +2763,21 @@ CompilationUnit
                 RegularFormalParameter
                   name: D
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: A
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: B
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: Function
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: C
@@ -2719,7 +2808,14 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: a
+            semicolon: ;
+        members(v1)
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var

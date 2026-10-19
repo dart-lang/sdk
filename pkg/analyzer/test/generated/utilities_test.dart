@@ -753,21 +753,17 @@ extension F<U> on double {}
     );
   }
 
-  void test_fieldDeclaration() {
+  void test_field() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
-  @myA1
-  @myA2
-  int foo = 0;
-  int bar = 0;
+  var a = 0;
+  var b = 1;
 }
-class B extends B0 {}
 ''');
-    _assertAnnotatedNode(parseResult.findNode.fieldDeclaration('foo'));
-    _assertReplacementForChildren<FieldDeclaration>(
-      destination: parseResult.findNode.fieldDeclaration('foo'),
-      source: parseResult.findNode.fieldDeclaration('bar'),
-      childAccessors: [(node) => node.fields],
+    _assertReplacementForChildren<Field2>(
+      destination: parseResult.findNode.field('a = 0'),
+      source: parseResult.findNode.field('b = 1'),
+      childAccessors: [(node) => node.initializer!],
     );
   }
 
@@ -804,6 +800,30 @@ class A {
         (node) => node.type!,
         (node) => node.functionTypedSuffix!,
       ],
+    );
+  }
+
+  void test_fieldsDeclaration() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  @myA1
+  @myA2
+  int a = 0, b = 1;
+  double c = 2;
+}
+''');
+    var destination = parseResult.findNode.fieldsDeclaration('a = 0');
+    var source = parseResult.findNode.fieldsDeclaration('c = 2');
+    _assertAnnotatedNode(destination);
+    _assertReplaceInList(
+      destination: destination,
+      child: destination.fields[0],
+      replacement: destination.fields[1],
+    );
+    _assertReplacementForChildren<FieldsDeclaration>(
+      destination: destination,
+      source: source,
+      childAccessors: [(node) => node.type!],
     );
   }
 
@@ -1302,17 +1322,17 @@ class A {
 ''');
     var destination = parseResult.findNode.methodDeclaration('a<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<MethodDeclaration>(
+    _assertReplacementForChildren<MethodDeclaration2>(
       destination: destination,
       source: parseResult.findNode.methodDeclaration('b<U>'),
       childAccessors: [
         (node) => node.returnType!,
         (node) => node.typeParameters!,
-        (node) => node.parameters!,
+        (node) => node.formalParameters,
         (node) => node.body,
       ],
     );
-    _assertRemovalForNullableChild<MethodDeclaration>(
+    _assertRemovalForNullableChild<MethodDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
@@ -2012,39 +2032,6 @@ class A<T, U> {}
       destination: node,
       child: node.typeParameters[0],
       replacement: node.typeParameters[1],
-    );
-  }
-
-  void test_variableDeclaration() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-class A {
-  var a = 0;
-  var b = 1;
-}
-''');
-    _assertReplacementForChildren<VariableDeclaration>(
-      destination: parseResult.findNode.variableDeclaration('a = 0'),
-      source: parseResult.findNode.variableDeclaration('b = 1'),
-      childAccessors: [(node) => node.initializer2!],
-    );
-  }
-
-  void test_variableDeclarationList() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-class A {
-  int a = 0, b = 1;
-  double c = 2;
-}
-''');
-    _assertReplaceInList(
-      destination: parseResult.findNode.variableDeclarationList('int a'),
-      child: parseResult.findNode.variableDeclaration('a = 0'),
-      replacement: parseResult.findNode.variableDeclaration('b = 1'),
-    );
-    _assertReplacementForChildren<VariableDeclarationList>(
-      destination: parseResult.findNode.variableDeclarationList('int a'),
-      source: parseResult.findNode.variableDeclarationList('double c'),
-      childAccessors: [(node) => node.type!],
     );
   }
 

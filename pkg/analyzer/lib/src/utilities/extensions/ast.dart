@@ -57,7 +57,10 @@ extension AstNodeExtension on AstNode {
           return node;
         case LocalFunctionDeclaration() ||
             ConstructorDeclaration() ||
-            MethodDeclaration() ||
+            GetterDeclaration() ||
+            MethodDeclaration2() ||
+            OperatorDeclaration() ||
+            SetterDeclaration() ||
             TopLevelFunctionDeclaration() ||
             TopLevelGetterDeclaration() ||
             TopLevelSetterDeclaration():
@@ -93,7 +96,7 @@ extension AstNodeExtension on AstNode {
       if (node is ConstructorDeclaration) {
         return node.declaredFragment?.element;
       }
-      if (node is MethodDeclaration) {
+      if (node is MethodDeclarationV1OriginImpl) {
         return node.declaredFragment?.element;
       }
       if (node is TopLevelFunctionDeclaration) {
@@ -228,6 +231,7 @@ extension AstNodeExtension on AstNode {
 }
 
 extension AstNodeNullableExtension on AstNode? {
+  @V1Ast('The V2 counterpart is classMembers2.')
   List<ClassMember> get classMembers {
     var self = this;
     return switch (self) {
@@ -238,6 +242,20 @@ extension AstNodeNullableExtension on AstNode? {
       ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
       MixinDeclaration() => self.body.members,
+      _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
+  }
+
+  List<AnnotatedNode> get classMembers2 {
+    var self = this;
+    return switch (self) {
+      BlockClassBody() => self.members2,
+      BlockEnumBody() => self.members2,
+      ClassDeclarationImpl() => self.body.members2,
+      EnumDeclaration() => self.body.members2,
+      ExtensionDeclaration() => self.body.members2,
+      ExtensionTypeDeclarationImpl() => self.body.members2,
+      MixinDeclaration() => self.body.members2,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }
@@ -263,9 +281,20 @@ extension ExtensionElementExtension on ExtensionElement {
       extendedType.tryCast<InterfaceType>()?.element;
 }
 
+extension Field2Extension on Field2 {
+  FieldElementImpl get declaredElement {
+    return declaredFragment!.element as FieldElementImpl;
+  }
+}
+
+@V1Ast('The V2 counterpart is FieldsDeclarationExtension.')
 extension FieldDeclarationExtension on FieldDeclaration {
   Element get firstVariableElement =>
       fields.variables.first.declaredFragment!.element;
+}
+
+extension FieldsDeclarationExtension on FieldsDeclaration {
+  Element get firstVariableElement => fields.first.declaredFragment!.element;
 }
 
 extension InterpolationExpressionExtension on InterpolationExpression {
@@ -315,6 +344,7 @@ extension TopLevelVariablesDeclarationExtension
   Element get firstVariableElement => variables.first.declaredFragment!.element;
 }
 
+@V1Ast('The V2 counterpart is Field2Extension.')
 extension VariableDeclarationExtension on VariableDeclaration {
   FieldElementImpl get declaredFieldElement {
     return declaredFragment!.element as FieldElementImpl;

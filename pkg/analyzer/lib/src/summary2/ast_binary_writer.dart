@@ -1061,22 +1061,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _storeExpression(node);
   }
 
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _sink.writeEnum(AstNodeTag.VariableDeclarationList);
-    _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.isConst,
-        isFinal: node.isFinal,
-        isLate: node.lateKeyword != null,
-        isVar: node.keyword?.keyword == Keyword.VAR,
-      ),
-    );
-    _writeOptionalNode(node.type);
-    _writeNodeList(node.variables);
-    _storeAnnotatedNode(node);
-  }
-
   void _storeAnnotatedNode(AnnotatedNode node) {
     _writeNodeList(node.metadata);
   }

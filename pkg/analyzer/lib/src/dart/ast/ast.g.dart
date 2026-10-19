@@ -590,9 +590,13 @@ abstract class AstVisitor2<R> {
 
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
 
-  R? visitFieldDeclaration(FieldDeclaration node);
+  @experimental
+  R? visitField2(Field2 node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
+
+  @experimental
+  R? visitFieldsDeclaration(FieldsDeclaration node);
 
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node);
 
@@ -747,8 +751,6 @@ abstract class AstVisitor2<R> {
   R? visitMapPattern(MapPattern node);
 
   R? visitMapPatternEntry(MapPatternEntry node);
-
-  R? visitMethodDeclaration(MethodDeclaration node);
 
   @experimental
   R? visitMethodDeclaration2(MethodDeclaration2 node);
@@ -961,10 +963,6 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node);
-
-  R? visitVariableDeclaration(VariableDeclaration node);
-
-  R? visitVariableDeclarationList(VariableDeclarationList node);
 
   R? visitWhenClause(WhenClause node);
 

@@ -207,7 +207,30 @@ augment class A {
 ''');
     var node = result.findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@65
+          defaultType: null
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@61
+    element: <testLibrary>::@class::A::@method::foo
+      type: void Function()
+V1: MethodDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -244,7 +267,30 @@ augment class A {
 ''');
     var node = result.findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@68
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@64
+    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>()
+V1: MethodDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -287,7 +333,34 @@ void f(A a) {
 ''');
     var node = result.findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@68
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@71
+          defaultType: null
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@64
+    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>()
+V1: MethodDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void

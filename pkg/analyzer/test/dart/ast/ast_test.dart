@@ -562,7 +562,7 @@ class C extends B {
     var parseResult = parseTestCodeWithDiagnostics(input);
     var class_ = parseResult.unit.declarations2[0] as ClassDeclaration;
     var body = class_.body as BlockClassBody;
-    var constructor = body.members[0] as ConstructorDeclaration;
+    var constructor = body.members2[0] as ConstructorDeclaration;
     var parameter = constructor.parameters.allFormalParameters[0];
     expect(parameter.isExplicitlyTyped, expected);
   }
@@ -1002,7 +1002,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('get foo');
+    var node = parseResult.findNode.getterDeclaration('get foo');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
@@ -1013,7 +1013,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('external operator');
+    var node = parseResult.findNode.operatorDeclaration('external operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
@@ -1024,8 +1024,8 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('get foo');
-    expect(node.firstTokenAfterCommentAndMetadata, node.propertyKeyword);
+    var node = parseResult.findNode.getterDeclaration('get foo');
+    expect(node.firstTokenAfterCommentAndMetadata, node.getKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_operator() {
@@ -1035,7 +1035,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('operator');
+    var node = parseResult.findNode.operatorDeclaration('operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.operatorKeyword);
   }
 }
@@ -1249,14 +1249,14 @@ E f() => g;
   void test_findPrevious_basic_method() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var body = clazz.body as BlockClassBody;
-    var method = body.members[0] as MethodDeclaration;
+    var method = body.members2[0] as MethodDeclaration2;
     expect(method.findPrevious(findToken('foo'))!.lexeme, 'B');
   }
 
   void test_findPrevious_basic_statement() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements2[0];
     expect(statement.findPrevious(findToken('bar'))!.lexeme, 'return');
@@ -1266,7 +1266,7 @@ E f() => g;
   void test_findPrevious_missing() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements2[0];
 
@@ -1281,7 +1281,7 @@ missing
   void test_findPrevious_parent_expression() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
     var statement = body.block.statements2[0] as ReturnStatement;
     var expression = statement.expression2!;
@@ -1291,14 +1291,14 @@ missing
   void test_findPrevious_parent_method() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     expect(method.findPrevious(findToken('B'))!.lexeme, '{');
   }
 
   void test_findPrevious_parent_statement() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
     Statement statement = body.block.statements2[0];
     expect(statement.findPrevious(findToken('return'))!.lexeme, '{');
@@ -1312,8 +1312,8 @@ missing
   void test_findPrevious_sibling_method() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[1] as MethodDeclaration;
-    expect(method.findPrevious(findToken('D'))!.lexeme, '}');
+    var getter = classBody.members2[1] as GetterDeclaration;
+    expect(getter.findPrevious(findToken('D'))!.lexeme, '}');
   }
 }
 

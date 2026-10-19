@@ -116,7 +116,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is VariableDeclaration) {
+      } else if (node is Field2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -134,7 +134,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         result = node;
       }
     } else if (fragment is MethodFragment) {
-      if (node is MethodDeclaration && _hasOffset(node.name)) {
+      if (node is MethodDeclarationV1OriginImpl && _hasOffset(node.nameToken)) {
         result = node;
       }
     } else if (fragment is FormalParameterFragment) {
@@ -150,8 +150,8 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is MethodDeclaration) {
-        if (_hasOffset(node.name)) {
+      } else if (node is MethodDeclarationV1OriginImpl) {
+        if (_hasOffset(node.nameToken)) {
           result = node;
         }
       }
@@ -345,6 +345,9 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
     }
 
     return ElementDeclarationResultImpl(
@@ -507,6 +510,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     }

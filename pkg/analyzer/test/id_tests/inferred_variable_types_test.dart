@@ -57,7 +57,12 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
-    if (node is VariableDeclaration) {
+    if (node is Field2) {
+      var element = node.declaredFragment!.element;
+      if (element.hasImplicitType) {
+        return element.type;
+      }
+    } else if (node is TopLevelVariable2) {
       var element = node.declaredFragment!.element;
       if (element.hasImplicitType) {
         return element.type;

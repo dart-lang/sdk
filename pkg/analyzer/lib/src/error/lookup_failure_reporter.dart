@@ -619,12 +619,12 @@ enum ReadPosition {
         case RelationalPatternImpl():
         case SwitchCaseImpl():
           return constant;
+        case FieldsDeclarationImpl(:var constKeyword):
+          return constKeyword != null ? constant : other;
         case LocalVariablesDeclarationImpl(:var constKeyword):
           return constKeyword != null ? constant : other;
         case TopLevelVariablesDeclarationImpl(:var constKeyword):
           return constKeyword != null ? constant : other;
-        case VariableDeclarationListImpl(:var keyword):
-          return keyword?.keyword == Keyword.CONST ? constant : other;
         // An explicitly constant expression makes its parts constant.
         case ConstructorInvocationImpl(keyword: Token(keyword: Keyword.CONST)):
         case DotShorthandConstructorInvocation2Impl(constKeyword: _?):

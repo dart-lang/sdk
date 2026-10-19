@@ -261,19 +261,23 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
           if (declaration is ClassDeclaration &&
               declaration.namePart.typeName.lexeme == className) {
             if (declaration.body case BlockClassBody body) {
-              for (var member in body.members) {
+              for (var member in body.members2) {
                 if (member is ConstructorDeclaration) {
                   if (member.name!.lexeme == name) {
                     return member.offset;
                   }
-                } else if (member is FieldDeclaration) {
-                  for (var variable in member.fields.variables) {
+                } else if (member is FieldsDeclaration) {
+                  for (var variable in member.fields) {
                     if (variable.name.lexeme == name) {
                       return variable.offset;
                     }
                   }
-                } else if (member is MethodDeclaration) {
-                  if (member.name.lexeme == name) {
+                } else if (member
+                    case MethodDeclaration2(name: var memberName) ||
+                        OperatorDeclaration(operator: var memberName) ||
+                        GetterDeclaration(name: var memberName) ||
+                        SetterDeclaration(name: var memberName)) {
+                  if (memberName.lexeme == name) {
                     return member.offset;
                   }
                 }

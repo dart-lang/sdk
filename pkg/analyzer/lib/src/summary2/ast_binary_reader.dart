@@ -1404,9 +1404,8 @@ class AstBinaryReader {
       case AstNodeTag.UnaryOperatorInvocation:
         return _readUnaryOperatorInvocation();
       case AstNodeTag.VariableDeclaration:
-        return _readVariableDeclaration();
       case AstNodeTag.VariableDeclarationList:
-        return _readVariableDeclarationList();
+        throw UnsupportedError('Variables are not serialized.');
     }
   }
 
@@ -1939,47 +1938,6 @@ class AstBinaryReader {
     node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     _readExpressionResolution(node);
     return node;
-  }
-
-  VariableDeclaration _readVariableDeclaration() {
-    var flags = _readByte();
-    var name = _readDeclarationName();
-    var initializer = _readOptionalNode() as ExpressionImpl?;
-
-    var node = VariableDeclarationImpl(
-      comment: null,
-      metadata: [],
-      name: name,
-      equals: Tokens.eq(),
-      initializer2: initializer,
-    );
-
-    node.hasInitializer = AstBinaryFlags.hasInitializer(flags);
-
-    return node;
-  }
-
-  VariableDeclarationList _readVariableDeclarationList() {
-    var flags = _readByte();
-    var type = _readOptionalNode() as TypeAnnotationImpl?;
-    var variables = _readNodeList<VariableDeclarationImpl>();
-    var metadata = _readNodeList<AnnotationImpl>();
-
-    return VariableDeclarationListImpl(
-      comment: null,
-      keyword: Tokens.choose(
-        AstBinaryFlags.isConst(flags),
-        Tokens.const_(),
-        AstBinaryFlags.isFinal(flags),
-        Tokens.final_(),
-        AstBinaryFlags.isVar(flags),
-        Tokens.var_(),
-      ),
-      lateKeyword: AstBinaryFlags.isLate(flags) ? Tokens.late_() : null,
-      metadata: metadata,
-      type: type,
-      variables: variables,
-    );
   }
 
   void _resolveArguments(Element? executable, ArgumentListImpl argumentList) {

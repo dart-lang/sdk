@@ -179,7 +179,7 @@ class TypesBuilder {
       _genericFunctionType(node);
     } else if (node is GenericTypeAlias2Impl) {
       _genericTypeAlias(node);
-    } else if (node is MethodDeclarationImpl) {
+    } else if (node is MethodDeclarationV1OriginImpl) {
       _methodDeclaration(node);
     } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
@@ -187,8 +187,8 @@ class TypesBuilder {
       _superFormalParameter(node);
     } else if (node is TypeParameterImpl) {
       _typeParameter(node);
-    } else if (node is VariableDeclarationListImpl) {
-      _variableDeclarationList(node);
+    } else if (node is FieldsDeclarationImpl) {
+      _fieldsDeclaration(node);
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
@@ -253,6 +253,18 @@ class TypesBuilder {
     }
   }
 
+  void _fieldsDeclaration(FieldsDeclarationImpl node) {
+    var type = node.type?.type;
+    if (type != null) {
+      for (var variable in node.fields) {
+        var variableFragment = variable.declaredFragment!;
+        if (variableFragment.previousFragment == null) {
+          variableFragment.element.type = type;
+        }
+      }
+    }
+  }
+
   List<InternalFormalParameterElement> _formalParameters(
     FormalParameterList node,
   ) {
@@ -308,16 +320,17 @@ class TypesBuilder {
     );
   }
 
-  void _methodDeclaration(MethodDeclarationImpl node) {
+  void _methodDeclaration(MethodDeclarationV1OriginImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     if (fragment.previousFragment == null) {
       var returnType = node.returnType?.type;
       if (returnType == null) {
-        if (node.isSetter) {
+        if (node is SetterDeclarationImpl) {
           returnType = _voidType;
-        } else if (node.isOperator && node.name.lexeme == '[]=') {
+        } else if (node is OperatorDeclarationImpl &&
+            node.operator.lexeme == '[]=') {
           returnType = _voidType;
         } else {
           returnType = _dynamicType;
@@ -493,18 +506,6 @@ class TypesBuilder {
     }
 
     return node.typeParameters.map((p) => p.declaredFragment!).toFixedList();
-  }
-
-  void _variableDeclarationList(VariableDeclarationListImpl node) {
-    var type = node.type?.type;
-    if (type != null) {
-      for (var variable in node.variables) {
-        var variableFragment = variable.declaredFragment!;
-        if (variableFragment.previousFragment == null) {
-          variableFragment.element.type = type;
-        }
-      }
-    }
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

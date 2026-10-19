@@ -71,7 +71,8 @@ application_snapshot("dart2js") {
     # sources.
     "--platform-binaries=" + rebase_path("$root_out_dir/", root_build_dir),
 
-    rebase_path("../../pkg/compiler/lib/src/util/memory_compiler.dart"),
+    rebase_path("../../pkg/compiler/lib/src/util/memory_compiler.dart",
+                root_build_dir),
   ]
 }
 
@@ -122,6 +123,7 @@ compile_platform("dart2js_platform") {
     "dart:core",
   ]
 }
+
 compile_platform("dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
   single_root_base = rebase_path("$sdk_root/", root_build_dir)

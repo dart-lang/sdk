@@ -243,6 +243,11 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
   void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
@@ -255,15 +260,8 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    // Names do not have AstNodes but offsets at the end should be treated as
-    // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset && _startOffset == node.name.end) {
-      _foundNode = node;
-      return;
-    }
-
-    super.visitMethodDeclaration(node);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -316,6 +314,16 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
+  }
+
+  @override
   void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
@@ -337,6 +345,20 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
     }
 
     super.visitTopLevelSetterDeclaration(node);
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.nameToken.end) {
+      _foundNode = node;
+      return;
+    }
+
+    visitSuper();
   }
 }
 
@@ -366,8 +388,15 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
       node.statements;
 
   @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _declarationNode = node;
+  }
+
+  @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _addVariables(node.variables.variables);
+    for (var variable in node.variables.variables) {
+      _addToScope(variable.name);
+    }
     visitNode(node);
   }
 
@@ -384,6 +413,15 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _referenceIsWithinLocalFunction = true;
     visitNode(node);
+  }
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) {
+    _declarationNode = node;
+    var parameters = node.parameters;
+    if (parameters != null && !identical(immediateChild, parameters)) {
+      _addParameters(parameters.allFormalParameters);
+    }
   }
 
   @override
@@ -417,6 +455,11 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
       node.statements2;
 
   @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _declarationNode = node;
+  }
+
+  @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables2.variables) {
       _addToScope(variable.name);
@@ -435,6 +478,11 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
   void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     var parameters = node.formalParameters;
     if (!identical(immediateChild, parameters)) {
@@ -442,6 +490,11 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
     }
     _referenceIsWithinLocalFunction = true;
     visitNode(node);
+  }
+
+  @override
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node);
   }
 
   @override
@@ -454,6 +507,16 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
     }
     immediateChild = node;
     parentOf(node)?.accept2(this);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
   }
 
   @override
@@ -477,6 +540,14 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   @override
   void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     _declarationNode = node;
+  }
+
+  void _visitMethodDeclaration(MethodDeclarationV1OriginImpl node) {
+    _declarationNode = node;
+    var parameters = node.writtenFormalParameters;
+    if (parameters != null && !identical(immediateChild, parameters)) {
+      _addParameters(parameters.allFormalParameters);
+    }
   }
 }
 
@@ -521,10 +592,6 @@ mixin _ScopedNameFinderMixin {
     _declarationNode = node;
   }
 
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _declarationNode = node;
-  }
-
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _addToScope(node.loopVariable.name);
     visitNode(node);
@@ -536,14 +603,6 @@ mixin _ScopedNameFinderMixin {
       _addParameters(parameters.allFormalParameters);
     }
     visitNode(node);
-  }
-
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _declarationNode = node;
-    var parameters = node.parameters;
-    if (parameters != null && !identical(immediateChild, parameters)) {
-      _addParameters(parameters.allFormalParameters);
-    }
   }
 
   void visitNode(AstNode node);
@@ -569,12 +628,6 @@ mixin _ScopedNameFinderMixin {
     }
   }
 
-  void _addVariables(NodeList<VariableDeclaration> variables) {
-    for (VariableDeclaration variable in variables) {
-      _addToScope(variable.name);
-    }
-  }
-
   /// Check the given list of [statements] for any that come before the
   /// immediate child and that define a name that would be visible to the
   /// immediate child.
@@ -584,7 +637,9 @@ mixin _ScopedNameFinderMixin {
         return;
       }
       if (statement is VariableDeclarationStatement) {
-        _addVariables(statement.variables.variables);
+        for (var variable in statement.variables.variables) {
+          _addToScope(variable.name);
+        }
       } else if (statement is LocalVariablesDeclarationStatement) {
         for (var variable in statement.declaration.variables) {
           _addToScope(variable.name);

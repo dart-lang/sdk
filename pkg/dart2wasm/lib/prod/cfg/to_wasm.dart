@@ -110,11 +110,15 @@ final class ProdWasmInstructionLowerer
 
   bool _canHandleDirectCall(DirectCall instr) {
     final target = instr.target;
-    // TODO(nshahan): Support getters, setters, generative constructors
-    // (paired with AllocateObject) and super calls.
-    if (target is! RegularFunction) return false;
-    final member = target.member as ast.Procedure;
-    if (member.isInstanceMember) return false;
+    // TODO(nshahan): Support generative constructors (paired with
+    // AllocateObject) and super calls.
+    if (target is! RegularFunction &&
+        target is! GetterFunction &&
+        target is! SetterFunction) {
+      return false;
+    }
+    final member = target.member;
+    if (member is! ast.Procedure || member.isInstanceMember) return false;
     // TODO(nshahan): Support generic calls (TypeArguments input).
     if (target.hasFunctionTypeParameters) return false;
     // TODO(nshahan): Support optional and named parameters.
@@ -176,10 +180,6 @@ final class ProdWasmInstructionLowerer
 
     final outputs = translator.callReference(reference, b);
 
-    // Nothing to do becase `callReference` already emitted `unreachable` after
-    // the call.
-    if (translator.synthesizeNoReturn(reference)) return;
-
     if (!instr.hasUses) {
       // Cleanup stack if results of the call are not used.
       for (int i = 0; i < outputs.length; ++i) {
@@ -188,7 +188,9 @@ final class ProdWasmInstructionLowerer
       return;
     }
 
-    // All non-setter invocations return a value.
+    // `callReference` emitted `unreachable` because the call never returns.
+    if (outputs.isEmpty) return;
+
     assert(outputs.length == 1);
     final resultLocal = gen.getLocal(instr);
     translator.convertType(b, outputs.single, resultLocal.type);

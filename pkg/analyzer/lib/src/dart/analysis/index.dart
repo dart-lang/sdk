@@ -945,7 +945,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
 
     super.visitEnumDeclaration(node);
@@ -991,7 +991,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     _addSubtype(
       node.namePart.typeName.lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
 
     super.visitExtensionTypeDeclaration(node);
@@ -1349,7 +1349,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     WithClause? withClause,
     MixinOnClause? onClause,
     ImplementsClause? implementsClause,
-    required List<ClassMember> memberNodes,
+    required List<AnnotatedNode> memberNodes,
   }) {
     List<String> supertypes = [];
     List<String> members = [];
@@ -1376,11 +1376,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    for (ClassMember member in memberNodes) {
-      if (member is MethodDeclaration && !member.isStatic) {
-        addMemberName(member.name);
-      } else if (member is FieldDeclaration && !member.isStatic) {
-        for (var field in member.fields.variables) {
+    for (var member in memberNodes) {
+      if (member is MethodDeclarationV1OriginImpl &&
+          member.staticKeyword == null) {
+        addMemberName(member.nameToken);
+      } else if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var field in member.fields) {
           addMemberName(field.name);
         }
       }
@@ -1399,7 +1400,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       superclass: node.extendsClause?.superclass,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
   }
 
@@ -1420,7 +1421,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
   }
 

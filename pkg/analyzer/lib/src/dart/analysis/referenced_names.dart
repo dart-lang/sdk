@@ -82,11 +82,13 @@ class _LocalNameScope {
   factory forClass(_LocalNameScope enclosing, ClassDeclarationImpl node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    for (var member in node.body.members2) {
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        scope.add(member.nameToken);
       }
     }
     return scope;
@@ -113,11 +115,13 @@ class _LocalNameScope {
   ) {
     var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    for (var member in node.body.members2) {
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        scope.add(member.nameToken);
       }
     }
     return scope;
@@ -142,10 +146,13 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory forMethod(_LocalNameScope enclosing, MethodDeclaration node) {
+  factory forMethod(
+    _LocalNameScope enclosing,
+    MethodDeclarationV1OriginImpl node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.typeParameters);
-    scope.addFormalParameters(node.parameters);
+    scope.addTypeParameters(node.writtenTypeParameters);
+    scope.addFormalParameters(node.writtenFormalParameters);
     return scope;
   }
 
@@ -229,12 +236,6 @@ class _LocalNameScope {
   void addTypeParameters(TypeParameterList? typeParameterList) {
     if (typeParameterList != null) {
       typeParameterList.typeParameters.map((p) => p.name).forEach(add);
-    }
-  }
-
-  void addVariableNames(VariableDeclarationList variableList) {
-    for (VariableDeclaration variable in variableList.variables) {
-      add(variable.name);
     }
   }
 
@@ -392,6 +393,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
   void visitImportDirective(ImportDirective node) {
     var prefixName = node.prefixName;
     if (prefixName != null) {
@@ -437,14 +443,8 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _LocalNameScope outerScope = localScope;
-    try {
-      localScope = _LocalNameScope.forMethod(localScope, node);
-      super.visitMethodDeclaration(node);
-    } finally {
-      localScope = outerScope;
-    }
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -463,6 +463,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
     _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     super.visitNamedType(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -515,6 +520,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     names.add(node.name.lexeme);
     super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -609,5 +619,18 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
 
     names.add(name);
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forMethod(localScope, node);
+      visitSuper();
+    } finally {
+      localScope = outerScope;
+    }
   }
 }

@@ -472,7 +472,7 @@ var v = <int, int, int>{};
 //         ^^^
 // [diag.expectedToken] Expected to find '>'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -498,7 +498,7 @@ var v = <int, int, int>{1};
 //         ^^^
 // [diag.expectedToken] Expected to find '>'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -2447,10 +2447,20 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: n
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: n
@@ -5225,12 +5235,10 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -5246,6 +5254,25 @@ CompilationUnit
                 period: .
                 constructorName: SimpleIdentifier
                   token: a
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              RedirectingConstructorInvocation
+                thisKeyword: this
+                period: .
+                constructorName: SimpleIdentifier
+                  token: a
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
         rightBracket: }
@@ -5268,10 +5295,24 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              RedirectingConstructorInvocation
+                thisKeyword: this
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -6403,12 +6444,10 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -6424,6 +6463,25 @@ CompilationUnit
                 period: .
                 constructorName: SimpleIdentifier
                   token: a
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: a
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
         rightBracket: }
@@ -6446,10 +6504,24 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -6619,7 +6691,7 @@ V1: PrefixExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --super;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
   operator: --
@@ -6659,7 +6731,7 @@ V1: PrefixExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = /* 0 */ --super;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
   operator: --

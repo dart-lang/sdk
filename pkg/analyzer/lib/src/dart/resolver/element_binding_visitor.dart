@@ -543,7 +543,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.implementsClause?.accept2(this);
     node.nativeClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindClassTypeAlias(
@@ -630,7 +630,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
       _bindEnumConstant(constant, memberFragments.nextField());
     }
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindExtensionDeclaration(
@@ -651,7 +651,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     _bindTypeParameters(node.typeParameters, fragment.typeParameters);
     node.onClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindExtensionTypeDeclaration(
@@ -683,24 +683,23 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindField(
-    VariableDeclarationImpl node,
+    Field2Impl node,
     FieldFragmentImpl fragment,
-    FieldDeclarationImpl declaration,
+    FieldsDeclarationImpl declaration,
   ) {
     node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, declaration.metadata);
 
-    var offset = node == declaration.fields.variables.first
+    var offset = node == declaration.fields.first
         ? declaration.offset
         : node.offset;
     fragment.setCodeRange(offset, node.end - offset);
 
-    node.documentationComment?.accept2(this);
-    if (node.initializer2 case var initializer?) {
+    if (node.initializer case var initializer?) {
       _withElementHolder(ElementHolder(fragment), () {
         initializer.accept2(this);
       });
@@ -789,26 +788,34 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMembers(
-    List<ClassMemberImpl> members,
+    List<ClassMemberV1OrV2Impl> members,
     _ContainerMemberFragments fragments,
   ) {
     for (var member in members) {
       switch (member) {
         case ConstructorDeclarationImpl():
           _bindConstructorDeclaration(member, fragments.nextConstructor());
-        case MethodDeclarationImpl():
-          if (member.isGetter) {
-            _bindMethodDeclaration(member, fragments.nextGetter());
-          } else if (member.isSetter) {
-            _bindMethodDeclaration(member, fragments.nextSetter());
-          } else {
-            _bindMethodDeclaration(member, fragments.nextMethod());
-          }
-        case FieldDeclarationImpl():
+        case GetterDeclarationImpl():
+          var fragment = fragments.nextGetter();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case MethodDeclaration2Impl():
+          var fragment = fragments.nextMethod();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case OperatorDeclarationImpl():
+          var fragment = fragments.nextMethod();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case SetterDeclarationImpl():
+          var fragment = fragments.nextSetter();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case FieldsDeclarationImpl():
           member.documentationComment?.accept2(this);
-          member.fields.type?.accept2(this);
-          for (var variable in member.fields.variables) {
-            _bindField(variable, fragments.nextField(), member);
+          member.type?.accept2(this);
+          for (var field in member.fields) {
+            _bindField(field, fragments.nextField(), member);
           }
         case PrimaryConstructorBodyImpl():
           member.accept2(this);
@@ -817,16 +824,18 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMethodDeclaration(
-    MethodDeclarationImpl node,
+    MethodDeclarationV1OriginImpl node,
     ExecutableFragmentImpl fragment,
   ) {
-    node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     node.documentationComment?.accept2(this);
     node.returnType?.accept2(this);
-    _bindTypeParameters(node.typeParameters, fragment.typeParameters);
-    _bindFormalParameters(node.parameters, fragment.formalParameters);
+    _bindTypeParameters(node.writtenTypeParameters, fragment.typeParameters);
+    _bindFormalParameters(
+      node.writtenFormalParameters,
+      fragment.formalParameters,
+    );
 
     _withElementHolder(ElementHolder(fragment), () {
       node.body.accept2(this);
@@ -856,7 +865,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.onClause?.accept2(this);
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindTopLevelFunctionDeclaration(

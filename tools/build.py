@@ -124,6 +124,25 @@ def UseRBE(out_dir):
     return 'use_rbe = true' in open(args_gn, 'r').read()
 
 
+def UseSiso(out_dir):
+    args_gn = os.path.join(out_dir, 'args.gn')
+    return 'use_siso = true' in open(args_gn, 'r').read()
+
+
+def LoadSisoEnv(env):
+    sisoenv_path = os.path.join(DART_ROOT, 'build', 'config', 'siso',
+                                '.sisoenv')
+    if os.path.exists(sisoenv_path):
+        with open(sisoenv_path, 'r') as fp:
+            for line in fp:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                if '=' in line:
+                    k, v = line.split('=', 1)
+                    env.setdefault(k.strip(), v.strip())
+
+
 # Try to start RBE, but don't bail out if we can't. Instead print an error
 # message, and let the build fail with its own error messages as well.
 rbe_started = False
@@ -169,6 +188,30 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_rbe = False
+    if UseSiso(out_dir):
+        LoadSisoEnv(env)
+        ninja_deps = os.path.join(out_dir, '.ninja_deps')
+        siso_deps = os.path.join(out_dir, '.siso_deps')
+        if os.path.exists(ninja_deps) and not os.path.exists(siso_deps):
+            print('Warning: %s was previously built with Ninja (.ninja_deps '
+                  'exists); Siso will perform a full rebuild.' % out_dir)
+        exe = gn_py.ExecutableName('siso')
+        siso_path = os.path.join('third_party', 'siso', exe)
+        command = [siso_path, 'ninja', '-C', out_dir]
+        if options.verbose:
+            command += ['-v']
+        if UseRBE(out_dir):
+            using_rbe = True
+            command += ['-remote_jobs=%s' % str(options.j)]
+        else:
+            command += ['-offline']
+        command += targets
+        return (build_config, command, using_rbe)
+
+    siso_deps = os.path.join(out_dir, '.siso_deps')
+    if os.path.exists(siso_deps):
+        print('Warning: %s was previously built with Siso (.siso_deps '
+              'exists); consider running gn clean %s.' % (out_dir, out_dir))
     command = ['buildtools/ninja/ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
@@ -199,7 +242,14 @@ def RunOneBuildCommand(build_config, args, env):
 
 
 def CheckCleanBuild(build_config, args, rbe, targets, env):
-    explain_args = args[0:3] + ['-n', '-d', 'explain'] + targets
+    is_siso = len(args) > 1 and args[1] == 'ninja'
+    if is_siso:
+        explain_args = args[0:4]
+        if not rbe:
+            explain_args += ['-offline']
+        explain_args += ['-n', '-d', 'explain'] + targets
+    else:
+        explain_args = args[0:3] + ['-n', '-d', 'explain'] + targets
     print(' '.join(explain_args))
     process = subprocess.Popen(explain_args,
                                env=env,
@@ -218,7 +268,10 @@ def CheckCleanBuild(build_config, args, rbe, targets, env):
         return 1
 
     if rbe:
-        list_args = args[0:3] + ['-t', 'commands'] + targets
+        if is_siso:
+            list_args = [args[0], 'query', 'commands', '-C', args[3]] + targets
+        else:
+            list_args = args[0:3] + ['-t', 'commands'] + targets
         print(' '.join(list_args))
         process = subprocess.Popen(list_args,
                                    env=env,

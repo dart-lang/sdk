@@ -233,7 +233,25 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: {
         semicolon: ;
-        members
+        members2
+          GetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            getKeyword: get
+            name: values
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+                staticType: int
+              semicolon: ;
+            declaredFragment: <testLibraryFragment> values@52
+              element: <testLibrary>::@enum::A::@getter::values#1
+                type: int Function()
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -244,7 +262,7 @@ CompilationUnit
             name: values
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
                 staticType: int
               semicolon: ;
@@ -595,7 +613,17 @@ enum E {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
+V1: ConstructorDeclaration
   newKeyword: new
   parameters: FormalParameterList
     leftParenthesis: (
@@ -618,7 +646,18 @@ enum E {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   parameters: FormalParameterList
@@ -819,16 +858,27 @@ enum E {
 }
 ''');
 
-    var node = result.findNode.fieldDeclaration('foo =');
+    var node = result.findNode.fieldsDeclaration('foo =');
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: foo
+      equals: =
+      initializer: IntegerLiteral
+        literal: 42
+        staticType: int
+      declaredFragment: <testLibraryFragment> foo@22
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     variables
       VariableDeclaration
         name: foo
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 42
           staticType: int
         declaredFragment: <testLibraryFragment> foo@22
@@ -845,9 +895,28 @@ enum E<T> {
 }
 ''');
 
-    var node = result.findNode.methodDeclaration('get foo');
+    var node = result.findNode.getterDeclaration('get foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: ThrowExpression
+      throwKeyword: throw
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      staticType: Never
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@25
+    element: <testLibrary>::@enum::E::@getter::foo
+      type: T Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -856,9 +925,9 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ThrowExpression
+    expression: ThrowExpression
       throwKeyword: throw
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       staticType: Never
@@ -924,7 +993,7 @@ enum E<T> {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: int
     element: dart:core::@class::int
@@ -938,7 +1007,7 @@ MethodDeclaration
         declaredFragment: <testLibraryFragment> U@27
           defaultType: dynamic
     rightBracket: >
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -960,7 +1029,30 @@ MethodDeclaration
           element: isPublic
             type: U
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@23
+    element: <testLibrary>::@enum::E::@method::foo
+      type: int Function<U>(T, U)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@27
+          defaultType: dynamic
+    rightBracket: >
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -983,7 +1075,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -1003,7 +1095,24 @@ enum E {
 
     var node = result.findNode.methodDeclaration('toString()');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: String
+    element: dart:core::@class::String
+    type: String
+  name: toString
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: SimpleStringLiteral
+      literal: 'E'
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> toString@23
+    element: <testLibrary>::@enum::E::@method::toString
+      type: String Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: String
     element: dart:core::@class::String
@@ -1014,7 +1123,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: SimpleStringLiteral
+    expression: SimpleStringLiteral
       literal: 'E'
     semicolon: ;
   declaredFragment: <testLibraryFragment> toString@23
@@ -1535,7 +1644,19 @@ EnumDeclaration
         constructorElement: <testLibrary>::@enum::A::@constructor::new
         declaredFragment: <testLibraryFragment> v@23
     semicolon: ;
-    members
+    members2
+      FieldsDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: a
+            declaredFragment: <testLibraryFragment> a@41
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -2236,7 +2357,7 @@ EnumDeclaration
         constructorElement: <testLibrary>::@enum::A::@constructor::new
         declaredFragment: <testLibraryFragment> v@27
     semicolon: ;
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         colon: :
@@ -2556,22 +2677,30 @@ enum A(int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@34
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2589,22 +2718,30 @@ enum A(final int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@40
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     keyword: final
     variables
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: VariableReadResolution
-            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
-            type: int
-          staticType: int
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           staticType: int
@@ -2626,9 +2763,23 @@ enum A(int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@39
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     keyword: final
@@ -2636,12 +2787,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2661,9 +2807,23 @@ enum A(int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  staticKeyword: static
+  constFinalOrVarKeyword: var
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <null>
+        staticType: InvalidType
+      declaredFragment: <testLibraryFragment> bar@39
+  semicolon: ;
+V1: FieldDeclaration
   staticKeyword: static
   fields: VariableDeclarationList
     keyword: var
@@ -2671,12 +2831,7 @@ FieldDeclaration
       VariableDeclaration
         name: bar
         equals: =
-        initializer2: UnqualifiedNameExpression
-          name: foo
-          resolution: InvalidNamedReadResolution
-            recoveryElement: <null>
-          staticType: InvalidType
-        initializer(v1): SimpleIdentifier
+        initializer: SimpleIdentifier
           token: foo
           element: <null>
           staticType: InvalidType
@@ -2694,12 +2849,12 @@ enum E<T> {
 }
 ''');
 
-    var node = result.findNode.methodDeclaration('set foo');
+    var node = result.findNode.setterDeclaration('set foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
-  propertyKeyword: set
+SetterDeclaration
+  setKeyword: set
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -2712,7 +2867,17 @@ MethodDeclaration
           element: isPublic
             type: T
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@23
+    element: <testLibrary>::@enum::E::@setter::foo
+      type: void Function(T)
+V1: MethodDeclaration
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

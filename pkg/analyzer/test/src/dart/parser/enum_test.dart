@@ -188,7 +188,19 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -487,7 +499,17 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  factoryKeyword: factory
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
   factoryKeyword: factory
   name: named
   parameters: FormalParameterList
@@ -510,11 +532,11 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -523,9 +545,19 @@ ConstructorDeclaration
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: B
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -539,7 +571,16 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  factoryKeyword: factory
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
   factoryKeyword: factory
   parameters: FormalParameterList
     leftParenthesis: (
@@ -561,10 +602,10 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -573,9 +614,18 @@ ConstructorDeclaration
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: B
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -589,7 +639,15 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   newKeyword: new
   name: named
   parameters: FormalParameterList
@@ -610,7 +668,16 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   name: named
@@ -632,7 +699,14 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   newKeyword: new
   parameters: FormalParameterList
     leftParenthesis: (
@@ -652,7 +726,15 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   parameters: FormalParameterList
@@ -673,11 +755,21 @@ augment enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   augmentKeyword: augment
   factoryKeyword: factory
-  typeName2: E
-  typeName(v1): SimpleIdentifier
+  typeName: E
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
+  augmentKeyword: augment
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -699,10 +791,21 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: E
-  typeName(v1): SimpleIdentifier
+  typeName: E
+  period: .
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
     token: E
   period: .
   name: named
@@ -726,10 +829,19 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: E
-  typeName(v1): SimpleIdentifier
+  typeName: E
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -751,9 +863,17 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: E
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: E
+  period: .
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: E
   period: .
   name: named
@@ -775,9 +895,15 @@ enum E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: E
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: E
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: E
   parameters: FormalParameterList
     leftParenthesis: (
@@ -821,7 +947,19 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -887,7 +1025,19 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -897,7 +1047,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -919,7 +1069,20 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -930,7 +1093,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -952,7 +1115,21 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -964,7 +1141,7 @@ EnumDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -986,7 +1163,19 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      GetterDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -995,7 +1184,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1017,7 +1206,20 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      GetterDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1027,7 +1229,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1049,7 +1251,20 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1081,7 +1296,21 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1268,7 +1497,27 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
+      OperatorDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        operator: +
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1277,14 +1526,6 @@ EnumDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: other
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1292,7 +1533,7 @@ EnumDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -2076,12 +2317,12 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
-      MethodDeclaration
+    members2
+      SetterDeclaration
         augmentKeyword: augment
-        propertyKeyword: set
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -2089,7 +2330,16 @@ EnumDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2119,13 +2369,13 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
-      MethodDeclaration
+    members2
+      SetterDeclaration
         augmentKeyword: augment
-        modifierKeyword: static
-        propertyKeyword: set
+        staticKeyword: static
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -2133,7 +2383,17 @@ EnumDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

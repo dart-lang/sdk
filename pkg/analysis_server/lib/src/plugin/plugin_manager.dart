@@ -8,7 +8,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform, ProcessResult, pid;
+import 'dart:io' show ProcessResult, pid;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -167,7 +167,7 @@ class PluginManager {
     this.sessionLogger, {
     this._processRunner = const ProcessRunner(),
     @visibleForTesting String? dartVersion,
-  }) : _dartVersion = dartVersion ?? Platform.version;
+  }) : _dartVersion = dartVersion ?? platform.version;
 
   /// All of the legacy plugins that are currently known.
   List<PluginIsolate> get legacyPluginIsolates =>

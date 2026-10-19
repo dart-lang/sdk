@@ -25,11 +25,11 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 /// A const constructor requires these initializers to be constant, but they
 /// are not in the constructor, so [AstNodeExtension.hasConstantVerifierError]
 /// of the constructor does not check them for invalid named reads.
-bool _hasInvalidNamedReadInFieldInitializers(List<ClassMember> members) {
+bool _hasInvalidNamedReadInFieldInitializers(List<AnnotatedNode> members) {
   for (var member in members) {
-    if (member is FieldDeclaration && !member.isStatic) {
-      for (var variable in member.fields.variables) {
-        if (variable.initializer2?._hasInvalidNamedRead ?? false) {
+    if (member is FieldsDeclaration && member.staticKeyword == null) {
+      for (var variable in member.fields) {
+        if (variable.initializer?._hasInvalidNamedRead ?? false) {
           return true;
         }
       }
@@ -154,7 +154,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
     }
 
     var self = this as ConstructorDeclarationImpl;
-    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers)) {
+    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers2)) {
       return false;
     }
 
@@ -181,7 +181,7 @@ extension PrimaryConstructorDeclarationExtension
     }
 
     var self = this as PrimaryConstructorDeclarationImpl;
-    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers)) {
+    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers2)) {
       return false;
     }
 

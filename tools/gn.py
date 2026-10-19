@@ -290,6 +290,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
                     gn_args[arch + '_toolchain_prefix'] = prefix
 
     gn_args['use_rbe'] = args.rbe
+    gn_args['use_siso'] = args.siso
 
     if args.rbe_expensive_exec_strategy:
         gn_args[
@@ -438,6 +439,13 @@ def AddCommonGnOptionArgs(parser):
                         default=os.environ.get('RBE_expensive_exec_strategy'),
                         help='Strategy for expensive RBE compilations',
                         type=str)
+    parser.add_argument('--siso', help='Use siso', action='store_true')
+    parser.add_argument('--no-siso',
+                        help='Disable siso',
+                        dest='siso',
+                        action='store_false')
+    parser.set_defaults(siso=os.environ.get('SISO') == '1' or \
+                             os.environ.get('DART_SISO') == '1')
 
     # Disable git hashes when remote compiling to ensure cache hits of the final
     # output artifacts when nothing has changed.
@@ -662,7 +670,7 @@ def RunGnOnConfiguredConfigurations(args, env={}):
             for arch in args.arch:
                 for sanitizer in args.sanitizer:
                     out_dir = GetOutDir(mode, arch, target_os, sanitizer)
-                    if args.rbe and not initialized_rbe:
+                    if args.rbe and not args.siso and not initialized_rbe:
                         InitializeRBE(out_dir, env)
                         initialized_rbe = True
                     commands.append(

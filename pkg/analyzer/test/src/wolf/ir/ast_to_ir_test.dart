@@ -2458,7 +2458,7 @@ class AstToIRTestBase extends PubPackageResolutionTest {
           inheritanceManager: result.inheritanceManager,
           eventListener: astNodes,
         );
-      case MethodDeclaration():
+      case MethodDeclaration2():
         var declaredElement = declaration.declaredFragment!.element;
         ir = astToIR(
           declaredElement,

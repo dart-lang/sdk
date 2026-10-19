@@ -3152,18 +3152,23 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
-      checkUnreachableNode(node);
-      node.visitChildren2(this);
-      elementResolver.visitFieldDeclaration(node);
-    });
+  void visitField2(covariant Field2Impl node) {
+    _variableDeclarationResolver.resolve(node);
+    _checkTypeInferenceError(node);
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _visitFormalParameter(node);
     elementResolver.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+      checkUnreachableNode(node);
+      node.visitChildren2(this);
+    });
   }
 
   @override
@@ -3245,6 +3250,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     node.visitChildren2(this);
     elementResolver.visitGenericTypeAlias2(node);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _resolveMethodDeclaration(node);
   }
 
   @override
@@ -3715,75 +3725,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-    var returnType = element.returnType;
-
-    _withEnclosingExecutableElement(element, () {
-      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
-        checkUnreachableNode(node);
-        node.documentationComment?.accept2(this);
-        node.metadata.accept2(this);
-        node.returnType?.accept2(this);
-        node.typeParameters?.accept2(this);
-
-        // Use typeParameters or parameters for the offset if available, because
-        // they will be visited before the body, and may contain expressions.
-        var enterOffset =
-            (node.typeParameters ?? node.parameters ?? node.body).offset;
-        flowAnalysis.flowAnalysisRoot_enter(
-          node,
-          element.formalParameters,
-          offset: enterOffset,
-        );
-        flowAnalysis.executableDeclaration_enter(
-          node,
-          element.formalParameters,
-          isClosure: false,
-          offset: enterOffset,
-        );
-
-        // Visit the formal parameters inside the flow analysis region, so that
-        // any expressions in their default values are analyzed as part of this
-        // declaration's flow analysis. (Otherwise `visitFormalParameterList`
-        // would have to establish a flow analysis region of its own.)
-        node.parameters?.accept2(this);
-
-        if (!element.isStatic) {
-          flow.thisBinding_begin(
-            null,
-            thisType: SharedTypeView(enclosingInstanceElement!.thisType),
-            offset: node.body.offset,
-          );
-        }
-        withThisAccessibility(
-          !element.isStatic,
-          () => node.body.resolve(
-            this,
-            returnType is DynamicType ? null : returnType,
-          ),
-        );
-        elementResolver.visitMethodDeclaration(node);
-
-        if (!node.isSetter) {
-          checkForBodyMayCompleteNormally(
-            body: node.body,
-            errorNode: node.name,
-          );
-        }
-        flowAnalysis.executableDeclaration_exit(
-          node.body,
-          false,
-          offset: node.body.flowEndOffset,
-        );
-        if (!element.isStatic) {
-          flow.thisBinding_end(offset: node.body.flowEndOffset);
-        }
-        flowAnalysis.flowAnalysisRoot_exit();
-        nullSafetyDeadCodeVerifier.flowEnd(node);
-      });
-    });
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _resolveMethodDeclaration(node);
   }
 
   @override
@@ -3914,6 +3857,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
     checkUnreachableNode(node);
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _resolveMethodDeclaration(node);
   }
 
   @override
@@ -4439,6 +4387,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _resolveMethodDeclaration(node);
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {}
 
   @override
@@ -4910,20 +4863,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    _resolveVariable(node);
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
-    elementResolver.visitVariableDeclarationList(node);
-  }
-
-  @override
   void visitWhileStatement(covariant WhileStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
@@ -5353,6 +5292,80 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       contextType: contextType,
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
+  }
+
+  /// Resolves a member method, operator, getter, or setter declaration.
+  void _resolveMethodDeclaration(MethodDeclarationV1OriginImpl node) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
+        node.returnType?.accept2(this);
+        node.writtenTypeParameters?.accept2(this);
+
+        // Use typeParameters or parameters for the offset if available, because
+        // they will be visited before the body, and may contain expressions.
+        var enterOffset =
+            (node.writtenTypeParameters ??
+                    node.writtenFormalParameters ??
+                    node.body)
+                .offset;
+        flowAnalysis.flowAnalysisRoot_enter(
+          node,
+          element.formalParameters,
+          offset: enterOffset,
+        );
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          element.formalParameters,
+          isClosure: false,
+          offset: enterOffset,
+        );
+
+        // Visit the formal parameters inside the flow analysis region, so that
+        // any expressions in their default values are analyzed as part of this
+        // declaration's flow analysis. (Otherwise `visitFormalParameterList`
+        // would have to establish a flow analysis region of its own.)
+        node.writtenFormalParameters?.accept2(this);
+
+        if (!element.isStatic) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(enclosingInstanceElement!.thisType),
+            offset: node.body.offset,
+          );
+        }
+        withThisAccessibility(
+          !element.isStatic,
+          () => node.body.resolve(
+            this,
+            returnType is DynamicType ? null : returnType,
+          ),
+        );
+
+        if (node is! SetterDeclarationImpl) {
+          checkForBodyMayCompleteNormally(
+            body: node.body,
+            errorNode: node.nameToken,
+          );
+        }
+        flowAnalysis.executableDeclaration_exit(
+          node.body,
+          false,
+          offset: node.body.flowEndOffset,
+        );
+        if (!element.isStatic) {
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
+        }
+        flowAnalysis.flowAnalysisRoot_exit();
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      });
+    });
   }
 
   void _resolveNamedFunctionInvocation(

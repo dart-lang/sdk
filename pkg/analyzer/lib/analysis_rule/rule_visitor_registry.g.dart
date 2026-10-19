@@ -726,9 +726,13 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addFieldDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addField2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFieldFormalParameter(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addFieldsDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addForEachPartsWithDeclaration(
     AbstractAnalysisRule rule,
@@ -934,8 +938,6 @@ abstract class RuleVisitorRegistry2 {
   void addMapPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addMapPatternEntry(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addMethodDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addMethodDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -1228,13 +1230,6 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addUnqualifiedNameExpression(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addVariableDeclarationList(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

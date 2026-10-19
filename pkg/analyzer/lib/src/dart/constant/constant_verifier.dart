@@ -184,7 +184,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       if (node.factoryKeyword == null &&
           element.enclosingElement.primaryConstructor == null) {
         _validateFieldInitializers(
-          node.parent2.classMembers,
+          node.parent2.classMembers2,
           constKeyword,
           isEnumDeclaration: element.enclosingElement is EnumElementImpl,
         );
@@ -273,6 +273,12 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(covariant Field2Impl node) {
+    super.visitField2(node);
+    _checkVariableInitializer(node);
+  }
+
+  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
@@ -300,6 +306,11 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         (parent as Expression).inConstantContext) {
       _checkForConstWithTypeParameters(node, diag.constWithTypeParameters);
     }
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -384,9 +395,13 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    super.visitMethodDeclaration(node);
-    _validateDefaultValues(node.parameters);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -407,7 +422,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     var element = node.declaredFragment!.element;
     if (element.isConst) {
       _validatePrimaryFieldInitializers(
-        members: node.parent2.classMembers,
+        members: node.parent2.classMembers2,
         errorToken: node.constKeyword ?? node.typeName,
         isEnumDeclaration: element.enclosingElement is EnumElementImpl,
       );
@@ -494,6 +509,11 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
+  }
+
+  @override
   void visitSwitchExpression(SwitchExpression node) {
     _withConstantPatternValues((mapPatternKeyValues, constantPatternValues) {
       super.visitSwitchExpression(node);
@@ -544,12 +564,6 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
     super.visitTopLevelVariable2(node);
-    _checkVariableInitializer(node);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    super.visitVariableDeclaration(node);
     _checkVariableInitializer(node);
   }
 
@@ -976,19 +990,18 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// required if the class has a constant constructor, the error is reported at
   /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     Token constKeyword, {
     required bool isEnumDeclaration,
   }) {
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (VariableDeclaration variableDeclaration
-            in member.fields.variables) {
+    for (var member in members) {
+      if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var variableDeclaration in member.fields) {
           if (isEnumDeclaration &&
               variableDeclaration.name.lexeme == 'values') {
             continue;
           }
-          var initializer = variableDeclaration.initializer2;
+          var initializer = variableDeclaration.initializer;
           if (initializer != null) {
             // Ignore any diagnostics produced during validation--if the
             // constant can't be evaluated we'll just report a single error.
@@ -1023,19 +1036,19 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// [_validateFieldInitializers], this allows references to primary
   /// constructor parameters.
   void _validatePrimaryFieldInitializers({
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     required Token errorToken,
     required bool isEnumDeclaration,
   }) {
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (var variableDeclaration in member.fields.variables) {
+    for (var member in members) {
+      if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var variableDeclaration in member.fields) {
           if (isEnumDeclaration &&
               variableDeclaration.name.lexeme == 'values') {
             continue;
           }
 
-          var initializer = variableDeclaration.initializer2;
+          var initializer = variableDeclaration.initializer;
           if (initializer == null) {
             continue;
           }
@@ -1244,6 +1257,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         }
       }
     }
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    visitSuper();
+    _validateDefaultValues(node.writtenFormalParameters);
   }
 
   /// Runs [f] with new [_constantPatternValues].
@@ -1731,24 +1752,20 @@ extension on Expression {
         // A parameter default value does not constitute a constant context, but
         // must be a constant expression.
         return true;
-      } else if (parent is VariableDeclaration &&
-          child == parent.initializer2) {
-        var declarationList = parent.parent2;
-        if (declarationList is VariableDeclarationList) {
-          var declarationListParent = declarationList.parent2;
-          if (declarationListParent is FieldDeclaration &&
-              !declarationListParent.isStatic) {
-            var body = declarationListParent.parent2;
-            if (body is BlockClassBody) {
-              var container = body.parent2;
-              if (container is ClassDeclaration) {
-                var enclosingClass = container.declaredFragment!.element;
-                if (enclosingClass is ClassElementImpl) {
-                  // A field initializer of a class with at least one generative
-                  // const constructor does not constitute a constant context, but
-                  // must be a constant expression.
-                  return enclosingClass.hasGenerativeConstConstructor;
-                }
+      } else if (parent is Field2 && child == parent.initializer) {
+        var declaration = parent.parent2;
+        if (declaration is FieldsDeclaration &&
+            declaration.staticKeyword == null) {
+          var body = declaration.parent2;
+          if (body is BlockClassBody) {
+            var container = body.parent2;
+            if (container is ClassDeclaration) {
+              var enclosingClass = container.declaredFragment!.element;
+              if (enclosingClass is ClassElementImpl) {
+                // A field initializer of a class with at least one generative
+                // const constructor does not constitute a constant context, but
+                // must be a constant expression.
+                return enclosingClass.hasGenerativeConstConstructor;
               }
             }
           }

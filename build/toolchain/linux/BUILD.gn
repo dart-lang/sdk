@@ -18,7 +18,7 @@ declare_args() {
   riscv64_toolchain_prefix = ""
 }
 
-if (use_rbe) {
+if (use_rbe && !use_siso) {
   compiler_args =
       rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
 

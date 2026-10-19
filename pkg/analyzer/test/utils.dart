@@ -50,8 +50,7 @@ class AstFinder {
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
-    NodeList<ClassMember> classMembers = classBody.members;
-    for (ClassMember classMember in classMembers) {
+    for (var classMember in classBody.members2) {
       if (classMember is ConstructorDeclaration) {
         if (classMember.name?.lexeme == constructorName) {
           return classMember;
@@ -63,18 +62,16 @@ class AstFinder {
 
   /// Return the declaration of the field with the given [fieldName] in the
   /// class with the given [className] in the given compilation [unit].
-  static VariableDeclaration getFieldInClass(
+  static Field2 getFieldInClass(
     CompilationUnit unit,
     String className,
     String fieldName,
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
-    NodeList<ClassMember> classMembers = classBody.members;
-    for (ClassMember classMember in classMembers) {
-      if (classMember is FieldDeclaration) {
-        NodeList<VariableDeclaration> fields = classMember.fields.variables;
-        for (VariableDeclaration field in fields) {
+    for (var classMember in classBody.members2) {
+      if (classMember is FieldsDeclaration) {
+        for (var field in classMember.fields) {
           if (field.name.lexeme == fieldName) {
             return field;
           }
@@ -84,18 +81,36 @@ class AstFinder {
     fail('No field named $fieldName in $className');
   }
 
+  /// Return the declaration of the getter with the given [getterName] in the
+  /// class with the given [className] in the given compilation [unit].
+  static GetterDeclaration getGetterInClass(
+    CompilationUnit unit,
+    String className,
+    String getterName,
+  ) {
+    ClassDeclaration unitMember = getClass(unit, className);
+    var classBody = unitMember.body as BlockClassBody;
+    for (var classMember in classBody.members2) {
+      if (classMember is GetterDeclaration) {
+        if (classMember.name.lexeme == getterName) {
+          return classMember;
+        }
+      }
+    }
+    fail('No getter named $getterName in $className');
+  }
+
   /// Return the declaration of the method with the given [methodName] in the
   /// class with the given [className] in the given compilation [unit].
-  static MethodDeclaration getMethodInClass(
+  static MethodDeclaration2 getMethodInClass(
     CompilationUnit unit,
     String className,
     String methodName,
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
-    NodeList<ClassMember> classMembers = classBody.members;
-    for (ClassMember classMember in classMembers) {
-      if (classMember is MethodDeclaration) {
+    for (var classMember in classBody.members2) {
+      if (classMember is MethodDeclaration2) {
         if (classMember.name.lexeme == methodName) {
           return classMember;
         }

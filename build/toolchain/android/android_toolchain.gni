@@ -15,7 +15,7 @@ import("//build/toolchain/rbe.gni")
 #      Same as gcc_toolchain
 template("android_toolchain") {
   gcc_toolchain(target_name) {
-    if (use_rbe) {
+    if (use_rbe && !use_siso) {
       compiler_args =
           rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
 

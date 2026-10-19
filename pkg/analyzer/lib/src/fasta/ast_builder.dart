@@ -6278,6 +6278,84 @@ class AstBuilder extends StackListener {
     return constructor;
   }
 
+  /// Builds the V2 member declaration for the form of method that is
+  /// written.
+  MethodDeclarationV1OriginImpl _buildMethodDeclaration({
+    required CommentImpl? comment,
+    required List<AnnotationImpl>? metadata,
+    required _Modifiers? modifiers,
+    required TypeAnnotationImpl? returnType,
+    required Token? getOrSet,
+    required Token? operatorKeyword,
+    required Token name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl? formalParameters,
+    required FunctionBodyImpl body,
+  }) {
+    // The parser never reports `abstract` as a modifier of a method.
+    assert(modifiers?.abstractKeyword == null);
+    if (operatorKeyword != null) {
+      // The parser drops `static` from an operator.
+      assert(modifiers?.staticKeyword == null);
+      return OperatorDeclarationImpl(
+        comment: comment,
+        metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
+        externalKeyword: modifiers?.externalKeyword,
+        returnType: returnType,
+        operatorKeyword: operatorKeyword,
+        operator: name,
+        recoveryTypeParameters: typeParameters,
+        formalParameters: formalParameters!,
+        body: body,
+      );
+    }
+    if (getOrSet?.keyword == Keyword.GET) {
+      // The parser never builds type parameters for a getter.
+      assert(typeParameters == null);
+      return GetterDeclarationImpl(
+        comment: comment,
+        metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
+        externalKeyword: modifiers?.externalKeyword,
+        staticKeyword: modifiers?.staticKeyword,
+        returnType: returnType,
+        getKeyword: getOrSet!,
+        name: name,
+        recoveryFormalParameters: formalParameters,
+        body: body,
+      );
+    }
+    if (getOrSet?.keyword == Keyword.SET) {
+      // The parser never builds type parameters for a setter.
+      assert(typeParameters == null);
+      return SetterDeclarationImpl(
+        comment: comment,
+        metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
+        externalKeyword: modifiers?.externalKeyword,
+        staticKeyword: modifiers?.staticKeyword,
+        returnType: returnType,
+        setKeyword: getOrSet!,
+        name: name,
+        formalParameters: formalParameters!,
+        body: body,
+      );
+    }
+    return MethodDeclaration2Impl(
+      comment: comment,
+      metadata: metadata,
+      augmentKeyword: modifiers?.augmentKeyword,
+      externalKeyword: modifiers?.externalKeyword,
+      staticKeyword: modifiers?.staticKeyword,
+      returnType: returnType,
+      name: name,
+      typeParameters: typeParameters,
+      formalParameters: formalParameters!,
+      body: body,
+    );
+  }
+
   void _endClassConstructor(
     Token beginToken,
     Token beginParam,
@@ -6331,35 +6409,28 @@ class AstBuilder extends StackListener {
 
     var variables = popTypedList2<_FieldVariable>(count);
     var type = pop() as TypeAnnotationImpl?;
-    var variableList = VariableDeclarationListImpl(
-      comment: null,
-      metadata: null,
-      lateKeyword: lateToken,
-      keyword: varFinalOrConst,
-      type: type,
-      variables: [
-        for (var variable in variables)
-          VariableDeclarationImpl(
-            comment: null,
-            metadata: [],
-            name: variable.name,
-            equals: variable.equals,
-            initializer2: variable.initializer,
-          ),
-      ],
-    );
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     _classLikeBuilder?.members.add(
-      FieldDeclarationImpl(
+      FieldsDeclarationImpl(
         comment: comment,
         metadata: metadata,
-        abstractKeyword: abstractToken,
         augmentKeyword: augmentToken,
-        covariantKeyword: covariantToken,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
-        fields: variableList,
+        abstractKeyword: abstractToken,
+        covariantKeyword: covariantToken,
+        lateKeyword: lateToken,
+        constFinalOrVarKeyword: varFinalOrConst,
+        type: type,
+        fields: [
+          for (var variable in variables)
+            Field2Impl(
+              name: variable.name,
+              equals: variable.equals,
+              initializer: variable.initializer,
+            ),
+        ],
         semicolon: endToken,
       ),
     );
@@ -6432,18 +6503,16 @@ class AstBuilder extends StackListener {
     }
 
     _classLikeBuilder?.members.add(
-      MethodDeclarationImpl(
+      _buildMethodDeclaration(
         comment: comment,
         metadata: metadata,
-        augmentKeyword: modifiers?.augmentKeyword,
-        externalKeyword: modifiers?.externalKeyword,
-        modifierKeyword: modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
+        modifiers: modifiers,
         returnType: returnType,
-        propertyKeyword: getOrSet,
+        getOrSet: getOrSet,
         operatorKeyword: operatorKeyword,
         name: nameId,
         typeParameters: typeParameters,
-        parameters: formalParameters,
+        formalParameters: formalParameters,
         body: body,
       ),
     );
@@ -6859,7 +6928,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -6895,7 +6964,7 @@ abstract class _ClassLikeDeclarationBuilder {
 
   Token? emptyClassBodySemicolon;
   Token leftBracket;
-  final List<ClassMemberImpl> members = [];
+  final List<ClassMemberV1OrV2Impl> members = [];
   Token rightBracket;
 
   new({
@@ -6967,7 +7036,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
         leftBracket: leftBracket,
         constants: constants,
         semicolon: semicolon,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -7015,7 +7084,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -7064,7 +7133,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -7139,7 +7208,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }

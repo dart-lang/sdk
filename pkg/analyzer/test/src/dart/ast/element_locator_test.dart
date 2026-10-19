@@ -367,7 +367,7 @@ class A {
   var x;
 }
 ''');
-    var node = result.findNode.variableDeclaration('x;');
+    var node = result.findNodeV1.variableDeclaration('x;');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@field::x
@@ -565,7 +565,7 @@ class A {
   void foo() {}
 }
 ''');
-    var node = result.findNode.methodDeclaration('foo');
+    var node = result.findNodeV1.methodDeclaration('foo');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -1453,7 +1453,7 @@ class A {
   var x;
 }
 ''');
-    var node = result.findNode.variableDeclaration('x;');
+    var node = result.findNode.field('x;');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@field::x
