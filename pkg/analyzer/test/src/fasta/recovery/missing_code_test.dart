@@ -2251,11 +2251,9 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          ConstructorDeclaration
-            typeName2: Test
-            typeName(v1): SimpleIdentifier
-              token: Test
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Test
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -2270,6 +2268,29 @@ CompilationUnit
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
             body: EmptyFunctionBody
@@ -2299,11 +2320,9 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          ConstructorDeclaration
-            typeName2: Test
-            typeName(v1): SimpleIdentifier
-              token: Test
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Test
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -2320,6 +2339,29 @@ CompilationUnit
                   token: x
                 equals: =
                 expression2: IntegerLiteral
+                  literal: 2
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -2348,11 +2390,9 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          ConstructorDeclaration
-            typeName2: Test
-            typeName(v1): SimpleIdentifier
-              token: Test
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Test
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -2371,6 +2411,31 @@ CompilationUnit
                   token: x
                 equals: =
                 expression2: IntegerLiteral
+                  literal: 2
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              ConstructorFieldInitializer
+                thisKeyword: this
+                period: .
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -4631,20 +4696,13 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: this
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: this
               rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
@@ -4699,24 +4757,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: this
                 RegularFormalParameter
                   name: p
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: this
-              parameter: RegularFormalParameter
-                name: p
               rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
@@ -4773,24 +4822,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 FieldFormalParameter
                   thisKeyword: this
                   period: .
                   name: <empty> <synthetic>
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: FieldFormalParameter
-                thisKeyword: this
-                period: .
-                name: <empty> <synthetic>
               rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
@@ -4847,11 +4887,9 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 FieldFormalParameter
@@ -4860,15 +4898,6 @@ CompilationUnit
                   name: <empty> <synthetic>
                 RegularFormalParameter
                   name: p
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: FieldFormalParameter
-                thisKeyword: this
-                period: .
-                name: <empty> <synthetic>
-              parameter: RegularFormalParameter
-                name: p
               rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;

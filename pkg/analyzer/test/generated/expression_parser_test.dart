@@ -2448,9 +2448,19 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          ConstructorDeclaration2
+            typeName: C
+            period: .
+            name: n
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             period: .
             name: n
@@ -5226,11 +5236,9 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -5246,6 +5254,25 @@ CompilationUnit
                 period: .
                 constructorName: SimpleIdentifier
                   token: a
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              RedirectingConstructorInvocation
+                thisKeyword: this
+                period: .
+                constructorName: SimpleIdentifier
+                  token: a
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
         rightBracket: }
@@ -5269,9 +5296,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              RedirectingConstructorInvocation
+                thisKeyword: this
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -6404,11 +6445,9 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
-              token: C
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -6424,6 +6463,25 @@ CompilationUnit
                 period: .
                 constructorName: SimpleIdentifier
                   token: a
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: C
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: a
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
         rightBracket: }
@@ -6447,9 +6505,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (

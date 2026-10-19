@@ -805,11 +805,9 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: Foo
-  typeName(v1): SimpleIdentifier
-    token: Foo
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: Foo
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -817,26 +815,15 @@ ConstructorDeclaration
           name: dynamic
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
-    parameter: RegularFormalParameter
-      type: NamedType
-        name: dynamic
-      name: a
-    rightParenthesis: )
   separator: :
   initializers
     ConstructorFieldInitializer
       fieldName2: x
-      fieldName(v1): SimpleIdentifier
-        token: x
       equals: =
       expression2: ConditionalExpression
         condition2: IsExpression
           expression2: ParsedUnqualifiedName
             name: a
-          expression(v1): SimpleIdentifier
-            token: a
           isOperator: is
           type: NamedType
             name: int
@@ -847,6 +834,42 @@ ConstructorDeclaration
           isMap: false
         colon: :
         elseExpression2: ListLiteral
+          leftBracket: [
+          rightBracket: ]
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: Foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: dynamic
+      name: a
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: x
+      equals: =
+      expression: ConditionalExpression
+        condition: IsExpression
+          expression: SimpleIdentifier
+            token: a
+          isOperator: is
+          type: NamedType
+            name: int
+        question: ?
+        thenExpression: SetOrMapLiteral
+          leftBracket: {
+          rightBracket: }
+          isMap: false
+        colon: :
+        elseExpression: ListLiteral
           leftBracket: [
           rightBracket: ]
   body: BlockFunctionBody
@@ -1697,12 +1720,21 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   documentationComment: Comment
     tokens
       /// Doc
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+  typeName: C
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  documentationComment: Comment
+    tokens
+      /// Doc
+  typeName: SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -1720,11 +1752,9 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -1736,7 +1766,26 @@ ConstructorDeclaration
         period: .
         name: __
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName2: _a
+      equals: =
+      expression2: BinaryOperatorInvocation
+        leftOperand: ParsedUnqualifiedName
+          name: _
+        operator: +
+        rightOperand: ParsedUnqualifiedName
+          name: _$
+        binaryOperator: add
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: _
@@ -1750,18 +1799,10 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName2: _a
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: _a
       equals: =
-      expression2: BinaryOperatorInvocation
-        leftOperand: ParsedUnqualifiedName
-          name: _
-        operator: +
-        rightOperand: ParsedUnqualifiedName
-          name: _$
-        binaryOperator: add
-      expression(v1): BinaryExpression
+      expression: BinaryExpression
         leftOperand: SimpleIdentifier
           token: _
         operator: +
@@ -3875,13 +3916,11 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -3896,6 +3935,15 @@ ConstructorDeclaration
       name2: foo
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -3905,6 +3953,8 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: foo
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -3916,12 +3966,10 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -3929,6 +3977,20 @@ ConstructorDeclaration
     expression2: ThrowExpression
       throwKeyword: throw
       expression2: IntegerLiteral
+        literal: 0
+    semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: ThrowExpression
+      throwKeyword: throw
+      expression: IntegerLiteral
         literal: 0
     semicolon: ;
 ''');
@@ -3942,12 +4004,10 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -3956,9 +4016,19 @@ ConstructorDeclaration
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: B
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -3970,11 +4040,9 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -3982,24 +4050,13 @@ ConstructorDeclaration
       RegularFormalParameter
         name: y
     rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
-    parameter: RegularFormalParameter
-      name: x
-    parameter: RegularFormalParameter
-      name: y
-    rightParenthesis: )
   separator: :
   initializers
     ConstructorFieldInitializer
       fieldName2: _x
-      fieldName(v1): SimpleIdentifier
-        token: _x
       equals: =
       expression2: ParsedUnqualifiedName
         name: x
-      expression(v1): SimpleIdentifier
-        token: x
     AssertInitializer
       assertKeyword: assert
       leftParenthesis: (
@@ -4010,7 +4067,36 @@ ConstructorDeclaration
         rightOperand: ParsedUnqualifiedName
           name: y
         binaryOperator: lessThan
-      condition(v1): BinaryExpression
+      rightParenthesis: )
+    ConstructorFieldInitializer
+      fieldName2: _y
+      equals: =
+      expression2: ParsedUnqualifiedName
+        name: y
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      name: x
+    parameter: RegularFormalParameter
+      name: y
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: _x
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: BinaryExpression
         leftOperand: SimpleIdentifier
           token: x
         operator: <
@@ -4018,13 +4104,10 @@ ConstructorDeclaration
           token: y
       rightParenthesis: )
     ConstructorFieldInitializer
-      fieldName2: _y
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: _y
       equals: =
-      expression2: ParsedUnqualifiedName
-        name: y
-      expression(v1): SimpleIdentifier
+      expression: SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -4039,12 +4122,21 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   externalKeyword: external
   constKeyword: const
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+  typeName: C
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  externalKeyword: external
+  constKeyword: const
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -4062,10 +4154,24 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+  typeName: C
+  period: .
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: ThrowExpression
+      throwKeyword: throw
+      expression2: IntegerLiteral
+        literal: 0
+    semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
     token: C
   period: .
   name: foo
@@ -4074,9 +4180,9 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ThrowExpression
+    expression: ThrowExpression
       throwKeyword: throw
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
     semicolon: ;
 ''');
@@ -4090,11 +4196,9 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -4102,7 +4206,26 @@ ConstructorDeclaration
       RegularFormalParameter
         name: y
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName2: _x
+      equals: =
+      expression2: ParsedUnqualifiedName
+        name: x
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: _y
+      equals: =
+      expression2: ParsedUnqualifiedName
+        name: y
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: x
@@ -4112,24 +4235,18 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName2: _x
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: _x
       equals: =
-      expression2: ParsedUnqualifiedName
-        name: x
-      expression(v1): SimpleIdentifier
+      expression: SimpleIdentifier
         token: x
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: _y
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: _y
       equals: =
-      expression2: ParsedUnqualifiedName
-        name: y
-      expression(v1): SimpleIdentifier
+      expression: SimpleIdentifier
         token: y
   body: EmptyFunctionBody
     semicolon: ;
@@ -4153,9 +4270,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
               leftParenthesis: (
@@ -4175,9 +4300,17 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: C
+  period: .
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: C
   period: .
   name: foo
@@ -4215,12 +4348,10 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          ConstructorDeclaration
+          ConstructorDeclaration2
             constKeyword: const
-            typeName2: <empty> <synthetic>
-            typeName(v1): SimpleIdentifier
-              token: <empty> <synthetic>
-            parameters: FormalParameterList
+            typeName: <empty> <synthetic>
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -4247,6 +4378,33 @@ CompilationUnit
                       token: n
                     semicolon: ; <synthetic>
                 rightBracket: } <synthetic>
+        members(v1)
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: <empty> <synthetic>
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                period: .
+                constructorName: SimpleIdentifier
+                  token: <empty> <synthetic>
+                argumentList: ArgumentList
+                  leftParenthesis: ( <synthetic>
+                  rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements
+                  ExpressionStatement
+                    expression: SimpleIdentifier
+                      token: n
+                    semicolon: ; <synthetic>
+                rightBracket: } <synthetic>
         rightBracket: } <synthetic>
 ''');
   }
@@ -4268,9 +4426,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          ConstructorDeclaration2
+            typeName: /
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              SuperConstructorInvocation
+                superKeyword: super
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
           ConstructorDeclaration
-            typeName2: /
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: /
             parameters: FormalParameterList
               leftParenthesis: (
@@ -4300,9 +4472,22 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -4331,9 +4516,22 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    RedirectingConstructorInvocation
+      thisKeyword: this
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -4358,9 +4556,15 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -4378,9 +4582,27 @@ class C {
 ''');
     var node = parseResult.findNode.singleClassMember;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName2: a
+      equals: =
+      expression2: ParenthesizedExpression
+        leftParenthesis: (
+        expression2: ParsedUnqualifiedName
+          name: b
+        rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: C
   parameters: FormalParameterList
     leftParenthesis: (
@@ -4388,15 +4610,12 @@ ConstructorDeclaration
   separator: :
   initializers
     ConstructorFieldInitializer
-      fieldName2: a
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: a
       equals: =
-      expression2: ParenthesizedExpression
+      expression: ParenthesizedExpression
         leftParenthesis: (
-        expression2: ParsedUnqualifiedName
-          name: b
-        expression(v1): SimpleIdentifier
+        expression: SimpleIdentifier
           token: b
         rightParenthesis: )
   body: BlockFunctionBody

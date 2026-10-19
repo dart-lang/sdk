@@ -1838,11 +1838,9 @@ CompilationUnit
               Field
                 name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -1850,14 +1848,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -1973,11 +1963,9 @@ CompilationUnit
               Field
                 name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -1985,14 +1973,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -2135,11 +2115,9 @@ CompilationUnit
               Field
                 name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -2147,14 +2125,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers

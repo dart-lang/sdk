@@ -838,12 +838,10 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          ConstructorDeclaration
+          ConstructorDeclaration2
             constKeyword: const
-            typeName2: A
-            typeName(v1): SimpleIdentifier
-              token: A
-            parameters: FormalParameterList
+            typeName: A
+            formalParameters: FormalParameterList
               leftParenthesis: (
               delimitedFormalParameters: DelimitedFormalParameters
                 leftDelimiter: [
@@ -852,7 +850,14 @@ CompilationUnit
                     name: x
                 rightDelimiter: ]
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
               leftParenthesis: (
               leftDelimiter: [
               parameter: RegularFormalParameter

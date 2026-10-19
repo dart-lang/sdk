@@ -515,6 +515,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (_view == _AstView.v2) {
+      _writeConstructorDeclarationAsConstructorDeclaration2(node);
+      return;
+    }
+
     _sink.writeln('ConstructorDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2689,6 +2694,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Statement(statement);
     }
 
+    // TODO(scheglov): Remove when constructors are parsed as
+    // ConstructorDeclaration2, which has a distinct V1 projection.
+    if (node is ConstructorDeclaration) {
+      _withInlineV1ChildEntities(false, () => writeNode(node));
+      _sink.writeWithIndent('V1: ');
+      _withView(_AstView.v1, () => _acceptInView(node));
+      return;
+    }
+
     if (v1 == null || identical(v1, node)) {
       writeNode(node);
       return;
@@ -2826,6 +2840,28 @@ Expected parent: (${parent.runtimeType}) $parent
     } finally {
       _view = previousView;
     }
+  }
+
+  /// Writes a constructor [node] as it will be printed once constructors are
+  /// parsed as `ConstructorDeclaration2`.
+  // TODO(scheglov): Remove when constructors are parsed as
+  // ConstructorDeclaration2.
+  void _writeConstructorDeclarationAsConstructorDeclaration2(
+    ConstructorDeclaration node,
+  ) {
+    node as ConstructorDeclarationImpl;
+    _sink.writeln('ConstructorDeclaration2');
+    _sink.withIndent(() {
+      for (var entity in node.namedChildEntities2) {
+        var name = switch (entity.name) {
+          'typeName2' => 'typeName',
+          'parameters' => 'formalParameters',
+          var name => name,
+        };
+        _writeNamedChildEntity(node, entity, name: name);
+      }
+      _writeDeclaredFragment(node.declaredFragment);
+    });
   }
 
   void _writeDeclaredFragment(Fragment? fragment) {
@@ -3181,7 +3217,8 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          !_sameChildEntityValue(entity2.value, entity.value)) {
+          (!_sameChildEntityValue(entity2.value, entity.value) ||
+              _hasConstructorDeclarations(entity2.value))) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3552,6 +3589,16 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
+  }
+
+  /// Whether [value] is a member list with a [ConstructorDeclaration], which
+  /// will differ from its V1 projection once constructors are parsed as
+  /// `ConstructorDeclaration2`.
+  // TODO(scheglov): Remove when constructors are parsed as
+  // ConstructorDeclaration2.
+  static bool _hasConstructorDeclarations(Object value) {
+    return value is List<AstNode> &&
+        value.any((node) => node is ConstructorDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

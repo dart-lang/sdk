@@ -118,10 +118,10 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -135,7 +135,16 @@ ConstructorDeclaration
           IntegerLiteral
             literal: 0
         rightParenthesis: )
-    expression(v1): MethodInvocation
+    semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
@@ -157,11 +166,11 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -170,9 +179,19 @@ ConstructorDeclaration
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: B
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -185,9 +204,9 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -201,7 +220,15 @@ ConstructorDeclaration
           IntegerLiteral
             literal: 0
         rightParenthesis: )
-    expression(v1): MethodInvocation
+    semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
@@ -223,10 +250,10 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -235,9 +262,18 @@ ConstructorDeclaration
       name: B
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: B
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -250,7 +286,24 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   newKeyword: new
   name: named
   parameters: FormalParameterList
@@ -261,11 +314,10 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -281,7 +333,25 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   name: named
@@ -293,11 +363,10 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -313,7 +382,23 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   newKeyword: new
   parameters: FormalParameterList
     leftParenthesis: (
@@ -323,11 +408,10 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -343,7 +427,24 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   parameters: FormalParameterList
@@ -354,11 +455,10 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -374,14 +474,12 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
+  typeName: A
   period: .
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -395,7 +493,19 @@ ConstructorDeclaration
           IntegerLiteral
             literal: 0
         rightParenthesis: )
-    expression(v1): MethodInvocation
+    semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
@@ -417,12 +527,10 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -436,7 +544,17 @@ ConstructorDeclaration
           IntegerLiteral
             literal: 0
         rightParenthesis: )
-    expression(v1): MethodInvocation
+    semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
@@ -458,9 +576,26 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: A
+  period: .
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: A
   period: .
   name: named
@@ -472,11 +607,10 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -492,9 +626,24 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -504,11 +653,10 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -724,13 +872,11 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      ConstructorDeclaration
-        typeName2: A
-        typeName(v1): SimpleIdentifier
-          token: A
+      ConstructorDeclaration2
+        typeName: A
         period: .
         name: named
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             FieldFormalParameter
@@ -738,7 +884,15 @@ ExtensionTypeDeclaration
               period: .
               name: it
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: EmptyFunctionBody
+          semicolon: ;
+    members(v1)
+      ConstructorDeclaration
+        typeName: SimpleIdentifier
+          token: A
+        period: .
+        name: named
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: FieldFormalParameter
             thisKeyword: this
@@ -769,10 +923,20 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      ConstructorDeclaration2
+        augmentKeyword: augment
+        typeName: E
+        period: .
+        name: named
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+    members(v1)
       ConstructorDeclaration
         augmentKeyword: augment
-        typeName2: E
-        typeName(v1): SimpleIdentifier
+        typeName: SimpleIdentifier
           token: E
         period: .
         name: named
@@ -795,13 +959,11 @@ augment extension type E {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   augmentKeyword: augment
   factoryKeyword: factory
-  typeName2: E
-  typeName(v1): SimpleIdentifier
-    token: E
-  parameters: FormalParameterList
+  typeName: E
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -815,7 +977,18 @@ ConstructorDeclaration
           IntegerLiteral
             literal: 0
         rightParenthesis: )
-    expression(v1): MethodInvocation
+    semicolon: ;
+V1: ConstructorDeclaration
+  augmentKeyword: augment
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: E
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
       methodName: SimpleIdentifier
         token: E
       argumentList: ArgumentList
