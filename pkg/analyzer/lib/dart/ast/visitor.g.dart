@@ -2724,6 +2724,29 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalVariable(LocalVariable node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) {
     node.visitChildren2(this);
     return null;
@@ -3351,12 +3374,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitVariableDeclarationList(VariableDeclarationList node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4423,6 +4440,20 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalVariable(LocalVariable node) => null;
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) => null;
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) => null;
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) => null;
 
   @override
@@ -4765,10 +4796,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitVariableDeclarationList(VariableDeclarationList node) => null;
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
-      null;
 
   @override
   R? visitWhenClause(WhenClause node) => null;
@@ -5851,6 +5878,21 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalVariable(LocalVariable node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) => _throw(node);
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) => _throw(node);
 
   @override
@@ -6201,10 +6243,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitVariableDeclarationList(VariableDeclarationList node) => _throw(node);
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
-      _throw(node);
 
   @override
   R? visitWhenClause(WhenClause node) => _throw(node);
@@ -8792,6 +8830,35 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitLocalVariable(LocalVariable node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalVariable(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalVariablesDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalVariablesDeclarationStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitLogicalAnd(LogicalAnd node) {
     stopwatch.start();
     T? result = _baseVisitor.visitLogicalAnd(node);
@@ -9615,14 +9682,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitVariableDeclarationList(VariableDeclarationList node) {
     stopwatch.start();
     T? result = _baseVisitor.visitVariableDeclarationList(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariableDeclarationStatement(node);
     stopwatch.stop();
     return result;
   }
@@ -10767,6 +10826,21 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalVariable(LocalVariable node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) => visitNode(node);
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) => visitNode(node);
 
   @override
@@ -11132,10 +11206,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitVariableDeclarationList(VariableDeclarationList node) =>
-      visitNode(node);
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       visitNode(node);
 
   @override

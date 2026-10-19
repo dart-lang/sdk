@@ -166,7 +166,7 @@ void main() {
 }
 ''');
 
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleLocalVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
   expression: ParsedValueArguments
@@ -325,7 +325,7 @@ void main() {
 }
 ''');
 
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleLocalVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
   expression: DotShorthandNameExpression

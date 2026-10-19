@@ -700,7 +700,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _visitNode(node.variables);
+    _visitNode(node.variables2);
     sink.write(';');
     _visitNode(node.condition2, prefix: ' ');
     sink.write(';');
@@ -1045,6 +1045,29 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.typeParameters);
     _visitNode(node.formalParameters);
     _visitFunctionBody(node.body);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    _visitToken(node.name);
+    _visitNode(node.initializer, prefix: ' = ');
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.lateKeyword, suffix: ' ');
+    _visitToken(node.constFinalOrVarKeyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    _visitNodeList(node.variables, separator: ', ');
+  }
+
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    _visitNode(node.declaration);
+    sink.write(';');
   }
 
   @override
@@ -1827,12 +1850,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.keyword, suffix: ' ');
     _visitNode(node.type, suffix: ' ');
     _visitNodeList(node.variables, separator: ', ');
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _visitNode(node.variables);
-    sink.write(';');
   }
 
   @override

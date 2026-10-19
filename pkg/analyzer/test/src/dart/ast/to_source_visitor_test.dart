@@ -3066,6 +3066,61 @@ void f() {
     _assertSource(code, node);
   }
 
+  void test_visitLocalVariable_initialized() {
+    var code = 'foo = bar';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  var $code;
+}
+''');
+    var node = parseResult.findNode.singleLocalVariable;
+    _assertSource(code, node);
+  }
+
+  void test_visitLocalVariable_uninitialized() {
+    var code = 'foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  var $code;
+}
+''');
+    var node = parseResult.findNode.singleLocalVariable;
+    _assertSource(code, node);
+  }
+
+  void test_visitLocalVariablesDeclaration() {
+    var code = 'int a';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleLocalVariablesDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitLocalVariablesDeclaration_late_final_metadata() {
+    var code = '@a late final int x = 0, y = 1';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleLocalVariablesDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitLocalVariablesDeclarationStatement() {
+    var code = 'int a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleLocalVariablesDeclarationStatement;
+    _assertSource(code, node);
+  }
+
   void test_visitLogicalAnd() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = a && (b || c);
@@ -4794,7 +4849,7 @@ int f() {
   void test_visitVariableDeclaration_initialized() {
     var code = 'foo = bar';
     var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
+class A {
   var $code;
 }
 ''');
@@ -4805,7 +4860,7 @@ void f() {
   void test_visitVariableDeclaration_uninitialized() {
     var code = 'foo';
     var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
+class A {
   var $code;
 }
 ''');
@@ -4816,7 +4871,7 @@ void f() {
   void test_visitVariableDeclarationList_const_type() {
     var code = 'const int a = 0, b = 0';
     var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
+class A {
   $code;
 }
 ''');
@@ -4827,7 +4882,7 @@ void f() {
   void test_visitVariableDeclarationList_final_noType() {
     var code = 'final a = 0, b = 0';
     var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
+class A {
   $code;
 }
 ''');
@@ -4838,7 +4893,7 @@ void f() {
   void test_visitVariableDeclarationList_type() {
     var code = 'int a, b';
     var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
+class A {
   $code;
 }
 ''');
@@ -4849,22 +4904,11 @@ void f() {
   void test_visitVariableDeclarationList_var() {
     var code = 'var a, b';
     var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
+class A {
   $code;
 }
 ''');
     var node = parseResult.findNode.singleVariableDeclarationList;
-    _assertSource(code, node);
-  }
-
-  void test_visitVariableDeclarationStatement() {
-    var code = 'int a;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleVariableDeclarationStatement;
     _assertSource(code, node);
   }
 

@@ -262,7 +262,7 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
 ''');
-    var node = result.findNode.variableDeclaration('v = ');
+    var node = result.findNode.localVariable('v = ');
     assertType(node.declaredFragment!.element.type, 'B');
   }
 
@@ -611,7 +611,7 @@ main() {
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.localVariable('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }
@@ -630,7 +630,7 @@ main() {
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.localVariable('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }

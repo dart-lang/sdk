@@ -366,6 +366,12 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
       node.statements;
 
   @override
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    _addVariables(node.variables.variables);
+    visitNode(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (parentOf(node) is! FunctionDeclarationStatement) {
       _declarationNode = node;
@@ -409,6 +415,14 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   @override
   List<Statement> switchMemberStatementsOf(SwitchMember node) =>
       node.statements2;
+
+  @override
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    for (var variable in node.variables2.variables) {
+      _addToScope(variable.name);
+    }
+    visitNode(node);
+  }
 
   @override
   void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
@@ -516,11 +530,6 @@ mixin _ScopedNameFinderMixin {
     visitNode(node);
   }
 
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _addVariables(node.variables.variables);
-    visitNode(node);
-  }
-
   void visitFunctionExpression(FunctionExpression node) {
     var parameters = node.parameters;
     if (parameters != null && !identical(immediateChild, parameters)) {
@@ -576,6 +585,10 @@ mixin _ScopedNameFinderMixin {
       }
       if (statement is VariableDeclarationStatement) {
         _addVariables(statement.variables.variables);
+      } else if (statement is LocalVariablesDeclarationStatement) {
+        for (var variable in statement.declaration.variables) {
+          _addToScope(variable.name);
+        }
       } else if (statement is FunctionDeclarationStatement &&
           !_referenceIsWithinLocalFunction) {
         _addToScope(statement.functionDeclaration.name);

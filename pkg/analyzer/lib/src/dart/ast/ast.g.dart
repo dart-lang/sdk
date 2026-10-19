@@ -719,6 +719,17 @@ abstract class AstVisitor2<R> {
   R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node);
 
   @experimental
+  R? visitLocalVariable(LocalVariable node);
+
+  @experimental
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node);
+
+  @experimental
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  );
+
+  @experimental
   R? visitLogicalAnd(LogicalAnd node);
 
   R? visitLogicalAndPattern(LogicalAndPattern node);
@@ -954,8 +965,6 @@ abstract class AstVisitor2<R> {
   R? visitVariableDeclaration(VariableDeclaration node);
 
   R? visitVariableDeclarationList(VariableDeclarationList node);
-
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
 
   R? visitWhenClause(WhenClause node);
 

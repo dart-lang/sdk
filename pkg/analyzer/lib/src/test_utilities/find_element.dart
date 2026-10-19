@@ -168,7 +168,7 @@ class FindElement extends _FindElementBase {
         declaredVariablePattern: (node) {
           updateResult(node.declaredFragment!.element);
         },
-        variableDeclaration: (node) {
+        localVariable: (node) {
           updateResult(node.declaredFragment!.element);
         },
       ),

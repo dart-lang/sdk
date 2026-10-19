@@ -3071,6 +3071,14 @@ LocalVariablesDeclarationStatement
       LocalVariable
         name: v
   semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    type: NamedType
+      name: String
+    variables
+      VariableDeclaration
+        name: v
+  semicolon: ; <synthetic>
 ''');
   }
 
@@ -3094,6 +3102,13 @@ LocalVariablesDeclarationStatement
       LocalVariable
         name: <empty> <synthetic>
   semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: <empty> <synthetic>
+  semicolon: ; <synthetic>
 ''');
   }
 
@@ -3113,6 +3128,14 @@ LocalVariablesDeclarationStatement
       name: String
     variables
       LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    type: NamedType
+      name: String
+    variables
+      VariableDeclaration
         name: v
   semicolon: ; <synthetic>
 ''');
@@ -3136,6 +3159,14 @@ LocalVariablesDeclarationStatement
       LocalVariable
         name: v
   semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    type: NamedType
+      name: String
+    variables
+      VariableDeclaration
+        name: v
+  semicolon: ; <synthetic>
 ''');
   }
 
@@ -3155,6 +3186,14 @@ LocalVariablesDeclarationStatement
       name: String
     variables
       LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    type: NamedType
+      name: String
+    variables
+      VariableDeclaration
         name: v
   semicolon: ; <synthetic>
 ''');
@@ -3182,6 +3221,20 @@ LocalVariablesDeclarationStatement
         rightBracket: >
     variables
       LocalVariable
+        name: v
+  semicolon: ; <synthetic>
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    type: NamedType
+      name: List
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+        rightBracket: >
+    variables
+      VariableDeclaration
         name: v
   semicolon: ; <synthetic>
 ''');

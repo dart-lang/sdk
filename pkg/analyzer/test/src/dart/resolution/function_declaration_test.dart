@@ -444,6 +444,49 @@ LocalFunctionDeclaration
   declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends List<T>>()
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: m
+    functionExpression: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+            extendsKeyword: extends
+            bound: NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: T
+                    element: #E0 T
+                    type: T
+                rightBracket: >
+              element: dart:core::@class::List
+              type: List<T>
+            declaredFragment: <testLibraryFragment> T@20
+              defaultType: List<dynamic>
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+      declaredFragment: <testLibraryFragment> m@18
+        element: m@18
+          type: void Function<T extends List<T>>()
+      staticType: void Function<T extends List<T>>()
+    declaredFragment: <testLibraryFragment> m@18
+      element: m@18
+        type: void Function<T extends List<T>>()
 ''');
   }
 
@@ -487,6 +530,41 @@ LocalFunctionDeclaration
   declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends num>()
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: m
+    functionExpression: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+            extendsKeyword: extends
+            bound: NamedType
+              name: num
+              element: dart:core::@class::num
+              type: num
+            declaredFragment: <testLibraryFragment> T@20
+              defaultType: num
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+      declaredFragment: <testLibraryFragment> m@18
+        element: m@18
+          type: void Function<T extends num>()
+      staticType: void Function<T extends num>()
+    declaredFragment: <testLibraryFragment> m@18
+      element: m@18
+        type: void Function<T extends num>()
 ''');
   }
 

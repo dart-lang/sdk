@@ -863,7 +863,7 @@ f() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNodeV1.variableDeclaration('x =');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 x@12
@@ -2060,7 +2060,7 @@ f() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNode.localVariable('x =');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 x@12

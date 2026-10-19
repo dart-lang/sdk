@@ -1363,7 +1363,7 @@ test(int count, List<int> result) {
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.forStatement('for')]
       ..containsSubrange(
-        astNodes[result.findNode.variableDeclarationList('var i = 0')]!,
+        astNodes[result.findNode.localVariablesDeclaration('var i = 0')]!,
       )
       ..containsSubrange(
         astNodes[result.findNode.binaryOperatorInvocation('i < count')]!,
@@ -2270,7 +2270,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(astNodes)[result.findNode.variableDeclarationList('int i = 123')]
+    check(astNodes)[result.findNode.localVariablesDeclaration('int i = 123')]
         .containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [])).identicalTo(123);
   }
@@ -2283,7 +2283,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
+    check(astNodes)[result.findNode.localVariablesDeclaration('int i')].not(
       .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
     check(runInterpreter(result, [])).identicalTo(123);
@@ -2299,7 +2299,7 @@ test() {
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
       astNodes,
-    ).containsNode(result.findNode.variableDeclarationList('int? i'));
+    ).containsNode(result.findNode.localVariablesDeclaration('int? i'));
     check(runInterpreter(result, [])).identicalTo(null);
   }
 
@@ -2313,7 +2313,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
+    check(astNodes)[result.findNode.localVariablesDeclaration('int i')].not(
       .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
     check(() => runInterpreter(result, [])).throws<SoundnessError>()
@@ -2332,7 +2332,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(astNodes)[result.findNode.variableDeclarationList('int i = 123')]
+    check(astNodes)[result.findNode.localVariablesDeclaration('int i = 123')]
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).identicalTo(123);
@@ -2346,7 +2346,7 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(astNodes)[result.findNode.variableDeclarationList('int i = 123')]
+    check(astNodes)[result.findNode.localVariablesDeclaration('int i = 123')]
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
     check(runInterpreter(result, [])).identicalTo(456);
@@ -2359,9 +2359,9 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(astNodes)[result.findNode.variableDeclarationStatement('int i = 123')]
+    check(astNodes)[result.findNode.localVariablesDeclaration('int i = 123')]
         .containsSubrange(
-          astNodes[result.findNode.variableDeclarationList('int i = 123')]!,
+          astNodes[result.findNode.localVariablesDeclaration('int i = 123')]!,
         );
     check(runInterpreter(result, [])).identicalTo(null);
   }

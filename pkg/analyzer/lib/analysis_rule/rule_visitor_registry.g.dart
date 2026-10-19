@@ -902,6 +902,21 @@ abstract class RuleVisitorRegistry2 {
   );
 
   @experimental
+  void addLocalVariable(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addLocalVariablesDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addLocalVariablesDeclarationStatement(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addLogicalAnd(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addLogicalAndPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -1220,11 +1235,6 @@ abstract class RuleVisitorRegistry2 {
   void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addVariableDeclarationList(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addVariableDeclarationStatement(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

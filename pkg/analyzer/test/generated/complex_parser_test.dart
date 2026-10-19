@@ -2877,6 +2877,25 @@ LocalFunctionDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+    name: g
+    functionExpression: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
 ''');
   }
 }

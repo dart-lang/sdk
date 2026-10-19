@@ -73,6 +73,12 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
     asyncRegisterValue(uri, 0, id, value, library);
   }
 
+  void computeForLocalVariable(LocalVariable node, NodeId? id) {
+    if (id == null) return;
+    FutureOr<T?> value = computeNodeValue(id, node);
+    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
+  }
+
   void computeForMember(AstNode node, Id? id) {
     if (id == null) return;
     FutureOr<T?> value = computeNodeValue(id, node);
@@ -95,12 +101,6 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
     if (id == null) return;
     FutureOr<T?> value = computeTokenValue(id, token);
     asyncRegisterValue(uri, token.offset, id, value, token);
-  }
-
-  void computeForVariableDeclaration(VariableDeclaration node, NodeId? id) {
-    if (id == null) return;
-    FutureOr<T?> value = computeNodeValue(id, node);
-    asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
   }
 
   /// Implement this to compute the data corresponding to [node].
@@ -195,6 +195,12 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitLocalVariable(LocalVariable node) {
+    computeForLocalVariable(node, computeDefaultNodeId(node));
+    super.visitLocalVariable(node);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitMapLiteralEntry(node);
@@ -283,11 +289,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent2!.parent2 is FieldDeclaration) {
-      computeForMember(node, createMemberId(node));
-    } else {
-      computeForVariableDeclaration(node, computeDefaultNodeId(node));
-    }
+    computeForMember(node, createMemberId(node));
     super.visitVariableDeclaration(node);
   }
 

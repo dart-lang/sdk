@@ -2363,8 +2363,6 @@ LocalFunctionDeclaration
       atSign: @
       expression: ParsedUnqualifiedName
         name: Foo
-      name: SimpleIdentifier
-        token: Foo
   name: f
   formalParameters: FormalParameterList
     leftParenthesis: (
@@ -2373,6 +2371,22 @@ LocalFunctionDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: Foo
+    name: f
+    functionExpression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
 ''');
   }
 

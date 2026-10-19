@@ -328,6 +328,12 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    super.visitLocalVariable(node);
+    _checkVariableInitializer(node);
+  }
+
+  @override
   void visitMapPattern(MapPattern node) {
     node.typeArguments?.accept2(this);
 

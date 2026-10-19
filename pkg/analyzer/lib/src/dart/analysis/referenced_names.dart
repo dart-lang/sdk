@@ -70,8 +70,10 @@ class _LocalNameScope {
     for (Statement statement in node.statements2) {
       if (statement is LocalFunctionDeclaration) {
         scope.add(statement.name);
-      } else if (statement is VariableDeclarationStatement) {
-        scope.addVariableNames(statement.variables);
+      } else if (statement is LocalVariablesDeclarationStatement) {
+        for (var variable in statement.declaration.variables) {
+          scope.add(variable.name);
+        }
       }
     }
     return scope;

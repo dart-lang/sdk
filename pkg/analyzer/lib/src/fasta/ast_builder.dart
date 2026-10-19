@@ -2264,21 +2264,15 @@ class AstBuilder extends StackListener {
     debugEvent("InitializedIdentifier");
 
     var node = pop();
-    VariableDeclarationImpl variable;
+    LocalVariableImpl variable;
     // TODO(paulberry): This seems kludgy.  It would be preferable if we
     // could respond to a "handleNoVariableInitializer" event by converting a
-    // name token into a VariableDeclaration, and then when this code was
-    // reached, node would always be a VariableDeclaration.
-    if (node is VariableDeclarationImpl) {
+    // name token into a LocalVariable, and then when this code was reached,
+    // node would always be a LocalVariable.
+    if (node is LocalVariableImpl) {
       variable = node;
     } else if (node is Token) {
-      variable = VariableDeclarationImpl(
-        comment: null,
-        metadata: [],
-        name: node,
-        equals: null,
-        initializer2: null,
-      );
+      variable = LocalVariableImpl(name: node, equals: null, initializer: null);
     } else {
       internalProblem(
         fe_diag.internalProblemUnhandled.withArguments(
@@ -3643,12 +3637,10 @@ class AstBuilder extends StackListener {
     reportErrorIfSuper(initializer);
     // TODO(ahe): Don't push initializers, instead install them.
     push(
-      VariableDeclarationImpl(
-        comment: null,
-        metadata: [],
+      LocalVariableImpl(
         name: identifier,
         equals: equals,
-        initializer2: initializer,
+        initializer: initializer,
       ),
     );
   }
@@ -3658,7 +3650,7 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(';', semicolon));
     debugEvent("VariablesDeclaration");
 
-    var variables = popTypedList2<VariableDeclarationImpl>(count);
+    var variables = popTypedList2<LocalVariableImpl>(count);
     var modifiers = pop(NullValues.Modifiers) as _Modifiers?;
     var type = pop() as TypeAnnotationImpl?;
     var keyword = modifiers?.finalConstOrVarKeyword;
@@ -3731,17 +3723,26 @@ class AstBuilder extends StackListener {
       }
     }
 
+    var declaration = LocalVariablesDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      lateKeyword: modifiers?.lateToken,
+      constFinalOrVarKeyword: keyword,
+      type: type,
+      variables: variables,
+    );
+
+    if (semicolon == null) {
+      // In a `for` loop the declaration is followed by the left separator or
+      // by `in`, which the loop parts handle.
+      push(declaration);
+      return;
+    }
+
     push(
-      VariableDeclarationStatementImpl(
-        variables: VariableDeclarationListImpl(
-          comment: comment,
-          metadata: metadata,
-          lateKeyword: modifiers?.lateToken,
-          keyword: keyword,
-          type: type,
-          variables: variables,
-        ),
-        semicolon: semicolon ?? Tokens.semicolon(),
+      LocalVariablesDeclarationStatementImpl(
+        declaration: declaration,
+        semicolon: semicolon,
       ),
     );
   }
@@ -4509,15 +4510,14 @@ class AstBuilder extends StackListener {
         inKeyword: inKeyword,
         iterable2: iterable,
       );
-    } else if (variableOrDeclaration is VariableDeclarationStatementImpl) {
-      var variableList = variableOrDeclaration.variables;
+    } else if (variableOrDeclaration is LocalVariablesDeclarationImpl) {
       forLoopParts = ForEachPartsWithDeclarationImpl(
         loopVariable: DeclaredIdentifierImpl(
-          comment: variableList.documentationComment,
-          metadata: variableList.metadata,
-          keyword: variableList.keyword,
-          type: variableList.type,
-          name: variableList.variables.first.name,
+          comment: variableOrDeclaration.documentationComment,
+          metadata: variableOrDeclaration.metadata,
+          keyword: variableOrDeclaration.constFinalOrVarKeyword,
+          type: variableOrDeclaration.type,
+          name: variableOrDeclaration.variables.first.name,
         ),
         inKeyword: inKeyword,
         iterable2: iterable,
@@ -4577,9 +4577,9 @@ class AstBuilder extends StackListener {
     }
 
     ForPartsImpl forLoopParts;
-    if (initializerPart is VariableDeclarationStatementImpl) {
+    if (initializerPart is LocalVariablesDeclarationImpl) {
       forLoopParts = ForPartsWithDeclarationsImpl(
-        variables: initializerPart.variables,
+        variables2: initializerPart,
         leftSeparator: leftSeparator,
         condition2: condition,
         rightSeparator: rightSeparator,

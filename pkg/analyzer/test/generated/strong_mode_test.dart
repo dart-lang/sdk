@@ -210,9 +210,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     CascadeExpression fetch(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as CascadeExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as CascadeExpression;
       return exp;
     }
 
@@ -247,9 +247,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -270,9 +270,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -290,9 +290,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -315,9 +315,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -345,9 +345,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isType(call.typeOrThrow);
   }
 
@@ -504,9 +504,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -551,9 +551,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -595,9 +595,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     Expression functionReturnValue(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
         return body.expression2;
@@ -894,9 +894,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     Expression functionReturnValue(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
         return body.expression2;
@@ -1286,9 +1286,9 @@ void test() {
       "test",
     );
     void check(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      Expression init = decl.initializer2!;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      Expression init = decl.initializer!;
       _isInstantiationOf(_hasElement(elementA))([_isInt])(init.typeOrThrow);
     }
 
@@ -3262,9 +3262,9 @@ V1: MethodInvocation
       }''');
 
     Expression rhs(AstNode stmt) {
-      stmt as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      Expression exp = decl.initializer2!;
+      stmt as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      Expression exp = decl.initializer!;
       return exp;
     }
 
@@ -3313,7 +3313,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test0",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
 
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
@@ -3328,7 +3328,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test1",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[1]));
     }
@@ -3337,7 +3337,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test2",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[2]));
@@ -3350,7 +3350,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test3",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
     }
@@ -3359,7 +3359,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test4",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
       hasType(assertCOf([_isInt]), rhs(statements[2]));
@@ -3372,7 +3372,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test5",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
     }
@@ -3384,7 +3384,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test6",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
       hasType(assertDOf([_isInt, _isString]), rhs(statements[2]));
@@ -3397,7 +3397,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test7",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
     }
@@ -3406,7 +3406,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test8",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertEOf([_isInt, _isString]), rhs(statements[0]));
     }
 
@@ -3414,7 +3414,7 @@ V1: MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test9",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[1]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[2]));
@@ -3449,9 +3449,9 @@ V1: MethodInvocation
       "main",
     );
     ListLiteral literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp;
     }
 
@@ -3503,9 +3503,9 @@ V1: MethodInvocation
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -3544,9 +3544,9 @@ V1: MethodInvocation
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -3589,9 +3589,9 @@ V1: MethodInvocation
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -3628,9 +3628,9 @@ V1: MethodInvocation
       "main",
     );
     InterfaceType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -3676,9 +3676,9 @@ V1: MethodInvocation
       "main",
     );
     SetOrMapLiteral literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as SetOrMapLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as SetOrMapLiteral;
       return exp;
     }
 
@@ -3746,9 +3746,9 @@ V1: MethodInvocation
       "main",
     );
     InterfaceType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as SetOrMapLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as SetOrMapLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -3796,9 +3796,9 @@ V1: MethodInvocation
       "main",
     );
     InterfaceType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as SetOrMapLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as SetOrMapLiteral;
       return exp.staticType as InterfaceType;
     }
 

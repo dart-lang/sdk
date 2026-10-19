@@ -646,6 +646,29 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    var element = node.declaredFragment!.element;
+    var declaration = node.parent2 as LocalVariablesDeclarationImpl;
+    if (declaration.type case var typeNode?) {
+      element.type = typeNode.typeOrThrow;
+    } else {
+      // TODO(scheglov): review and improve resolution to not rely on dynamic.
+      element.type = _typeProvider.dynamicType;
+    }
+
+    node.initializer?.accept2(this);
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(
+    covariant LocalVariablesDeclarationImpl node,
+  ) {
+    node.metadata.accept2(this);
+    node.type?.accept2(this);
+    node.variables.accept2(this);
+  }
+
+  @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
@@ -1010,8 +1033,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         case PatternVariableDeclarationStatementImpl():
           var declaration = statement.declaration;
           _definePatternVariableDeclarationElements(scope, declaration);
-        case VariableDeclarationStatementImpl():
-          scope.addAll(statement.variables.declaredElements);
+        case LocalVariablesDeclarationStatementImpl():
+          scope.addAll(statement.declaration.declaredElements);
       }
     }
   }
@@ -1373,8 +1396,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         node.pattern.accept2(this);
         node.metadata.accept2(this);
       case ForPartsWithDeclarationsImpl():
-        scope.addAll(node.variables.declaredElements);
-        node.variables.accept2(this);
+        scope.addAll(node.variables2.declaredElements);
+        node.variables2.accept2(this);
         node.condition2?.accept2(this);
         node.updaters2.accept2(this);
       case ForPartsWithExpressionImpl():
@@ -1479,7 +1502,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     );
   }
 
-  /// We always build local elements for [VariableDeclarationStatement]s and
+  /// We always build local elements for [LocalVariablesDeclaration]s and
   /// [LocalFunctionDeclaration]s in blocks, because invalid code might try
   /// to use forward references.
 
@@ -1689,11 +1712,8 @@ class _VariableBinderErrors
   }
 }
 
-extension _VariableDeclarationList on VariableDeclarationList {
+extension _LocalVariablesDeclaration on LocalVariablesDeclarationImpl {
   List<LocalVariableElementImpl> get declaredElements {
-    return variables
-        .map((v) => v.declaredFragment!.element)
-        .cast<LocalVariableElementImpl>()
-        .toList();
+    return [for (var variable in variables) variable.declaredFragment!.element];
   }
 }

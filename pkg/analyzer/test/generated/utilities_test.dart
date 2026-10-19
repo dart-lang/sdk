@@ -890,7 +890,7 @@ void f() {
     _assertReplacementForChildren<ForPartsWithDeclarations>(
       destination: for_i,
       source: parseResult.findNode.forPartsWithDeclarations('j = 0'),
-      childAccessors: [(node) => node.variables, (node) => node.condition2!],
+      childAccessors: [(node) => node.variables2, (node) => node.condition2!],
     );
   }
 
@@ -1216,6 +1216,60 @@ void f() {
         (node) => node.formalParameters,
         (node) => node.body,
       ],
+    );
+  }
+
+  void test_localVariable() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  var a = 0;
+  var b = 1;
+}
+''');
+    _assertReplacementForChildren<LocalVariable>(
+      destination: parseResult.findNode.localVariable('a = 0'),
+      source: parseResult.findNode.localVariable('b = 1'),
+      childAccessors: [(node) => node.initializer!],
+    );
+  }
+
+  void test_localVariablesDeclaration() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  @myA1
+  @myA2
+  int a = 0, b = 1;
+  double c = 2;
+}
+''');
+    var destination = parseResult.findNode.localVariablesDeclaration('a = 0');
+    var source = parseResult.findNode.localVariablesDeclaration('c = 2');
+    _assertAnnotatedNode(destination);
+    _assertReplaceInList(
+      destination: destination,
+      child: destination.variables[0],
+      replacement: destination.variables[1],
+    );
+    _assertReplacementForChildren<LocalVariablesDeclaration>(
+      destination: destination,
+      source: source,
+      childAccessors: [(node) => node.type!],
+    );
+  }
+
+  void test_localVariablesDeclarationStatement() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  int a = 0;
+  double b = 1;
+}
+''');
+    _assertReplacementForChildren<LocalVariablesDeclarationStatement>(
+      destination: parseResult.findNode.localVariablesDeclarationStatement(
+        'a = 0',
+      ),
+      source: parseResult.findNode.localVariablesDeclarationStatement('b = 1'),
+      childAccessors: [(node) => node.declaration],
     );
   }
 
@@ -1963,7 +2017,7 @@ class A<T, U> {}
 
   void test_variableDeclaration() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
+class A {
   var a = 0;
   var b = 1;
 }
@@ -1977,7 +2031,7 @@ void f() {
 
   void test_variableDeclarationList() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
+class A {
   int a = 0, b = 1;
   double c = 2;
 }
@@ -1991,20 +2045,6 @@ void f() {
       destination: parseResult.findNode.variableDeclarationList('int a'),
       source: parseResult.findNode.variableDeclarationList('double c'),
       childAccessors: [(node) => node.type!],
-    );
-  }
-
-  void test_variableDeclarationStatement() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  int a = 0;
-  double b = 1;
-}
-''');
-    _assertReplacementForChildren<VariableDeclarationStatement>(
-      destination: parseResult.findNode.variableDeclarationStatement('int a'),
-      source: parseResult.findNode.variableDeclarationStatement('double b'),
-      childAccessors: [(node) => node.variables],
     );
   }
 

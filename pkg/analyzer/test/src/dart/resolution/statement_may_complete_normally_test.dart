@@ -468,6 +468,94 @@ LocalFunctionDeclaration
     element: g@18
       type: void Function()
   mayCompleteNormally: true
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: g
+    functionExpression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+              mayCompleteNormally: false
+          rightBracket: }
+          mayCompleteNormally: false
+      declaredFragment: <testLibraryFragment> g@18
+        element: g@18
+          type: void Function()
+      staticType: void Function()
+    declaredFragment: <testLibraryFragment> g@18
+      element: g@18
+        type: void Function()
+  mayCompleteNormally: true
+''');
+  }
+
+  test_functionDeclarationStatement_unreachable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  return;
+  void g() {}
+//^^^^^^^^^^^
+// [diag.deadCode] Dead code.
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
+}
+''');
+
+    var node = result.findNode.singleLocalFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+      mayCompleteNormally: false
+  declaredFragment: <testLibraryFragment> g@28
+    element: g@28
+      type: void Function()
+  mayCompleteNormally: false
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: g
+    functionExpression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+          mayCompleteNormally: false
+      declaredFragment: <testLibraryFragment> g@28
+        element: g@28
+          type: void Function()
+      staticType: void Function()
+    declaredFragment: <testLibraryFragment> g@28
+      element: g@28
+        type: void Function()
+  mayCompleteNormally: false
 ''');
   }
 
@@ -912,13 +1000,28 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleVariableDeclarationStatement;
+    var node = result.findNode.singleLocalVariablesDeclarationStatement;
     assertResolvedNodeText(node, r'''
 LocalVariablesDeclarationStatement
   declaration: LocalVariablesDeclaration
     constFinalOrVarKeyword: var
     variables
       LocalVariable
+        name: _
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+          staticType: int
+        declaredFragment: isPrivate _@17
+          element: hasImplicitType isPrivate
+            type: int
+  semicolon: ;
+  mayCompleteNormally: true
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
         name: _
         equals: =
         initializer: IntegerLiteral
@@ -939,7 +1042,7 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleVariableDeclarationStatement;
+    var node = result.findNode.singleLocalVariablesDeclarationStatement;
     assertResolvedNodeText(node, r'''
 LocalVariablesDeclarationStatement
   declaration: LocalVariablesDeclaration
@@ -954,6 +1057,27 @@ LocalVariablesDeclarationStatement
         initializer: ThrowExpression
           throwKeyword: throw
           expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          staticType: Never
+        declaredFragment: isPrivate _@17
+          element: isPrivate
+            type: int
+  semicolon: ;
+  mayCompleteNormally: false
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    type: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    variables
+      VariableDeclaration
+        name: _
+        equals: =
+        initializer: ThrowExpression
+          throwKeyword: throw
+          expression: IntegerLiteral
             literal: 0
             staticType: int
           staticType: Never

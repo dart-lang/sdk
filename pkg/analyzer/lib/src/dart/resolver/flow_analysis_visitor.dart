@@ -384,6 +384,22 @@ class FlowAnalysisHelper {
     flow!.labeledStatement_end(offset: node.statement2.endToken.offset);
   }
 
+  void localVariablesDeclaration(LocalVariablesDeclarationImpl node) {
+    if (flow != null) {
+      var variables = node.variables;
+      for (var i = 0; i < variables.length; ++i) {
+        var variable = variables[i];
+        var declaredElement = variable.declaredFragment!.element;
+        flow!.declare(
+          declaredElement,
+          SharedTypeView(declaredElement.type),
+          initialized: variable.initializer2 != null,
+          offset: node.offset,
+        );
+      }
+    }
+  }
+
   /// Associates [expression] with the given [expressionInfo] object, for later
   /// retrieval by [getExpressionInfo].
   void storeExpressionInfo(
@@ -412,24 +428,6 @@ class FlowAnalysisHelper {
       var oldNonPromotionReasons = dataForTesting.nonPromotionReasons[oldNode];
       if (oldNonPromotionReasons != null) {
         dataForTesting.nonPromotionReasons[newNode] = oldNonPromotionReasons;
-      }
-    }
-  }
-
-  void variableDeclarationList(VariableDeclarationListImpl node) {
-    if (flow != null) {
-      var variables = node.variables;
-      for (var i = 0; i < variables.length; ++i) {
-        var variable = variables[i];
-        var declaredFragment =
-            variable.declaredFragment as LocalVariableFragmentImpl;
-        var declaredElement = declaredFragment.element;
-        flow!.declare(
-          declaredElement,
-          SharedTypeView(declaredElement.type),
-          initialized: variable.initializer2 != null,
-          offset: node.offset,
-        );
       }
     }
   }
@@ -1239,6 +1237,19 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    var declaredElement = node.declaredFragment!.element;
+    assignedVariables.declare(declaredElement);
+    if (declaredElement.isLate && node.initializer != null) {
+      assignedVariables.beginNode();
+      super.visitLocalVariable(node);
+      assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+    } else {
+      super.visitLocalVariable(node);
+    }
+  }
+
+  @override
   void visitLogicalAnd(LogicalAnd node) {
     node.leftOperand.accept2(this);
     assignedVariables.beginNode();
@@ -1334,20 +1345,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var grandParent = node.parent2!.parent2;
-    if (grandParent is FieldDeclaration) {
-      throw StateError('Should not visit top level declarations');
-    }
-    var declaredElement =
-        node.declaredFragment?.element as PromotableElementImpl;
-    assignedVariables.declare(declaredElement);
-    if (declaredElement.isLate && node.initializer2 != null) {
-      assignedVariables.beginNode();
-      super.visitVariableDeclaration(node);
-      assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
-    } else {
-      super.visitVariableDeclaration(node);
-    }
+    throw StateError('Should not visit field declarations');
   }
 
   @override
@@ -1369,7 +1367,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
       if (forLoopParts is ForPartsWithExpressionImpl) {
         forLoopParts.initialization2?.accept2(this);
       } else if (forLoopParts is ForPartsWithDeclarationsImpl) {
-        forLoopParts.variables.accept2(this);
+        forLoopParts.variables2.accept2(this);
       } else if (forLoopParts is ForPartsWithPatternImpl) {
         forLoopParts.variables.accept2(this);
       } else {

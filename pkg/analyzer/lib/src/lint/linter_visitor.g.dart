@@ -2017,6 +2017,29 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitLocalVariable(LocalVariable node) {
+    _runSubscriptions(node, _registry._forLocalVariable);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    _runSubscriptions(node, _registry._forLocalVariablesDeclaration);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    _runSubscriptions(node, _registry._forLocalVariablesDeclarationStatement);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitLogicalAnd(LogicalAnd node) {
     _runSubscriptions(node, _registry._forLogicalAnd);
     node.visitChildren2(this);
@@ -2647,12 +2670,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _runSubscriptions(node, _registry._forVariableDeclarationList);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _runSubscriptions(node, _registry._forVariableDeclarationStatement);
     node.visitChildren2(this);
   }
 
@@ -4788,6 +4805,14 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<LocalFunctionDeclaration>>
   _forLocalFunctionDeclaration = [];
 
+  final List<_Subscription2<LocalVariable>> _forLocalVariable = [];
+
+  final List<_Subscription2<LocalVariablesDeclaration>>
+  _forLocalVariablesDeclaration = [];
+
+  final List<_Subscription2<LocalVariablesDeclarationStatement>>
+  _forLocalVariablesDeclarationStatement = [];
+
   final List<_Subscription2<LogicalAnd>> _forLogicalAnd = [];
 
   final List<_Subscription2<LogicalAndPattern>> _forLogicalAndPattern = [];
@@ -5021,9 +5046,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<VariableDeclarationList>>
   _forVariableDeclarationList = [];
-
-  final List<_Subscription2<VariableDeclarationStatement>>
-  _forVariableDeclarationStatement = [];
 
   final List<_Subscription2<WhenClause>> _forWhenClause = [];
 
@@ -6020,6 +6042,34 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addLocalVariable(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forLocalVariable.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addLocalVariablesDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forLocalVariablesDeclaration.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addLocalVariablesDeclarationStatement(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forLocalVariablesDeclarationStatement.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addLogicalAnd(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forLogicalAnd.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -6778,17 +6828,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forVariableDeclarationList.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
-  void addVariableDeclarationStatement(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forVariableDeclarationStatement.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

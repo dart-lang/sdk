@@ -619,6 +619,8 @@ enum ReadPosition {
         case RelationalPatternImpl():
         case SwitchCaseImpl():
           return constant;
+        case LocalVariablesDeclarationImpl(:var constKeyword):
+          return constKeyword != null ? constant : other;
         case TopLevelVariablesDeclarationImpl(:var constKeyword):
           return constKeyword != null ? constant : other;
         case VariableDeclarationListImpl(:var keyword):

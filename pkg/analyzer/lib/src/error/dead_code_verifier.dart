@@ -102,6 +102,22 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalVariable(LocalVariable node) {
+    var initializer = node.initializer;
+    if (initializer != null) {
+      var element = node.declaredFragment!.element;
+      // TODO(pq): ask the LocalVariableElement once implemented
+      if (_wildCardVariablesEnabled && element.isLate && element.name == '_') {
+        _diagnosticReporter.report(
+          diag.deadCodeLateWildcardVariableInitializer.at(initializer),
+        );
+      }
+    }
+
+    super.visitLocalVariable(node);
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
     List<Label> labels = <Label>[];
     for (SwitchMember member in node.members) {
@@ -110,25 +126,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
     _withLabelTracker(labels, () {
       super.visitSwitchStatement(node);
     });
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    var initializer = node.initializer2;
-    if (initializer != null) {
-      var element = node.declaredFragment!.element;
-      // TODO(pq): ask the LocalVariableElement once implemented
-      if (_wildCardVariablesEnabled &&
-          element is LocalVariableElement &&
-          element.isLate &&
-          element.name == '_') {
-        _diagnosticReporter.report(
-          diag.deadCodeLateWildcardVariableInitializer.at(initializer),
-        );
-      }
-    }
-
-    super.visitVariableDeclaration(node);
   }
 
   /// Resolve the names in the given [combinator] in the scope of the given

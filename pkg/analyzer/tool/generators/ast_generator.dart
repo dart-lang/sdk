@@ -880,7 +880,7 @@ set $propertyName(${property.typeCode} $propertyName) {
 \n@generated
 $v1ApiAnnotations
 @override
-${property.typeCode} get $v1Name => _becomeParentOf1($projectedValue);
+${property.v1TypeCode} get $v1Name => _becomeParentOf1($projectedValue);
 ''');
           }
         }
@@ -1733,6 +1733,7 @@ class _Property {
         'V1Projection.toV1CollectionElement',
       _V1ProjectionKind.combinatorName => 'V1Projection.toV1CombinatorName',
       _V1ProjectionKind.expression => 'V1Projection.toV1Expression',
+      _V1ProjectionKind.localVariables => 'V1Projection.toV1LocalVariables',
       _V1ProjectionKind.recordLiteralField =>
         'V1Projection.toV1RecordLiteralField',
       _V1ProjectionKind.statement => 'V1Projection.toV1Statement',
@@ -1763,6 +1764,7 @@ class _Property {
       _V1ProjectionKind.collectionElement ||
       _V1ProjectionKind.combinatorName ||
       _V1ProjectionKind.expression ||
+      _V1ProjectionKind.localVariables ||
       _V1ProjectionKind.recordLiteralField ||
       _V1ProjectionKind.statement => '$v1ProjectionMethod($expression)',
     };
@@ -1832,6 +1834,7 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
       'CollectionElement' => _V1ProjectionKind.collectionElement,
       'CombinatorName' => _V1ProjectionKind.combinatorName,
       'Expression' => _V1ProjectionKind.expression,
+      'LocalVariablesDeclaration' => _V1ProjectionKind.localVariables,
       'RecordLiteralField' => _V1ProjectionKind.recordLiteralField,
       'Statement' => _V1ProjectionKind.statement,
       _ => null,
@@ -1862,6 +1865,7 @@ enum _V1ProjectionKind {
   collectionElement,
   combinatorName,
   expression,
+  localVariables,
   recordLiteralField,
   statement,
 }

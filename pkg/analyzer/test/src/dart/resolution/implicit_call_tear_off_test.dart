@@ -235,7 +235,7 @@ void f(C c) {
 // [diag.unusedLocalVariable] The value of the local variable 'value' isn't used.
 }
 ''');
-    assertResolvedNodeText(result.findNode.variableDeclaration('value ='), r'''
+    assertResolvedNodeText(result.findNode.localVariable('value ='), r'''
 LocalVariable
   name: value
   equals: =

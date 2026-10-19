@@ -54,6 +54,9 @@ class FindNode extends _FindNodeBase {
   TopLevelVariableDeclaration get singleTopLevelVariableDeclaration =>
       _single();
 
+  VariableDeclarationStatement get singleVariableDeclarationStatement =>
+      _single();
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
   }
@@ -155,6 +158,10 @@ class FindNode extends _FindNodeBase {
     throw StateError(name);
   }
 
+  VariableDeclarationStatement variableDeclarationStatement(String search) {
+    return _node(search, (n) => n is VariableDeclarationStatement);
+  }
+
   @override
   AstNode? _locateNode(int offset) {
     return NodeLocator(offset).searchWithin(unit);
@@ -226,6 +233,13 @@ class FindNode2 extends _FindNodeBase {
   InvalidSuperExpression get singleInvalidSuperExpression => _single();
 
   LocalFunctionDeclaration get singleLocalFunctionDeclaration => _single();
+
+  LocalVariable get singleLocalVariable => _single();
+
+  LocalVariablesDeclaration get singleLocalVariablesDeclaration => _single();
+
+  LocalVariablesDeclarationStatement
+  get singleLocalVariablesDeclarationStatement => _single();
 
   LogicalAnd get singleLogicalAnd => _single();
 
@@ -334,6 +348,20 @@ class FindNode2 extends _FindNodeBase {
 
   LocalFunctionDeclaration localFunctionDeclaration(String search) {
     return _node(search, (node) => node is LocalFunctionDeclaration);
+  }
+
+  LocalVariable localVariable(String search) {
+    return _node(search, (n) => n is LocalVariable);
+  }
+
+  LocalVariablesDeclaration localVariablesDeclaration(String search) {
+    return _node(search, (n) => n is LocalVariablesDeclaration);
+  }
+
+  LocalVariablesDeclarationStatement localVariablesDeclarationStatement(
+    String search,
+  ) {
+    return _node(search, (n) => n is LocalVariablesDeclarationStatement);
   }
 
   LogicalAnd logicalAnd(String search) {
@@ -744,9 +772,6 @@ abstract class _FindNodeBase {
   VariableDeclaration get singleVariableDeclaration => _single();
 
   VariableDeclarationList get singleVariableDeclarationList => _single();
-
-  VariableDeclarationStatement get singleVariableDeclarationStatement =>
-      _single();
 
   WhenClause get singleWhenClause => _single();
 
@@ -1413,10 +1438,6 @@ abstract class _FindNodeBase {
 
   VariableDeclarationList variableDeclarationList(String search) {
     return _node(search, (n) => n is VariableDeclarationList);
-  }
-
-  VariableDeclarationStatement variableDeclarationStatement(String search) {
-    return _node(search, (n) => n is VariableDeclarationStatement);
   }
 
   WhenClause whenClause(String search) {

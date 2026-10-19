@@ -169,6 +169,7 @@ void x;
 
   TypeAnnotation _xType(TestResolvedUnitResult result) {
     return switch (result.findNode.any('x;')) {
+      LocalVariable(parent2: LocalVariablesDeclaration(:var type?)) => type,
       TopLevelVariable2(parent2: TopLevelVariablesDeclaration(:var type?)) =>
         type,
       VariableDeclaration(parent2: VariableDeclarationList(:var type?)) => type,
@@ -1725,6 +1726,7 @@ class A<T> {
 
   Expression _xInitializer(TestResolvedUnitResult result) {
     return switch (result.findNode.any('x = ')) {
+      LocalVariable(:var initializer?) => initializer,
       TopLevelVariable2(:var initializer?) => initializer,
       VariableDeclaration(:var initializer2?) => initializer2,
       _ => throw StateError('No initializer of x'),

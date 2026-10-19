@@ -382,7 +382,7 @@ Set<E> e = {.b};
         .singleOrNull;
     var initializer = switch (topLevelDeclaration) {
       var declaration? => declaration.variables.single.initializer!,
-      null => result.findNode.singleVariableDeclaration.initializer2!,
+      null => result.findNode.singleLocalVariable.initializer!,
     };
     expect(hasDependentDotShorthand2(initializer), expected, reason: 'V2');
 

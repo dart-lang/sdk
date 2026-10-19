@@ -166,7 +166,7 @@ class C {
   }
 }
 ''');
-    var node = result.findNode.variableDeclaration('_ = _;');
+    var node = result.findNode.localVariable('_ = _;');
     assertResolvedNodeText(node, r'''
 LocalVariable
   name: _

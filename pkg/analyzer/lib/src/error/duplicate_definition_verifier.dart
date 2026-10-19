@@ -43,9 +43,9 @@ class DuplicateDefinitionVerifier {
     }
   }
 
-  /// Check that the given list of variable declarations does not define
+  /// Check that the given local variable declaration does not define
   /// multiple variables of the same name.
-  void checkForVariables(VariableDeclarationListImpl node) {
+  void checkForVariables(LocalVariablesDeclarationImpl node) {
     var scope = _DuplicateIdentifierScope(this);
     for (var variable in node.variables) {
       scope.add(variable.name, node: variable);
@@ -85,8 +85,8 @@ class DuplicateDefinitionVerifier {
   void checkStatements(List<StatementImpl> statements) {
     var scope = _DuplicateIdentifierScope(this);
     for (var statement in statements) {
-      if (statement is VariableDeclarationStatementImpl) {
-        for (var variable in statement.variables.variables) {
+      if (statement is LocalVariablesDeclarationStatementImpl) {
+        for (var variable in statement.declaration.variables) {
           scope.add(variable.name, node: variable);
         }
       } else if (statement is LocalFunctionDeclarationImpl) {
