@@ -670,7 +670,7 @@ void f() {
   int i = 0;
 }
 ''');
-    var localVariable = result.findNode.variableDeclaration('i = 0');
+    var localVariable = result.findNode.localVariable('i = 0');
     checkOffset<LocalVariableFragment>(
       localVariable,
       localVariable.declaredFragment!,
@@ -685,7 +685,7 @@ void f() {
   const int i = 0;
 }
 ''');
-    var localVariable = result.findNode.variableDeclaration('i = 0');
+    var localVariable = result.findNode.localVariable('i = 0');
     checkOffset<LocalVariableFragment>(
       localVariable,
       localVariable.declaredFragment!,

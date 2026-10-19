@@ -260,7 +260,7 @@ class ForResolver {
     required int endOffset,
   }) {
     if (forParts is ForPartsWithDeclarationsImpl) {
-      forParts.variables.accept2(_typeAnalyzer);
+      forParts.variables2.accept2(_typeAnalyzer);
     } else if (forParts is ForPartsWithExpressionImpl) {
       if (forParts.initialization2 case var initialization?) {
         _typeAnalyzer.analyzeExpression(

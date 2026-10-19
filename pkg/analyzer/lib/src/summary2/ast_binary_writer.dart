@@ -394,13 +394,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _sink.writeEnum(AstNodeTag.ForPartsWithDeclarations);
-    _writeNode(node.variables);
-    _storeForParts(node);
-  }
-
-  @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
     _sink.writeEnum(AstNodeTag.ForPartsWithExpression);
     _writeOptionalNode(node.initialization2);

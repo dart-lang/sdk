@@ -402,6 +402,36 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    var declaration = node.parent2 as LocalVariablesDeclarationImpl;
+
+    var fragment = LocalVariableFragmentImpl(
+      name: node.name.nameIfNotEmpty,
+      firstTokenOffset: node.offset,
+    );
+    _elementHolder.enclose(fragment);
+
+    fragment.hasImplicitType = declaration.type == null;
+    fragment.hasInitializer = node.initializer != null;
+    fragment.isConst = declaration.constKeyword != null;
+    fragment.isFinal = declaration.finalKeyword != null;
+    fragment.isLate = declaration.lateKeyword != null;
+    fragment.nameOffset = node.name.offsetIfNotEmpty;
+    node.declaredFragment = fragment;
+
+    _setOrCreateMetadataElements(fragment, declaration.metadata);
+
+    var offset = node == declaration.variables.first
+        ? declaration.offset
+        : node.offset;
+    fragment.setCodeRange(offset, node.end - offset);
+
+    _withElementHolder(ElementHolder(fragment), () {
+      super.visitLocalVariable(node);
+    });
+  }
+
+  @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var partInclude = node.partInclude;
     if (partInclude != null) {
@@ -477,37 +507,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     super.visitTypeParameter(node);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var variableList = node.parent2 as VariableDeclarationListImpl;
-    var declarationParent = variableList.parent2!;
-
-    var fragment = LocalVariableFragmentImpl(
-      name: node.name.nameIfNotEmpty,
-      firstTokenOffset: node.offset,
-    );
-    _elementHolder.enclose(fragment);
-
-    fragment.hasImplicitType = variableList.type == null;
-    fragment.hasInitializer = node.initializer2 != null;
-    fragment.isConst = variableList.isConst;
-    fragment.isFinal = variableList.isFinal;
-    fragment.isLate = variableList.isLate;
-    fragment.nameOffset = node.name.offsetIfNotEmpty;
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, variableList.metadata);
-
-    var offset = node == variableList.variables.first
-        ? declarationParent.offset
-        : node.offset;
-    fragment.setCodeRange(offset, node.end - offset);
-
-    _withElementHolder(ElementHolder(fragment), () {
-      super.visitVariableDeclaration(node);
-    });
   }
 
   void _bindClassDeclaration(

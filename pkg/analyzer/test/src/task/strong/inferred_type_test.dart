@@ -5078,7 +5078,7 @@ test1() {
 // [diag.argumentTypeNotAssignable] The argument type 'double' can't be assigned to the parameter type 'int'.
   x[3] = 42;
 //       ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
   Map<num, String> y = x;
 //                 ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
@@ -5093,7 +5093,7 @@ test2() {
   x[4.0] = 'u';
   x[3] = 42;
 //       ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Pattern'.
   Pattern p = null;
 //            ^^^^
 // [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Pattern'.
@@ -5120,7 +5120,7 @@ test1() {
 // [diag.argumentTypeNotAssignable] The argument type 'double' can't be assigned to the parameter type 'int'.
   x1[3] = 42;
 //        ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
   Map<num, String> y = x1;
 //                 ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
@@ -5135,7 +5135,7 @@ test2() {
   x2[4.0] = 'u';
   x2[3] = 42;
 //        ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Pattern'.
   Pattern p = null;
 //            ^^^^
 // [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Pattern'.
@@ -5157,7 +5157,7 @@ test1() {
 //  ^
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Null'.
 //       ^^^
-// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'Null'.
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'Null'.
 }
 ''');
 

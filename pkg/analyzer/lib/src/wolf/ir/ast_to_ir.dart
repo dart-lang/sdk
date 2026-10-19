@@ -566,8 +566,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     switch (node.forLoopParts) {
       case ForParts(condition2: var condition, :var updaters2) && var forParts:
         switch (forParts) {
-          case ForPartsWithDeclarations(:var variables):
-            dispatchNode(variables);
+          case ForPartsWithDeclarations(:var variables2):
+            dispatchNode(variables2);
           case dynamic(:var runtimeType):
             throw UnimplementedError('TODO(paulberry): handle $runtimeType');
         }
@@ -843,6 +843,41 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
+  Null visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    for (var variable in node.variables) {
+      var initializer = variable.initializer;
+      var declaredElement = variable.declaredFragment!.element;
+      assert(!locals.containsKey(declaredElement));
+      var localIndex = ir.localVariableCount;
+      locals[declaredElement] = localIndex;
+      ir.alloc(1);
+      if (initializer != null) {
+        dispatchNode(initializer);
+        // Stack: initializer
+        ir.writeLocal(localIndex);
+        // Stack: (empty)
+      } else if (typeSystem.isNullable(declaredElement.type)) {
+        ir.literal(null_);
+        // Stack: null
+        ir.writeLocal(localIndex);
+        // Stack: (empty)
+      }
+    }
+  }
+
+  @override
+  Null visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    if (node.declaration.lateKeyword != null) {
+      throw UnimplementedError(
+        'TODO(paulberry): handle late variable declarations',
+      );
+    }
+    dispatchNode(node.declaration);
+  }
+
+  @override
   Null visitLogicalAnd(LogicalAnd node) {
     ir.block(0, 1);
     // Stack: BLOCK(1)
@@ -968,39 +1003,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   _LValueTemplates visitUnqualifiedNameExpression(
     covariant UnqualifiedNameExpressionImpl node,
   ) => _nameExpression(node.name, node.resolution);
-
-  @override
-  Null visitVariableDeclarationList(VariableDeclarationList variables) {
-    for (var variable in variables.variables) {
-      var initializer = variable.initializer2;
-      var declaredElement = variable.declaredFragment!.element;
-      assert(!locals.containsKey(declaredElement));
-      var localIndex = ir.localVariableCount;
-      locals[declaredElement] = localIndex;
-      ir.alloc(1);
-      if (initializer != null) {
-        dispatchNode(initializer);
-        // Stack: initializer
-        ir.writeLocal(localIndex);
-        // Stack: (empty)
-      } else if (typeSystem.isNullable(declaredElement.type)) {
-        ir.literal(null_);
-        // Stack: null
-        ir.writeLocal(localIndex);
-        // Stack: (empty)
-      }
-    }
-  }
-
-  @override
-  Null visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    if (node.variables.isLate) {
-      throw UnimplementedError(
-        'TODO(paulberry): handle late variable declarations',
-      );
-    }
-    dispatchNode(node.variables);
-  }
 
   @override
   Null visitWhileStatement(WhileStatement node) {

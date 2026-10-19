@@ -1363,7 +1363,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitForPartsWithDeclarations(
     covariant ForPartsWithDeclarationsImpl node,
   ) {
-    _duplicateDefinitionVerifier.checkForVariables(node.variables);
+    _duplicateDefinitionVerifier.checkForVariables(node.variables2);
     super.visitForPartsWithDeclarations(node);
   }
 
@@ -1657,6 +1657,45 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       isAsynchronous: declaredFragment.isAsynchronous,
       isGenerator: declaredFragment.isGenerator,
     );
+    _isInLateLocalVariable.removeLast();
+  }
+
+  @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    var element = node.declaredFragment!.element;
+    _visitVariableInitializer(node);
+    // There is no hidden elements if we are outside of a function body,
+    // which will happen for variables declared in control flow elements.
+    _hiddenElements?.declare(element);
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    _checkForTypeAnnotationDeferredClass(node.type);
+    super.visitLocalVariablesDeclaration(node);
+  }
+
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    var declaration = node.declaration;
+    _isInLateLocalVariable.add(declaration.lateKeyword != null);
+
+    if (declaration.constKeyword != null) {
+      for (var variable in declaration.variables) {
+        if (variable.initializer == null) {
+          diagnosticReporter.report(
+            diag.constNotInitialized
+                .withArguments(name: variable.name.lexeme)
+                .at(variable.name),
+          );
+        }
+      }
+    }
+
+    super.visitLocalVariablesDeclarationStatement(node);
+
     _isInLateLocalVariable.removeLast();
   }
 
@@ -2604,42 +2643,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
     _visitVariableInitializer(node);
-    // declare the variable
-    AstNode grandparent = node.parent2!.parent2!;
-    if (grandparent is! FieldDeclaration) {
-      // There is no hidden elements if we are outside of a function body,
-      // which will happen for variables declared in control flow elements.
-      _hiddenElements?.declare(element);
-    }
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _checkForTypeAnnotationDeferredClass(node.type);
     super.visitVariableDeclarationList(node);
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    _isInLateLocalVariable.add(node.variables.isLate);
-
-    if (node.variables.isConst) {
-      for (var variable in node.variables.variables) {
-        if (variable.initializer2 == null) {
-          diagnosticReporter.report(
-            diag.constNotInitialized
-                .withArguments(name: variable.name.lexeme)
-                .at(variable.name),
-          );
-        }
-      }
-    }
-
-    super.visitVariableDeclarationStatement(node);
-
-    _isInLateLocalVariable.removeLast();
   }
 
   void _checkAugmentationWithoutDeclaration(
@@ -8740,7 +8750,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _withHiddenElements(
         HiddenElements.forElements(
           _hiddenElements,
-          forLoopParts.variables.variables.map((variable) {
+          forLoopParts.variables2.variables.map((variable) {
             return variable.declaredFragment!.element;
           }),
         ),

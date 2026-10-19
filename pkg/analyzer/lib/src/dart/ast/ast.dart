@@ -17949,6 +17949,11 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
           if (current.constKeyword case var constKeyword?) {
             return (current, constKeyword);
           }
+        case LocalVariablesDeclaration():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
         case TopLevelVariablesDeclaration():
           if (current.constKeyword case var constKeyword?) {
             return (current, constKeyword);
@@ -22216,16 +22221,25 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
 /// more variable declarations as part of the for loop.
 ///
 ///   forLoopParts ::=
-///       [VariableDeclarationList] ';' [Expression]? ';' expressionList?
+///       [LocalVariablesDeclaration] ';' [Expression]? ';' expressionList?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForPartsWithDeclarations implements ForParts {
   /// The declaration of the loop variables.
+  @V1Ast('The V2 counterpart is variables2.')
   VariableDeclarationList get variables;
+
+  /// The declaration of the loop variables.
+  @experimental
+  LocalVariablesDeclaration get variables2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('variables'),
+    GenerateNodeProperty(
+      'variables2',
+      v1Name: 'variables',
+      v1Projection: V1Projection.localVariables,
+    ),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
       'condition2',
@@ -22245,23 +22259,23 @@ abstract final class ForPartsWithDeclarations implements ForParts {
 final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     implements ForPartsWithDeclarations {
   @generated
-  VariableDeclarationListImpl _variables;
+  LocalVariablesDeclarationImpl _variables2;
 
   @generated
   new({
-    required VariableDeclarationListImpl variables,
+    required LocalVariablesDeclarationImpl variables2,
     required super.leftSeparator,
     required super.condition2,
     required super.rightSeparator,
     required super.updaters2,
-  }) : _variables = variables {
-    _becomeParentOf12(variables);
+  }) : _variables2 = variables2 {
+    _becomeParentOf2AndExisting1(variables2);
   }
 
   @generated
   @override
   Token get beginToken {
-    return variables.beginToken;
+    return variables2.beginToken;
   }
 
   @generated
@@ -22274,12 +22288,20 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @generated
+  @V1Ast('The V2 counterpart is variables2.')
   @override
-  VariableDeclarationListImpl get variables => _variables;
+  VariableDeclarationListImpl get variables =>
+      _becomeParentOf1(V1Projection.toV1LocalVariables(variables2));
 
   @generated
-  set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf12(variables);
+  @experimental
+  @override
+  LocalVariablesDeclarationImpl get variables2 => _variables2;
+
+  @generated
+  @experimental
+  set variables2(LocalVariablesDeclarationImpl variables2) {
+    _variables2 = _becomeParentOf2AndExisting1(variables2);
   }
 
   @generated
@@ -22295,7 +22317,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('variables', variables)
+    ..addNode('variables2', variables2)
     ..addToken('leftSeparator', leftSeparator)
     ..addNode('condition2', condition2)
     ..addToken('rightSeparator', rightSeparator)
@@ -22316,8 +22338,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(variables, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'variables'.");
+    if (identical(variables2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'variables2'.");
     }
     if (identical(condition2, oldNode)) {
       condition2 = null;
@@ -22334,8 +22356,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(variables, oldNode)) {
-      variables = newNode as VariableDeclarationListImpl;
+    if (identical(variables2, oldNode)) {
+      variables2 = newNode as LocalVariablesDeclarationImpl;
       return;
     }
     if (identical(condition2, oldNode)) {
@@ -22361,7 +22383,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    variables.accept2(visitor);
+    variables2.accept2(visitor);
     condition2?.accept2(visitor);
     updaters2.accept2(visitor);
   }
@@ -22375,14 +22397,14 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(VariableDeclarationListImpl)? visitVariables,
+    void Function(LocalVariablesDeclarationImpl)? visitVariables2,
     void Function(ExpressionImpl)? visitCondition2,
     void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
-    if (visitVariables != null) {
-      visitVariables(variables);
+    if (visitVariables2 != null) {
+      visitVariables2(variables2);
     } else {
-      variables.accept2(visitor);
+      variables2.accept2(visitor);
     }
     if (condition2 case var condition2?) {
       if (visitCondition2 != null) {
@@ -22420,8 +22442,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (variables._containsOffset(rangeOffset, rangeEnd)) {
-      return variables;
+    if (variables2._containsOffset(rangeOffset, rangeEnd)) {
+      return variables2;
     }
     if (condition2 case var condition2?) {
       if (condition2._containsOffset(rangeOffset, rangeEnd)) {
@@ -23596,6 +23618,14 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @generated
   set functionDeclaration(FunctionDeclarationImpl functionDeclaration) {
     _functionDeclaration = _becomeParentOf1(functionDeclaration);
+  }
+
+  @override
+  bool get mayCompleteNormally => _v1ProjectionOrigin.mayCompleteNormally;
+
+  @override
+  set mayCompleteNormally(bool _) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
@@ -34665,6 +34695,208 @@ final class LocalFunctionDeclarationImpl extends StatementImpl
   }
 }
 
+/// A single variable in a [LocalVariablesDeclaration].
+///
+///     initializedIdentifier ::=
+///         name ('=' [Expression])?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LocalVariable implements FragmentDeclaringNode {
+  @override
+  LocalVariableFragment? get declaredFragment;
+
+  /// The equal sign separating the name from the initializer, or `null` if
+  /// there is no initializer.
+  Token? get equals;
+
+  /// The expression used to compute the initial value of the variable, or
+  /// `null` if there is no initializer.
+  Expression? get initializer;
+
+  /// The name of the variable.
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('equals'),
+    GenerateNodeProperty('initializer'),
+  ],
+)
+final class LocalVariableImpl extends AstNodeImpl
+    with FlowAnalysisRootImpl
+    implements VariableDeclarationV1OriginImpl, LocalVariable {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  @override
+  final Token? equals;
+
+  @generated
+  ExpressionImpl? _initializer;
+
+  @override
+  LocalVariableFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl? _v1Projection;
+
+  @generated
+  new({
+    required this.name,
+    required this.equals,
+    required ExpressionImpl? initializer,
+  }) : _initializer = initializer {
+    _becomeParentOf2(initializer);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (initializer case var initializer?) {
+      return initializer.endToken;
+    }
+    if (equals case var equals?) {
+      return equals;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  ExpressionImpl? get initializer => _initializer;
+
+  @generated
+  set initializer(ExpressionImpl? initializer) {
+    _initializer = _becomeParentOf2(initializer);
+  }
+
+  @override
+  ExpressionImpl? get initializer2 => initializer;
+
+  /// Local variables are resolved in the enclosing scope.
+  @override
+  Scope? get initializerScope => null;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl get v1Projection =>
+      _v1Projection ??= VariableDeclarationImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('equals', equals)
+    ..addNode('initializer', initializer);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLocalVariable(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = newNode as ExpressionImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    initializer?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitInitializer,
+  }) {
+    if (initializer case var initializer?) {
+      if (visitInitializer != null) {
+        visitInitializer(initializer);
+      } else {
+        initializer.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (initializer case var initializer?) {
+      if (initializer._containsOffset(rangeOffset, rangeEnd)) {
+        return initializer;
+      }
+    }
+    return null;
+  }
+}
+
 /// Additional information about local variables within a function or method
 /// produced at resolution time.
 ///
@@ -34675,6 +34907,461 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
   final Set<VariableElement> potentiallyMutatedInScope = {};
+}
+
+/// The declaration of one or more local variables of the same type.
+///
+/// It is the declaration of a [LocalVariablesDeclarationStatement], or of the
+/// loop variables of a [ForPartsWithDeclarations].
+///
+///     localVariablesDeclaration ::=
+///         [Annotation]* 'late'? ('final' | 'const' | 'var')?
+///         [TypeAnnotation]? [LocalVariable] (',' [LocalVariable])*
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LocalVariablesDeclaration implements AnnotatedNode {
+  /// The `const`, `final`, or `var` keyword, or `null` if none was used.
+  Token? get constFinalOrVarKeyword;
+
+  /// If [constFinalOrVarKeyword] is `const`, returns it.
+  Token? get constKeyword;
+
+  /// If [constFinalOrVarKeyword] is `final`, returns it.
+  Token? get finalKeyword;
+
+  /// The `late` keyword, or `null` if the keyword isn't used.
+  Token? get lateKeyword;
+
+  /// The type of the variables, or `null` if no type was declared.
+  TypeAnnotation? get type;
+
+  /// The variables being declared.
+  NodeList<LocalVariable> get variables;
+
+  /// If [constFinalOrVarKeyword] is `var`, returns it.
+  Token? get varKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('lateKeyword'),
+    GenerateNodeProperty('constFinalOrVarKeyword'),
+    GenerateNodeProperty('type'),
+    GenerateNodeProperty('variables'),
+  ],
+)
+final class LocalVariablesDeclarationImpl extends AnnotatedNodeImpl
+    implements VariableDeclarationListV1OriginImpl, LocalVariablesDeclaration {
+  @generated
+  @override
+  final Token? lateKeyword;
+
+  @generated
+  @override
+  final Token? constFinalOrVarKeyword;
+
+  @generated
+  TypeAnnotationImpl? _type;
+
+  @generated
+  @override
+  final NodeListImpl<LocalVariableImpl> variables = NodeListImpl._();
+
+  @V1Ast()
+  VariableDeclarationListImpl? _v1VariableList;
+
+  @generated
+  new({
+    required super.comment,
+    required super.metadata,
+    required this.lateKeyword,
+    required this.constFinalOrVarKeyword,
+    required TypeAnnotationImpl? type,
+    required List<LocalVariableImpl> variables,
+  }) : _type = type {
+    _becomeParentOf2(type);
+    this.variables._initialize(this, variables);
+  }
+
+  @override
+  Token? get constKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.CONST) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (variables.endToken case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      return type.endToken;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (lateKeyword case var lateKeyword?) {
+      return lateKeyword;
+    }
+    throw StateError('Expected at least one non-null');
+  }
+
+  @override
+  Token? get finalKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.FINAL) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (lateKeyword case var lateKeyword?) {
+      return lateKeyword;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (type case var type?) {
+      return type.beginToken;
+    }
+    if (variables.beginToken case var result?) {
+      return result;
+    }
+    throw StateError('Expected at least one non-null');
+  }
+
+  @generated
+  @override
+  TypeAnnotationImpl? get type => _type;
+
+  @generated
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf2(type);
+  }
+
+  @V1Ast()
+  @override
+  VariableDeclarationListImpl get v1VariableList =>
+      _v1VariableList ??= VariableDeclarationListImpl.v1Projection(
+        this,
+        comment: documentationComment,
+        metadata: metadata.toList(),
+      );
+
+  @override
+  Token? get varKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.VAR) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('lateKeyword', lateKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addNodeList('variables', variables);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LocalVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitLocalVariablesDeclaration(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(type, oldNode)) {
+      type = null;
+      return;
+    }
+    if (variables.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'variables' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(type, oldNode)) {
+      type = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (variables.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LocalVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    variables.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(NodeListImpl<LocalVariableImpl>)? visitVariables,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept2(visitor);
+      }
+    }
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LocalVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (variables._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+}
+
+/// A statement that declares one or more local variables of the same type.
+///
+///     localVariablesDeclarationStatement ::=
+///         [LocalVariablesDeclaration] ';'
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LocalVariablesDeclarationStatement implements Statement {
+  /// The declaration of the variables.
+  LocalVariablesDeclaration get declaration;
+
+  /// The semicolon terminating the statement.
+  Token get semicolon;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('declaration'),
+    GenerateNodeProperty('semicolon'),
+  ],
+)
+final class LocalVariablesDeclarationStatementImpl extends StatementImpl
+    implements LocalVariablesDeclarationStatement {
+  @generated
+  LocalVariablesDeclarationImpl _declaration;
+
+  @generated
+  @override
+  final Token semicolon;
+
+  @V1Ast()
+  VariableDeclarationStatementImpl? _v1StatementProjection;
+
+  @generated
+  new({
+    required LocalVariablesDeclarationImpl declaration,
+    required this.semicolon,
+  }) : _declaration = declaration {
+    _becomeParentOf2(declaration);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return declaration.beginToken;
+  }
+
+  @generated
+  @override
+  LocalVariablesDeclarationImpl get declaration => _declaration;
+
+  @generated
+  set declaration(LocalVariablesDeclarationImpl declaration) {
+    _declaration = _becomeParentOf2(declaration);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  /// The cached V1 projection of this statement.
+  @V1Ast()
+  VariableDeclarationStatementImpl get v1StatementProjection =>
+      _v1StatementProjection ??= VariableDeclarationStatementImpl.v1Projection(
+        this,
+      );
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('declaration', declaration)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitLocalVariablesDeclarationStatement(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(declaration, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'declaration'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(declaration, oldNode)) {
+      declaration = newNode as LocalVariablesDeclarationImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    declaration.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(LocalVariablesDeclarationImpl)? visitDeclaration,
+  }) {
+    if (visitDeclaration != null) {
+      visitDeclaration(declaration);
+    } else {
+      declaration.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (declaration._containsOffset(rangeOffset, rangeEnd)) {
+      return declaration;
+    }
+    return null;
+  }
 }
 
 /// A logical-and expression.
@@ -57907,6 +58594,9 @@ enum V1Projection {
   /// Project an [ExpressionImpl] child to the V1 expression view.
   expression,
 
+  /// Project a [LocalVariablesDeclarationImpl] child to the V1 variable list.
+  localVariables,
+
   /// Project a [RecordLiteralFieldImpl] child to the V1 record view.
   recordLiteralField,
 
@@ -57959,6 +58649,13 @@ enum V1Projection {
   }
 
   @V1Ast()
+  static VariableDeclarationListImpl toV1LocalVariables(
+    LocalVariablesDeclarationImpl node,
+  ) {
+    return node.v1VariableList;
+  }
+
+  @V1Ast()
   static ExpressionImpl toV1NamedReceiver(NamedReceiverImpl node) {
     if (node is SuperReferenceImpl) return node.v1Projection;
     if (node is ExtensionOverride2Impl) return node.v1Projection;
@@ -57983,6 +58680,9 @@ enum V1Projection {
     if (node is LocalFunctionDeclarationImpl) {
       return node.v1StatementProjection;
     }
+    if (node is LocalVariablesDeclarationStatementImpl) {
+      return node.v1StatementProjection;
+    }
     return node;
   }
 
@@ -57994,6 +58694,8 @@ enum V1Projection {
     CascadeSectionImpl() => _existingNode(node.body),
     CombinatorNameImpl() => node._v1Projection,
     LocalFunctionDeclarationImpl() => node._v1StatementProjection,
+    LocalVariablesDeclarationImpl() => node._v1VariableList,
+    LocalVariablesDeclarationStatementImpl() => node._v1StatementProjection,
     FunctionDeclarationV1OriginImpl() => node._v1Projection,
     TopLevelVariablesDeclarationImpl() => node._v1Projection,
     VariableDeclarationV1OriginImpl() => node._v1Projection,
@@ -58040,6 +58742,8 @@ enum V1Projection {
       ConstructorReference2Impl() => root.constructorName,
       ConstructorTypeReferenceImpl() => root.namedType,
       LocalFunctionDeclarationImpl() => root.v1StatementProjection,
+      LocalVariablesDeclarationImpl() => root.v1VariableList,
+      LocalVariablesDeclarationStatementImpl() => root.v1StatementProjection,
       FunctionDeclarationV1OriginImpl() => root.v1Projection,
       TopLevelVariablesDeclarationImpl() => root.v1Projection,
       FunctionTypeAlias2Impl() => root.v1Projection,
@@ -58099,6 +58803,7 @@ enum V1Projection {
     VariableDeclarationImpl() => node._v1ProjectionOrigin,
     VariableDeclarationListImpl() => node._v1ProjectionOrigin,
     FunctionDeclarationStatementImpl() => node._v1ProjectionOrigin,
+    VariableDeclarationStatementImpl() => node._v1ProjectionOrigin,
     FunctionExpressionImpl() => node._v1ProjectionOrigin,
     FunctionExpressionInvocationImpl() => node._origin,
     FunctionReferenceImpl() => node._v1ProjectionOrigin,
@@ -58799,12 +59504,18 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     this.variables._initialize(this, variables);
   }
 
+  /// A V1 projection of [origin].
+  ///
+  /// The [comment] and [metadata] are those of a local variable declaration;
+  /// for other declarations they belong to the enclosing V1 declaration.
   @V1Ast()
-  new v1Projection(VariableDeclarationListV1OriginImpl origin)
-    : lateKeyword = origin.lateKeyword,
-      keyword = origin.constFinalOrVarKeyword,
-      _v1ProjectionOrigin = origin,
-      super(comment: null, metadata: null) {
+  new v1Projection(
+    VariableDeclarationListV1OriginImpl origin, {
+    super.comment,
+    super.metadata,
+  }) : lateKeyword = origin.lateKeyword,
+       keyword = origin.constFinalOrVarKeyword,
+       _v1ProjectionOrigin = origin {
     _becomeParentOf1(origin.type);
     variables._initialize(this, [
       for (var variable in origin.variables) variable.v1Projection,
@@ -59073,11 +59784,14 @@ abstract final class VariableDeclarationStatement implements Statement {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('semicolon'),
   ],
 )
+@V1Ast('The V2 counterpart is LocalVariablesDeclarationStatementImpl.')
 final class VariableDeclarationStatementImpl extends StatementImpl
     implements VariableDeclarationStatement {
   @generated
@@ -59087,10 +59801,13 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @override
   final Token semicolon;
 
-  @generated
-  new({required VariableDeclarationListImpl variables, required this.semicolon})
-    : _variables = variables {
-    _becomeParentOf12(variables);
+  final LocalVariablesDeclarationStatementImpl _v1ProjectionOrigin;
+
+  new v1Projection(LocalVariablesDeclarationStatementImpl origin)
+    : _variables = origin.declaration.v1VariableList,
+      semicolon = origin.semicolon,
+      _v1ProjectionOrigin = origin {
+    _becomeParentOf1(_variables);
   }
 
   @generated
@@ -59105,14 +59822,26 @@ final class VariableDeclarationStatementImpl extends StatementImpl
     return semicolon;
   }
 
+  @override
+  bool get mayCompleteNormally => _v1ProjectionOrigin.mayCompleteNormally;
+
+  @override
+  set mayCompleteNormally(bool _) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
   @generated
   @override
   VariableDeclarationListImpl get variables => _variables;
 
   @generated
   set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf12(variables);
+    _variables = _becomeParentOf1(variables);
   }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -59123,9 +59852,9 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('variables', variables)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities2 {
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -59136,27 +59865,24 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitVariableDeclarationStatement(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(variables, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'variables'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(variables, oldNode)) {
-      variables = newNode as VariableDeclarationListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
+
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -59169,25 +59895,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    variables.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(VariableDeclarationListImpl)? visitVariables,
-  }) {
-    if (visitVariables != null) {
-      visitVariables(variables);
-    } else {
-      variables.accept2(visitor);
-    }
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
   }
 
   @generated
@@ -59203,10 +59911,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (variables._containsOffset(rangeOffset, rangeEnd)) {
-      return variables;
-    }
-    return null;
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
   }
 }
 

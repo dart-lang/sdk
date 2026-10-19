@@ -255,6 +255,23 @@ void foo(Stream<int> stream) async {
 ''');
   }
 
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+Future<String> bar() async => '';
+
+void baz(List<String> list) {
+  list[0] = bar();
+}
+''');
+    await assertHasFix('''
+Future<String> bar() async => '';
+
+Future<void> baz(List<String> list) async {
+  list[0] = await bar();
+}
+''');
+  }
+
   Future<void> test_stringNamedParameter_futureInt() async {
     await resolveTestCode('''
 void foo({required String s}) {}

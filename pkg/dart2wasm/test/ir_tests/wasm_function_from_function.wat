@@ -18,7 +18,7 @@
   (func $JSStringImpl._interpolate3 (param $var0 (ref $JSExternWrapper)) (param $var1 (ref $#Top)) (param $var2 (ref $JSExternWrapper)) (result (ref $JSExternWrapper)) <...>)
   (func $JSValue.box (param $var0 externref) (result (ref null $JSExternWrapper)) <...>)
   (@binaryen.js.called)
-  (func $_JS_Trampoline_FunctionToJSExportedDartFunction|get#toJS_16 (param $var0 (ref extern)) (param $var1 i32) (param $var2 (ref extern)) (param $var3 externref) (result externref)
+  (func $_JS_Trampoline_FunctionToJSExportedDartFunction|get#toJS_16 (param $var0 (ref extern)) (param $var1 i32) (param $var2 (ref extern)) (param $var3 externref) (result nullexternref)
     (local $var4 (ref $#Closure-0-1))
     (local $var5 i64)
     local.get $var1

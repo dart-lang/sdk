@@ -662,19 +662,6 @@ class AstBinaryReader {
         : null;
   }
 
-  ForPartsWithDeclarations _readForPartsWithDeclarations() {
-    var variables = _readNode() as VariableDeclarationListImpl;
-    var condition = _readOptionalNode() as ExpressionImpl?;
-    var updaters = _readNodeList<ExpressionImpl>();
-    return ForPartsWithDeclarationsImpl(
-      variables: variables,
-      condition2: condition,
-      leftSeparator: Tokens.semicolon(),
-      rightSeparator: Tokens.semicolon(),
-      updaters2: updaters,
-    );
-  }
-
   ForPartsWithExpression _readForPartsWithExpression() {
     var initialization = _readOptionalNode() as ExpressionImpl?;
     var condition = _readOptionalNode() as ExpressionImpl?;
@@ -1238,7 +1225,7 @@ class AstBinaryReader {
       case AstNodeTag.ForElement:
         return _readForElement();
       case AstNodeTag.ForPartsWithDeclarations:
-        return _readForPartsWithDeclarations();
+        throw UnsupportedError('Local variables are not serialized.');
       case AstNodeTag.ForPartsWithExpression:
         return _readForPartsWithExpression();
       case AstNodeTag.FieldFormalParameter:

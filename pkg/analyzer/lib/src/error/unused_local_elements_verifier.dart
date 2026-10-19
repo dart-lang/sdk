@@ -281,6 +281,13 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    node.metadata.accept2(this);
+    node.type?.accept2(this);
+    node.variables.accept2(this);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var enclosingExecOld = _enclosingExec;
     try {
@@ -809,17 +816,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    for (var variable in node.variables.variables) {
-      _visitLocalVariableElement(
-        variable.declaredFragment!.element as LocalVariableElement,
-      );
-    }
-
-    super.visitForPartsWithDeclarations(node);
-  }
-
-  @override
   void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitTypeAliasElement(declaredElement);
@@ -843,6 +839,15 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
 
     super.visitLocalFunctionDeclaration(node);
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    for (var variable in node.variables) {
+      _visitLocalVariableElement(variable.declaredFragment!.element);
+    }
+
+    super.visitLocalVariablesDeclaration(node);
   }
 
   @override
@@ -972,17 +977,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
 
     super.visitTopLevelVariablesDeclaration(node);
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    for (var variable in node.variables.variables) {
-      _visitLocalVariableElement(
-        variable.declaredFragment!.element as LocalVariableElement,
-      );
-    }
-
-    super.visitVariableDeclarationStatement(node);
   }
 
   /// Returns the parameter element, if any, that corresponds to the given

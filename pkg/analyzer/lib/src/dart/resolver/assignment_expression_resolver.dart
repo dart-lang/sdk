@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/generated/error_detection_helpers.dart';
 
 /// Helper for resolving V2 assignment expressions and their targets.
 class AssignmentExpressionResolver {
@@ -163,6 +164,7 @@ class AssignmentExpressionResolver {
     node.recordStaticType(operatorResultType, typeAnalyzer: _typeAnalyzer);
 
     _checkForInvalidAssignment(
+      node.target,
       writeAcceptedType,
       node.value,
       operatorResultType,
@@ -377,6 +379,7 @@ class AssignmentExpressionResolver {
 
     node.recordStaticType(valueType, typeAnalyzer: _typeAnalyzer);
     _checkForInvalidAssignment(
+      target,
       writeAcceptedType,
       node.value,
       valueType,
@@ -468,6 +471,7 @@ class AssignmentExpressionResolver {
     );
     node.recordStaticType(nodeType, typeAnalyzer: _typeAnalyzer);
     _checkForInvalidAssignment(
+      node.target,
       writeAcceptedType,
       node.value,
       valueType,
@@ -595,6 +599,7 @@ class AssignmentExpressionResolver {
   }
 
   void _checkForInvalidAssignment(
+    AssignmentTargetImpl target,
     TypeImpl writeType,
     Expression right,
     TypeImpl rightType, {
@@ -631,11 +636,17 @@ class AssignmentExpressionResolver {
     }
 
     _diagnosticReporter.report(
-      diag.invalidAssignment
-          .withArguments(
-            actualStaticType: rightType,
-            expectedStaticType: writeType,
-          )
+      // An index assignment invokes `operator []=`, so a non-assignable value
+      // is reported as an argument error.
+      (target is IndexAssignmentTargetImpl
+              ? const NonAssignabilityReporterForArgument().createDiagnostic(
+                  expectedStaticType: writeType,
+                  actualStaticType: rightType,
+                )
+              : diag.invalidAssignment.withArguments(
+                  actualStaticType: rightType,
+                  expectedStaticType: writeType,
+                ))
           .withContextMessages(
             _typeAnalyzer.computeWhyNotPromotedMessages(
               right,

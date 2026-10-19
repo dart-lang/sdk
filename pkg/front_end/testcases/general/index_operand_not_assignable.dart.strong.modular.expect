@@ -1,0 +1,312 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:23:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     super[n]; // Error.
+//           ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:24:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c[n]; // Error.
+//       ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:25:9: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     nc?[n]; // Error.
+//         ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:26:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     s[n]; // Error.
+//       ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:27:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     E(s)[n]; // Error.
+//          ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:31:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     super[n] = 0; // Error.
+//           ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:32:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c[n] = 0; // Error.
+//       ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:33:9: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     nc?[n] = 0; // Error.
+//         ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:34:9: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c..[n] = 0; // Error.
+//         ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:35:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     s[n] = 0; // Error.
+//       ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:36:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     E(s)[n] = 0; // Error.
+//          ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:40:16: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     super[0] = n; // Error.
+//                ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:41:12: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c[0] = n; // Error.
+//            ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:42:14: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     nc?[0] = n; // Error.
+//              ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:43:14: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c..[0] = n; // Error.
+//              ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:44:12: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     s[0] = n; // Error.
+//            ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:45:15: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     E(s)[0] = n; // Error.
+//               ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:49:25: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     var x1 = super[0] = n; // Error.
+//                         ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:50:21: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     var x2 = c[0] = n; // Error.
+//                     ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:51:24: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     var x3 = E(s)[0] = n; // Error.
+//                        ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:55:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     super[n] += 0; // Error.
+//           ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:56:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c[n] += 0; // Error.
+//       ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:57:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     E(s)[n] += 0; // Error.
+//          ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:58:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//     super[0] += d; // Error.
+//              ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:59:10: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//     c[0] += d; // Error.
+//          ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:60:13: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+//     E(s)[0] += d; // Error.
+//             ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:61:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     super[n]++; // Error.
+//           ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:62:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c[n]++; // Error.
+//       ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:63:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     E(s)[n]++; // Error.
+//          ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:67:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     super[n] ??= 0; // Error.
+//           ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:68:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c[n] ??= 0; // Error.
+//       ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:69:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     E(s)[n] ??= 0; // Error.
+//          ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:70:18: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     super[0] ??= n; // Error.
+//                  ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:71:14: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     c[0] ??= n; // Error.
+//              ^
+//
+// pkg/front_end/testcases/general/index_operand_not_assignable.dart:72:17: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+//     E(s)[0] ??= n; // Error.
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  operator [](core::int i) → core::int
+    return 0;
+  operator []=(core::int i, core::int v) → void {}
+}
+class X extends core::Object {
+  synthetic constructor •() → self::X
+    : super core::Object::•()
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    : super self::C::•()
+    ;
+  method reads(core::num n, self::C c, self::C? nc, self::X s) → void {
+    super.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:23:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n]; // Error.
+          ^" in n as{TypeError} core::int);
+    c.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:24:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n]; // Error.
+      ^" in n as{TypeError} core::int){(core::int) → core::int};
+    let final self::C? #t1 = nc in #t1 == null ?{core::int?} null : #t1{self::C}.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:25:9: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    nc?[n]; // Error.
+        ^" in n as{TypeError} core::int){(core::int) → core::int};
+    self::E|[](s, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:26:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    s[n]; // Error.
+      ^" in n as{TypeError} core::int);
+    self::E|[](s, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:27:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n]; // Error.
+         ^" in n as{TypeError} core::int);
+  }
+  method plainAssignmentIndex(core::num n, self::C c, self::C? nc, self::X s) → void {
+    super.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:31:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n] = 0; // Error.
+          ^" in n as{TypeError} core::int, 0);
+    c.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:32:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n] = 0; // Error.
+      ^" in n as{TypeError} core::int, 0){(core::int, core::int) → void};
+    let final self::C? #t2 = nc in #t2 == null ?{core::int?} null : #t2{self::C}.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:33:9: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    nc?[n] = 0; // Error.
+        ^" in n as{TypeError} core::int, 0){(core::int, core::int) → void};
+    let final self::C #t3 = c in block {
+      #t3.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:34:9: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c..[n] = 0; // Error.
+        ^" in n as{TypeError} core::int, 0){(core::int, core::int) → void};
+    } =>#t3;
+    self::E|[]=(s, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:35:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    s[n] = 0; // Error.
+      ^" in n as{TypeError} core::int, 0);
+    self::E|[]=(s, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:36:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n] = 0; // Error.
+         ^" in n as{TypeError} core::int, 0);
+  }
+  method plainAssignmentValue(core::num n, self::C c, self::C? nc, self::X s) → void {
+    super.{self::C::[]=}(0, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:40:16: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[0] = n; // Error.
+               ^" in n as{TypeError} core::int);
+    c.{self::C::[]=}(0, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:41:12: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[0] = n; // Error.
+           ^" in n as{TypeError} core::int){(core::int, core::int) → void};
+    let final self::C? #t4 = nc in #t4 == null ?{core::num?} null : #t4{self::C}.{self::C::[]=}(0, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:42:14: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    nc?[0] = n; // Error.
+             ^" in n as{TypeError} core::int){(core::int, core::int) → void};
+    let final self::C #t5 = c in block {
+      #t5.{self::C::[]=}(0, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:43:14: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c..[0] = n; // Error.
+             ^" in n as{TypeError} core::int){(core::int, core::int) → void};
+    } =>#t5;
+    self::E|[]=(s, 0, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:44:12: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    s[0] = n; // Error.
+           ^" in n as{TypeError} core::int);
+    self::E|[]=(s, 0, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:45:15: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[0] = n; // Error.
+              ^" in n as{TypeError} core::int);
+  }
+  method valueContext(core::num n, self::C c, self::X s) → void {
+    core::num x1 = let final core::int #t6 = 0 in let final core::num #t7 = invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:49:25: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    var x1 = super[0] = n; // Error.
+                        ^" in n as{TypeError} core::int in let final void #t8 = super.{self::C::[]=}(#t6, #t7) in #t7;
+    core::num x2 = let final self::C #t9 = c in let final core::int #t10 = 0 in let final core::num #t11 = invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:50:21: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    var x2 = c[0] = n; // Error.
+                    ^" in n as{TypeError} core::int in let final void #t12 = #t9.{self::C::[]=}(#t10, #t11){(core::int, core::int) → void} in #t11;
+    core::num x3 = let final self::X #t13 = s in let final core::num #t14 = invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:51:24: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    var x3 = E(s)[0] = n; // Error.
+                       ^" in n as{TypeError} core::int in let final void #t15 = self::E|[]=(#t13, 0, #t14) in #t14;
+  }
+  method compound(core::num n, core::double d, self::C c, self::X s) → void {
+    let final core::num #t16 = n in super.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:55:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n] += 0; // Error.
+          ^" in #t16 as{TypeError} core::int, super.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:55:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n] += 0; // Error.
+          ^" in #t16 as{TypeError} core::int).{core::num::+}(0){(core::num) → core::int});
+    let final self::C #t17 = c in let final core::num #t18 = n in #t17.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:56:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n] += 0; // Error.
+      ^" in #t18 as{TypeError} core::int, #t17.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:56:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n] += 0; // Error.
+      ^" in #t18 as{TypeError} core::int){(core::int) → core::int}.{core::num::+}(0){(core::num) → core::int}){(core::int, core::int) → void};
+    let final self::X #t19 = s in let final core::num #t20 = n in self::E|[]=(#t19, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:57:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n] += 0; // Error.
+         ^" in #t20 as{TypeError} core::int, self::E|[](#t19, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:57:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n] += 0; // Error.
+         ^" in #t20 as{TypeError} core::int).{core::num::+}(0){(core::num) → core::int});
+    let final core::int #t21 = 0 in super.{self::C::[]=}(#t21, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:58:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+    super[0] += d; // Error.
+             ^" in super.{self::C::[]}(#t21).{core::num::+}(d){(core::num) → core::double} as{TypeError} core::int);
+    let final self::C #t22 = c in let final core::int #t23 = 0 in #t22.{self::C::[]=}(#t23, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:59:10: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+    c[0] += d; // Error.
+         ^" in #t22.{self::C::[]}(#t23){(core::int) → core::int}.{core::num::+}(d){(core::num) → core::double} as{TypeError} core::int){(core::int, core::int) → void};
+    let final self::X #t24 = s in let final core::int #t25 = 0 in self::E|[]=(#t24, #t25, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:60:13: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
+    E(s)[0] += d; // Error.
+            ^" in self::E|[](#t24, #t25).{core::num::+}(d){(core::num) → core::double} as{TypeError} core::int);
+    let final core::num #t26 = n in super.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:61:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n]++; // Error.
+          ^" in #t26 as{TypeError} core::int, super.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:61:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n]++; // Error.
+          ^" in #t26 as{TypeError} core::int).{core::num::+}(1){(core::num) → core::int});
+    let final self::C #t27 = c in let final core::num #t28 = n in #t27.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:62:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n]++; // Error.
+      ^" in #t28 as{TypeError} core::int, #t27.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:62:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n]++; // Error.
+      ^" in #t28 as{TypeError} core::int){(core::int) → core::int}.{core::num::+}(1){(core::num) → core::int}){(core::int, core::int) → void};
+    let final self::X #t29 = s in let final core::num #t30 = n in self::E|[]=(#t29, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:63:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n]++; // Error.
+         ^" in #t30 as{TypeError} core::int, self::E|[](#t29, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:63:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n]++; // Error.
+         ^" in #t30 as{TypeError} core::int).{core::num::+}(1){(core::num) → core::int});
+  }
+  method ifNull(core::num n, self::C c, self::X s) → void {
+    let final core::num #t31 = n in super.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:67:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n] ??= 0; // Error.
+          ^" in #t31 as{TypeError} core::int) == null ?{core::int?} super.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:67:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[n] ??= 0; // Error.
+          ^" in #t31 as{TypeError} core::int, 0) : null;
+    let final self::C #t32 = c in let final core::num #t33 = n in #t32.{self::C::[]}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:68:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n] ??= 0; // Error.
+      ^" in #t33 as{TypeError} core::int){(core::int) → core::int} == null ?{core::int?} #t32.{self::C::[]=}(invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:68:7: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[n] ??= 0; // Error.
+      ^" in #t33 as{TypeError} core::int, 0){(core::int, core::int) → void} : null;
+    let final self::X #t34 = s in let final core::num #t35 = n in self::E|[](#t34, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:69:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n] ??= 0; // Error.
+         ^" in #t35 as{TypeError} core::int) == null ?{core::int?} self::E|[]=(#t34, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:69:10: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[n] ??= 0; // Error.
+         ^" in #t35 as{TypeError} core::int, 0) : null;
+    let final core::int #t36 = 0 in super.{self::C::[]}(#t36) == null ?{core::num?} super.{self::C::[]=}(#t36, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:70:18: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    super[0] ??= n; // Error.
+                 ^" in n as{TypeError} core::int) : null;
+    let final self::C #t37 = c in let final core::int #t38 = 0 in #t37.{self::C::[]}(#t38){(core::int) → core::int} == null ?{core::num?} #t37.{self::C::[]=}(#t38, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:71:14: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    c[0] ??= n; // Error.
+             ^" in n as{TypeError} core::int){(core::int, core::int) → void} : null;
+    let final self::X #t39 = s in let final core::int #t40 = 0 in self::E|[](#t39, #t40) == null ?{core::num?} self::E|[]=(#t39, #t40, invalid-expression "pkg/front_end/testcases/general/index_operand_not_assignable.dart:72:17: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
+    E(s)[0] ??= n; // Error.
+                ^" in n as{TypeError} core::int) : null;
+  }
+}
+extension E on self::X {
+  operator [] = self::E|[];
+  operator []= = self::E|[]=;
+}
+static extension-member method E|[](lowered final self::X #this, core::int i) → core::int
+  return 0;
+static extension-member method E|[]=(lowered final self::X #this, core::int i, core::int v) → void {}
+static method main() → dynamic {}

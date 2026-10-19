@@ -30,7 +30,7 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singleVariableDeclarationStatement;
+    var node = result.findNode.singleLocalVariablesDeclarationStatement;
     assertResolvedNodeText(node, r'''
 LocalVariablesDeclarationStatement
   declaration: LocalVariablesDeclaration
@@ -43,6 +43,20 @@ LocalVariablesDeclarationStatement
           superReference: SuperReference
             superKeyword: super
           staticType: InvalidType
+        declaredFragment: isFinal isPublic a@33
+          element: hasImplicitType isFinal isPublic
+            type: InvalidType
+  semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: SuperExpression
+          superKeyword: super
+          staticType: A
         declaredFragment: isFinal isPublic a@33
           element: hasImplicitType isFinal isPublic
             type: InvalidType
@@ -61,13 +75,27 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singleVariableDeclarationStatement;
+    var node = result.findNode.singleLocalVariablesDeclarationStatement;
     assertResolvedNodeText(node, r'''
 LocalVariablesDeclarationStatement
   declaration: LocalVariablesDeclaration
     constFinalOrVarKeyword: final
     variables
       LocalVariable
+        name: a
+        equals: =
+        initializer: ThisExpression
+          thisKeyword: this
+          staticType: A
+        declaredFragment: isFinal isPublic a@33
+          element: hasImplicitType isFinal isPublic
+            type: A
+  semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
         name: a
         equals: =
         initializer: ThisExpression

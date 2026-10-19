@@ -63,6 +63,18 @@ remove them.
 [language version]: https://dart.dev/to/language-version
 [unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
 
+### Tools
+
+#### Analyzer
+
+- When the value assigned through `operator []=` (in `a[i] = v`, `a[i] op= v`,
+  `a[i] ??= v`, `a[i]++`, and so on) isn't assignable to the parameter type,
+  the analyzer now reports `argument_type_not_assignable` instead of
+  `invalid_assignment`, consistent with how it reports a non-assignable index.
+  For more details, see SDK issue [#64561][].
+
+[#64561]: https://github.com/dart-lang/sdk/issues/64561
+
 ## 3.14.0
 
 **Released on:** Unreleased

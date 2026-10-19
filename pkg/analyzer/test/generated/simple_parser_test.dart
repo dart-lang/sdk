@@ -2867,25 +2867,6 @@ LocalFunctionDeclaration
               rightBracket: >
           name: x
       rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          importPrefix: ImportPrefixReference
-            name: core
-            period: .
-          name: List
-          typeArguments: TypeArgumentList
-            leftBracket: <
-            arguments
-              NamedType
-                importPrefix: ImportPrefixReference
-                  name: core
-                  period: .
-                name: int
-            rightBracket: >
-        name: x
-      rightParenthesis: )
   name: m
   formalParameters: FormalParameterList
     leftParenthesis: (
@@ -2895,6 +2876,45 @@ LocalFunctionDeclaration
     expression2: NullLiteral
       literal: null
     semicolon: ;
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: GenericFunctionType
+      functionKeyword: Function
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: RegularFormalParameter
+          type: NamedType
+            importPrefix: ImportPrefixReference
+              name: core
+              period: .
+            name: List
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  importPrefix: ImportPrefixReference
+                    name: core
+                    period: .
+                  name: int
+              rightBracket: >
+          name: x
+        rightParenthesis: )
+    name: m
+    functionExpression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression: NullLiteral
+          literal: null
+        semicolon: ;
 ''');
   }
 
@@ -3927,6 +3947,14 @@ LocalVariablesDeclarationStatement
       LocalVariable
         name: a
   semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -3947,6 +3975,13 @@ LocalVariablesDeclarationStatement
       LocalVariable
         name: a
   semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -3964,6 +3999,14 @@ LocalVariablesDeclarationStatement
     constFinalOrVarKeyword: final
     variables
       LocalVariable
+        name: a
+  semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: final
+    variables
+      VariableDeclaration
         name: a
   semicolon: ;
 ''');
@@ -3989,6 +4032,16 @@ LocalVariablesDeclarationStatement
         initializer: IntegerLiteral
           literal: 0
   semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
 ''');
   }
 
@@ -4007,6 +4060,15 @@ LocalVariablesDeclarationStatement
       name: A
     variables
       LocalVariable
+        name: a
+  semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
         name: a
   semicolon: ;
 ''');
@@ -4028,6 +4090,14 @@ LocalVariablesDeclarationStatement
       LocalVariable
         name: a
   semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -4045,6 +4115,17 @@ LocalVariablesDeclarationStatement
     constFinalOrVarKeyword: var
     variables
       LocalVariable
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
+V1: VariableDeclarationStatement
+  variables: VariableDeclarationList
+    lateKeyword: late
+    keyword: var
+    variables
+      VariableDeclaration
         name: a
         equals: =
         initializer: IntegerLiteral

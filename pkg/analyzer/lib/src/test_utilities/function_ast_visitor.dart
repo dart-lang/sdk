@@ -19,6 +19,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(IfStatement)? ifStatement;
   final void Function(Label)? label;
   final void Function(LocalFunctionDeclaration)? localFunctionDeclaration;
+  final void Function(LocalVariable)? localVariable;
   final void Function(MethodDeclaration)? methodDeclaration;
   final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
@@ -31,7 +32,6 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(TypeParameter)? typeParameter;
   final void Function(UnqualifiedFunctionInvocation)?
   unqualifiedFunctionInvocation;
-  final void Function(VariableDeclaration)? variableDeclaration;
 
   new({
     this.block,
@@ -46,6 +46,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
     this.ifStatement,
     this.label,
     this.localFunctionDeclaration,
+    this.localVariable,
     this.methodDeclaration,
     this.patternAssignment,
     this.patternVariableDeclaration,
@@ -56,7 +57,6 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
     this.topLevelFunctionDeclaration,
     this.typeParameter,
     this.unqualifiedFunctionInvocation,
-    this.variableDeclaration,
   });
 
   @override
@@ -140,6 +140,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalVariable(LocalVariable node) {
+    localVariable?.call(node);
+    super.visitLocalVariable(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     methodDeclaration?.call(node);
     super.visitMethodDeclaration(node);
@@ -199,13 +205,5 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     unqualifiedFunctionInvocation?.call(node);
     super.visitUnqualifiedFunctionInvocation(node);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (variableDeclaration != null) {
-      variableDeclaration!(node);
-    }
-    super.visitVariableDeclaration(node);
   }
 }

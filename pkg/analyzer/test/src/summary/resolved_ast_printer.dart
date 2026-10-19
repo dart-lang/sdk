@@ -1532,6 +1532,34 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLocalVariable(LocalVariable node) {
+    _sink.writeln('LocalVariable');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    _sink.writeln('LocalVariablesDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    _sink.writeln('LocalVariablesDeclarationStatement');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
+    });
+  }
+
+  @override
   void visitLogicalAnd(LogicalAnd node) {
     _sink.writeln('LogicalAnd');
     _sink.withIndent(() {
@@ -2504,11 +2532,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (_view == _AstView.v2 && _isLocalVariable(node)) {
-      _writeLocalVariable(node);
-      return;
-    }
-
     _sink.writeln('VariableDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2518,11 +2541,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    if (_view == _AstView.v2 && _isLocalVariableList(node)) {
-      _writeLocalVariablesDeclaration(node);
-      return;
-    }
-
     _sink.writeln('VariableDeclarationList');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2531,11 +2549,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    if (_view == _AstView.v2) {
-      _writeLocalVariablesDeclarationStatement(node);
-      return;
-    }
-
     _sink.writeln('VariableDeclarationStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2615,6 +2628,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     } else if (node case ExpressionImpl expression) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Expression(expression);
+    } else if (node case StatementImpl statement) {
+      // ignore: analyzer_v1_ast_use
+      v1 = V1Projection.toV1Statement(statement);
     }
 
     if (v1 == null || identical(v1, node)) {
@@ -3039,54 +3055,6 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  /// Writes a local variable [node] as it will be printed once local
-  /// variables are parsed as `LocalVariable`.
-  // TODO(scheglov): Remove when local variables are parsed as
-  // LocalVariablesDeclaration.
-  void _writeLocalVariable(VariableDeclaration node) {
-    node as VariableDeclarationImpl;
-    _sink.writeln('LocalVariable');
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        var name = entity.name == 'initializer2' ? 'initializer' : entity.name;
-        _writeNamedChildEntity(node, entity, name: name);
-      }
-      _writeDeclaredFragment(node.declaredFragment);
-    });
-  }
-
-  /// Writes the local variables [node] as they will be printed once local
-  /// variables are parsed as `LocalVariablesDeclaration`.
-  // TODO(scheglov): Remove when local variables are parsed as
-  // LocalVariablesDeclaration.
-  void _writeLocalVariablesDeclaration(VariableDeclarationList node) {
-    node as VariableDeclarationListImpl;
-    _sink.writeln('LocalVariablesDeclaration');
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        var name = entity.name == 'keyword'
-            ? 'constFinalOrVarKeyword'
-            : entity.name;
-        _writeNamedChildEntity(node, entity, name: name);
-      }
-    });
-  }
-
-  /// Writes the statement [node] as it will be printed once local variables
-  /// are parsed as `LocalVariablesDeclarationStatement`.
-  // TODO(scheglov): Remove when local variables are parsed as
-  // LocalVariablesDeclaration.
-  void _writeLocalVariablesDeclarationStatement(
-    VariableDeclarationStatement node,
-  ) {
-    _sink.writeln('LocalVariablesDeclarationStatement');
-    _sink.withIndent(() {
-      _writeNamedChildEntity(node, ChildEntity('declaration', node.variables));
-      _writeToken('semicolon', node.semicolon);
-      _writeMayCompleteNormally(node);
-    });
-  }
-
   void _writeMayCompleteNormally(Statement node) {
     if (configuration.withMayCompleteNormally) {
       node as StatementImpl;
@@ -3127,17 +3095,6 @@ Expected parent: (${parent.runtimeType}) $parent
     }
 
     var entities2 = node.namedChildEntities2.toList();
-    // TODO(scheglov): Remove when local variables are parsed as
-    // LocalVariablesDeclaration.
-    if (node is ForPartsWithDeclarations) {
-      entities2 = [
-        for (var entity in entities2)
-          if (entity.name == 'variables')
-            ChildEntity('variables2', entity.value)
-          else
-            entity,
-      ];
-    }
     var entities =
         !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
         ? <ChildEntity>[]
@@ -3168,8 +3125,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasLocalVariables(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3543,43 +3499,6 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a local variable declaration statement, a list of
-  /// statements that includes one, or the variable list of a `for` loop.
-  ///
-  /// Such a value is printed as if it already had a distinct V1 projection.
-  // TODO(scheglov): Remove when local variables are parsed as
-  // LocalVariablesDeclaration.
-  static bool _hasLocalVariables(Object value) {
-    if (value is VariableDeclarationStatement) {
-      return true;
-    }
-    if (value is VariableDeclarationList &&
-        value.parent2 is ForPartsWithDeclarations) {
-      return true;
-    }
-    return value is List<AstNode> &&
-        value.any((node) => node is VariableDeclarationStatement);
-  }
-
-  /// Whether [node] is a local variable, which will be parsed as
-  /// `LocalVariable` with a distinct V1 projection.
-  // TODO(scheglov): Remove when local variables are parsed as
-  // LocalVariablesDeclaration.
-  static bool _isLocalVariable(VariableDeclaration node) {
-    var list = node.parent2;
-    return list is VariableDeclarationList && _isLocalVariableList(list);
-  }
-
-  /// Whether [node] is the variable list of local variables, which will be
-  /// parsed as `LocalVariablesDeclaration` with a distinct V1 projection.
-  // TODO(scheglov): Remove when local variables are parsed as
-  // LocalVariablesDeclaration.
-  static bool _isLocalVariableList(VariableDeclarationList node) {
-    var parent = node.parent2;
-    return parent is VariableDeclarationStatement ||
-        parent is ForPartsWithDeclarations;
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

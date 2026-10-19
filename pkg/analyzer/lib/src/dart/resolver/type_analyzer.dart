@@ -110,7 +110,7 @@ typedef WhyNotPromotedGetter =
 /// The context shared between different units of the same library.
 final class LibraryResolutionContext {
   /// The declarations for [VariableFragment]s.
-  final Map<VariableFragment, VariableDeclaration> _variableNodes =
+  final Map<VariableFragment, VariableBindingImpl> _variableNodes =
       Map.identity();
 }
 
@@ -3599,6 +3599,31 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    _resolveVariable(node);
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(
+    covariant LocalVariablesDeclarationImpl node,
+  ) {
+    flowAnalysis.localVariablesDeclaration(node);
+    checkUnreachableNode(node);
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    covariant LocalVariablesDeclarationStatementImpl node,
+  ) {
+    inferenceLogWriter?.enterStatement(node);
+    checkUnreachableNode(node);
+    node.visitChildren2(this);
+    _recordMayCompleteNormally(node);
+    inferenceLogWriter?.exitStatement(node);
+  }
+
+  @override
   void visitLogicalAnd(
     covariant LogicalAndImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4886,45 +4911,16 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-
-    libraryResolutionContext._variableNodes[fragment] = node;
-    _variableDeclarationResolver.resolve(node);
-
-    var initializer = node.initializer2;
-    if (initializer != null) {
-      var initializerStaticType = initializer.typeOrThrow;
-      flowAnalysis.flow?.initialize(
-        fragment.element as PromotableElementImpl,
-        SharedTypeView(initializerStaticType),
-        flowAnalysis.getExpressionInfo(initializer),
-        isFinal: fragment.isFinal,
-        isLate: fragment.isLate,
-        isImplicitlyTyped: fragment.hasImplicitType,
-        offset: node.end,
-      );
-    }
-
-    _checkTypeInferenceError(node);
+    _resolveVariable(node);
   }
 
   @override
   void visitVariableDeclarationList(
     covariant VariableDeclarationListImpl node,
   ) {
-    flowAnalysis.variableDeclarationList(node);
     checkUnreachableNode(node);
     node.visitChildren2(this);
     elementResolver.visitVariableDeclarationList(node);
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    inferenceLogWriter?.enterStatement(node);
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
-    _recordMayCompleteNormally(node);
-    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -5652,6 +5648,30 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  /// Resolves the variable [node], and initializes it in flow analysis.
+  void _resolveVariable(VariableBindingImpl node) {
+    var fragment = node.declaredFragment!;
+
+    libraryResolutionContext._variableNodes[fragment] = node;
+    _variableDeclarationResolver.resolve(node);
+
+    var initializer = node.initializer2;
+    if (initializer != null) {
+      var initializerStaticType = initializer.typeOrThrow;
+      flowAnalysis.flow?.initialize(
+        fragment.element as PromotableElementImpl,
+        SharedTypeView(initializerStaticType),
+        flowAnalysis.getExpressionInfo(initializer),
+        isFinal: fragment.isFinal,
+        isLate: fragment.isLate,
+        isImplicitlyTyped: fragment.hasImplicitType,
+        offset: node.end,
+      );
+    }
+
+    _checkTypeInferenceError(node);
   }
 
   bool _shouldSkipImplicitCallTearOffDueToForm(

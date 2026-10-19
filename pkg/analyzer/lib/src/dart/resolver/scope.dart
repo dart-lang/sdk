@@ -28,11 +28,9 @@ class BlockScope {
         for (var variable in statement.declaration.elements) {
           yield variable;
         }
-      } else if (statement is VariableDeclarationStatement) {
-        NodeList<VariableDeclaration> variables = statement.variables.variables;
-        int variableCount = variables.length;
-        for (int j = 0; j < variableCount; j++) {
-          yield variables[j].declaredFragment!.element;
+      } else if (statement is LocalVariablesDeclarationStatement) {
+        for (var variable in statement.declaration.variables) {
+          yield variable.declaredFragment!.element;
         }
       } else if (statement is LocalFunctionDeclaration) {
         yield statement.declaredFragment!.element;

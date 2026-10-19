@@ -159,7 +159,7 @@ test() {
       _isEnabled ? 'int Function()' : 'Object?',
     );
     assertType(
-      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      result.findNode.localVariable('a =').declaredFragment!.element.type,
       _isEnabled ? 'List<int>' : 'List<InvalidType>',
     );
   }
@@ -231,7 +231,7 @@ test() {
       _isEnabled ? 'int' : 'Object?',
     );
     assertType(
-      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      result.findNode.localVariable('a =').declaredFragment!.element.type,
       _isEnabled ? 'List<int>' : 'List<Object?>',
     );
   }
@@ -260,7 +260,7 @@ test() {
       _isEnabled ? 'int' : 'Object?',
     );
     assertType(
-      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      result.findNode.localVariable('a =').declaredFragment!.element.type,
       _isEnabled ? 'List<int>' : 'List<Object?>',
     );
   }
@@ -289,7 +289,7 @@ test() {
       _isEnabled ? 'int' : 'Object?',
     );
     assertType(
-      result.findNode.variableDeclaration('a =').declaredFragment!.element.type,
+      result.findNode.localVariable('a =').declaredFragment!.element.type,
       _isEnabled ? 'List<int>' : 'List<Object?>',
     );
   }

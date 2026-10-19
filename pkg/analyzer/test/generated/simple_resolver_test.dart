@@ -784,7 +784,7 @@ f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
 //          ^^^^
-// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
