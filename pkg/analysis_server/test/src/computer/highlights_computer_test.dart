@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -83,6 +84,92 @@ void f() {
     _check(HighlightRegionType.KEYWORD, 'null');
   }
 
+  Future<void> test_range_comments() async {
+    var code = '''
+// Comment 1
+class A {}
+// Comment 2
+// Comment 3
+class B {}
+''';
+    var start = code.indexOf('// Comment 2');
+    var end = start + '// Comment 2'.length;
+    await _computeHighlights(code, range: SourceRange(start, end - start));
+    _check(HighlightRegionType.COMMENT_END_OF_LINE, '// Comment 2');
+    expect(
+      highlights.any(
+        (h) =>
+            content.substring(h.offset, h.offset + h.length) == '// Comment 1',
+      ),
+      isFalse,
+    );
+    expect(
+      highlights.any(
+        (h) =>
+            content.substring(h.offset, h.offset + h.length) == '// Comment 3',
+      ),
+      isFalse,
+    );
+    expect(
+      highlights.any(
+        (h) => content.substring(h.offset, h.offset + h.length) == 'A',
+      ),
+      isFalse,
+    );
+    expect(
+      highlights.any(
+        (h) => content.substring(h.offset, h.offset + h.length) == 'B',
+      ),
+      isFalse,
+    );
+  }
+
+  Future<void> test_range_pruning() async {
+    var code = '''
+class A {
+  void a() {}
+}
+
+class B {
+  void b() {}
+}
+
+class C {
+  void c() {}
+}
+''';
+    var start = code.indexOf('class B');
+    var end = code.indexOf('class C');
+    await _computeHighlights(code, range: SourceRange(start, end - start));
+    _check(HighlightRegionType.KEYWORD, 'class');
+    _check(HighlightRegionType.CLASS, 'B');
+    _check(HighlightRegionType.INSTANCE_METHOD_DECLARATION, 'b');
+    expect(
+      highlights.any(
+        (h) => content.substring(h.offset, h.offset + h.length) == 'A',
+      ),
+      isFalse,
+    );
+    expect(
+      highlights.any(
+        (h) => content.substring(h.offset, h.offset + h.length) == 'C',
+      ),
+      isFalse,
+    );
+    expect(
+      highlights.any(
+        (h) => content.substring(h.offset, h.offset + h.length) == 'a',
+      ),
+      isFalse,
+    );
+    expect(
+      highlights.any(
+        (h) => content.substring(h.offset, h.offset + h.length) == 'c',
+      ),
+      isFalse,
+    );
+  }
+
   Future<void> test_string_interpolated() async {
     await _computeHighlights(r'''
 class A {
@@ -126,6 +213,7 @@ void f() {
   Future<void> _computeHighlights(
     String content, {
     bool hasErrors = false,
+    SourceRange? range,
   }) async {
     this.content = content = normalizeSource(content);
     var file = newFile(sourcePath, content);
@@ -137,7 +225,7 @@ void f() {
       expect(result.diagnostics, isEmpty);
     }
 
-    var computer = DartUnitHighlightsComputer(result.unit);
+    var computer = DartUnitHighlightsComputer(result.unit, range: range);
     highlights = computer.compute();
   }
 }
