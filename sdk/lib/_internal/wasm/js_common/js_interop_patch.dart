@@ -1234,9 +1234,7 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp);
-            return Reflect.apply(getIndex, wrapper, args);
+            return getIndex.call(wrapper, numProp);
           }
         }
         return Reflect.get(target, prop, receiver);
@@ -1245,9 +1243,7 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp, value);
-            Reflect.apply(setIndex, wrapper, args);
+            setIndex.call(wrapper, numProp, value);
             return true;
           }
         }
@@ -1259,10 +1255,8 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp);
             // Array-like objects are assumed to have indices as properties.
-            return Reflect.apply(hasIndex, wrapper, args);
+            return hasIndex.call(wrapper, numProp);
           }
         }
         return Reflect.has(target, prop);
@@ -1271,9 +1265,7 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp);
-            return Reflect.apply(deleteIndex, wrapper, args);
+            return deleteIndex.call(wrapper, numProp);
           }
         }
         return Reflect.deleteProperty(target, prop);
