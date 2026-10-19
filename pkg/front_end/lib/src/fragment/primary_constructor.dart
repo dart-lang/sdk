@@ -106,9 +106,6 @@ class _PrimaryConstructorBodyBuildingContext(
   @override required final bool shouldFinishFunction,
 }) implements FunctionBodyBuildingContext {
   @override
-  bool get isImplementation => _fragment.declaration.isImplementation;
-
-  @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
       .builder
       .dataForTesting

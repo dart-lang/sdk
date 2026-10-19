@@ -235,19 +235,15 @@ void f(C c) {
 // [diag.unusedLocalVariable] The value of the local variable 'value' isn't used.
 }
 ''');
-    assertResolvedNodeText(result.findNode.variableDeclaration('value ='), r'''
-VariableDeclaration
+    assertResolvedNodeText(result.findNode.localVariable('value ='), r'''
+LocalVariable
   name: value
   equals: =
-  initializer2: UnqualifiedNameExpression
+  initializer: UnqualifiedNameExpression
     name: c
     resolution: VariableReadResolution
       element: <testLibrary>::@function::f::@formalParameter::c
       type: C
-    staticType: C
-  initializer(v1): SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   declaredFragment: isPublic value@64
     element: hasImplicitType isPublic

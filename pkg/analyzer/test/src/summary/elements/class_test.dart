@@ -3590,7 +3590,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    A
+    hasSelfReference A
       reference: <testLibrary>::@typeAlias::A
       firstFragment: #F4
       aliasedType: (C<dynamic>, int)
@@ -3637,7 +3637,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
       aliasedType: dynamic Function(C<dynamic>)
@@ -3761,7 +3761,7 @@ library
             #F4 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: #E1 T
   typeAliases
-    C
+    hasSelfReference C
       reference: <testLibrary>::@typeAlias::C
       firstFragment: #F1
       typeParameters
@@ -3769,7 +3769,7 @@ library
           firstFragment: #F2
           bound: dynamic
       aliasedType: void Function()
-    D
+    hasSelfReference D
       reference: <testLibrary>::@typeAlias::D
       firstFragment: #F3
       typeParameters
@@ -3803,7 +3803,7 @@ library
             #F4 T (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: #E1 T
   typeAliases
-    C
+    hasSelfReference C
       reference: <testLibrary>::@typeAlias::C
       firstFragment: #F1
       typeParameters
@@ -3811,7 +3811,7 @@ library
           firstFragment: #F2
           bound: dynamic
       aliasedType: List<T>
-    D
+    hasSelfReference D
       reference: <testLibrary>::@typeAlias::D
       firstFragment: #F3
       typeParameters
@@ -4143,11 +4143,11 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F4
       aliasedType: dynamic Function(dynamic)
-    G
+    hasSelfReference G
       reference: <testLibrary>::@typeAlias::G
       firstFragment: #F5
       aliasedType: dynamic Function(dynamic)

@@ -19,7 +19,7 @@ class TestEnvironment implements ObjectPropertyLookup {
         _sealedClassOperations,
       );
 
-  TestEnvironment() {
+  new() {
     _addClass(_Class.Object);
     _addClass(_Class.Never);
     _addClass(_Class.Bool);
@@ -158,7 +158,7 @@ class _Class {
   final String name;
   final bool isSealed;
 
-  const _Class(this.name, {this.isSealed = false});
+  const new(this.name, {this.isSealed = false});
 
   @override
   String toString() => name;
@@ -169,7 +169,7 @@ class _Class {
 }
 
 class _EnumClass extends _Class {
-  _EnumClass(super.name, {required super.isSealed});
+  new(super.name, {required super.isSealed});
 }
 
 // TODO(johnniwinther): Support testing of enums elements.
@@ -181,7 +181,7 @@ typedef _EnumElementValue = Object;
 class _InterfaceType implements _Type {
   final _Class cls;
 
-  const _InterfaceType(this.cls);
+  const new(this.cls);
 
   @override
   int get hashCode => cls.hashCode;
@@ -199,7 +199,7 @@ class _InterfaceType implements _Type {
 class _NullableType implements _Type {
   final _Type type;
 
-  const _NullableType(this.type);
+  const new(this.type);
 
   @override
   int get hashCode => type.hashCode;
@@ -218,7 +218,7 @@ class _RecordType implements _Type {
   final List<_Type> positional;
   final Map<Key, _Type> named;
 
-  _RecordType(this.positional, this.named);
+  new(this.positional, this.named);
 
   @override
   int get hashCode => Object.hash(
@@ -275,7 +275,7 @@ class _RecordType implements _Type {
 class _TypeOperations implements TypeOperations<_Type> {
   final TestEnvironment env;
 
-  _TypeOperations(this.env);
+  new(this.env);
 
   @override
   _Type get boolType => _Type.Bool;
@@ -514,7 +514,7 @@ class _EnumOperations
 class _SealedClassOperations implements SealedClassOperations<_Type, _Class> {
   final TestEnvironment env;
 
-  _SealedClassOperations(this.env);
+  new(this.env);
 
   @override
   List<_Class> getDirectSubclasses(_Class sealedClass) {
@@ -551,9 +551,5 @@ class _ExhaustivenessCache
           _EnumElement,
           _EnumElementValue
         > {
-  _ExhaustivenessCache(
-    super.typeOperations,
-    super.enumOperations,
-    super.sealedClassOperations,
-  );
+  new(super.typeOperations, super.enumOperations, super.sealedClassOperations);
 }

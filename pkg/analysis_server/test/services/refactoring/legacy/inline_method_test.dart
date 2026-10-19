@@ -693,6 +693,120 @@ void f() {
 ''');
   }
 
+  Future<void> test_function_expressionFunctionBody_introducesVariable() async {
+    await indexTestUnit(r'''
+int Function() ^task(int value) => () => value;
+class C {
+  final int _value;
+  const C(this._value);
+  int Function() make() => task(_value);
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+class C {
+  final int _value;
+  const C(this._value);
+  int Function() make() => ((int value) => () => value)(_value);
+}
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_awaitArgument() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+Future<int> next() async => 1;
+Future<int> f() async => twice(await next());
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+Future<int> next() async => 1;
+Future<int> f() async => ((int value) => value + value)(await next());
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_blockBody() async {
+    await indexTestUnit(r'''
+int ^twice(int value) {
+  return value + value;
+}
+int next() => 1;
+int f() => twice(next());
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+int f() => (int value) {
+  return value + value;
+}(next());
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_generic() async {
+    await indexTestUnit(r'''
+T ^identity<T>(T value) => value;
+int next() => 1;
+int f() => identity<int>(next());
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+int f() => (<T>(T value) => value)<int>(next());
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_nestedClosure() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+int next() => 1;
+int Function() f() {
+  return () => twice(next());
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+int Function() f() {
+  return () => ((int value) => value + value)(next());
+}
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_shortCircuit() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+int next() => 1;
+bool f(bool enabled) => enabled && twice(next()) > 0;
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+bool f(bool enabled) => enabled && ((int value) => value + value)(next()) > 0;
+''');
+  }
+
+  Future<void> test_function_fieldInitializer_introducesVariable() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+int next() => 1;
+class C {
+  final int value = twice(next());
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+class C {
+  final int value = ((int value) => value + value)(next());
+}
+''');
+  }
+
   Future<void> test_function_hasReturn_assign() async {
     await indexTestUnit(r'''
 ^test(a, b) {

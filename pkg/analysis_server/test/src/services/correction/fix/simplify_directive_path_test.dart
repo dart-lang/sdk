@@ -36,7 +36,7 @@ export 'b.dart';
 }
 
 @reflectiveTest
-class SimplifyDirectivePathTest extends FixProcessorLintTest {
+class SimplifyDirectivePathTest extends FixProcessorForBuiltInLintRuleTest {
   /// Here we make `testFilePath` writable for each test case. Many test
   /// cases are testing different test locations, and choose a different test
   /// file path.

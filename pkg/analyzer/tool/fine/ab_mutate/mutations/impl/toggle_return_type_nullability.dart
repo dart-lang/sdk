@@ -15,11 +15,7 @@ class ToggleReturnTypeNullabilityMutation extends Mutation {
   final int retOffset;
   final int retLength;
 
-  ToggleReturnTypeNullabilityMutation({
-    required super.path,
-    required this.retOffset,
-    required this.retLength,
-  });
+  new({required super.path, required this.retOffset, required this.retLength});
 
   @override
   MutationKind get kind => MutationKind.toggleReturnTypeNullability;

@@ -40,14 +40,14 @@ class ApiSignature {
   int _offset = 0;
 
   /// Create an [ApiSignature] which is ready to accept data.
-  ApiSignature() {
+  new() {
     addInt(_version);
   }
 
   /// For testing only: create an [ApiSignature] which doesn't include any
   /// version information.  This makes it easier to unit tests, since the data
   /// is stable even if [_version] is changed.
-  ApiSignature.unversioned();
+  new unversioned();
 
   /// Collect a boolean value.
   void addBool(bool b) {
@@ -205,11 +205,11 @@ class Hash {
   final Uint8List _bytes;
   late final int _hashCode = const ListEquality<int>().hash(_bytes);
 
-  factory Hash.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return Hash._(reader.readUint8List());
   }
 
-  Hash._(this._bytes);
+  new _(this._bytes);
 
   @override
   int get hashCode => _hashCode;

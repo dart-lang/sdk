@@ -763,7 +763,9 @@ void SemiSpace::WriteProtect(bool read_only) {
 
 void SemiSpace::AddList(Page* head, Page* tail) {
   for (Page* page = head; page != nullptr; page = page->next()) {
-    AddFree(page);
+    uword top, end;
+    page->AllocateAll(&top, &end);
+    AddFreeLocked(top, end - top);
   }
 
   if (head == nullptr) {
@@ -778,18 +780,22 @@ void SemiSpace::AddList(Page* head, Page* tail) {
   tail_ = tail;
 }
 
-// Avoid spending time looking through a list of small sizes.
-static constexpr intptr_t kMinTlabReuseSize = KB;
+void SemiSpace::AddSweepResultsLocked(intptr_t size,
+                                      FreeListElement* head,
+                                      FreeListElement* tail) {
+  freed_in_words_ += (size >> kWordSizeLog2);
+  ASSERT(freed_in_words_ >= 0);
+  ASSERT(freed_in_words_ < capacity_in_words_ || freed_in_words_ == 0);
 
-void SemiSpace::AddFree(Page* page) {
-  ASSERT(page->free_next() == nullptr);
-  intptr_t available =
-      (page->end() - kAllocationRedZoneSize) - page->object_end();
-  if (available < kMinTlabReuseSize) {
+  if (head == nullptr) {
     return;
   }
-  page->set_free_next(free_head_);
-  free_head_ = page;
+  if (free_ == nullptr) {
+    free_ = head;
+    return;
+  }
+  tail->set_next(free_);
+  free_ = head;
 }
 
 // The initial estimate of how many words we can scavenge per microsecond (usage
@@ -1162,7 +1168,7 @@ bool Scavenger::ShouldPerformIdleScavenge(int64_t deadline) {
   NoSafepointScope no_safepoint;
 
   // TODO(rmacnak): Investigate collecting a history of idle period durations.
-  intptr_t used_in_words = UsedInWords() + freed_in_words_;
+  intptr_t used_in_words = UsedInWords();
   intptr_t external_in_words = ExternalInWords();
   // Normal reason: new space is getting full.
   bool for_new_space = (used_in_words >= idle_scavenge_threshold_in_words_) ||
@@ -1737,10 +1743,22 @@ bool ScavengerVisitor::ForwardOrSetNullIfCollected(ObjectPtr parent,
   return true;
 }
 
+void Scavenger::MakeIterable() const {
+  heap_->isolate_group()->thread_registry()->ForEachThread([](Thread* thread) {
+    uword top = thread->top();
+    uword end = thread->true_end();
+    intptr_t size = end - top;
+    if (size != 0) {
+      FreeListElement::AsElementNew(top, size);
+    }
+  });
+}
+
 void Scavenger::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask));
+  MakeIterable();
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
     page->VisitObjectPointers(visitor);
   }
@@ -1750,6 +1768,7 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kMarkerTask) ||
          (Thread::Current()->task_kind() == Thread::kIncrementalCompactorTask));
+  MakeIterable();
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
     page->VisitObjects(visitor);
   }
@@ -1784,36 +1803,101 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   }
 
   MutexLocker ml(&space_lock_);
-  Page* prev = nullptr;
-  for (Page* page = to_->free_head(); page != nullptr;
-       page = page->free_next()) {
-    ASSERT(page->owner() == nullptr);
-    intptr_t available =
-        (page->end() - kAllocationRedZoneSize) - page->object_end();
-    if (available >= min_size) {
-      if (prev == nullptr) {
-        to_->set_free_head(page->free_next());
-      } else {
-        prev->set_free_next(page->free_next());
-      }
-      page->set_free_next(nullptr);
-      page->Acquire(thread);
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-      thread->heap_sampler().HandleNewTLAB(remaining, /*is_first_tlab=*/false);
-#endif
-      return;
-    }
-    prev = page;
-  }
+  to_->TryAllocateNewTLABLocked(thread, min_size);
 
-  Page* page = to_->TryAllocatePageLocked(true);
-  if (page == nullptr) {
-    return;
-  }
-  page->Acquire(thread);
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().HandleNewTLAB(remaining, is_first_tlab);
 #endif
+}
+
+void SemiSpace::TryAllocateNewTLABLocked(Thread* thread, intptr_t alloc_size) {
+  FreeListElement* previous = nullptr;
+  FreeListElement* current = free_;
+  while (current != nullptr) {
+    FreeListElement* next = current->next();
+    intptr_t current_size = current->HeapSize();
+    if (current_size >= alloc_size) {
+      if (previous == nullptr) {
+        free_ = next;
+      } else {
+        previous->set_next(next);
+      }
+      freed_in_words_ -= (current_size >> kWordSizeLog2);
+      ASSERT(freed_in_words_ >= 0);
+      ASSERT(freed_in_words_ < capacity_in_words_);
+
+      if (alloc_size < Scavenger::kTlabSize) {
+        alloc_size = Utils::Minimum(current_size, Scavenger::kTlabSize);
+      }
+
+      uword top = reinterpret_cast<uword>(current);
+      uword end = top + alloc_size;
+      thread->set_top(top);
+      thread->set_end(end);
+      thread->set_true_end(end);
+
+      AddFreeLocked(end, current_size - alloc_size);
+      return;
+    }
+
+    previous = current;
+    current = next;
+  }
+
+  Page* page = TryAllocatePageLocked(true);
+  if (page == nullptr) {
+    return;
+  }
+
+  uword top, page_end;
+  page->AllocateAll(&top, &page_end);
+  intptr_t current_size = page_end - top;
+  ASSERT(alloc_size <= current_size);
+  if (alloc_size < Scavenger::kTlabSize) {
+    alloc_size = Utils::Minimum(current_size, Scavenger::kTlabSize);
+  }
+  ASSERT(alloc_size <= current_size);
+
+  uword end = top + alloc_size;
+  thread->set_top(top);
+  thread->set_end(end);
+  thread->set_true_end(end);
+
+  AddFreeLocked(end, current_size - alloc_size);
+}
+
+intptr_t SemiSpace::AbandonRemainingTLABLocked(Thread* thread) {
+  uword top = thread->top();
+  uword end = thread->true_end();
+  ASSERT(top != 0);
+  ASSERT(end >= top);
+  thread->set_top(0);
+  thread->set_end(0);
+  thread->set_true_end(0);
+  AddFreeLocked(top, end - top);
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
+#endif
+
+  // Wrong. Need to remember starting top.
+  return Utils::Maximum((uword)0, Scavenger::kTlabSize - (end - top));
+}
+
+void SemiSpace::AddFreeLocked(uword start, intptr_t size) {
+  ASSERT(size >= 0);
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  if (size != 0) {
+    // Always make iterable.
+    FreeListElement* remaining = FreeListElement::AsElementNew(start, size);
+    // Abandoned space also counts as free / doesn't count as used.
+    freed_in_words_ += (size >> kWordSizeLog2);
+    ASSERT(freed_in_words_ >= 0);
+    ASSERT(freed_in_words_ < capacity_in_words_);
+    if (size >= Scavenger::kMinTlabReuseSize) {
+      remaining->set_next(free_);
+      free_ = remaining;
+    }
+  }
 }
 
 void Scavenger::AbandonRemainingTLABForDebugging(Thread* thread) {
@@ -1832,15 +1916,8 @@ void Scavenger::AbandonRemainingTLABForDebugging(Thread* thread) {
 intptr_t Scavenger::AbandonRemainingTLAB(Thread* thread) {
   if (thread->top() == 0) return 0;
 
-  Page* page = Page::Of(thread->top() - 1);
-  intptr_t allocated;
-  {
-    MutexLocker ml(&space_lock_);
-    allocated = page->Release(thread);
-    to_->AddFree(page);
-  }
-  ASSERT(thread->top() == 0);
-  return allocated;
+  MutexLocker ml(&space_lock_);
+  return to_->AbandonRemainingTLABLocked(thread);
 }
 
 uword ScavengerVisitor::TryAllocateCopySlow(intptr_t size) {
@@ -1886,12 +1963,11 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   abort_ = false;
   root_slices_started_ = 0;
   weak_slices_started_ = 0;
-  freed_in_words_ = 0;
+  heap_->isolate_group()->AbandonRemainingTLABs(this);  // Before usage.
   intptr_t abandoned_bytes = 0;  // TODO(rmacnak): Count fragmentation?
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words = 0;
   for (Page* page = to_->head(); page != nullptr; page = page->next()) {
-    page->Release();
     if (early_tenure_) {
       page->EarlyTenure();
     }
@@ -1899,7 +1975,12 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   }
   SemiSpace* from = Prologue(reason);
 
-  const intptr_t num_tasks = NumScavengeWorkers();
+  intptr_t num_tasks = NumScavengeWorkers();
+  intptr_t max_pages = to_->gc_threshold_in_words() / Page::kPageSizeInWords;
+  ASSERT(max_pages >= 1);
+  if (num_tasks > max_pages) {
+    num_tasks = max_pages;
+  }
 
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   RelaxedAtomic<uintptr_t> num_busy = 0;

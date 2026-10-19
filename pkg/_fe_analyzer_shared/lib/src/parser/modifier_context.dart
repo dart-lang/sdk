@@ -77,7 +77,7 @@ class ModifierContext {
   // Set `true` when parsing modifiers after the `factory` token.
   bool _afterFactory = false;
 
-  ModifierContext(this.parser);
+  new(this.parser);
 
   set staticOrCovariant(Token? staticOrCovariant) {
     if (staticOrCovariant == null) {

@@ -179,7 +179,7 @@ IfStatement
         expression2: BooleanLiteral
           literal: true
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -211,11 +211,11 @@ IfStatement
         expression2: BooleanLiteral
           literal: true
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -243,7 +243,7 @@ SwitchPatternCase
       expression2: BooleanLiteral
         literal: true
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -329,7 +329,7 @@ IfStatement
         expression2: IntegerLiteral
           literal: 0
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -353,7 +353,7 @@ SwitchPatternCase
       expression2: IntegerLiteral
         literal: 0
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -463,7 +463,7 @@ IfStatement
         expression2: BooleanLiteral
           literal: true
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -495,7 +495,7 @@ SwitchPatternCase
       expression2: BooleanLiteral
         literal: true
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -593,7 +593,7 @@ IfStatement
         type: NamedType
           name: int
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -621,7 +621,7 @@ SwitchPatternCase
       type: NamedType
         name: int
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -3404,46 +3404,49 @@ f() {
     var parseResult = parseTestCodeWithDiagnostics('''
 f(x) => switch(x) {} + () => 0;
 ''');
-    var node = parseResult.findNode.functionDeclaration('f');
+    var node = parseResult.findNode.topLevelFunctionDeclaration('f');
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: x
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: BinaryOperatorInvocation
+      leftOperand: SwitchExpression
+        switchKeyword: switch
+        leftParenthesis: (
+        expression2: ParsedUnqualifiedName
+          name: x
+        rightParenthesis: )
+        leftBracket: {
+        rightBracket: }
+      operator: +
+      rightOperand: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+      binaryOperator: add
+    semicolon: ;
+V1: FunctionDeclaration
   name: f
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: x
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: x
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: BinaryOperatorInvocation
-        leftOperand: SwitchExpression
-          switchKeyword: switch
-          leftParenthesis: (
-          expression2: ParsedUnqualifiedName
-            name: x
-          expression(v1): SimpleIdentifier
-            token: x
-          rightParenthesis: )
-          leftBracket: {
-          rightBracket: }
-        operator: +
-        rightOperand: FunctionExpression
-          parameters: FormalParameterList
-            leftParenthesis: (
-            rightParenthesis: )
-          body: ExpressionFunctionBody
-            functionDefinition: =>
-            expression2: IntegerLiteral
-              literal: 0
-        binaryOperator: add
-      expression(v1): BinaryExpression
+      expression: BinaryExpression
         leftOperand: SwitchExpression
           switchKeyword: switch
           leftParenthesis: (
@@ -3564,7 +3567,7 @@ IfStatement
               expression: IntegerLiteral
                 literal: 0
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -3823,7 +3826,7 @@ SwitchPatternCase
             expression: IntegerLiteral
               literal: 0
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -4590,7 +4593,7 @@ SwitchPatternCase
           rightParenthesis: )
       rightBracket: ] <synthetic>
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -5716,7 +5719,7 @@ SwitchPatternCase
               token: <empty> <synthetic>
       rightBracket: }
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -5759,7 +5762,7 @@ SwitchPatternCase
         rightBracket: } <synthetic>
       rightParenthesis: )
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -6951,7 +6954,7 @@ SwitchPatternCase
       type: NamedType
         name: Object
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -7188,7 +7191,7 @@ SwitchPatternCase
             rightParenthesis: )
       rightParenthesis: ) <synthetic>
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -7728,7 +7731,7 @@ ForStatement
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -7770,7 +7773,7 @@ ForStatement
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -7843,7 +7846,7 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -7914,7 +7917,7 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -7945,7 +7948,7 @@ void f() {
     var node = parseResult.findNode.directAssignment('v2 =');
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: v2
   operator: =
   value: PatternAssignment
@@ -8156,7 +8159,23 @@ ClassDeclaration
     typeName: C
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
+      FieldsDeclaration
+        constFinalOrVarKeyword: var
+        fields
+          Field
+            name: <empty> <synthetic>
+            equals: =
+            initializer: RecordLiteral
+              leftParenthesis: (
+              fields2
+                IntegerLiteral
+                  literal: 0
+                IntegerLiteral
+                  literal: 1
+              rightParenthesis: )
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: var
@@ -8164,9 +8183,9 @@ ClassDeclaration
             VariableDeclaration
               name: <empty> <synthetic>
               equals: =
-              initializer2: RecordLiteral
+              initializer: RecordLiteral
                 leftParenthesis: (
-                fields2
+                fields
                   IntegerLiteral
                     literal: 0
                   IntegerLiteral
@@ -8190,6 +8209,22 @@ var (a, b) = (0, 1);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+          equals: =
+          initializer: RecordLiteral
+            leftParenthesis: (
+            fields2
+              IntegerLiteral
+                literal: 0
+              IntegerLiteral
+                literal: 1
+            rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -8197,9 +8232,9 @@ CompilationUnit
           VariableDeclaration
             name: <empty> <synthetic>
             equals: =
-            initializer2: RecordLiteral
+            initializer: RecordLiteral
               leftParenthesis: (
-              fields2
+              fields
                 IntegerLiteral
                   literal: 0
                 IntegerLiteral
@@ -12107,10 +12142,7 @@ SwitchExpression
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(condition, when, otherwise) => condition as bool ? when : otherwise;
 ''');
-    var node = parseResult.findNode
-        .functionDeclaration('=>')
-        .functionExpression
-        .body;
+    var node = parseResult.findNode.topLevelFunctionDeclaration('=>').body;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   functionDefinition: =>

@@ -936,7 +936,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // AllocateArrayABI::kLengthReg: array length as Smi).
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
-    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -995,20 +994,17 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ leal(EBX, FieldAddress(AllocateArrayABI::kResultReg, EBX, TIMES_1, 0));
     __ leal(EDI, FieldAddress(AllocateArrayABI::kResultReg,
                               target::Array::header_size()));
-    Label loop;
+    Label loop, done;
+    __ cmpl(EDI, EBX);
+    __ j(UNSIGNED_GREATER_EQUAL, &done);
     __ Bind(&loop);
-    for (intptr_t offset = 0; offset < target::kObjectAlignment;
-         offset += target::kWordSize) {
-      // No generational barrier needed, since we are storing null.
-      __ StoreObjectIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
-                                        Address(EDI, offset), NullObject());
-    }
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ addl(EDI, Immediate(target::kObjectAlignment));
+    // No generational barrier needed, since we are storing null.
+    __ StoreObjectIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
+                                      Address(EDI, 0), NullObject());
+    __ addl(EDI, Immediate(target::kWordSize));
     __ cmpl(EDI, EBX);
     __ j(UNSIGNED_LESS, &loop);
-    __ WriteAllocationCanary(EBX);  // Fix overshoot.
+    __ Bind(&done);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1330,7 +1326,6 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(ABOVE_EQUAL, slow_case, kJumpLength);
-  __ CheckAllocationCanary(EAX);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1767,7 +1762,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     // EBX: potential next object start.
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
-    __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
 
     // AllocateObjectABI::kResultReg: new object start (untagged).
@@ -1810,19 +1804,16 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       // ECX: next word to be initialized.
       // AllocateObjectABI::kTypeArgumentsReg: new object type arguments
       //                                       (if is_cls_parameterized).
-      Label loop;
+      Label loop, done;
+      __ cmpl(ECX, EBX);
+      __ j(UNSIGNED_GREATER_EQUAL, &done);
       __ Bind(&loop);
-      for (intptr_t offset = 0; offset < target::kObjectAlignment;
-           offset += target::kWordSize) {
-        __ StoreObjectIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
-                                          Address(ECX, offset), NullObject());
-      }
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-      __ addl(ECX, Immediate(target::kObjectAlignment));
+      __ StoreObjectIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
+                                        Address(ECX, 0), NullObject());
+      __ addl(ECX, Immediate(target::kWordSize));
       __ cmpl(ECX, EBX);
       __ j(UNSIGNED_LESS, &loop);
-      __ WriteAllocationCanary(EBX);  // Fix overshoot.
+      __ Bind(&done);
     }
     if (is_cls_parameterized) {
       // AllocateObjectABI::kResultReg: new object (tagged).
@@ -3366,7 +3357,6 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* EDI: allocation size. */
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &call_runtime);
-    __ CheckAllocationCanary(EAX);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3412,18 +3402,15 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ leal(EDI, FieldAddress(EAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         EAX, FieldAddress(EAX, target::PointerBase::data_offset()), EDI);
-    Label loop;
+    Label loop, done;
+    __ cmpl(EDI, EBX);
+    __ j(UNSIGNED_GREATER_EQUAL, &loop);
     __ Bind(&loop);
-    for (intptr_t offset = 0; offset < target::kObjectAlignment;
-         offset += target::kWordSize) {
-      __ movl(Address(EDI, offset), ECX);
-    }
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ addl(EDI, Immediate(target::kObjectAlignment));
+    __ movl(Address(EDI, 0), ECX);
+    __ addl(EDI, Immediate(target::kWordSize));
     __ cmpl(EDI, EBX);
     __ j(UNSIGNED_LESS, &loop);
-    __ WriteAllocationCanary(EBX);  // Fix overshoot.
+    __ Bind(&done);
 
     __ ret();
 

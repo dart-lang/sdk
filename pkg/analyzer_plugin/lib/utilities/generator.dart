@@ -20,7 +20,7 @@ class GeneratorResult<T extends ResponseResult?> {
 
   /// Initialize a newly created generator result with the given [result] and
   /// [notifications].
-  GeneratorResult(this.result, this.notifications);
+  new(this.result, this.notifications);
 
   /// Use the given communications [channel] to send the notifications to the
   /// server.

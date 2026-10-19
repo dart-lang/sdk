@@ -630,6 +630,104 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_assignmentToConst() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_const: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_const: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToFinal() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_final: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_final: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToFinalNoSetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_final_no_setter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_final_no_setter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToFunction() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_function: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_function: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToMethod() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_method: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_method: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToType() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_type: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_type: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_dotShorthandUndefinedMember() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    dot_shorthand_undefined_member: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    dot_shorthand_undefined_member: ignore
+''');
+  }
+
   test_analyzer_errors_removed_pluginsInInnerOptions() {
     // TODO(scheglov): Remove this test together with the
     // `PLUGINS_IN_INNER_OPTIONS` entry in `_DiagnosticOptions.removedCodeNames`
@@ -647,6 +745,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_privateSetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    private_setter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    private_setter: ignore
+''');
+  }
+
   test_analyzer_errors_removed_undefinedAnnotation() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -658,6 +770,146 @@ analyzer:
 AnalysisOptionsImpl
   errorProcessors
     undefined_annotation: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedEnumConstant() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_enum_constant: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_enum_constant: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedExtensionGetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_extension_getter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_extension_getter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedExtensionMethod() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_extension_method: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_extension_method: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedExtensionSetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_extension_setter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_extension_setter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedFunction() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_function: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_function: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedGetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_getter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_getter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedIdentifier() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_identifier: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_identifier: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedMethod() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_method: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_method: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedPrefixedName() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_prefixed_name: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_prefixed_name: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedSetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_setter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_setter: ignore
 ''');
   }
 
@@ -5251,12 +5503,11 @@ plugins:
 }
 
 class DeprecatedLint extends TestLintRule {
-  DeprecatedLint()
-    : super(name: 'deprecated_lint', state: RuleState.deprecated());
+  new() : super(name: 'deprecated_lint', state: RuleState.deprecated());
 }
 
 class DeprecatedLintWithReplacement extends TestLintRule {
-  DeprecatedLintWithReplacement()
+  new()
     : super(
         name: 'deprecated_lint_with_replacement',
         state: RuleState.deprecated(replacedBy: 'replacing_lint'),
@@ -5264,7 +5515,7 @@ class DeprecatedLintWithReplacement extends TestLintRule {
 }
 
 class DeprecatedSince3Lint extends TestLintRule {
-  DeprecatedSince3Lint()
+  new()
     : super(
         name: 'deprecated_since_3_lint',
         state: RuleState.deprecated(since: dart3),
@@ -5272,25 +5523,25 @@ class DeprecatedSince3Lint extends TestLintRule {
 }
 
 class ReplacingLint extends TestLintRule {
-  ReplacingLint() : super(name: 'replacing_lint');
+  new() : super(name: 'replacing_lint');
 }
 
 class RuleNeg extends TestLintRule {
-  RuleNeg() : super(name: 'rule_neg');
+  new() : super(name: 'rule_neg');
 
   @override
   List<String> get incompatibleRules => ['rule_pos'];
 }
 
 class RulePos extends TestLintRule {
-  RulePos() : super(name: 'rule_pos');
+  new() : super(name: 'rule_pos');
 
   @override
   List<String> get incompatibleRules => ['rule_neg'];
 }
 
 class StableLint extends TestLintRule {
-  StableLint() : super(name: 'stable_lint', state: RuleState.stable());
+  new() : super(name: 'stable_lint', state: RuleState.stable());
 }
 
 abstract class TestLintRule extends AnalysisRule {
@@ -5301,7 +5552,7 @@ abstract class TestLintRule extends AnalysisRule {
     uniqueName: 'LintCode.lint_code',
   );
 
-  TestLintRule({required super.name, super.state}) : super(description: '');
+  new({required super.name, super.state}) : super(description: '');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -5315,9 +5566,9 @@ class TestRule extends AnalysisRule {
     uniqueName: 'LintCode.fantastic_test_rule',
   );
 
-  TestRule() : super(name: 'fantastic_test_rule', description: '');
+  new() : super(name: 'fantastic_test_rule', description: '');
 
-  TestRule.withName(String name) : super(name: name, description: '');
+  new withName(String name) : super(name: name, description: '');
 
   @override
   DiagnosticCode get diagnosticCode => code;

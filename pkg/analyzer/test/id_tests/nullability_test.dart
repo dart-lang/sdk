@@ -33,7 +33,7 @@ main(List<String> args) {
 }
 
 class _NullabilityDataComputer extends DataComputer<String> {
-  const _NullabilityDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator =>
@@ -57,7 +57,7 @@ class _NullabilityDataComputer extends DataComputer<String> {
 class _NullabilityDataExtractor extends AstDataExtractor<String> {
   final TypeSystem _typeSystem;
 
-  _NullabilityDataExtractor(super.uri, super.actualMap, this._typeSystem);
+  new(super.uri, super.actualMap, this._typeSystem);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
@@ -94,7 +94,7 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
 }
 
 class _NullabilityDataInterpreter implements DataInterpreter<String> {
-  const _NullabilityDataInterpreter();
+  const new();
 
   @override
   String getText(String actualData, [String? indentation]) => actualData;

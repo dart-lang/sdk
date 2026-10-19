@@ -22,6 +22,9 @@ bool _isTestee() {
   return io.Platform.environment.containsKey(_TESTEE_ENV_KEY);
 }
 
+/// Whether to launch the testee using `dart run --resident`.
+const bool useResidentCompiler = bool.fromEnvironment('USE_RESIDENT_COMPILER');
+
 /// The extra arguments to use
 const List<String> extraDebuggingArgs = [];
 
@@ -309,13 +312,14 @@ class _ServiceTesterRunner {
     bool pauseOnUnhandledExceptions = false,
     bool testeeControlsServer = false,
     bool useAuthToken = false,
-    bool launchTesteeWithDartRunResident = false,
+    bool? launchTesteeWithDartRunResident,
     bool allowForNonZeroExitCode = false,
     VmServiceFactory serviceFactory = VmService.defaultFactory,
   }) async {
+    final useResident = launchTesteeWithDartRunResident ?? useResidentCompiler;
     final tempDir = io.Directory.systemTemp.createTempSync();
     final String? residentCompilerInfoFilePath;
-    if (launchTesteeWithDartRunResident) {
+    if (useResident) {
       residentCompilerInfoFilePath =
           '${tempDir.path}${io.Platform.pathSeparator}'
           'resident_compiler_info.txt';
@@ -402,7 +406,7 @@ $st
     });
 
     final exitCode = await process.exitCode;
-    if (launchTesteeWithDartRunResident) {
+    if (useResident) {
       print(
         '** Shutting down resident frontend compiler associated with '
         '$residentCompilerInfoFilePath that was used by VM '
@@ -505,7 +509,7 @@ Future<void> runIsolateTests(
   required Future<void> Function(List<String> args) testeeMain,
 
   /// If [true], `dart run --resident` will be used to launch the testee.
-  bool launchTesteeWithDartRunResident = false,
+  bool? launchTesteeWithDartRunResident,
   bool allowForNonZeroExitCode = false,
   List<String>? experiments,
   List<String>? extraArgs,

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToForEachTest extends FixProcessorLintTest {
+class ConvertToForEachTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToForEach;
 

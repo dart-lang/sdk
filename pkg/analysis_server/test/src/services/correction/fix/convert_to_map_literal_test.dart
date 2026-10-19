@@ -33,7 +33,7 @@ var m2 = <String, int>{};
 }
 
 @reflectiveTest
-class ConvertToMapLiteralTest extends FixProcessorLintTest {
+class ConvertToMapLiteralTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToMapLiteral;
 

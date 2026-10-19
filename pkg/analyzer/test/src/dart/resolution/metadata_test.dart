@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -15,6 +16,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MetadataResolutionTest);
+    defineReflectiveTests(MetadataResolutionTest_AnonymousMethodsExperiment);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -939,6 +941,190 @@ Annotation
         (e) => e.diagnosticCode,
       ),
       [diag.constWithNonConstantArgument],
+    );
+  }
+
+  test_value_class_unnamedConstructor_undefinedNameArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int a;
+  final int b;
+  const A(this.a, this.b);
+}
+
+@A(undefined, 0)
+// ^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'undefined'.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: undefined
+          resolution: InvalidNamedReadResolution
+            recoveryElement: <null>
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          staticType: InvalidType
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          staticType: int
+      arguments(v1)
+        SimpleIdentifier
+          token: undefined
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          element: <null>
+          staticType: InvalidType
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          staticType: int
+      rightParenthesis: )
+    staticType: A
+  name: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: undefined
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        element: <null>
+        staticType: InvalidType
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+
+    // The value and the evaluation error are both available to clients,
+    // although the constant verifier doesn't report the error.
+    _assertAnnotationValueText(node, r'''
+A
+  a: int null
+  b: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int null
+      1: int 0
+''');
+    expect(
+      node.elementAnnotation!.constantEvaluationErrors!.map(
+        (e) => e.diagnosticCode,
+      ),
+      [diag.constWithNonConstantArgument],
+    );
+  }
+
+  test_value_class_unnamedConstructor_undefinedNameArgument_deadBranch() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+@A(true ? 0 : undefined)
+//            ^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'undefined'.
+// [diag.deadCode] Dead code.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ConditionalExpression
+          condition2: BooleanLiteral
+            literal: true
+            staticType: bool
+          question: ?
+          thenExpression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          colon: :
+          elseExpression2: UnqualifiedNameExpression
+            name: undefined
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          elseExpression(v1): SimpleIdentifier
+            token: undefined
+            element: <null>
+            staticType: InvalidType
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          staticType: InvalidType
+      rightParenthesis: )
+    staticType: A
+  name: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      ConditionalExpression
+        condition: BooleanLiteral
+          literal: true
+          staticType: bool
+        question: ?
+        thenExpression: IntegerLiteral
+          literal: 0
+          staticType: int
+        colon: :
+        elseExpression: SimpleIdentifier
+          token: undefined
+          element: <null>
+          staticType: InvalidType
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: InvalidType
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+
+    // The evaluation error is available to clients, although the constant
+    // verifier doesn't report it.
+    _assertAnnotationValueText(node, r'''
+A
+  a: int null
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int null
+''');
+    expect(
+      node.elementAnnotation!.constantEvaluationErrors!.map(
+        (e) => e.diagnosticCode,
+      ),
+      [diag.invalidConstant],
     );
   }
 
@@ -2785,7 +2971,7 @@ Annotation
   test_value_invalid_undefinedName() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 @undefined
-// [diag.undefinedIdentifier][column 2][length 9] Undefined name 'undefined'.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 9] Undefined name 'undefined' used as an annotation.
 void f() {}
 ''');
 
@@ -4518,5 +4704,40 @@ int 42
   ) {
     var value = annotation.computeConstantValue();
     assertDartObjectText(value, expected);
+  }
+}
+
+@reflectiveTest
+class MetadataResolutionTest_AnonymousMethodsExperiment
+    extends PubPackageResolutionTest {
+  @override
+  List<Feature> get experimentalFeatures => [Feature.anonymous_methods];
+
+  test_location_anonymousMethod_formalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 42;
+
+void f() {
+  0.(@foo p) => p;
+}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  name: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: null
+  element: <testLibrary>::@getter::foo
+''');
   }
 }

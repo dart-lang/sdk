@@ -17,7 +17,7 @@ class DartOccurrencesRequestImpl implements DartOccurrencesRequest {
   final ResolvedUnitResult result;
 
   /// Initialize a newly create request with the given data.
-  DartOccurrencesRequestImpl(this.resourceProvider, this.result);
+  new(this.resourceProvider, this.result);
 
   @override
   String get path => result.path;
@@ -29,7 +29,7 @@ class OccurrencesCollectorImpl implements OccurrencesCollector {
   Map<Element, List<int>> occurrenceLocations = <Element, List<int>>{};
 
   /// Initialize a newly created collector.
-  OccurrencesCollectorImpl();
+  new();
 
   /// Return the list of occurrences that have been collected.
   List<Occurrences> get occurrences {

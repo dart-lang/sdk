@@ -17,7 +17,7 @@ void explicitNeverQuestionType(Object x, bool b) {
   // Since the read of `y` was reachable, `x` is not promoted to `int`.
   x.isEven;
   //^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
 }
 

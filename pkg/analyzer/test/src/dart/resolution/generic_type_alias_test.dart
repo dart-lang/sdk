@@ -202,7 +202,7 @@ typedef F<T> = ;
 void f() {
   F.a;
 //  ^
-// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -217,7 +217,7 @@ import 'a.dart' as p;
 void f() {
   p.F.a;
 //    ^
-// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a' isn't defined for the type 'Type'.
 }
 ''');
   }

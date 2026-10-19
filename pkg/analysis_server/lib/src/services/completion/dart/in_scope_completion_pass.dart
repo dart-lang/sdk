@@ -4627,8 +4627,7 @@ extension on ClassNamePart {
   /// Whether this is part of a primary constructor declaration and contains the
   /// `const` modifier.
   bool get hasConst {
-    var self = this;
-    return self is PrimaryConstructorDeclaration && self.constKeyword != null;
+    return this is PrimaryConstructorDeclaration && constKeyword != null;
   }
 }
 
@@ -4961,20 +4960,13 @@ extension on Element? {
   /// the method / function's parameters. If this element is a variable and the
   /// variable's type is a function type, then return the parameters from the
   /// function type.
-  List<FormalParameterElement>? getParameters() {
-    var self = this;
-    if (self is GetterElement) {
-      return self.returnType.ifTypeOrNull<FunctionType>()?.formalParameters;
-    } else if (self is ExecutableElement) {
-      return self.formalParameters;
-    } else if (self is VariableElement) {
-      var type = self.type;
-      if (type is FunctionType) {
-        return type.formalParameters;
-      }
-    }
-    return null;
-  }
+  List<FormalParameterElement>? getParameters() => switch (this) {
+    GetterElement() =>
+      returnType.ifTypeOrNull<FunctionType>()?.formalParameters,
+    ExecutableElement() => formalParameters,
+    VariableElement(:FunctionType type) => type.formalParameters,
+    _ => null,
+  };
 }
 
 extension on AstNode {
@@ -5096,8 +5088,7 @@ extension on Statement {
 extension on SyntacticEntity? {
   /// Returns `true` if the receiver covers the [offset].
   bool coversOffset(int offset) {
-    var self = this;
-    return self != null && self.offset <= offset && self.end >= offset;
+    return this != null && this.offset <= offset && end >= offset;
   }
 }
 
@@ -5129,10 +5120,9 @@ extension on TopLevelVariableDeclaration {
 extension on TypeAnnotation? {
   /// Whether this type annotation consists of a single identifier.
   bool get isSingleIdentifier {
-    var self = this;
-    return self is NamedType &&
-        self.question == null &&
-        self.typeArguments == null &&
-        self.importPrefix == null;
+    return this is NamedType &&
+        question == null &&
+        typeArguments == null &&
+        importPrefix == null;
   }
 }

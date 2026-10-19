@@ -34,7 +34,7 @@ enum _ReachabilityAssertion { doesNotComplete, unreachable }
 
 class _ReachabilityDataComputer
     extends DataComputer<Set<_ReachabilityAssertion>> {
-  const _ReachabilityDataComputer();
+  const new();
 
   @override
   DataInterpreter<Set<_ReachabilityAssertion>> get dataValidator =>
@@ -56,7 +56,7 @@ class _ReachabilityDataExtractor
     extends AstDataExtractor<Set<_ReachabilityAssertion>> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _ReachabilityDataExtractor(super.uri, super.actualMap, this._flowResult);
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   Set<_ReachabilityAssertion>? computeNodeValue(Id id, AstNode node) {
@@ -73,13 +73,23 @@ class _ReachabilityDataExtractor
     } else if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
-    if (node is FunctionDeclaration) {
-      _checkBodyCompletion(node.functionExpression.body, result);
+    if (node is LocalFunctionDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is TopLevelFunctionDeclaration) {
+      _checkBodyCompletion(node.body, result);
     } else if (node is TopLevelGetterDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is TopLevelSetterDeclaration) {
       _checkBodyCompletion(node.body, result);
     } else if (node is ConstructorDeclaration) {
       _checkBodyCompletion(node.body, result);
-    } else if (node is MethodDeclaration) {
+    } else if (node is MethodDeclaration2) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is OperatorDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is GetterDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is SetterDeclaration) {
       _checkBodyCompletion(node.body, result);
     }
     return result.isEmpty ? null : result;
@@ -98,7 +108,7 @@ class _ReachabilityDataExtractor
 
 class _ReachabilityDataInterpreter
     implements DataInterpreter<Set<_ReachabilityAssertion>> {
-  const _ReachabilityDataInterpreter();
+  const new();
 
   @override
   String getText(

@@ -18,7 +18,7 @@ sealed class Argument {
 class PositionalArgument extends Argument {
   final Expression expression;
 
-  PositionalArgument(this.expression);
+  new(this.expression);
 
   @override
   String toString() => 'PositionalArgument($expression)';
@@ -34,7 +34,7 @@ class NamedArgument extends Argument {
   final String name;
   final Expression expression;
 
-  NamedArgument(this.name, this.expression);
+  new(this.name, this.expression);
 
   @override
   String toString() => 'NamedArgument($name,$expression)';

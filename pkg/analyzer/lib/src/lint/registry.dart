@@ -39,7 +39,7 @@ class Registry extends RegistryBase
   /// Returns the rule with the given [name].
   ///
   /// The name is matched disregarding case.
-  AbstractAnalysisRule? operator [](String name) => _rules[name.toLowerCase()];
+  AbstractAnalysisRule? operator [](String name) => getRule(name);
 
   /// Returns the lint code that has the given [uniqueName].
   ///
@@ -50,7 +50,10 @@ class Registry extends RegistryBase
   /// Returns the rule with the given [name].
   ///
   /// The name is matched disregarding case.
-  AbstractAnalysisRule? getRule(String name) => _rules[name.toLowerCase()];
+  AbstractAnalysisRule? getRule(String name) {
+    var lowerCaseName = name.toLowerCase();
+    return warningRules[lowerCaseName] ?? lintRules[lowerCaseName];
+  }
 
   /// Removes the given lint [rule] from this registry.
   void unregisterLintRule(AbstractAnalysisRule rule) {

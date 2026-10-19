@@ -46,7 +46,7 @@ main(List<String> args) {
 }
 
 class _ExhaustivenessDataComputer extends DataComputer<Features> {
-  const _ExhaustivenessDataComputer();
+  const new();
 
   @override
   DataInterpreter<Features> get dataValidator =>
@@ -74,11 +74,7 @@ class _ExhaustivenessDataComputer extends DataComputer<Features> {
 class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
   final ExhaustivenessDataForTesting _exhaustivenessData;
 
-  _ExhaustivenessDataExtractor(
-    super.uri,
-    super.actualMap,
-    this._exhaustivenessData,
-  );
+  new(super.uri, super.actualMap, this._exhaustivenessData);
 
   @override
   Features? computeNodeValue(Id id, AstNode node) {

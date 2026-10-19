@@ -84,8 +84,6 @@ class BulkFixProcessor {
   nonLintMultiProducerMap = {
     diag.argumentTypeNotAssignable: [DataDriven.new],
     diag.castToNonType: [DataDriven.new],
-    diag.dotShorthandUndefinedGetter: [DataDriven.new],
-    diag.dotShorthandUndefinedInvocation: [DataDriven.new],
     diag.extendsNonClass: [DataDriven.new],
     // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
@@ -109,15 +107,25 @@ class BulkFixProcessor {
     diag.notEnoughPositionalArgumentsPlural: [DataDriven.new],
     diag.notEnoughPositionalArgumentsSingular: [DataDriven.new],
     diag.undefinedClass: [DataDriven.new],
-    diag.undefinedExtensionGetter: [DataDriven.new],
     diag.undefinedExtensionMemberReadNotFound: [DataDriven.new],
-    diag.undefinedFunction: [DataDriven.new],
-    diag.undefinedGetter: [DataDriven.new],
-    diag.undefinedIdentifier: [DataDriven.new],
-    diag.undefinedMethod: [DataDriven.new],
-    diag.undefinedMethodOnTypeLiteral: [DataDriven.new],
+    diag.undefinedInstanceMemberReadNotFound: [DataDriven.new],
+    diag.undefinedInstanceMemberWriteNotFound: [DataDriven.new],
     diag.undefinedNamedParameter: [DataDriven.new],
-    diag.undefinedSetter: [DataDriven.new],
+    diag.undefinedPrefixedNameReadNotFound: [DataDriven.new],
+    diag.undefinedPrefixedNameReadNotFoundAnnotation: [DataDriven.new],
+    diag.undefinedPrefixedNameReadNotFoundConstant: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFound: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFoundAnnotation: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFoundConstant: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFoundDotShorthand: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFoundDotShorthandConstant: [
+      DataDriven.new,
+    ],
+    diag.undefinedStaticMemberWriteNotFound: [DataDriven.new],
+    diag.undefinedUnqualifiedNameReadNotFound: [DataDriven.new],
+    diag.undefinedUnqualifiedNameReadNotFoundAnnotation: [DataDriven.new],
+    diag.undefinedUnqualifiedNameReadNotFoundConstant: [DataDriven.new],
+    diag.undefinedUnqualifiedNameWriteNotFound: [DataDriven.new],
     diag.wrongNumberOfTypeArguments: [DataDriven.new],
     diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
     diag.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
@@ -172,6 +180,10 @@ class BulkFixProcessor {
   /// A map associating libraries to fixes with change counts.
   @visibleForTesting
   final ChangeMap changeMap = ChangeMap();
+
+  /// A set of `(path, producerRuntimeType, offset)` tuples that have already
+  /// had fixes applied in the current pass, to avoid applying duplicate fixes.
+  final Set<(String, Type, int)> _appliedFixLocations = {};
 
   /// A token used to signal that the caller is no longer interested in the
   /// results and processing can end early (in which case any results may be
@@ -895,6 +907,13 @@ class BulkFixProcessor {
     CorrectionProducer producer,
     String codeName,
   ) async {
+    var diagnostic = producer.diagnostic;
+    var fixLocation = diagnostic != null && producer is! DataDrivenFix
+        ? (context.path, producer.runtimeType, diagnostic.offset)
+        : null;
+    if (fixLocation != null && !_appliedFixLocations.add(fixLocation)) {
+      return;
+    }
     var oldCount = (builder as ChangeBuilderImpl).modificationCount;
     // Apply the producer, which might re-assign the `builder`.
     await _applyProducer(producer);

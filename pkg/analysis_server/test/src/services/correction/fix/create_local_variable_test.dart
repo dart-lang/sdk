@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateLocalVariableTest extends FixProcessorTest {
+class CreateLocalVariableTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createLocalVariable;
 
@@ -26,6 +26,16 @@ class CreateLocalVariableTest extends FixProcessorTest {
 void f() {
   @foo
   var x = 0;
+  print(x);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_constant() async {
+    await resolveTestCode('''
+void f() {
+  const x = foo;
   print(x);
 }
 ''');
@@ -98,6 +108,39 @@ void f() {
   foo(bar);
 }
 ''');
+  }
+
+  Future<void> test_read_closure_localFunction_return() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.where((i) {
+    String g() {
+      return test;
+    }
+    return g().isEmpty;
+  });
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  list.where((i) {
+    String g() {
+      String test;
+      return test;
+    }
+    return g().isEmpty;
+  });
+}
+''');
+  }
+
+  Future<void> test_read_invocation() async {
+    await resolveTestCode('''
+void f() {
+  test();
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_read_prefixedIdentifier_identifier() async {

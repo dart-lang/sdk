@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveNameFromCombinatorTest extends FixProcessorTest {
+class RemoveNameFromCombinatorTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addMetaPackageDep => true;
 

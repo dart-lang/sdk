@@ -95,13 +95,16 @@ Note that since `null` is an instance of the `Null` type, which is a subtype of
 any other, exactness of the annotated result type implies that the result must
 be non-null.
 
-It is also possible to specify the type arguments of the result type if they are
-the same as the type arguments passed to the method itself. This is primarily
-useful for factory constructors:
-
-```dart
-@pragma("vm:exact-result-type", [<type>, "result-type-uses-passed-type-arguments"])
-```
+If the result type is generic, its type arguments can be specified when they
+match either:
+- the type arguments passed to a factory constructor:
+  ```dart
+  @pragma("vm:exact-result-type", [<type>, "result-type-uses-passed-type-arguments"])
+  ```
+- the type arguments of the receiver's class on an instance method:
+  ```dart
+  @pragma("vm:exact-result-type", [<type>, "result-type-uses-receiver-type-arguments"])
+  ```
 
 #### Examples for exact result types
 
@@ -111,11 +114,11 @@ class B extends A {}
 
 // Reference to type via type literal
 @pragma("vm:exact-result-type", B)
-A foo() native "foo_impl";
+external A foo();
 
 // Reference to type via path
-@pragma("vm:exact-result-type", "dart:core#_Smi");
-int foo() native "foo_impl";
+@pragma("vm:exact-result-type", "dart:core#_Smi")
+external int bar();
 
 class C {
   // Reference to type via type literal
@@ -130,7 +133,11 @@ class C {
 class D<T> {
   @pragma("vm:exact-result-type",
           [D, "result-type-uses-passed-type-arguments"])
-  factory D();  // returns an instance of D<T>
+  external factory D(); // returns an exact instance of D<T>
+
+  @pragma("vm:exact-result-type",
+          [D, "result-type-uses-receiver-type-arguments"])
+  external D<T> clone(); // returns an exact instance of D<T>
 }
 ```
 

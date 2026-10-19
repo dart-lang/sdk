@@ -20,13 +20,11 @@ class ScopeContext {
   InstanceElementImpl? _enclosingInstanceElement;
   bool _isInStaticMember = false;
 
-  ScopeContext({
-    required LibraryFragmentImpl libraryFragment,
-    required Scope nameScope,
-    DocImportScope? docImportScope,
-  }) : _libraryFragment = libraryFragment,
-       _docImportScope = docImportScope,
-       _nameScope = nameScope;
+  new({
+    required this._libraryFragment,
+    required this._nameScope,
+    this._docImportScope,
+  });
 
   InstanceElementImpl? get enclosingInstanceElement {
     return _enclosingInstanceElement;
@@ -221,12 +219,32 @@ class ScopeContext {
     });
   }
 
-  void visitFieldDeclaration(
-    FieldDeclarationImpl node, {
+  void visitFieldsDeclaration(
+    FieldsDeclarationImpl node, {
     required AstVisitor2 visitor,
   }) {
-    withInStaticMember(node.isStatic, () {
-      node.visitChildren2(visitor);
+    var isStatic = node.staticKeyword != null;
+    withInStaticMember(isStatic, () {
+      var fieldsScope = nameScope;
+
+      // Use different scope for instance non-late field initializers.
+      if (!isStatic && node.lateKeyword == null) {
+        var primaryConstructor = node.enclosingPrimaryConstructor;
+        if (primaryConstructor != null) {
+          fieldsScope = _constructorInitializerScope(
+            primaryConstructor.declaredFragment!,
+          );
+        }
+      }
+
+      node.visitChildrenWithHooks(
+        visitor,
+        visitFields: (fields) {
+          withScope(fieldsScope, () {
+            fields.accept2(visitor);
+          });
+        },
+      );
     });
   }
 
@@ -253,30 +271,6 @@ class ScopeContext {
     node.defaultClause?.accept2(visitor);
   }
 
-  void visitFunctionDeclaration(
-    FunctionDeclarationImpl node, {
-    required AstVisitor2 visitor,
-  }) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    node.metadata.accept2(visitor);
-
-    withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.returnType?.accept2(visitor);
-
-      var functionExpression = node.functionExpression;
-      functionExpression.typeParameters?.accept2(visitor);
-      functionExpression.parameters?.accept2(visitor);
-
-      withFormalParameterScope(fragment.formalParameters, () {
-        node.documentationComment?.accept2(visitor);
-        functionExpression.body.accept2(visitor);
-      });
-    });
-  }
-
   void visitFunctionExpression(
     FunctionExpressionImpl node, {
     required AstVisitor2 visitor,
@@ -293,8 +287,8 @@ class ScopeContext {
     });
   }
 
-  void visitFunctionTypeAlias(
-    FunctionTypeAliasImpl node, {
+  void visitFunctionTypeAlias2(
+    FunctionTypeAlias2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -325,8 +319,8 @@ class ScopeContext {
     });
   }
 
-  void visitGenericTypeAlias(
-    GenericTypeAliasImpl node, {
+  void visitGenericTypeAlias2(
+    GenericTypeAlias2Impl node, {
     required AstVisitor2 visitor,
     void Function()? enterTypeParameterScope,
   }) {
@@ -354,8 +348,8 @@ class ScopeContext {
     });
   }
 
-  void visitMethodDeclaration(
-    MethodDeclarationImpl node, {
+  void visitLocalFunctionDeclaration(
+    LocalFunctionDeclarationImpl node, {
     required AstVisitor2 visitor,
   }) {
     var fragment = node.declaredFragment!;
@@ -363,13 +357,34 @@ class ScopeContext {
 
     node.metadata.accept2(visitor);
 
-    withInStaticMember(node.isStatic, () {
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.returnType?.accept2(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.formalParameters.accept2(visitor);
+
+      withFormalParameterScope(fragment.formalParameters, () {
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
+      });
+    });
+  }
+
+  void visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node, {
+    required AstVisitor2 visitor,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept2(visitor);
+
+    withInStaticMember(node.staticKeyword != null, () {
       withTypeParameterScope(element.typeParameters, () {
         node.nameScope = nameScope;
-        node.typeParameterScope = nameScope;
         node.returnType?.accept2(visitor);
-        node.typeParameters?.accept2(visitor);
-        node.parameters?.accept2(visitor);
+        node.writtenTypeParameters?.accept2(visitor);
+        node.writtenFormalParameters?.accept2(visitor);
 
         withFormalParameterScope(fragment.formalParameters, () {
           node.documentationComment?.accept2(visitor);
@@ -433,6 +448,27 @@ class ScopeContext {
     );
   }
 
+  void visitTopLevelFunctionDeclaration(
+    TopLevelFunctionDeclarationImpl node, {
+    required AstVisitor2 visitor,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept2(visitor);
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.returnType?.accept2(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.formalParameters.accept2(visitor);
+
+      withFormalParameterScope(fragment.formalParameters, () {
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
+      });
+    });
+  }
+
   void visitTopLevelGetterDeclaration(
     TopLevelGetterDeclarationImpl node, {
     required AstVisitor2 visitor,
@@ -444,7 +480,6 @@ class ScopeContext {
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
       node.returnType?.accept2(visitor);
-      node.recoveryTypeParameters?.accept2(visitor);
       node.recoveryFormalParameters?.accept2(visitor);
 
       withFormalParameterScope(fragment.formalParameters, () {
@@ -454,29 +489,23 @@ class ScopeContext {
     });
   }
 
-  void visitVariableDeclarationList(
-    VariableDeclarationListImpl node, {
+  void visitTopLevelSetterDeclaration(
+    TopLevelSetterDeclarationImpl node, {
     required AstVisitor2 visitor,
   }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
     node.metadata.accept2(visitor);
-    node.type?.accept2(visitor);
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.returnType?.accept2(visitor);
+      node.formalParameters.accept2(visitor);
 
-    var variablesScope = nameScope;
-
-    // Use different scope for instance non-late field initializers.
-    if (node.parent2 case FieldDeclarationImpl fieldDeclaration) {
-      if (!fieldDeclaration.isStatic && node.lateKeyword == null) {
-        var primaryConstructor = fieldDeclaration.enclosingPrimaryConstructor;
-        if (primaryConstructor != null) {
-          variablesScope = _constructorInitializerScope(
-            primaryConstructor.declaredFragment!,
-          );
-        }
-      }
-    }
-
-    withScope(variablesScope, () {
-      node.variables.accept2(visitor);
+      withFormalParameterScope(fragment.formalParameters, () {
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
+      });
     });
   }
 
@@ -610,7 +639,7 @@ extension LocalScopeExtension on LocalScope {
   }
 }
 
-extension _FieldDeclarationExtension on FieldDeclaration {
+extension _FieldsDeclarationExtension on FieldsDeclaration {
   PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
     return switch (parent2?.parent2) {
       ClassDeclarationImpl(:var namePart) => namePart.tryCast(),

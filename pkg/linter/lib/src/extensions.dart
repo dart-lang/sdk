@@ -104,31 +104,27 @@ extension AstNodeExtension on AstNode {
     };
   }
 
-  bool get isAugmentation {
-    var self = this;
-    return switch (self) {
-      ClassDeclaration() => self.augmentKeyword != null,
-      ConstructorDeclaration() => self.augmentKeyword != null,
-      EnumConstantDeclaration() => self.augmentKeyword != null,
-      EnumDeclaration() => self.augmentKeyword != null,
-      ExtensionTypeDeclaration() => self.augmentKeyword != null,
-      FieldDeclaration() => self.augmentKeyword != null,
-      FunctionDeclaration() => self.augmentKeyword != null,
-      FunctionExpression() => self.parent?.isAugmentation ?? false,
-      MethodDeclaration() => self.augmentKeyword != null,
-      MixinDeclaration() => self.augmentKeyword != null,
-      TopLevelVariableDeclaration() => self.augmentKeyword != null,
-      VariableDeclaration(declaredFragment: var fragment?) =>
-        fragment is PropertyInducingFragment && fragment.isAugmentation,
-      _ => false,
-    };
-  }
+  bool get isAugmentation => switch (this) {
+    ClassDeclaration() => augmentKeyword != null,
+    ConstructorDeclaration() => augmentKeyword != null,
+    EnumConstantDeclaration() => augmentKeyword != null,
+    EnumDeclaration() => augmentKeyword != null,
+    ExtensionTypeDeclaration() => augmentKeyword != null,
+    FieldDeclaration() => augmentKeyword != null,
+    FunctionDeclaration() => augmentKeyword != null,
+    FunctionExpression() => parent?.isAugmentation ?? false,
+    MethodDeclaration() => augmentKeyword != null,
+    MixinDeclaration() => augmentKeyword != null,
+    TopLevelVariableDeclaration() => augmentKeyword != null,
+    VariableDeclaration(declaredFragment: var fragment?) =>
+      fragment is PropertyInducingFragment && fragment.isAugmentation,
+    _ => false,
+  };
 
   bool get isEffectivelyPrivate {
-    var node = this;
-    if (node.isInternal) return true;
-    if (node is ClassDeclaration) {
-      var classElement = node.declaredFragment?.element;
+    if (isInternal) return true;
+    if (this is ClassDeclaration) {
+      var classElement = declaredFragment?.element;
       if (classElement != null) {
         if (classElement.isSealed) return true;
         if (classElement.isAbstract) {
@@ -141,9 +137,8 @@ extension AstNodeExtension on AstNode {
   }
 
   bool get isInternal {
-    var self = this;
-    if (self is VariableDeclaration) {
-      var element = self.declaredFragment?.element;
+    if (this is VariableDeclaration) {
+      var element = declaredFragment?.element;
       if (element is TopLevelVariableElement) {
         return element.metadata.hasInternal;
       }
@@ -194,9 +189,8 @@ extension AstNodeExtension on AstNode {
 
 extension AstNodeNullableExtension on AstNode? {
   Element? get canonicalElement {
-    var self = this;
-    if (self is Expression) {
-      var node = self.unParenthesized;
+    if (this is Expression) {
+      var node = unParenthesized;
       if (node is Identifier) {
         return node.element;
       } else if (node is PropertyAccess) {
@@ -208,43 +202,21 @@ extension AstNodeNullableExtension on AstNode? {
 
   /// Whether the expression is null-aware, or if one of its recursive targets
   /// is null-aware.
-  bool get containsNullAwareInvocationInChain {
-    var node = this;
-    if (node is PropertyAccess) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain;
-    } else if (node is MethodInvocation) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain;
-    } else if (node is IndexExpression) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain;
-    }
-    return false;
-  }
+  bool get containsNullAwareInvocationInChain => switch (this) {
+    PropertyAccess() =>
+      isNullAware || target.containsNullAwareInvocationInChain,
+    MethodInvocation() =>
+      isNullAware || target.containsNullAwareInvocationInChain,
+    IndexExpression() =>
+      isNullAware || target.containsNullAwareInvocationInChain,
+    _ => false,
+  };
 
   bool get isFieldNameShortcut {
     var node = this;
     if (node is NullCheckPattern) node = node.parent;
     if (node is NullAssertPattern) node = node.parent;
     return node is PatternField && node.name != null && node.name?.name == null;
-  }
-}
-
-extension BlockExtension on Block {
-  /// The last statement of this block, or `null` if this is empty.
-  ///
-  /// If the last immediate statement of this block is a [Block], recurses into
-  /// it to find the last statement.
-  Statement? get lastStatement {
-    if (statements.isEmpty) {
-      return null;
-    }
-    var lastStatement = statements.last;
-    if (lastStatement is Block) {
-      return lastStatement.lastStatement;
-    }
-    return lastStatement;
   }
 }
 
@@ -290,15 +262,14 @@ extension DartTypeExtension on DartType? {
   /// If `this` is a type variable, then the type-for-interface-check of its
   /// promoted bound or bound is returned. Otherwise, `this` is returned.
   DartType? get typeForInterfaceCheck {
-    var self = this;
-    if (self == null) return null;
-    if (self is! TypeParameterType) return self.extensionTypeErasure;
+    if (this == null) return null;
+    if (this is! TypeParameterType) return extensionTypeErasure;
 
-    var promotedType = (self as TypeParameterTypeImpl).promotedBound;
+    var promotedType = (this as TypeParameterTypeImpl).promotedBound;
     if (promotedType != null) {
       return promotedType.typeForInterfaceCheck;
     }
-    return self.bound.typeForInterfaceCheck;
+    return bound.typeForInterfaceCheck;
   }
 
   /// Whether this [DartType] extends [className], declared in [library].
@@ -332,12 +303,10 @@ extension DartTypeExtension on DartType? {
 
   /// Whether this [DartType] is the same element as [interface], declared in
   /// [library].
-  bool isSameAs(String? interface, String? library) {
-    var self = this;
-    return self is InterfaceType &&
-        self.element.name == interface &&
-        self.element.library.name == library;
-  }
+  bool isSameAs(String? interface, String? library) =>
+      this is InterfaceType &&
+      element.name == interface &&
+      element.library.name == library;
 
   static bool _extendsClass(
     InterfaceType? type,
@@ -369,20 +338,15 @@ extension ElementExtension on Element? {
 
   /// Whether this is annotated with `@awaitNotRequired`.
   bool get hasAwaitNotRequired {
-    var self = this;
-    if (self == null) {
+    if (this == null) {
       return false;
     }
-    return self.metadata.hasAwaitNotRequired ||
-        (self is PropertyAccessorElement && self.variable.hasAwaitNotRequired);
+    return metadata.hasAwaitNotRequired ||
+        (this is PropertyAccessorElement && variable.hasAwaitNotRequired);
   }
 
-  bool get isDartCorePrint {
-    var self = this;
-    return self is TopLevelFunctionElement &&
-        self.name == 'print' &&
-        self.library.isDartCore;
-  }
+  bool get isDartCorePrint =>
+      this is TopLevelFunctionElement && name == 'print' && library.isDartCore;
 
   /// Returns the class member that is overridden by `this`, if there is one,
   /// as defined by [InterfaceElement.getInheritedMember].
@@ -450,10 +414,9 @@ extension ExpressionNullableExtension on Expression? {
   ///
   /// This approximation will never be accurate for some expressions.
   DartType? get approximateContextType {
-    var self = this;
-    if (self == null) return null;
-    var ancestor = self.parent;
-    var ancestorChild = self;
+    if (this == null) return null;
+    var ancestor = parent;
+    var ancestorChild = this;
     while (ancestor != null) {
       if (ancestor is ParenthesizedExpression) {
         ancestorChild = ancestor;
@@ -474,7 +437,7 @@ extension ExpressionNullableExtension on Expression? {
       case ArgumentList():
         // Allow `function(LinkedHashSet())` for `function(LinkedHashSet mySet)`
         // and `function(LinkedHashMap())` for `function(LinkedHashMap myMap)`.
-        return self.correspondingParameter?.type ?? InvalidTypeImpl.instance;
+        return correspondingParameter?.type ?? InvalidTypeImpl.instance;
       case AssignmentExpression():
         // Allow `x = LinkedHashMap()`.
         return ancestor.staticType;
@@ -531,23 +494,22 @@ extension FunctionBodyExtension on FunctionBody? {
   /// by this node, accounting for an approximation of the function's context
   /// type, in the case of a function literal.
   DartType? get expectedReturnType {
-    var self = this;
-    if (self == null) return null;
-    var parent = self.parent;
+    if (this == null) return null;
+    var parent = this.parent;
     if (parent is FunctionExpression) {
       var grandparent = parent.parent;
       if (grandparent is FunctionDeclaration) {
         var returnType = grandparent.declaredFragment?.element.returnType;
-        return self._expectedReturnableOrYieldableType(returnType);
+        return _expectedReturnableOrYieldableType(returnType);
       }
       var functionType = parent.approximateContextType;
       if (functionType is! FunctionType) return null;
       var returnType = functionType.returnType;
-      return self._expectedReturnableOrYieldableType(returnType);
+      return _expectedReturnableOrYieldableType(returnType);
     }
     if (parent is MethodDeclaration) {
       var returnType = parent.declaredFragment?.element.returnType;
-      return self._expectedReturnableOrYieldableType(returnType);
+      return _expectedReturnableOrYieldableType(returnType);
     }
     return null;
   }
@@ -559,18 +521,17 @@ extension FunctionBodyExtension on FunctionBody? {
   /// accurate to use `FutureOr<int>` and an assignability check, but `int` is
   /// an approximation that works for now; this should probably be revisited.)
   DartType? _expectedReturnableOrYieldableType(DartType? returnType) {
-    var self = this;
-    if (self == null) return null;
+    if (this == null) return null;
     if (returnType is! InterfaceType) return null;
-    if (self.isAsynchronous) {
-      if (!self.isGenerator && returnType.isDartAsyncFuture) {
+    if (isAsynchronous) {
+      if (!isGenerator && returnType.isDartAsyncFuture) {
         return returnType.typeArguments.firstOrNull;
       }
-      if (self.isGenerator && returnType.isDartAsyncStream) {
+      if (isGenerator && returnType.isDartAsyncStream) {
         return returnType.typeArguments.firstOrNull;
       }
     } else {
-      if (self.isGenerator && returnType.isDartCoreIterable) {
+      if (isGenerator && returnType.isDartCoreIterable) {
         return returnType.typeArguments.firstOrNull;
       }
     }
@@ -764,10 +725,7 @@ extension TokenExtension on Token? {
   bool get isFinal => this?.keyword == Keyword.FINAL;
 
   /// Whether the given identifier has a private name.
-  bool get isPrivate {
-    var self = this;
-    return self != null && self.lexeme.isPrivateName;
-  }
+  bool get isPrivate => this != null && lexeme.isPrivateName;
 }
 
 extension TokenTypeExtension on TokenType {

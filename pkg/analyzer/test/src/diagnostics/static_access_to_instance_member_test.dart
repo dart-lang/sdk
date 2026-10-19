@@ -27,6 +27,17 @@ main() {
 ''');
   }
 
+  test_dotShorthand_getter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A get f => this;
+}
+A g() => .f;
+//        ^
+// [diag.staticAccessToInstanceMember] Instance member 'f' can't be accessed using static access.
+''');
+  }
+
   test_extension_getter() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {

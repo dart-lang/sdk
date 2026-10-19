@@ -22,12 +22,12 @@ class RecordLiteralResolutionTest extends PubPackageResolutionTest {
 final x = (0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -48,12 +48,12 @@ final x = const (0);
 // [diag.recordLiteralOnePositionalNoTrailingComma] A record literal with exactly one positional field requires a trailing comma.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -72,12 +72,12 @@ final x = (0,);
 // [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -96,12 +96,12 @@ final x = (0, 1);
 // [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -120,12 +120,12 @@ final x = ();
 // [diag.experimentNotEnabled] This requires the 'records' language feature to be enabled.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration;
+    var node = result.findNode.singleTopLevelVariable;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: UnqualifiedNameExpression
       name: <empty> <synthetic>

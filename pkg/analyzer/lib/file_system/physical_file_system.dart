@@ -39,7 +39,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   /// The path to the base folder where state is stored.
   final String? _stateLocation;
 
-  PhysicalResourceProvider({String? stateLocation})
+  new({String? stateLocation})
     : _stateLocation = stateLocation ?? _getStandardStateLocation();
 
   @override
@@ -100,7 +100,7 @@ class PhysicalResourceProvider implements ResourceProvider {
 
 /// A `dart:io` based implementation of [File].
 class _PhysicalFile extends _PhysicalResource implements File {
-  _PhysicalFile(io.File super.file);
+  new(io.File super.file);
 
   @override
   int get lengthSync {
@@ -207,7 +207,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
 /// A `dart:io` based implementation of [Folder].
 class _PhysicalFolder extends _PhysicalResource implements Folder {
-  _PhysicalFolder(io.Directory super.directory);
+  new(io.Directory super.directory);
 
   @override
   bool get isRoot {
@@ -341,7 +341,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 class _PhysicalLink implements Link {
   final io.Link _link;
 
-  _PhysicalLink(this._link);
+  new(this._link);
 
   @override
   bool get exists {
@@ -373,7 +373,7 @@ abstract class _PhysicalResource implements Resource {
         },
       );
 
-  _PhysicalResource(this._entry);
+  new(this._entry);
 
   @override
   bool get exists {
@@ -397,7 +397,7 @@ abstract class _PhysicalResource implements Resource {
   String get path => _entry.path;
 
   /// Return the path context used by this resource provider.
-  Context get pathContext => io.Platform.isWindows ? windows : posix;
+  Context get pathContext => platform.isWindows ? windows : posix;
 
   @override
   ResourceProvider get provider => PhysicalResourceProvider.INSTANCE;
@@ -430,7 +430,7 @@ abstract class _PhysicalResource implements Resource {
   ///
   /// https://support.microsoft.com/en-us/kb/74496
   void _throwIfWindowsDeviceDriver() {
-    if (io.Platform.isWindows) {
+    if (platform.isWindows) {
       var shortName = this.shortName.toUpperCase();
       if (shortName == r'CON' ||
           shortName == r'PRN' ||

@@ -42,7 +42,7 @@ void g() { }
 }
 
 @reflectiveTest
-class ConvertToFlutterStyleTodoTest extends FixProcessorLintTest {
+class ConvertToFlutterStyleTodoTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToFlutterStyleTodo;
 

@@ -20,7 +20,7 @@ part of 'ast.dart';
 /// - ThrowingAstVisitor which implements every visit method by throwing an
 ///   exception.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-@ToBeDeprecated('Use AstVisitor2 instead')
+@V1Ast('The V2 counterpart is AstVisitor2.')
 abstract class AstVisitor<R> {
   R? visitAdjacentStrings(AdjacentStrings node);
 
@@ -590,9 +590,13 @@ abstract class AstVisitor2<R> {
 
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
 
-  R? visitFieldDeclaration(FieldDeclaration node);
+  @experimental
+  R? visitField2(Field2 node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
+
+  @experimental
+  R? visitFieldsDeclaration(FieldsDeclaration node);
 
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node);
 
@@ -614,16 +618,13 @@ abstract class AstVisitor2<R> {
 
   R? visitForStatement(ForStatement node);
 
-  R? visitFunctionDeclaration(FunctionDeclaration node);
-
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node);
-
   R? visitFunctionExpression(FunctionExpression node);
 
   @experimental
   R? visitFunctionInstantiation(FunctionInstantiation node);
 
-  R? visitFunctionTypeAlias(FunctionTypeAlias node);
+  @experimental
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node);
 
   R? visitFunctionTypedFormalParameterSuffix(
     FunctionTypedFormalParameterSuffix node,
@@ -631,7 +632,8 @@ abstract class AstVisitor2<R> {
 
   R? visitGenericFunctionType(GenericFunctionType node);
 
-  R? visitGenericTypeAlias(GenericTypeAlias node);
+  @experimental
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node);
 
   @experimental
   R? visitGetterDeclaration(GetterDeclaration node);
@@ -718,6 +720,20 @@ abstract class AstVisitor2<R> {
   R? visitListPattern(ListPattern node);
 
   @experimental
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node);
+
+  @experimental
+  R? visitLocalVariable(LocalVariable node);
+
+  @experimental
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node);
+
+  @experimental
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  );
+
+  @experimental
   R? visitLogicalAnd(LogicalAnd node);
 
   R? visitLogicalAndPattern(LogicalAndPattern node);
@@ -735,8 +751,6 @@ abstract class AstVisitor2<R> {
   R? visitMapPattern(MapPattern node);
 
   R? visitMapPatternEntry(MapPatternEntry node);
-
-  R? visitMethodDeclaration(MethodDeclaration node);
 
   @experimental
   R? visitMethodDeclaration2(MethodDeclaration2 node);
@@ -797,11 +811,6 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node);
-
-  @experimental
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  );
 
   @experimental
   R? visitParsedValueArguments(ParsedValueArguments node);
@@ -919,9 +928,19 @@ abstract class AstVisitor2<R> {
   R? visitThrowExpression(ThrowExpression node);
 
   @experimental
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node);
+
+  @experimental
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node);
 
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
+  @experimental
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node);
+
+  @experimental
+  R? visitTopLevelVariable2(TopLevelVariable2 node);
+
+  @experimental
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node);
 
   R? visitTryStatement(TryStatement node);
 
@@ -944,12 +963,6 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node);
-
-  R? visitVariableDeclaration(VariableDeclaration node);
-
-  R? visitVariableDeclarationList(VariableDeclarationList node);
-
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
 
   R? visitWhenClause(WhenClause node);
 

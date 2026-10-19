@@ -42,7 +42,7 @@ class SealedClassInfo<Type extends Object, Class extends Object> {
   final Class _sealedClass;
   List<Class>? _subClasses;
 
-  SealedClassInfo(this._sealedClassOperations, this._sealedClass);
+  new(this._sealedClassOperations, this._sealedClass);
 
   /// Returns the classes that directly extends, implements or mix in
   /// [_sealedClass].
@@ -58,7 +58,7 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
   final SealedClassInfo<Type, Class> _sealedInfo;
   Iterable<StaticType>? _subtypes;
 
-  SealedClassStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,

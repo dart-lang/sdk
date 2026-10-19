@@ -24,6 +24,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart'
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 
 /// Helper for resolving types.
@@ -52,7 +53,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(
+  new(
     LibraryElementImpl libraryElement,
     this._libraryFragment,
     this._scopeContext,
@@ -299,13 +300,13 @@ class NamedTypeResolver with ScopeHelpers {
     }
 
     if (importPrefix != null && importPrefix.element == null) {
-      diagnosticReporter.report(
-        diag.undefinedIdentifier
-            .withArguments(name: importPrefix.name.lexeme)
-            .atOffset(
-              offset: importPrefix.offset,
-              length: node.name.end - importPrefix.offset,
-            ),
+      LookupFailureReporter(
+        diagnosticReporter,
+        _libraryFragment,
+      ).reportReadFailure(
+        domain: UnqualifiedLookupDomain(),
+        name: importPrefix.name,
+        foundInstead: null,
       );
       return node.type = InvalidTypeImpl.instance;
     }
@@ -704,7 +705,7 @@ class NamedTypeResolver with ScopeHelpers {
 class _ErrorHelper {
   final DiagnosticReporter diagnosticReporter;
 
-  _ErrorHelper(this.diagnosticReporter);
+  new(this.diagnosticReporter);
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
     if (node.name.isSynthetic) {

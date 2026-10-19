@@ -17,7 +17,7 @@ class DartUriResolver extends UriResolver {
 
   /// Initialize a newly created resolver to resolve Dart URI's against the
   /// given platform within the given Dart SDK.
-  DartUriResolver(this._sdk);
+  new(this._sdk);
 
   /// Return the [DartSdk] against which URIs are to be resolved.
   ///
@@ -49,7 +49,7 @@ class DartUriResolver extends UriResolver {
 abstract class SourceFactory {
   /// Initialize a newly created source factory with the given absolute URI
   /// [resolvers].
-  factory SourceFactory(List<UriResolver> resolvers) = SourceFactoryImpl;
+  factory(List<UriResolver> resolvers) = SourceFactoryImpl;
 
   /// Return the [DartSdk] associated with this [SourceFactory], or `null` if
   /// there is no such SDK.

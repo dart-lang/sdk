@@ -79,7 +79,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ReturnStatement
       returnKeyword: return
       semicolon: ;
@@ -107,9 +107,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         semicolon: ;
@@ -145,9 +145,9 @@ WhileStatement
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ContinueStatement
         continueKeyword: continue
         semicolon: ;
@@ -173,9 +173,9 @@ void f(bool b) {
     assertResolvedNodeText(node, r'''
 DoStatement
   doKeyword: do
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -400,7 +400,7 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
     mayCompleteNormally: true
@@ -424,7 +424,7 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
     mayCompleteNormally: true
@@ -443,9 +443,32 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ReturnStatement
+          returnKeyword: return
+          semicolon: ;
+          mayCompleteNormally: false
+      rightBracket: }
+      mayCompleteNormally: false
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function()
+  mayCompleteNormally: true
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
@@ -477,6 +500,65 @@ FunctionDeclarationStatement
 ''');
   }
 
+  test_functionDeclarationStatement_unreachable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  return;
+  void g() {}
+//^^^^^^^^^^^
+// [diag.deadCode] Dead code.
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
+}
+''');
+
+    var node = result.findNode.singleLocalFunctionDeclaration;
+    assertResolvedNodeText(node, r'''
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+      mayCompleteNormally: false
+  declaredFragment: <testLibraryFragment> g@28
+    element: g@28
+      type: void Function()
+  mayCompleteNormally: false
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: g
+    functionExpression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+          mayCompleteNormally: false
+      declaredFragment: <testLibraryFragment> g@28
+        element: g@28
+          type: void Function()
+      staticType: void Function()
+    declaredFragment: <testLibraryFragment> g@28
+      element: g@28
+        type: void Function()
+  mayCompleteNormally: false
+''');
+  }
+
   test_ifStatement_noElse() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(bool b) {
@@ -502,9 +584,9 @@ IfStatement
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -542,9 +624,9 @@ IfStatement
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -552,9 +634,9 @@ IfStatement
     rightBracket: }
     mayCompleteNormally: false
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -582,9 +664,9 @@ LabeledStatement
       name: label
       colon: :
       declaredFragment: <testLibraryFragment> label@13
-  statement: Block
+  statement2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         label: LabelReference
@@ -722,7 +804,7 @@ SwitchStatement
             staticType: E
           matchedValueType: E
       colon: :
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral
@@ -759,7 +841,7 @@ SwitchStatement
             staticType: E
           matchedValueType: E
       colon: :
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral
@@ -809,7 +891,7 @@ SwitchStatement
             staticType: int
           matchedValueType: int
       colon: :
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           semicolon: ;
@@ -834,7 +916,7 @@ TryStatement
   tryKeyword: try
   body: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -879,7 +961,7 @@ TryStatement
   finallyKeyword: finally
   finallyBlock: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -918,16 +1000,31 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleVariableDeclarationStatement;
+    var node = result.findNode.singleLocalVariablesDeclarationStatement;
     assertResolvedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    constFinalOrVarKeyword: var
+    variables
+      LocalVariable
+        name: _
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+          staticType: int
+        declaredFragment: isPrivate _@17
+          element: hasImplicitType isPrivate
+            type: int
+  semicolon: ;
+  mayCompleteNormally: true
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     keyword: var
     variables
       VariableDeclaration
         name: _
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
           staticType: int
         declaredFragment: isPrivate _@17
@@ -945,9 +1042,30 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleVariableDeclarationStatement;
+    var node = result.findNode.singleLocalVariablesDeclarationStatement;
     assertResolvedNodeText(node, r'''
-VariableDeclarationStatement
+LocalVariablesDeclarationStatement
+  declaration: LocalVariablesDeclaration
+    type: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    variables
+      LocalVariable
+        name: _
+        equals: =
+        initializer: ThrowExpression
+          throwKeyword: throw
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          staticType: Never
+        declaredFragment: isPrivate _@17
+          element: isPrivate
+            type: int
+  semicolon: ;
+  mayCompleteNormally: false
+V1: VariableDeclarationStatement
   variables: VariableDeclarationList
     type: NamedType
       name: int
@@ -957,9 +1075,9 @@ VariableDeclarationStatement
       VariableDeclaration
         name: _
         equals: =
-        initializer2: ThrowExpression
+        initializer: ThrowExpression
           throwKeyword: throw
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
             staticType: int
           staticType: Never
@@ -987,7 +1105,7 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
     mayCompleteNormally: true

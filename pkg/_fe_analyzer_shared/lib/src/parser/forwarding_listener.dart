@@ -11,7 +11,7 @@ class ForwardingListener implements Listener {
   Listener? listener;
   bool forwardErrors = true;
 
-  ForwardingListener([this.listener]);
+  new([this.listener]);
 
   @override
   void beginAnonymousMethodInvocation(Token token) {

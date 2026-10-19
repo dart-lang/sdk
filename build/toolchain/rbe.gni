@@ -4,6 +4,8 @@
 
 # Defines the configuration of RBE.
 
+import("//build/toolchain/siso.gni")
+
 _dart_root = get_path_info("../..", "abspath")
 
 declare_args() {

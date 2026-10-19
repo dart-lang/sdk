@@ -31,7 +31,8 @@ class CreateParameter extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var nameNode = node;
     if (nameNode is! SimpleIdentifier ||
-        nameNode.annotationContainingName != null) {
+        nameNode.annotationContainingName != null ||
+        nameNode.isInvocationName) {
       return;
     }
     _parameterName = nameNode.name;

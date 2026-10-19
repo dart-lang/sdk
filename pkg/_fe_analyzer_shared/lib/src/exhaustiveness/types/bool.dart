@@ -6,7 +6,7 @@ part of '../types.dart';
 
 /// [StaticType] for the `bool` type.
 class BoolStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
-  BoolStaticType(super.typeOperations, super.fieldLookup, super.type)
+  new(super.typeOperations, super.fieldLookup, super.type)
     : super(isImplicitlyNullable: false);
 
   @override
@@ -39,7 +39,7 @@ class _BoolValueStaticType<Type extends Object>
     extends ValueStaticType<Type, bool> {
   final bool _value;
 
-  _BoolValueStaticType(
+  new(
     TypeOperations<Type> typeOperations,
     FieldLookup<Type> fieldLookup,
     Type type,

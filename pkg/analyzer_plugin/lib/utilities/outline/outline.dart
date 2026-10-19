@@ -53,7 +53,7 @@ class OutlineGenerator {
 
   /// Initialize a newly created outline generator to use the given
   /// [contributors].
-  OutlineGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create an 'analysis.outline' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.

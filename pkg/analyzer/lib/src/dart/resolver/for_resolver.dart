@@ -21,8 +21,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 class ForResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  ForResolver({required TypeAnalyzer typeAnalyzer})
-    : _typeAnalyzer = typeAnalyzer;
+  new({required this._typeAnalyzer});
 
   TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
@@ -66,7 +65,7 @@ class ForResolver {
   void resolveStatement(ForStatementImpl node) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body.accept2(_typeAnalyzer);
+      node.body2.accept2(_typeAnalyzer);
     }
 
     if (forLoopParts is ForPartsImpl) {
@@ -83,7 +82,7 @@ class ForResolver {
         awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
-          _typeAnalyzer.dispatchStatement(node.body);
+          _typeAnalyzer.dispatchStatement(node.body2);
         },
         rightParenthesisOffset: node.rightParenthesis.offset,
         endOffset: node.endToken.offset,
@@ -217,7 +216,17 @@ class ForResolver {
       loopVariableElement.type = elementType;
     }
 
+    _typeAnalyzer.flowAnalysis.flow?.forEach_bodyBegin(
+      node,
+      offset: rightParenthesisOffset,
+    );
     if (loopVariable != null) {
+      // Each iteration of the loop gets a fresh copy of the loop variable, so
+      // the loop variable is declared after `forEach_bodyBegin`. This ensures
+      // that the conservative join performed by `forEach_bodyBegin` doesn't
+      // affect it. In particular, a write to the loop variable inside a
+      // closure in the loop body doesn't prevent the loop variable from being
+      // promoted before the closure is created.
       var declaredElement = loopVariable.declaredFragment!.element;
       _typeAnalyzer.flowAnalysis.flow?.declare(
         declaredElement,
@@ -226,11 +235,6 @@ class ForResolver {
         offset: rightParenthesisOffset,
       );
     }
-
-    _typeAnalyzer.flowAnalysis.flow?.forEach_bodyBegin(
-      node,
-      offset: rightParenthesisOffset,
-    );
     if (target != null) {
       if (target.write?.elementOrRecovery case PromotableElementImpl element) {
         _typeAnalyzer.flowAnalysis.flow?.write(
@@ -256,7 +260,7 @@ class ForResolver {
     required int endOffset,
   }) {
     if (forParts is ForPartsWithDeclarationsImpl) {
-      forParts.variables.accept2(_typeAnalyzer);
+      forParts.variables2.accept2(_typeAnalyzer);
     } else if (forParts is ForPartsWithExpressionImpl) {
       if (forParts.initialization2 case var initialization?) {
         _typeAnalyzer.analyzeExpression(

@@ -39,7 +39,7 @@ class C {
 }
 
 @reflectiveTest
-class RemoveQuestionMarkTest extends FixProcessorTest {
+class RemoveQuestionMarkTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeQuestionMark;
 
@@ -152,7 +152,7 @@ class B with A {}
 
 @reflectiveTest
 class UnnecessaryNullableForFinalVariableDeclarationsTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeQuestionMark;
 

@@ -17,8 +17,6 @@ class ConstEvalPropertyAccessTest extends PubPackageResolutionTest {
   test_constructorArgument_rhsOfLogicalOperation() async {
     // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/61761,
     // this caused an exception to be thrown during constant evaluation.
-    // TODO(paulberry): this error range covers the whole subexpression
-    // `false || a.x`. Probably it's better to just cover `a.x`.
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   final bool x;
@@ -26,7 +24,7 @@ class C {
 }
 const C a = C(true);
 const C b = C(false || a.x);
-//            ^^^^^^^^^^^^
+//                     ^^^
 // [diag.constEvalPropertyAccess] The property 'x' can't be accessed on the type 'C' in a constant expression.
 ''');
   }
@@ -38,19 +36,17 @@ const C b = C(false || a.x);
       lib: r'''
 class A<T> {
   final int f;
-  const A() : f = T.foo;
-//                ^^^^^
+  const A() : f = T.hashCode;
+//                ^^^^^^^^^^
 // [context 1] The error is in the field initializer of 'A.new', and occurs here.
 // [diag.invalidConstant] Invalid constant value.
-//                  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 }
 ''',
       testFile: r'''
 import 'lib.dart';
 const a = const A();
 //        ^^^^^^^^^
-// [diag.constEvalPropertyAccess][context 1] The property 'foo' can't be accessed on the type 'Type' in a constant expression.
+// [diag.constEvalPropertyAccess][context 1] The property 'hashCode' can't be accessed on the type 'Type' in a constant expression.
 ''',
     });
   }

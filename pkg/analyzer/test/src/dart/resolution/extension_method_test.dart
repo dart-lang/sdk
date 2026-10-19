@@ -175,7 +175,7 @@ import 'lib.dart' hide E;
 f(C c) {
   c.a;
 //  ^
-// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a' isn't defined for the type 'C'.
 }
 ''');
   }
@@ -193,7 +193,7 @@ import 'lib.dart' show C;
 f(C c) {
   c.a;
 //  ^
-// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a' isn't defined for the type 'C'.
 }
 ''');
   }
@@ -211,7 +211,7 @@ import 'lib.dart';
 f(C c) {
   c._a;
 //  ^^
-// [diag.undefinedGetter] The getter '_a' isn't defined for the type 'C'.
+// [diag.undefinedInstanceMemberReadPrivate] The member '_a' is declared in 'package:test/lib.dart', but private names are visible only in their own library.
 }
 ''');
   }
@@ -2523,9 +2523,9 @@ V1: BinaryExpression
 extension on Object {}
 var a = b + c;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'c'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'c'.
 ''');
   }
 
@@ -3917,7 +3917,7 @@ extension E on dynamic {
 void f() {
   dynamic.foo;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -3933,7 +3933,7 @@ extension E on FutureOr<int> {
 void f() {
   FutureOr.foo;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'FutureOr<T>'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'FutureOr' doesn't have a static member or constructor named 'foo'.
 }
 ''');
   }
@@ -3947,7 +3947,7 @@ extension E on Never {
 void f() {
   Never.foo;
 //      ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -3961,7 +3961,7 @@ extension E<X extends String> on X {
 void f() {
   String.foo;
 //       ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'String'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'String' doesn't have a static member or constructor named 'foo'.
 }
 ''');
   }
@@ -4669,7 +4669,7 @@ extension E on dynamic {
 void f() {
   dynamic.foo = 0;
 //        ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -4685,7 +4685,7 @@ extension E on FutureOr<int> {
 void f() {
   FutureOr.foo = 0;
 //         ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'FutureOr<T>'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'FutureOr' doesn't have a static setter named 'foo'.
 }
 ''');
   }
@@ -4699,7 +4699,7 @@ extension E on Never {
 void f() {
   Never.foo = 0;
 //      ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -4713,7 +4713,7 @@ extension E<X extends String> on X {
 void f() {
   String.foo = 0;
 //       ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'String'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'String' doesn't have a static setter named 'foo'.
 }
 ''');
   }
@@ -5684,7 +5684,7 @@ extension E2 on int {
   void f() {
     foo = 0;
 //  ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E2'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
   }
 }
 ''');
@@ -6287,7 +6287,7 @@ extension E2 on int {
   void f() {
     foo;
 //  ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
   }
 }
 ''');

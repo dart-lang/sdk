@@ -118,7 +118,7 @@ class TestResult {
   late String message;
   late List<String> stackTrace;
 
-  TestResult(this.testName, this.expected, this.actual);
+  new(this.testName, this.expected, this.actual);
 
   String? get traceLine {
     for (int i = 0; i < stackTrace.length; i++) {

@@ -55,7 +55,7 @@ main() {
 
   T.named();
   //^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: 'Function.named'.
 
   T v17 = foo<T>(T());

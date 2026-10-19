@@ -38,7 +38,7 @@ class AssistGenerator {
 
   /// Initialize a newly created assists generator to use the given
   /// [contributors].
-  AssistGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create an 'edit.getAssists' response for the location in the file specified
   /// by the given [request]. If any of the contributors throws an exception,
@@ -88,7 +88,7 @@ class AssistKind {
 
   /// Initialize a newly created kind of assist to have the given [id],
   /// [priority] and [message].
-  const AssistKind(this.id, this.priority, this.message);
+  const new(this.id, this.priority, this.message);
 
   @override
   String toString() => id;

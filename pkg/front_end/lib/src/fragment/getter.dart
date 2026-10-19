@@ -151,9 +151,6 @@ class _GetterBodyBuildingContext(final GetterFragment _fragment)
   bool get shouldFinishFunction => true;
 
   @override
-  bool get isImplementation => _fragment.declaration.isImplementation;
-
-  @override
   List<TypeParameter>? get thisTypeParameters =>
       _fragment.declaration.thisTypeParameters;
 

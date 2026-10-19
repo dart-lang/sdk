@@ -35,7 +35,7 @@ main(List<String> args) {
 }
 
 class _AssignedVariablesDataComputer extends DataComputer<_Data> {
-  const _AssignedVariablesDataComputer();
+  const new();
 
   @override
   DataInterpreter<_Data> get dataValidator =>
@@ -57,18 +57,15 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
 class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  Declaration? _currentDeclaration;
+  AstNode? _currentDeclaration;
 
   AssignedVariablesForTesting<AstNode, PromotableElementImpl>?
   _currentAssignedVariables;
 
-  _AssignedVariablesDataExtractor(super.uri, super.actualMap, this._flowResult);
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   _Data? computeNodeValue(Id id, AstNode node) {
-    if (node is FunctionDeclarationStatement) {
-      node = node.functionDeclaration;
-    }
     var currentAssignedVariables = _currentAssignedVariables;
     if (currentAssignedVariables == null) return null;
     if (node == _currentDeclaration) {
@@ -99,18 +96,23 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitField2(Field2 node) {
+    _handlePossibleTopLevelDeclaration(node, () => super.visitField2(node));
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
     _handlePossibleTopLevelDeclaration(
       node,
-      () => super.visitFunctionDeclaration(node),
+      () => super.visitTopLevelFunctionDeclaration(node),
     );
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
     _handlePossibleTopLevelDeclaration(
       node,
-      () => super.visitVariableDeclaration(node),
+      () => super.visitTopLevelVariable2(node),
     );
   }
 
@@ -122,7 +124,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
     void Function() callback,
   ) {
     if (_currentDeclaration == null) {
-      _currentDeclaration = node as Declaration;
+      _currentDeclaration = node;
       _currentAssignedVariables = _flowResult.assignedVariables[node];
       callback();
       _currentDeclaration = null;
@@ -134,7 +136,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
 }
 
 class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
-  const _AssignedVariablesDataInterpreter();
+  const new();
 
   @override
   String getText(_Data actualData, [String? indentation]) {
@@ -189,7 +191,7 @@ class _Data {
 
   final Set<String> captured;
 
-  _Data(
+  new(
     this.declared,
     this.read,
     this.readCaptured,

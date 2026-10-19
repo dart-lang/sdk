@@ -241,6 +241,16 @@ double Evaluator::EvaluateUnaryDoubleOp(const double value,
   }
 }
 
+template <typename T>
+static T MinMax(T left, T right, bool is_min) {
+  if (isnan(left)) return left;
+  if (isnan(right)) return right;
+  if (left == right) {
+    return (signbit(left) != 0) == is_min ? left : right;
+  }
+  return (left < right) == is_min ? left : right;
+}
+
 double Evaluator::EvaluateBinaryDoubleOp(const double left,
                                          const double right,
                                          Token::Kind token_kind,
@@ -256,9 +266,9 @@ double Evaluator::EvaluateBinaryDoubleOp(const double left,
       case Token::kDIV:
         return Utils::DivideAllowZero(left, right);
       case Token::kMIN:
-        return fmin(left, right);
+        return MinMax(left, right, /*is_min=*/true);
       case Token::kMAX:
-        return fmax(left, right);
+        return MinMax(left, right, /*is_min=*/false);
       default:
         UNREACHABLE();
     }
@@ -275,9 +285,11 @@ double Evaluator::EvaluateBinaryDoubleOp(const double left,
         return Utils::DivideAllowZero(static_cast<float>(left),
                                       static_cast<float>(right));
       case Token::kMIN:
-        return fminf(static_cast<float>(left), static_cast<float>(right));
+        return MinMax(static_cast<float>(left), static_cast<float>(right),
+                      /*is_min=*/true);
       case Token::kMAX:
-        return fmaxf(static_cast<float>(left), static_cast<float>(right));
+        return MinMax(static_cast<float>(left), static_cast<float>(right),
+                      /*is_min=*/false);
       default:
         UNREACHABLE();
     }

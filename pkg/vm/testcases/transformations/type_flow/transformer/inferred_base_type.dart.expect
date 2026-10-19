@@ -57,8 +57,8 @@ static method returnGenericBox([@vm.inferred-arg-type.metadata=dart.core::bool] 
 
 [@vm.inferred-return-type.metadata=dart.core::_Array<#lib::Foo> (inexact)]
 [@vm.closure-id=1]
-static method returnFixedLengthList([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c2) → core::List<self::Foo>
-  return c1 ?{core::List<self::Foo>} #C1 : c2 ?{core::List<self::Foo>} [@vm.inferred-type.metadata=dart.core::_List<#lib::Foo>] core::_List::generate<self::Foo>([@vm.closure-id=1](wildcard core::int _#wc0#formal) → self::Foo => new self::Foo::•()) : [@vm.inferred-type.metadata=dart.core::_List<#lib::Foo>] core::_List::filled<self::Foo>(2, new self::Foo::•());
+static method returnFixedLengthList([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c2, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c3, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c4) → core::List<self::Foo>
+  return c1 ?{core::List<self::Foo>} #C1 : c2 ?{core::List<self::Foo>} [@vm.inferred-type.metadata=dart.core::_List<#lib::Foo>] core::_List::generate<self::Foo>([@vm.closure-id=1](wildcard core::int _#wc0#formal) → self::Foo => new self::Foo::•()) : c3 ?{core::List<self::Foo>} [@vm.inferred-type.metadata=dart.core::_List<#lib::Foo>] core::_List::filled<self::Foo>(2, new self::Foo::•()) : c4 ?{core::List<self::Foo>} [@vm.inferred-type.metadata=dart.core::_List<#lib::Foo>] core::List::of<self::Foo>([@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Foo>] core::_GrowableList::_literal1<self::Foo>(new self::Foo::•()), growable: false) : [@vm.inferred-type.metadata=dart.core::_ImmutableList<#lib::Foo>] core::List::unmodifiable<self::Foo>([@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::Foo>] core::_GrowableList::_literal1<self::Foo>(new self::Foo::•()));
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method useBase([@vm.inferred-arg-type.metadata=#lib::Base (inexact)] core::Object arg) → void {
@@ -73,7 +73,7 @@ static method main() → void {
   self::useBase([@vm.inferred-type.metadata=#lib::Base (inexact)] self::field);
   self::useBase([@vm.inferred-type.metadata=#lib::Base (inexact)] self::returnBase(cond));
   core::print([@vm.inferred-type.metadata=#lib::GenericBox<dart.core::num> (inexact type args)] self::returnGenericBox(cond));
-  core::print([@vm.inferred-type.metadata=dart.core::_Array<#lib::Foo> (inexact)] self::returnFixedLengthList(cond, !cond));
+  core::print([@vm.inferred-type.metadata=dart.core::_Array<#lib::Foo> (inexact)] self::returnFixedLengthList(cond, !cond, cond, !cond));
 }
 constants  {
   #C1 = <self::Foo>[]

@@ -12,7 +12,7 @@ class CharacterLocation {
 
   /// Initialize a newly created location to represent the location of the
   /// character at the given [lineNumber] and [columnNumber].
-  CharacterLocation(this.lineNumber, this.columnNumber);
+  new(this.lineNumber, this.columnNumber);
 
   @override
   bool operator ==(Object other) =>
@@ -36,7 +36,7 @@ class LineInfo {
 
   /// Initialize a newly created set of line information to represent the data
   /// encoded in the given list of [lineStarts].
-  LineInfo(this.lineStarts) {
+  new(this.lineStarts) {
     if (lineStarts.isEmpty) {
       throw ArgumentError("lineStarts must be non-empty");
     }
@@ -44,7 +44,7 @@ class LineInfo {
 
   /// Initialize a newly created set of line information corresponding to the
   /// given file [content]. Lines end with `\r`, `\n` or `\r\n`.
-  factory LineInfo.fromContent(String content) {
+  factory fromContent(String content) {
     const slashN = 0x0A;
     const slashR = 0x0D;
 

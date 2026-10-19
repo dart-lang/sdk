@@ -13,15 +13,15 @@ class NotWellBoundedTypeResult implements TypeBoundedResult {
   final String elementName;
   final List<TypeArgumentIssue> issues;
 
-  NotWellBoundedTypeResult._({required this.elementName, required this.issues});
+  new _({required this.elementName, required this.issues});
 }
 
 class RegularBoundedTypeResult implements WellBoundedTypeResult {
-  const RegularBoundedTypeResult._();
+  const new _();
 }
 
 class SuperBoundedTypeResult implements WellBoundedTypeResult {
-  const SuperBoundedTypeResult._();
+  const new _();
 }
 
 class TypeArgumentIssue {
@@ -37,12 +37,7 @@ class TypeArgumentIssue {
   /// The type argument that violated the [parameterBound].
   final DartType argument;
 
-  TypeArgumentIssue(
-    this.index,
-    this.parameter,
-    this.parameterBound,
-    this.argument,
-  );
+  new(this.index, this.parameter, this.parameterBound, this.argument);
 
   @override
   String toString() {
@@ -57,7 +52,7 @@ class TypeArgumentIssue {
 class TypeBoundedHelper {
   final TypeSystemImpl typeSystem;
 
-  TypeBoundedHelper(this.typeSystem);
+  new(this.typeSystem);
 
   TypeBoundedResult isWellBounded(
     TypeImpl type, {

@@ -768,7 +768,6 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override
@@ -777,7 +776,6 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override

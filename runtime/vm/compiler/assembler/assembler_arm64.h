@@ -1580,6 +1580,25 @@ class Assembler : public AssemblerBase {
                              (static_cast<int32_t>(vd) << kVdShift);
     Emit(encoding);
   }
+  // REV64 Vd.4S, Vn.4S: swaps the two 32-bit lanes in each 64-bit half, so
+  // the lanes n0, n1, n2, n3 of Vn become n1, n0, n3, n2.
+  void vrev64_4s(VRegister vd, VRegister vn) {
+    const int32_t encoding = 0x4EA00800 |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
+  // EXT Vd.16B, Vn.16B, Vm.16B, #index: places Vm after Vn and takes the 16
+  // bytes that start at byte `index`. For 32-bit lanes and index 4, that is
+  // n1, n2, n3, m0.
+  void vext(VRegister vd, VRegister vn, VRegister vm, int32_t index) {
+    ASSERT((index >= 0) && (index <= 15));
+    const int32_t encoding = 0x6E000000 | (index << 11) |
+                             (static_cast<int32_t>(vm) << kVmShift) |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
   // UMINV Sd, Vn.4S: unsigned minimum across the four word lanes of Vn into the
   // 32-bit scalar in the low bits of Vd.
   void vuminv_4s(VRegister vd, VRegister vn) {
@@ -2386,24 +2405,6 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp1,
                         Register temp2);
-
-  void CheckAllocationCanary(Register top, Register tmp = TMP) {
-#if defined(DEBUG)
-    Label okay;
-    ldr(tmp, Address(top, 0));
-    cmp(tmp, Operand(kAllocationCanary));
-    b(&okay, EQUAL);
-    Stop("Allocation canary");
-    Bind(&okay);
-#endif
-  }
-  void WriteAllocationCanary(Register top) {
-#if defined(DEBUG)
-    ASSERT(top != TMP);
-    LoadImmediate(TMP, kAllocationCanary);
-    str(TMP, Address(top, 0));
-#endif
-  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

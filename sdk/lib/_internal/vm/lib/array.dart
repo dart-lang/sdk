@@ -176,12 +176,21 @@ class _List<E> extends _Array<E> {
   }
 
   factory _List._ofOther(Iterable<E> elements) {
-    // The static type of `makeListFixedLength` is `List<E>`, not `_List<E>`,
-    // but we know that is what it does.  `makeListFixedLength` is too generally
-    // typed since it is available on the web platform which has different
-    // system List types.
-    return unsafeCast(makeListFixedLength(_GrowableList<E>._ofOther(elements)));
+    return _GrowableList<E>._ofOther(elements)._mutateIntoFixedLengthList();
   }
+
+  /// Converts this fixed-length list into an [_ImmutableList] in-place by
+  /// mutating its object header class ID.
+  ///
+  /// This is a destructive operation that invalidates the static type of the
+  /// receiver (`_List<E>`). The receiver reference must not be used after
+  /// calling this method.
+  @pragma("vm:external-name", "Internal_makeFixedListUnmodifiable")
+  @pragma("vm:exact-result-type", <dynamic>[
+    _ImmutableList,
+    "result-type-uses-receiver-type-arguments",
+  ])
+  external _ImmutableList<E> _mutateIntoUnmodifiableList();
 
   @pragma("vm:recognized", "other")
   void operator []=(int index, E value) {
@@ -202,6 +211,7 @@ class _List<E> extends _Array<E> {
     }
     int length = end - start;
     if (length == 0) return;
+    RangeError.checkNotNegative(skipCount, "skipCount");
     if (identical(this, iterable)) {
       Lists.copy(this, skipCount, this, start, length);
     } else if (ClassID.getID(iterable) == ClassID.cidArray) {
@@ -212,11 +222,11 @@ class _List<E> extends _Array<E> {
     } else {
       Iterator<E> it = iterable.iterator;
       while (skipCount > 0) {
-        if (!it.moveNext()) return;
+        if (!it.moveNext()) throw IterableElementError.tooFew();
         skipCount--;
       }
       for (int i = start; i < end; i++) {
-        if (!it.moveNext()) return;
+        if (!it.moveNext()) throw IterableElementError.tooFew();
         this[i] = it.current;
       }
     }

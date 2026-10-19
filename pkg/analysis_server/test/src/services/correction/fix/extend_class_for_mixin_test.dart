@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ExtendClassForMixinTest extends FixProcessorTest {
+class ExtendClassForMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.extendClassForMixin;
 

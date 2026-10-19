@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,13 +12,13 @@ import '../../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(BreadthFirstVisitorTest);
   });
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 BreadthFirstVisitor.')
+@V1Ast('Tests V1 BreadthFirstVisitor.')
 class BreadthFirstVisitorTest extends ParserDiagnosticsTest {
   void test_it() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
@@ -49,19 +49,25 @@ A f(p) {
     expect(nodes, hasLength(51));
     expect(nodes[0], parseResult.unit);
     expect(nodes[2], findNode.classDeclaration('class B'));
-    expect(nodes[3], findNode.functionDeclaration('A f'));
-    expect(nodes[24], findNode.functionDeclarationStatement('num q'));
+    // The V1 projection of the top-level function `f`.
+    expect(nodes[3], parseResult.unit.declarations[2]);
+    // The V1 projection of the local function `q`.
+    var classB = parseResult.unit.declarations[1] as ClassDeclaration;
+    var method = (classB.body as BlockClassBody).members.single;
+    method as MethodDeclaration;
+    var block = (method.body as BlockFunctionBody).block;
+    expect(nodes[24], block.statements[0]);
     expect(nodes[50], findNode.integerLiteral('3'));
   }
 }
 
 /// A helper class used to collect the nodes that were visited and to preserve
 /// the order in which they were visited.
-@ToBeDeprecated('Tests V1 BreadthFirstVisitor.')
+@V1Ast('Tests V1 BreadthFirstVisitor.')
 class _BreadthFirstVisitorTestHelper extends BreadthFirstVisitor<void> {
   List<AstNode> nodes;
 
-  _BreadthFirstVisitorTestHelper(this.nodes) : super();
+  new(this.nodes) : super();
 
   @override
   void visitNode(AstNode node) {

@@ -1822,6 +1822,7 @@ sealed class InternalFunctionParameter extends InternalVariable
   @override
   bool get isAssignable => !isFinal;
 
+  // Coverage-ignore(suite): Not run.
   bool get hasErroneousDefaultValue => _astVariable.hasErroneousDefaultValue;
 
   void set hasErroneousDefaultValue(bool value) {
@@ -1840,6 +1841,7 @@ sealed class InternalFunctionParameter extends InternalVariable
     _defaultValue = value;
   }
 
+  // Coverage-ignore(suite): Not run.
   Expression? get inferredDefaultValue => _astVariable.defaultValue;
 
   void setInferredDefaultValue(Expression value) {
@@ -3561,10 +3563,14 @@ class SuperIndexSet extends InternalExpression {
   /// The value expression of the operation.
   final InternalExpression value;
 
+  /// If `true`, the expression is only needed for effect and not for its value.
+  final bool forEffect;
+
   new({
     required this.setter,
     required this.index,
     required this.value,
+    required this.forEffect,
     required super.fileOffset,
   });
 

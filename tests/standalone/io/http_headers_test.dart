@@ -719,6 +719,46 @@ void testInvalidFieldValue() {
   test(new StringBuffer('\x00'), remove: false);
 }
 
+void testInvalidHeaderValueViaSetters() {
+  // The `host` and `contentType` setters must reject CR/LF (and other control
+  // characters) the same way `add`/`set` do. Otherwise a value carrying a CRLF
+  // is written verbatim into the Host/Content-Type header and splits the
+  // message (header injection).
+  void testHostRejected(String value) {
+    _HttpHeaders headers = new _HttpHeaders("1.1");
+    Expect.throwsFormatException(() => headers.host = value);
+  }
+
+  testHostRejected("example.com\r\nInjected: yes");
+  testHostRejected("example.com\nInjected: yes");
+  testHostRejected("example.com\rInjected: yes");
+  testHostRejected("example.com\x00");
+
+  // A legitimate host is still accepted.
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.host = "www.example.com";
+  Expect.equals("www.example.com", headers.host);
+
+  // The _HeaderValue quoting only escapes `\` and `"`, so a content type whose
+  // parameter value contains a CRLF would otherwise be serialized verbatim.
+  headers = new _HttpHeaders("1.1");
+  Expect.throwsFormatException(
+    () => headers.contentType = new ContentType(
+      "text",
+      "plain",
+      parameters: {"boundary": "a\r\nInjected: yes"},
+    ),
+  );
+
+  // A legitimate content type is still accepted.
+  headers = new _HttpHeaders("1.1");
+  headers.contentType = ContentType.parse("text/plain; charset=utf-8");
+  Expect.equals(
+    "text/plain; charset=utf-8",
+    headers.value(HttpHeaders.contentTypeHeader),
+  );
+}
+
 void testClear() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
   headers.add("a", "b");
@@ -896,6 +936,7 @@ void main() {
   testHeaderLists();
   testInvalidFieldName();
   testInvalidFieldValue();
+  testInvalidHeaderValueViaSetters();
   testClear();
   testFolding();
   testLowercaseAdd();

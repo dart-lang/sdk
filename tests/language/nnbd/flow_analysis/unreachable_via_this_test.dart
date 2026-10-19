@@ -159,7 +159,7 @@ extension on E? {
     y.expectStaticType<Exactly<int?>>();
   }
 
-  void equalityWithBogusPromotion(int? x, int? y) {
+  void equalityWithPromotion(int? x, int? y) {
     if (x == null || y == null) return;
     x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int>>();
@@ -170,10 +170,11 @@ extension on E? {
         y = null;
       }
     }
-    // Since the assignments to x and y were both reachable, they should have
-    // static type `int?` now.
+    // The assignment to x was reachable, so it should have static type `int?`
+    // now. The assignment to y was not reachable, so it should still have
+    // static type `int`.
     x.expectStaticType<Exactly<int?>>();
-    y.expectStaticType<Exactly<int?>>();
+    y.expectStaticType<Exactly<int>>();
   }
 
   void isSimple(int? x, int? y) {
@@ -191,7 +192,7 @@ extension on E? {
     y.expectStaticType<Exactly<int?>>();
   }
 
-  void isWithBogusPromotion(int? x, int? y) {
+  void isWithPromotion(int? x, int? y) {
     if (x == null || y == null) return;
     x.expectStaticType<Exactly<int>>();
     y.expectStaticType<Exactly<int>>();
@@ -219,11 +220,11 @@ main() {
   D().isSimple(1, 1);
   D().isWithBogusPromotion(1, 1);
   E().equalitySimple(1, 1);
-  E().equalityWithBogusPromotion(1, 1);
+  E().equalityWithPromotion(1, 1);
   E().isSimple(1, 1);
-  E().isWithBogusPromotion(1, 1);
+  E().isWithPromotion(1, 1);
   (null as E?).equalitySimple(1, 1);
-  (null as E?).equalityWithBogusPromotion(1, 1);
+  (null as E?).equalityWithPromotion(1, 1);
   (null as E?).isSimple(1, 1);
-  (null as E?).isWithBogusPromotion(1, 1);
+  (null as E?).isWithPromotion(1, 1);
 }

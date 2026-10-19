@@ -23,7 +23,7 @@ class InstanceMemberInferrer {
   late InterfaceElementImpl currentInterfaceElement;
 
   /// Initialize a newly create inferrer.
-  InstanceMemberInferrer(this.inheritance);
+  new(this.inheritance);
 
   TypeSystemImpl get typeSystem {
     return currentInterfaceElement.library.typeSystem;

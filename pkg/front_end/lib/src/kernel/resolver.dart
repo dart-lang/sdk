@@ -70,8 +70,6 @@ class Resolver {
 
   final Benchmarker? _benchmarker;
 
-  late CloneVisitorNotMembers _simpleCloner = new CloneVisitorNotMembers();
-
   new({
     required ClassHierarchy classHierarchy,
     required CoreTypes coreTypes,
@@ -437,7 +435,6 @@ class Resolver {
         constantContext: constantContext,
         internalThisVariable: internalThisVariable,
         forPrimaryConstructor: false,
-        isImplementation: functionBodyBuildingContext.isImplementation,
       );
       context.performBacklog(result.annotations);
     }
@@ -463,7 +460,6 @@ class Resolver {
     required Token? beginInitializers,
     required bool isConst,
     required bool forPrimaryConstructor,
-    required bool isImplementation,
   }) {
     _ResolverContext context = new _ResolverContext(
       typeInferenceEngine: _typeInferenceEngine,
@@ -521,7 +517,6 @@ class Resolver {
         constantContext: constantContext,
         initializers: initializers,
         forPrimaryConstructor: forPrimaryConstructor,
-        isImplementation: isImplementation,
         parameters: [
           for (FormalParameterBuilder formal
               in bodyBuilderContext.formals ?? [])
@@ -724,7 +719,6 @@ class Resolver {
           constantContext: constantContext,
           internalThisVariable: internalThisVariable,
           forPrimaryConstructor: true,
-          isImplementation: functionBodyBuildingContext.isImplementation,
         );
       }
       context.performBacklog(result.annotations);
@@ -807,7 +801,6 @@ class Resolver {
         thisVariable: functionBodyBuildingContext.thisVariable,
         internalThisVariable: internalThisVariable,
         forPrimaryConstructor: true,
-        isImplementation: functionBodyBuildingContext.isImplementation,
       );
       context.performBacklog(result.annotations);
     }
@@ -1352,7 +1345,6 @@ class Resolver {
     required ConstantContext constantContext,
     required List<InternalInitializer> initializers,
     required bool forPrimaryConstructor,
-    required bool isImplementation,
     required List<InternalVariable> parameters,
     required InternalThisVariable? internalThisVariable,
     required ContextAllocationStrategy contextAllocationStrategy,
@@ -1364,7 +1356,6 @@ class Resolver {
       typeInferrer: context.typeInferrer,
       coreTypes: _coreTypes,
       fileUri: fileUri,
-      forImplementation: isImplementation,
     );
     initializerBuilder.processInitializers(
       libraryBuilder: libraryBuilder,
@@ -1432,7 +1423,6 @@ class Resolver {
     required ConstantContext constantContext,
     required InternalThisVariable? internalThisVariable,
     required bool forPrimaryConstructor,
-    required bool isImplementation,
   }) {
     AssignedVariablesImpl assignedVariables = context.assignedVariables;
 
@@ -1452,62 +1442,6 @@ class Resolver {
       thisVariable: thisVariable,
       formals: bodyBuilderContext.formals,
     );
-    if (bodyBuilderContext.formals != null) {
-      // TODO(johnniwinther): Avoid the need for this.
-      int declaredParameterIndex = 0;
-      for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
-        if (parameter.isExtensionThis) continue;
-        InternalExpression? defaultValue = parameter.variable.defaultValue;
-        bool inferDefaultValue;
-        if (parameter.isSuperInitializingFormal) {
-          // Super-parameters can inherit the default value from the super
-          // constructor so we only handle explicit default values here.
-          inferDefaultValue = parameter.hasImmediatelyDeclaredDefaultValue;
-        } else if (defaultValue != null) {
-          inferDefaultValue = true;
-        } else {
-          inferDefaultValue = parameter.isOptional;
-        }
-        if (inferDefaultValue) {
-          Expression? inferredDefaultValue;
-          if (!parameter.defaultValueWasInferred) {
-            // Coverage-ignore(suite): Not run.
-            defaultValue ??= intern.createNullLiteral(
-              // TODO(ahe): Should store: originParameter.fileOffset
-              // https://github.com/dart-lang/sdk/issues/32289
-              noLocation,
-            );
-            InternalFunctionParameter originParameter = parameter.variable;
-            inferredDefaultValue = context.typeInferrer
-                .inferParameterDefaultValue(
-                  fileUri: fileUri,
-                  defaultValue: defaultValue,
-                  declaredType: originParameter.type,
-                  hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
-                );
-            originParameter.setInferredDefaultValue(inferredDefaultValue);
-            if (inferredDefaultValue is InvalidExpression) {
-              originParameter.hasErroneousDefaultValue = true;
-            }
-            parameter.defaultValueWasInferred = true;
-          } else {
-            inferredDefaultValue = parameter.variable.inferredDefaultValue;
-          }
-          FunctionParameter? tearOffParameter = bodyBuilderContext
-              .getTearOffParameter(declaredParameterIndex);
-          if (tearOffParameter != null) {
-            Expression tearOffDefaultValue = _simpleCloner.cloneInContext(
-              inferredDefaultValue!,
-            );
-            tearOffParameter.defaultValue = tearOffDefaultValue
-              ..parent = tearOffParameter;
-            tearOffParameter.hasErroneousDefaultValue =
-                parameter.variable.hasErroneousDefaultValue;
-          }
-        }
-        declaredParameterIndex++;
-      }
-    }
 
     late List<InternalFunctionParameter>? parameters = [
       for (FormalParameterBuilder formal in bodyBuilderContext.formals ?? [])
@@ -1554,7 +1488,6 @@ class Resolver {
         constantContext: constantContext,
         initializers: initializers,
         forPrimaryConstructor: forPrimaryConstructor,
-        isImplementation: isImplementation,
         parameters: parameters,
         internalThisVariable: internalThisVariable,
         contextAllocationStrategy: contextAllocationStrategy,

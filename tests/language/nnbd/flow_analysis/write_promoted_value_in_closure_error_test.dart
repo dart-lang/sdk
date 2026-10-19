@@ -15,7 +15,7 @@ void functionExpression(Object x) {
       // an int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     };
@@ -31,7 +31,7 @@ void localFunction(Object x) {
       // an int at the time de-promotion occurs.
       print(x.isEven);
       //      ^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     }

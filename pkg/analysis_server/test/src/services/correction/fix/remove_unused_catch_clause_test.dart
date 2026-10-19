@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnusedCatchClauseMultiTest extends FixProcessorTest {
+class RemoveUnusedCatchClauseMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedCatchClauseMulti;
 
@@ -44,7 +45,7 @@ void f() {
 }
 
 @reflectiveTest
-class RemoveUnusedCatchClauseTest extends FixProcessorTest {
+class RemoveUnusedCatchClauseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedCatchClause;
 

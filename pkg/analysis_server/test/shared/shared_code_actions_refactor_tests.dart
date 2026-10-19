@@ -7,13 +7,17 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
+import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../lsp/code_actions_mixin.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../lsp/server_abstract.dart';
+import '../support/interactive_forms.dart';
 import '../tool/lsp_spec/matchers.dart';
 import '../utils/test_code_extensions.dart';
 import 'shared_test_interface.dart';
@@ -127,7 +131,7 @@ mixin SharedExtractMethodRefactorCodeActionsTests
         LspNotificationsMixin {
   final extractMethodTitle = 'Extract Method';
 
-  Future<void> test_appliesCorrectEdits() async {
+  Future<void> test_legacy_appliesCorrectEdits() async {
     const content = '''
 void f() {
   print('Test!');
@@ -152,7 +156,7 @@ void newMethod() {
     );
   }
 
-  Future<void> test_cancelsInProgress() async {
+  Future<void> test_legacy_cancelsInProgress() async {
     const content = '''
 void f() {
   print('Test!');
@@ -210,7 +214,7 @@ void newMethod() {
     verifyEdit(edit, expectedContent);
   }
 
-  Future<void> test_contentModified() async {
+  Future<void> test_legacy_contentModified() async {
     const content = '''
 void f() {
   print('Test!');
@@ -246,7 +250,7 @@ void f() {
     }
   }
 
-  Future<void> test_filtersCorrectly() async {
+  Future<void> test_legacy_filtersCorrectly() async {
     // Support everything (empty prefix matches all)
     setSupportedCodeActionKinds([CodeActionKind.Empty]);
 
@@ -271,7 +275,7 @@ void f() {
     expect(await ofKind(CodeActionKind.RefactorRewrite), isEmpty);
   }
 
-  Future<void> test_generatesNames() async {
+  Future<void> test_legacy_generatesNames() async {
     const content = '''
 Object? F() {
   return Container([!Text('Test!')!]);
@@ -299,7 +303,7 @@ Object? Text(Object? text) => null;
     );
   }
 
-  Future<void> test_invalidLocation() async {
+  Future<void> test_legacy_invalidLocation() async {
     const content = '''
 import 'dart:convert';
 ^
@@ -313,7 +317,7 @@ void f() {}
     );
   }
 
-  Future<void> test_invalidLocation_importPrefix() async {
+  Future<void> test_legacy_invalidLocation_importPrefix() async {
     const content = '''
 import 'dart:io' as io;
 
@@ -327,7 +331,7 @@ i^o.File? a;
     );
   }
 
-  Future<void> test_logsAction() async {
+  Future<void> test_legacy_logsAction() async {
     const content = '''
 void f() {
   print('Test!');
@@ -346,7 +350,7 @@ void f() {
     expectCommandLogged('dart.refactor.extract_method');
   }
 
-  Future<void> test_validLocation_failsInitialValidation() async {
+  Future<void> test_legacy_validLocation_failsInitialValidation() async {
     const content = '''
 f() {
   var a = 0;
@@ -383,7 +387,7 @@ void doFoo(void Function() a) => a();
     );
   }
 
-  Future<void> test_validLocation_passesInitialValidation() async {
+  Future<void> test_legacy_validLocation_passesInitialValidation() async {
     const content = '''
 f() {
   doFoo([!() => print(1)!]);
@@ -414,6 +418,347 @@ void doFoo(void Function() a) => a();
 
     expect(response.valid, isTrue);
     expect(response.message, isNull);
+  }
+
+  /// Ensure only the legacy version of the refactor shows up if interactive
+  /// forms are not supported.
+  Future<void> test_onlyOne_legacy() async {
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+
+    var code = TestCode.parseNormalized(content);
+    createFile(testFilePath, code.code);
+    await initializeServer();
+    var codeActions = await getCodeActions(
+      testFileUri,
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+    );
+    var extractMethodActions = codeActions.where(
+      (action) => action.title == extractMethodTitle,
+    );
+    expect(extractMethodActions, hasLength(1));
+    // Expect the legacy refactor command.
+    expect(extractMethodActions.single.command!.command, 'refactor.perform');
+  }
+
+  /// Ensure only the new self-describing version of the refactor shows up if
+  /// interactive forms are supported.
+  Future<void> test_onlyOne_selfDescribed() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+
+    var code = TestCode.parseNormalized(content);
+    createFile(testFilePath, code.code);
+    await initializeServer();
+    var codeActions = await getCodeActions(
+      testFileUri,
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+    );
+    var extractMethodActions = codeActions.where(
+      (action) => action.title == extractMethodTitle,
+    );
+    expect(extractMethodActions, hasLength(1));
+    // Expect the new self-described refactor command.
+    expect(
+      extractMethodActions.single.command!.command,
+      'dart.refactor.extract_method',
+    );
+  }
+
+  Future<void> test_selfDescribing_appliesCorrectEdits() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+    const expectedContent = '''
+void f() {
+  print('Test!');
+  newMethod();
+}
+
+void newMethod() {
+  print('Test!');
+}
+''';
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+  }
+
+  Future<void> test_selfDescribing_appliesCorrectEdits_customName() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+    const expectedContent = '''
+>>>>>>>>>> lib/test.dart
+void f() {
+  print('Test!');
+  customMethodName();
+}
+
+void customMethodName() {
+  print('Test!');
+}
+''';
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+
+    var command = codeAction.command!;
+    var interactiveCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+    var field = interactiveCommand.formFields!.single;
+    interactiveCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: interactiveCommand.command,
+        arguments: interactiveCommand.arguments,
+        formFields: interactiveCommand.formFields,
+        formAnswers: [field.answer('customMethodName')],
+      ),
+    );
+    expect(interactiveCommand.formFields, isNull);
+
+    await verifyCommandEdits(
+      Command(
+        title: command.title,
+        command: interactiveCommand.command,
+        arguments: interactiveCommand.arguments,
+      ),
+      expectedContent,
+    );
+  }
+
+  Future<void> test_selfDescribing_filtersCorrectly() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+    // Support everything (empty prefix matches all)
+    setSupportedCodeActionKinds([CodeActionKind.Empty]);
+
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+    var code = TestCode.parse(content);
+    createFile(testFilePath, code.code);
+    await initializeServer();
+
+    ofKind(CodeActionKind kind) =>
+        getCodeActions(testFileUri, range: code.range.range, kinds: [kind]);
+
+    // The code above will return a 'refactor.extract' (as well as some other
+    // refactors, but not rewrite).
+    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
+    expect(await ofKind(CodeActionKind.RefactorExtract), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.extract.foo')), isEmpty);
+    expect(await ofKind(CodeActionKind.RefactorRewrite), isEmpty);
+  }
+
+  Future<void> test_selfDescribing_generatesNames() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+Object? F() {
+  return Container([!Text('Test!')!]);
+}
+
+Object? Container(Object? text) => null;
+Object? Text(Object? text) => null;
+''';
+
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+
+    var command = codeAction.command!;
+    var interactiveCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+    var field = interactiveCommand.formFields!.single;
+    expect(field.defaultValue, 'text');
+  }
+
+  Future<void> test_selfDescribing_invalidLocation() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'dart:convert';
+^
+void f() {}
+''';
+
+    await expectNoAction(
+      content,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+  }
+
+  Future<void> test_selfDescribing_invalidLocation_importPrefix() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'dart:io' as io;
+
+i^o.File? a;
+''';
+
+    await expectNoAction(
+      content,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+  }
+
+  Future<void> test_selfDescribing_logsAction() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+void f() {
+  print('Test!');
+  [!print('Test!');!]
+}
+''';
+
+    setDocumentChangesSupport(false);
+    var action = await expectCodeActionLiteral(
+      content,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+
+    await executeCommandForEdits(action.command!);
+    expectCommandLogged('dart.refactor.extract_method');
+  }
+
+  Future<void>
+  test_selfDescribing_validLocation_failsInitialValidation() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+f() {
+  var a = 0;
+  doFoo([!() => print(a)!]);
+  print(a);
+}
+
+void doFoo(void Function() a) => a();
+
+''';
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+
+    var command = codeAction.command!;
+
+    await expectLater(
+      resolveCommand(
+        InteractiveExecuteCommandParams(
+          command: command.command,
+          arguments: command.arguments,
+        ),
+      ),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.refactoringComputeStatusFailure,
+          message: contains('Cannot extract the closure as a method'),
+        ),
+      ),
+    );
+  }
+
+  Future<void>
+  test_selfDescribing_validLocation_passesInitialValidation() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+f() {
+  doFoo([!() => print(1)!]);
+}
+
+void doFoo(void Function() a) => a();
+
+''';
+
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractMethod.commandName,
+      title: extractMethodTitle,
+    );
+
+    var command = codeAction.command!;
+
+    var response = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    expect(response.formFields, hasLength(1));
+    var field = response.formFields!.single;
+    expect(field.id, 'name');
+    expect(field.description, 'Method Name');
+    expect(field.defaultValue, 'newMethod');
+    expect(field.error, isNull);
+
+    // Also verify the client-side validators are present.
+    expect(
+      field.type,
+      isA<FormFieldTypeString>().having(
+        (type) => type.validators,
+        'validators',
+        editorClientCapabilities.ecmaScriptRegex
+            ? allOf(
+                isNotEmpty,
+                everyElement(
+                  isA<RegexValidator>().having(
+                    (e) => e.message,
+                    'message',
+                    startsWith('Method name'),
+                  ),
+                ),
+              )
+            : isEmpty,
+      ),
+    );
   }
 }
 
@@ -680,7 +1025,7 @@ const new({
   });
 ''';
 
-  Future<void> test_appliesCorrectEdits() async {
+  Future<void> test_legacy_appliesCorrectEdits() async {
     const content = '''
 import 'package:flutter/material.dart';
 
@@ -742,7 +1087,7 @@ class NewWidget extends StatelessWidget {
     );
   }
 
-  Future<void> test_invalidLocation() async {
+  Future<void> test_legacy_invalidLocation() async {
     const content = '''
 import 'dart:convert';
 ^
@@ -753,6 +1098,300 @@ void f() {}
       content,
       command: Commands.performRefactor,
       title: extractWidgetTitle,
+    );
+  }
+
+  /// Ensure only the legacy version of the refactor shows up if interactive
+  /// forms are not supported.
+  Future<void> test_onlyOne_legacy() async {
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new [!Column!]();
+  }
+}
+''';
+
+    var code = TestCode.parseNormalized(content);
+    createFile(testFilePath, code.code);
+    await initializeServer();
+    var codeActions = await getCodeActions(
+      testFileUri,
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+    );
+    var extractWidgetActions = codeActions.where(
+      (action) => action.title == extractWidgetTitle,
+    );
+    expect(extractWidgetActions, hasLength(1));
+    // Expect the legacy refactor command.
+    expect(extractWidgetActions.single.command!.command, 'refactor.perform');
+  }
+
+  /// Ensure only the new self-describing version of the refactor shows up if
+  /// interactive forms are supported.
+  Future<void> test_onlyOne_selfDescribed() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new [!Column!]();
+  }
+}
+''';
+
+    var code = TestCode.parseNormalized(content);
+    createFile(testFilePath, code.code);
+    await initializeServer();
+    var codeActions = await getCodeActions(
+      testFileUri,
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+    );
+    var extractWidgetActions = codeActions.where(
+      (action) => action.title == extractWidgetTitle,
+    );
+    expect(extractWidgetActions, hasLength(1));
+    // Expect the new self-described refactor command.
+    expect(
+      extractWidgetActions.single.command!.command,
+      'dart.refactor.extract_widget',
+    );
+  }
+
+  Future<void> test_selfDescribing_appliesCorrectEdits() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new [!Column!](
+          children: <Widget>[
+            new Text('AAA'),
+            new Text('BBB'),
+          ],
+        ),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+''';
+    var expectedContent =
+        '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        NewWidget(),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+
+class NewWidget extends StatelessWidget {
+  $expectedNewWidgetConstructorDeclaration
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        new Text('AAA'),
+        new Text('BBB'),
+      ],
+    );
+  }
+}
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+      openTargetFile: true,
+    );
+  }
+
+  Future<void> test_selfDescribing_appliesCorrectEdits_customName() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new [!Column!](
+          children: <Widget>[
+            new Text('AAA'),
+            new Text('BBB'),
+          ],
+        ),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+''';
+    var expectedContent =
+        '''
+>>>>>>>>>> lib/test.dart
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        CustomWidgetName(),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+
+class CustomWidgetName extends StatelessWidget {
+  $expectedNewWidgetConstructorDeclaration
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        new Text('AAA'),
+        new Text('BBB'),
+      ],
+    );
+  }
+}
+''';
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+      openTargetFile: true,
+    );
+
+    var command = codeAction.command!;
+    var interactiveCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+    var field = interactiveCommand.formFields!.single;
+    interactiveCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: interactiveCommand.command,
+        arguments: interactiveCommand.arguments,
+        formFields: interactiveCommand.formFields,
+        formAnswers: [field.answer('CustomWidgetName')],
+      ),
+    );
+    expect(interactiveCommand.formFields, isNull);
+
+    await verifyCommandEdits(
+      Command(
+        title: command.title,
+        command: interactiveCommand.command,
+        arguments: interactiveCommand.arguments,
+      ),
+      expectedContent,
+    );
+  }
+
+  Future<void> test_selfDescribing_invalidLocation() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'dart:convert';
+^
+void f() {}
+''';
+
+    await expectNoAction(
+      content,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+    );
+  }
+
+  Future<void>
+  test_selfDescribing_validLocation_passesInitialValidation() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new [!Column!]();
+  }
+}
+''';
+
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+    );
+
+    var command = codeAction.command!;
+
+    var response = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    expect(response.formFields, hasLength(1));
+    var field = response.formFields!.single;
+    expect(field.id, 'name');
+    expect(field.description, 'Widget Name');
+    expect(field.defaultValue, 'NewWidget');
+    expect(field.error, isNull);
+
+    // Also verify the client-side validators are present.
+    expect(
+      field.type,
+      isA<FormFieldTypeString>().having(
+        (type) => type.validators,
+        'validators',
+        editorClientCapabilities.ecmaScriptRegex
+            ? allOf(
+                isNotEmpty,
+                everyElement(
+                  isA<RegexValidator>().having(
+                    (e) => e.message,
+                    'message',
+                    startsWith('Class name'),
+                  ),
+                ),
+              )
+            : isEmpty,
+      ),
     );
   }
 }

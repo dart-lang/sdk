@@ -20,8 +20,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
-  ElementBindingVisitor(this._libraryFragment)
-    : _elementHolder = ElementHolder(_libraryFragment);
+  new(this._libraryFragment) : _elementHolder = ElementHolder(_libraryFragment);
 
   void bindSubtree(FragmentImpl enclosingFragment, AstNode node) {
     _withElementHolder(ElementHolder(enclosingFragment), () {
@@ -164,37 +163,34 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.extensionTypes[extensionTypeIndex++],
           );
-        case FunctionDeclarationImpl():
-          ExecutableFragmentImpl fragment;
-          if (declaration.isGetter) {
-            fragment = getters[getterIndex++];
-          } else if (declaration.isSetter) {
-            fragment = setters[setterIndex++];
-          } else {
-            fragment = _libraryFragment.functions[functionIndex++];
-          }
-          _bindFunctionDeclaration(declaration, fragment);
         case MixinDeclarationImpl():
           _bindMixinDeclaration(
             declaration,
             _libraryFragment.mixins[mixinIndex++],
           );
-        case FunctionTypeAliasImpl():
+        case FunctionTypeAlias2Impl():
           _bindFunctionTypeAlias(
             declaration,
             _libraryFragment.typeAliases[typedefIndex++],
           );
-        case GenericTypeAliasImpl():
+        case GenericTypeAlias2Impl():
           _bindGenericTypeAlias(
             declaration,
             _libraryFragment.typeAliases[typedefIndex++],
           );
+        case TopLevelFunctionDeclarationImpl():
+          _bindTopLevelFunctionDeclaration(
+            declaration,
+            _libraryFragment.functions[functionIndex++],
+          );
         case TopLevelGetterDeclarationImpl():
           _bindTopLevelGetterDeclaration(declaration, getters[getterIndex++]);
-        case TopLevelVariableDeclarationImpl():
+        case TopLevelSetterDeclarationImpl():
+          _bindTopLevelSetterDeclaration(declaration, setters[setterIndex++]);
+        case TopLevelVariablesDeclarationImpl():
           declaration.documentationComment?.accept2(this);
-          declaration.variables.type?.accept2(this);
-          for (var variable in declaration.variables.variables) {
+          declaration.type?.accept2(this);
+          for (var variable in declaration.variables) {
             _bindTopLevelVariable(
               variable,
               variables[variableIndex++],
@@ -274,74 +270,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var expression = node.functionExpression;
-    var fragment = node.declaredFragment as LocalFunctionFragmentImpl;
-
-    fragment.setCodeRange(node.offset, node.length);
-
-    var body = expression.body;
-    if (node.externalKeyword != null || body is NativeFunctionBody) {
-      fragment.isExternal = true;
-    }
-
-    fragment.isComplete = node.isComplete;
-    fragment.isAsynchronous = body.isAsynchronous;
-    fragment.isGenerator = body.isGenerator;
-    if (node.returnType == null) {
-      fragment.hasImplicitReturnType = true;
-    }
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      node.returnType?.accept2(this);
-
-      expression.typeParameters?.accept2(this);
-      fragment.typeParameters = holder.typeParameters;
-      for (var typeParameter in fragment.typeParameters) {
-        TypeParameterElementImpl(firstFragment: typeParameter);
-      }
-
-      expression.parameters?.accept2(this);
-      fragment.formalParameters = holder.formalParameters;
-      for (var formalParameter in fragment.formalParameters) {
-        formalParameter.initElement();
-      }
-
-      expression.body.accept2(this);
-    });
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(
-    covariant FunctionDeclarationStatementImpl node,
-  ) {
-    var functionNode = node.functionDeclaration;
-    var nameToken = functionNode.name;
-
-    var fragment = LocalFunctionFragmentImpl(
-      name: nameToken.nameIfNotEmpty,
-      firstTokenOffset: node.offset,
-    );
-    fragment.nameOffset = nameToken.offsetIfNotEmpty;
-    functionNode.declaredFragment = fragment;
-    functionNode.functionExpression.declaredFragment = fragment;
-
-    _elementHolder.enclose(fragment);
-
-    super.visitFunctionDeclarationStatement(node);
-  }
-
-  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    if (node.parent2 is FunctionDeclaration) {
-      // Handled in visitFunctionDeclaration / _bindFunctionDeclaration
-      super.visitFunctionExpression(node);
-      return;
-    }
-
     var fragment = LocalFunctionFragmentImpl(
       name: null,
       firstTokenOffset: node.offset,
@@ -423,6 +352,86 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    var nameToken = node.name;
+    var fragment = LocalFunctionFragmentImpl(
+      name: nameToken.nameIfNotEmpty,
+      firstTokenOffset: node.offset,
+    );
+    fragment.nameOffset = nameToken.offsetIfNotEmpty;
+    node.declaredFragment = fragment;
+
+    _elementHolder.enclose(fragment);
+
+    fragment.setCodeRange(node.offset, node.length);
+
+    var body = node.body;
+    if (body is NativeFunctionBody) {
+      fragment.isExternal = true;
+    }
+
+    fragment.isComplete = body is! EmptyFunctionBody;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isGenerator = body.isGenerator;
+    if (node.returnType == null) {
+      fragment.hasImplicitReturnType = true;
+    }
+
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    var holder = ElementHolder(fragment);
+    _withElementHolder(holder, () {
+      node.returnType?.accept2(this);
+
+      node.typeParameters?.accept2(this);
+      fragment.typeParameters = holder.typeParameters;
+      for (var typeParameter in fragment.typeParameters) {
+        TypeParameterElementImpl(firstFragment: typeParameter);
+      }
+
+      node.formalParameters.accept2(this);
+      fragment.formalParameters = holder.formalParameters;
+      for (var formalParameter in fragment.formalParameters) {
+        formalParameter.initElement();
+      }
+
+      body.accept2(this);
+    });
+  }
+
+  @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    var declaration = node.parent2 as LocalVariablesDeclarationImpl;
+
+    var fragment = LocalVariableFragmentImpl(
+      name: node.name.nameIfNotEmpty,
+      firstTokenOffset: node.offset,
+    );
+    _elementHolder.enclose(fragment);
+
+    fragment.hasImplicitType = declaration.type == null;
+    fragment.hasInitializer = node.initializer != null;
+    fragment.isConst = declaration.constKeyword != null;
+    fragment.isFinal = declaration.finalKeyword != null;
+    fragment.isLate = declaration.lateKeyword != null;
+    fragment.nameOffset = node.name.offsetIfNotEmpty;
+    node.declaredFragment = fragment;
+
+    _setOrCreateMetadataElements(fragment, declaration.metadata);
+
+    var offset = node == declaration.variables.first
+        ? declaration.offset
+        : node.offset;
+    fragment.setCodeRange(offset, node.end - offset);
+
+    _withElementHolder(ElementHolder(fragment), () {
+      super.visitLocalVariable(node);
+    });
+  }
+
+  @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var partInclude = node.partInclude;
     if (partInclude != null) {
@@ -500,37 +509,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     super.visitTypeParameter(node);
   }
 
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var variableList = node.parent2 as VariableDeclarationListImpl;
-    var declarationParent = variableList.parent2!;
-
-    var fragment = LocalVariableFragmentImpl(
-      name: node.name.nameIfNotEmpty,
-      firstTokenOffset: node.offset,
-    );
-    _elementHolder.enclose(fragment);
-
-    fragment.hasImplicitType = variableList.type == null;
-    fragment.hasInitializer = node.initializer2 != null;
-    fragment.isConst = variableList.isConst;
-    fragment.isFinal = variableList.isFinal;
-    fragment.isLate = variableList.isLate;
-    fragment.nameOffset = node.name.offsetIfNotEmpty;
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, variableList.metadata);
-
-    var offset = node == variableList.variables.first
-        ? declarationParent.offset
-        : node.offset;
-    fragment.setCodeRange(offset, node.end - offset);
-
-    _withElementHolder(ElementHolder(fragment), () {
-      super.visitVariableDeclaration(node);
-    });
-  }
-
   void _bindClassDeclaration(
     ClassDeclarationImpl node,
     ClassFragmentImpl fragment,
@@ -565,7 +543,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.implementsClause?.accept2(this);
     node.nativeClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindClassTypeAlias(
@@ -652,7 +630,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
       _bindEnumConstant(constant, memberFragments.nextField());
     }
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindExtensionDeclaration(
@@ -673,7 +651,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     _bindTypeParameters(node.typeParameters, fragment.typeParameters);
     node.onClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindExtensionTypeDeclaration(
@@ -705,24 +683,23 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindField(
-    VariableDeclarationImpl node,
+    Field2Impl node,
     FieldFragmentImpl fragment,
-    FieldDeclarationImpl declaration,
+    FieldsDeclarationImpl declaration,
   ) {
     node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, declaration.metadata);
 
-    var offset = node == declaration.fields.variables.first
+    var offset = node == declaration.fields.first
         ? declaration.offset
         : node.offset;
     fragment.setCodeRange(offset, node.end - offset);
 
-    node.documentationComment?.accept2(this);
-    if (node.initializer2 case var initializer?) {
+    if (node.initializer case var initializer?) {
       _withElementHolder(ElementHolder(fragment), () {
         initializer.accept2(this);
       });
@@ -778,28 +755,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _bindFunctionDeclaration(
-    FunctionDeclarationImpl node,
-    ExecutableFragmentImpl fragment,
-  ) {
-    node.declaredFragment = fragment;
-    var expression = node.functionExpression;
-    expression.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    node.documentationComment?.accept2(this);
-    node.returnType?.accept2(this);
-    _bindTypeParameters(expression.typeParameters, fragment.typeParameters);
-    _bindFormalParameters(expression.parameters, fragment.formalParameters);
-
-    _withElementHolder(ElementHolder(fragment), () {
-      expression.body.accept2(this);
-    });
-  }
-
   void _bindFunctionTypeAlias(
-    FunctionTypeAliasImpl node,
+    FunctionTypeAlias2Impl node,
     TypeAliasFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -819,7 +776,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindGenericTypeAlias(
-    GenericTypeAliasImpl node,
+    GenericTypeAlias2Impl node,
     TypeAliasFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -831,26 +788,34 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMembers(
-    List<ClassMemberImpl> members,
+    List<ClassMemberV1OrV2Impl> members,
     _ContainerMemberFragments fragments,
   ) {
     for (var member in members) {
       switch (member) {
         case ConstructorDeclarationImpl():
           _bindConstructorDeclaration(member, fragments.nextConstructor());
-        case MethodDeclarationImpl():
-          if (member.isGetter) {
-            _bindMethodDeclaration(member, fragments.nextGetter());
-          } else if (member.isSetter) {
-            _bindMethodDeclaration(member, fragments.nextSetter());
-          } else {
-            _bindMethodDeclaration(member, fragments.nextMethod());
-          }
-        case FieldDeclarationImpl():
+        case GetterDeclarationImpl():
+          var fragment = fragments.nextGetter();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case MethodDeclaration2Impl():
+          var fragment = fragments.nextMethod();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case OperatorDeclarationImpl():
+          var fragment = fragments.nextMethod();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case SetterDeclarationImpl():
+          var fragment = fragments.nextSetter();
+          member.declaredFragment = fragment;
+          _bindMethodDeclaration(member, fragment);
+        case FieldsDeclarationImpl():
           member.documentationComment?.accept2(this);
-          member.fields.type?.accept2(this);
-          for (var variable in member.fields.variables) {
-            _bindField(variable, fragments.nextField(), member);
+          member.type?.accept2(this);
+          for (var field in member.fields) {
+            _bindField(field, fragments.nextField(), member);
           }
         case PrimaryConstructorBodyImpl():
           member.accept2(this);
@@ -859,16 +824,18 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMethodDeclaration(
-    MethodDeclarationImpl node,
+    MethodDeclarationV1OriginImpl node,
     ExecutableFragmentImpl fragment,
   ) {
-    node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     node.documentationComment?.accept2(this);
     node.returnType?.accept2(this);
-    _bindTypeParameters(node.typeParameters, fragment.typeParameters);
-    _bindFormalParameters(node.parameters, fragment.formalParameters);
+    _bindTypeParameters(node.writtenTypeParameters, fragment.typeParameters);
+    _bindFormalParameters(
+      node.writtenFormalParameters,
+      fragment.formalParameters,
+    );
 
     _withElementHolder(ElementHolder(fragment), () {
       node.body.accept2(this);
@@ -898,7 +865,24 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.onClause?.accept2(this);
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
+  }
+
+  void _bindTopLevelFunctionDeclaration(
+    TopLevelFunctionDeclarationImpl node,
+    TopLevelFunctionFragmentImpl fragment,
+  ) {
+    node.declaredFragment = fragment;
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    node.documentationComment?.accept2(this);
+    node.returnType?.accept2(this);
+    _bindTypeParameters(node.typeParameters, fragment.typeParameters);
+    _bindFormalParameters(node.formalParameters, fragment.formalParameters);
+
+    _withElementHolder(ElementHolder(fragment), () {
+      node.body.accept2(this);
+    });
   }
 
   void _bindTopLevelGetterDeclaration(
@@ -910,7 +894,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     node.documentationComment?.accept2(this);
     node.returnType?.accept2(this);
-    _bindTypeParameters(node.recoveryTypeParameters, fragment.typeParameters);
     _bindFormalParameters(
       node.recoveryFormalParameters,
       fragment.formalParameters,
@@ -921,21 +904,36 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     });
   }
 
+  void _bindTopLevelSetterDeclaration(
+    TopLevelSetterDeclarationImpl node,
+    SetterFragmentImpl fragment,
+  ) {
+    node.declaredFragment = fragment;
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    node.documentationComment?.accept2(this);
+    node.returnType?.accept2(this);
+    _bindFormalParameters(node.formalParameters, fragment.formalParameters);
+
+    _withElementHolder(ElementHolder(fragment), () {
+      node.body.accept2(this);
+    });
+  }
+
   void _bindTopLevelVariable(
-    VariableDeclarationImpl node,
+    TopLevelVariable2Impl node,
     TopLevelVariableFragmentImpl fragment,
-    TopLevelVariableDeclarationImpl declaration,
+    TopLevelVariablesDeclarationImpl declaration,
   ) {
     node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, declaration.metadata);
 
-    var offset = node == declaration.variables.variables.first
+    var offset = node == declaration.variables.first
         ? declaration.offset
         : node.offset;
     fragment.setCodeRange(offset, node.end - offset);
 
-    node.documentationComment?.accept2(this);
-    if (node.initializer2 case var initializer?) {
+    if (node.initializer case var initializer?) {
       _withElementHolder(ElementHolder(fragment), () {
         initializer.accept2(this);
       });
@@ -1079,7 +1077,7 @@ class ElementHolder {
   final List<TypeParameterFragmentImpl> _typeParameters = [];
   final List<FormalParameterFragmentImpl> _formalParameters = [];
 
-  ElementHolder(this._fragment);
+  new(this._fragment);
 
   List<FormalParameterFragmentImpl> get formalParameters {
     return _formalParameters.toFixedList();
@@ -1120,7 +1118,7 @@ final class _ContainerMemberFragments {
   final List<MethodFragmentImpl> methods;
   int _methodIndex = 0;
 
-  _ContainerMemberFragments({
+  new({
     this.constructors = const [],
     this.fields = const [],
     this.getters = const [],

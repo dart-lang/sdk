@@ -65,7 +65,7 @@ class BundleWriter {
 
   final List<_Library> _libraries = [];
 
-  BundleWriter() {
+  new() {
     _references = ReferenceTableWriter();
   }
 
@@ -921,17 +921,14 @@ class BundleWriter {
 class BundleWriterResult {
   final Uint8List resolutionBytes;
 
-  BundleWriterResult({required this.resolutionBytes});
+  new({required this.resolutionBytes});
 }
 
 class ResolutionSink extends BinaryWriter {
   final ReferenceTableWriter _references;
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
-  ResolutionSink({
-    required super.stringTableBuilder,
-    required ReferenceTableWriter references,
-  }) : _references = references;
+  new({required super.stringTableBuilder, required this._references});
 
   void withTypeParameters(
     List<TypeParameterElementImpl> typeParameters,
@@ -1189,14 +1186,14 @@ class ResolutionSink extends BinaryWriter {
 class UnitToWriteAst {
   final CompilationUnit node;
 
-  UnitToWriteAst({required this.node});
+  new({required this.node});
 }
 
 class _Library {
   final String uriStr;
   final int offset;
 
-  _Library({required this.uriStr, required this.offset});
+  new({required this.uriStr, required this.offset});
 }
 
 class _LocalElementIndexer {

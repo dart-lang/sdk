@@ -148,7 +148,7 @@ class LibrariesSpecification {
   final Uri specUri;
   final Map<String, TargetLibrariesSpecification> _targets;
 
-  const LibrariesSpecification(
+  const new(
     this.specUri, [
     this._targets = const <String, TargetLibrariesSpecification>{},
   ]);
@@ -429,7 +429,7 @@ enum Importability {
   /// This `dart:*` library is never importable on the target platform.
   never(value: 'never');
 
-  const Importability({required this.value});
+  new({required this.value});
 
   final String value;
 
@@ -449,10 +449,7 @@ class TargetLibrariesSpecification {
 
   final Map<String, LibraryInfo> _libraries;
 
-  const TargetLibrariesSpecification(
-    this.targetName, [
-    this._libraries = const <String, LibraryInfo>{},
-  ]);
+  const new(this.targetName, [this._libraries = const <String, LibraryInfo>{}]);
 
   /// Details about a library whose import is `dart:$name`.
   LibraryInfo? libraryInfoFor(String name) => _libraries[name];
@@ -481,7 +478,7 @@ class LibraryInfo {
   /// If not explicitly provided, this field defaults to [Importability.always].
   final Importability importability;
 
-  const LibraryInfo(
+  const new(
     this.name,
     this.uri,
     this.patches, {
@@ -495,7 +492,7 @@ class LibraryInfo {
 
 class LibrariesSpecificationException {
   Object error;
-  LibrariesSpecificationException(this.error);
+  new(this.error);
 
   @override
   String toString() => '$error';

@@ -14,7 +14,7 @@ class LanguageVersionOverrideVerifier {
 
   final DiagnosticReporter _diagnosticReporter;
 
-  LanguageVersionOverrideVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   void verify(CompilationUnit unit) {
     _verifyMisplaced(unit);

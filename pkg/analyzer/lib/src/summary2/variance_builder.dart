@@ -15,18 +15,18 @@ import 'package:analyzer/src/summary2/record_type_builder.dart';
 
 class VarianceBuilder {
   final Linker _linker;
-  final Set<TypeAlias> _pending = Set.identity();
-  final Set<TypeAlias> _visit = Set.identity();
+  final Set<TopLevelDeclarationImpl> _pending = Set.identity();
+  final Set<TopLevelDeclarationImpl> _visit = Set.identity();
 
-  VarianceBuilder(this._linker);
+  new(this._linker);
 
   void perform() {
     for (var builder in _linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations2) {
-          if (node is FunctionTypeAliasImpl) {
+          if (node is FunctionTypeAlias2Impl) {
             _pending.add(node);
-          } else if (node is GenericTypeAliasImpl) {
+          } else if (node is GenericTypeAlias2Impl) {
             _pending.add(node);
           }
         }
@@ -42,9 +42,9 @@ class VarianceBuilder {
             _typeParameters(node.namePart.typeParameters);
           } else if (node is EnumDeclarationImpl) {
             _typeParameters(node.namePart.typeParameters);
-          } else if (node is FunctionTypeAliasImpl) {
+          } else if (node is FunctionTypeAlias2Impl) {
             _functionTypeAlias(node);
-          } else if (node is GenericTypeAliasImpl) {
+          } else if (node is GenericTypeAlias2Impl) {
             _genericTypeAlias(node);
           } else if (node is MixinDeclarationImpl) {
             _typeParameters(node.typeParameters);
@@ -150,7 +150,7 @@ class VarianceBuilder {
     return result;
   }
 
-  void _functionTypeAlias(FunctionTypeAliasImpl node) {
+  void _functionTypeAlias(FunctionTypeAlias2Impl node) {
     var parameterList = node.typeParameters;
     if (parameterList == null) {
       return;
@@ -185,7 +185,7 @@ class VarianceBuilder {
     }
   }
 
-  void _genericTypeAlias(GenericTypeAlias node) {
+  void _genericTypeAlias(GenericTypeAlias2Impl node) {
     var parameterList = node.typeParameters;
     if (parameterList == null) {
       return;
@@ -232,9 +232,9 @@ class VarianceBuilder {
     var node = _linker.getLinkingNode(element.firstFragment);
     if (node == null) {
       // Not linking.
-    } else if (node is GenericTypeAliasImpl) {
+    } else if (node is GenericTypeAlias2Impl) {
       _genericTypeAlias(node);
-    } else if (node is FunctionTypeAliasImpl) {
+    } else if (node is FunctionTypeAlias2Impl) {
       _functionTypeAlias(node);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');

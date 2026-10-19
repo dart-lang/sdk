@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 class GreatestLowerBoundHelper {
   final TypeSystemImpl _typeSystem;
 
-  GreatestLowerBoundHelper(this._typeSystem);
+  new(this._typeSystem);
 
   InterfaceTypeImpl get _nullNone => _typeSystem.nullNone;
 

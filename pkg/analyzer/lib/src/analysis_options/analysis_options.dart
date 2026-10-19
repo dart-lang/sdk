@@ -67,11 +67,10 @@ final class AnalysisOptionsBuilder {
   String? pluginDependencyOverrides;
 
   /// Creates a builder initialized with default options.
-  AnalysisOptionsBuilder({this.file});
+  new({this.file});
 
   /// Creates a builder initialized from an existing options object.
-  AnalysisOptionsBuilder.from(AnalysisOptionsImpl options)
-    : file = options.file {
+  new from(AnalysisOptionsImpl options) : file = options.file {
     contextFeatures = options.contextFeatures;
     nonPackageFeatureSet = options.nonPackageFeatureSet;
     enabledLegacyPluginNames = options.enabledLegacyPluginNames.toList();
@@ -151,10 +150,7 @@ final class AnalysisOptionsExcludePattern {
   /// The pattern as written in [declaringFile].
   final String pattern;
 
-  AnalysisOptionsExcludePattern({
-    required this.declaringFile,
-    required this.pattern,
-  });
+  new({required this.declaringFile, required this.pattern});
 
   @override
   int get hashCode => Object.hash(declaringFile, pattern);
@@ -249,12 +245,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// Returns a newly instantiated [AnalysisOptionsImpl].
   ///
   /// Optionally pass [file] as the file where the YAML can be found.
-  factory AnalysisOptionsImpl({File? file}) {
+  factory({File? file}) {
     var builder = AnalysisOptionsBuilder(file: file);
     return builder.build();
   }
 
-  AnalysisOptionsImpl._({
+  new _({
     required this.file,
     required this.contextFeatures,
     required this.nonPackageFeatureSet,
@@ -497,7 +493,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 final class DebugCodeBlock {
   final String text;
   final String? lang;
-  DebugCodeBlock(this.text, {this.lang});
+  new(this.text, {this.lang});
 }
 
 /// A debug link object, to be rendered as a Markdown link or an HTML link.
@@ -506,7 +502,7 @@ final class DebugCodeBlock {
 final class DebugLink {
   final String text;
   final String? url;
-  DebugLink(this.text, this.url);
+  new(this.text, this.url);
 }
 
 final class GitPluginSource implements PluginSource {
@@ -518,7 +514,7 @@ final class GitPluginSource implements PluginSource {
 
   final String? tagPattern;
 
-  GitPluginSource({required this.url, this.path, this.ref, this.tagPattern});
+  new({required this.url, this.path, this.ref, this.tagPattern});
 
   @override
   int get hashCode => Object.hash(url, path, ref, tagPattern);
@@ -554,7 +550,7 @@ final class GitPluginSource implements PluginSource {
 final class PathPluginSource implements PluginSource {
   final String path;
 
-  PathPluginSource({required this.path});
+  new({required this.path});
 
   @override
   int get hashCode => path.hashCode;
@@ -586,7 +582,7 @@ final class PluginConfiguration {
   /// Whether the plugin is enabled.
   final bool isEnabled;
 
-  PluginConfiguration({
+  new({
     required this.name,
     required this.source,
     Map<String, DiagnosticConfig> diagnosticConfigs = const {},
@@ -613,10 +609,7 @@ final class PluginsOptions {
   /// The dependency overrides, if specified.
   final Map<String, PluginSource>? dependencyOverrides;
 
-  PluginsOptions({
-    required this.configurations,
-    required this.dependencyOverrides,
-  });
+  new({required this.configurations, required this.dependencyOverrides});
 }
 
 /// A description of the source of a plugin.
@@ -636,7 +629,7 @@ final class VersionedPluginSource implements PluginSource {
   final String constraint;
   final String? hostedUrl;
 
-  VersionedPluginSource({required this.constraint, this.hostedUrl});
+  new({required this.constraint, this.hostedUrl});
 
   @override
   int get hashCode => Object.hash(constraint, hostedUrl);

@@ -27,7 +27,7 @@ class BinaryExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  BinaryExpressionResolver({required TypeAnalyzer typeAnalyzer})
+  new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 
@@ -459,7 +459,7 @@ class BinaryExpressionResolver {
     );
 
     node.element = result.getter2 as InternalMethodElement?;
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       if (leftOperand is SuperReference) {
         _diagnosticReporter.report(
           diag.undefinedSuperOperator

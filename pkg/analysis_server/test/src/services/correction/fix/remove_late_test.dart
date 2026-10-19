@@ -34,7 +34,7 @@ void f(Object? x) {
 }
 
 @reflectiveTest
-class RemoveLateTest extends FixProcessorTest {
+class RemoveLateTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeLate;
 

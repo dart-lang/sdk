@@ -176,15 +176,14 @@ abstract class AnalysisServer {
   /// The optional [ByteStore] to use as [byteStore].
   final ByteStore? providedByteStore;
 
-  late ByteStore byteStore;
-
-  late FileContentCache fileContentCache;
+  late final ByteStore byteStore;
 
   final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
 
   late final analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
-  late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
+  @protected
+  StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -218,11 +217,6 @@ abstract class AnalysisServer {
   /// A service for fetching pub.dev package details.
   late final PubPackageService pubPackageService;
 
-  /// The class into which performance information is currently being recorded.
-  /// During startup, this will be the same as [performanceDuringStartup]
-  /// and after startup is complete, this switches to [performanceAfterStartup].
-  late ServerPerformance performance;
-
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
 
@@ -245,9 +239,7 @@ abstract class AnalysisServer {
 
   /// The [ClientUriConverter] to use to convert between URIs/Paths when
   /// communicating with the client.
-  late ClientUriConverter _uriConverter = ClientUriConverter.noop(
-    resourceProvider.pathContext,
-  );
+  ClientUriConverter _uriConverter;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
   ///
@@ -343,6 +335,9 @@ abstract class AnalysisServer {
   }) : resourceProvider = OverlayResourceProvider(
          TimingResourceProvider(baseResourceProvider),
        ),
+       _uriConverter = ClientUriConverter.noop(
+         baseResourceProvider.pathContext,
+       ),
        pubApi = PubApi(
          instrumentationService,
          sessionLogger,
@@ -355,9 +350,7 @@ abstract class AnalysisServer {
              SchedulerTrackingListener(analyticsManager, performanceLogger),
        ) {
     messageScheduler.server = this;
-    // Set the default URI converter. This uses the resource providers path
-    // context (unlike the initialized value) which allows tests to override it.
-    uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
+    notificationManager.uriConverter = _uriConverter;
 
     // We can only spawn processes (eg. to run pub commands) when backed by
     // a real file system, otherwise we may try to run commands in folders that
@@ -384,7 +377,6 @@ abstract class AnalysisServer {
       pubApi,
       pubCommand,
     );
-    performance = performanceDuringStartup;
 
     this.pluginManager = pluginManager ??= PluginManager(
       resourceProvider,
@@ -419,7 +411,6 @@ abstract class AnalysisServer {
     }
 
     byteStore = createByteStore(resourceProvider);
-    fileContentCache = FileContentCache(resourceProvider);
 
     analysisDriverScheduler = analysis.AnalysisDriverScheduler(
       analysisPerformanceLogger,
@@ -432,7 +423,7 @@ abstract class AnalysisServer {
       options.packagesFile,
       options.enabledExperiments,
       byteStore,
-      fileContentCache,
+      FileContentCache(resourceProvider),
       unlinkedUnitStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
@@ -589,6 +580,34 @@ abstract class AnalysisServer {
   OwnedFiles get ownedFiles => contextManager.ownedFiles;
 
   path.Context get pathContext => resourceProvider.pathContext;
+
+  /// The class into which performance information is currently being recorded.
+  /// During startup, this will be the same as [performanceDuringStartup]
+  /// and after startup is complete, this switches to [performanceAfterStartup].
+  ServerPerformance get performance =>
+      performanceAfterStartup ?? performanceDuringStartup;
+
+  /// Whether the client prefers legacy refactors over self-describing refactors
+  /// that use Interactive Forms.
+  ///
+  /// The reason for this flag is to support versions of Dart-Code that do not
+  /// support Interactive Forms, but they do support prompting the user for
+  /// names for EXTRACT_METHOD and EXTRACT_WIDGET and injecting the response
+  /// into the command args.
+  ///
+  /// We don't need to prefer these for clients that don't support Interactive
+  /// Forms if they are _not_ injecting the names, because the behaviour would
+  /// be the same in both cases with no prompt (they would just get
+  /// server-computed names).
+  ///
+  bool get prefersLegacyRefactors =>
+      // TODO(dantup): When removing this (and the legacy version of the
+      //  refactors) once sufficient time has passed, we must add tests to
+      //  ensure that when a client doesn't support Interactive Forms, we
+      //  provide the new self-described version of the refactor using the
+      //  server-provided name (which is today handled by the legacy version).
+      editorClientCapabilities?.supportedInteractiveFormInputTypes.isEmpty ??
+      true;
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.

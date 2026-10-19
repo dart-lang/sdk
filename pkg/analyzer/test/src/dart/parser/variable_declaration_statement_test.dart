@@ -31,7 +31,7 @@ void f() async {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ParsedNameAccess
         operand: ParsedUnqualifiedName
@@ -83,7 +83,7 @@ void f() async {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ParsedNameAccess
         operand: ParsedUnqualifiedName
@@ -137,7 +137,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ParsedNameAccess
         operand: ParsedUnqualifiedName

@@ -5,11 +5,22 @@
 // dart2wasmOptions=--extra-compiler-option=--enable-experimental-wasm-interop
 
 import 'dart:_wasm';
+import 'dart:js_interop';
 
 import 'package:expect/expect.dart';
 
 @pragma('wasm:memory-type', MemoryType(limits: Limits(1, 10)))
+@pragma('wasm:export', 'memory')
 external Memory get _memory;
+
+@JS()
+external void eval(String code);
+
+@JS()
+external int jsReadMemoryInt32(int byteOffset);
+
+@JS()
+external void jsWriteMemoryInt32(int byteOffset, int value);
 
 void main() {
   _testSizeAndGrow();
@@ -18,6 +29,7 @@ void main() {
   _testFloat();
   _testInt();
   _testOffset();
+  _testExport();
 }
 
 void _testSizeAndGrow() {
@@ -57,4 +69,25 @@ void _testOffset() {
   Expect.equals(0x02, _memory.loadInt8(0, offset: 2).toIntSigned());
   Expect.equals(0x03, _memory.loadInt8(0, offset: 1).toIntSigned());
   Expect.equals(0x04, _memory.loadInt8(0, offset: 0).toIntSigned());
+}
+
+void _testExport() {
+  eval(r'''
+    globalThis.jsReadMemoryInt32 = function(byteOffset) {
+      const mem = globalThis.appInstanceForTesting.instantiatedModule.exports.memory;
+      const view = new DataView(mem.buffer);
+      return view.getInt32(byteOffset, true);
+    };
+    globalThis.jsWriteMemoryInt32 = function(byteOffset, value) {
+      const mem = globalThis.appInstanceForTesting.instantiatedModule.exports.memory;
+      const view = new DataView(mem.buffer);
+      view.setInt32(byteOffset, value, true);
+    };
+  ''');
+
+  _memory.storeInt32(16, WasmI32.fromInt(0x12345678));
+  Expect.equals(0x12345678, jsReadMemoryInt32(16));
+
+  jsWriteMemoryInt32(16, 0x07654321);
+  Expect.equals(0x07654321, _memory.loadInt32(16).toIntSigned());
 }

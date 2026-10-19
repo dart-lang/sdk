@@ -18,7 +18,7 @@ class ConstructorTearOffResolver {
   /// The type analyzer driving this participant.
   final TypeAnalyzer _typeAnalyzer;
 
-  ConstructorTearOffResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   void resolve(ConstructorTearOffImpl node, {required DartType contextType}) {
     if (!_typeAnalyzer.isConstructorTearoffsEnabled &&
@@ -76,7 +76,6 @@ class ConstructorTearOffResolver {
                 name: typeReference.name,
               ),
               name: name,
-              syntax: ReadSyntax.reference,
               foundInstead: null,
             );
           }

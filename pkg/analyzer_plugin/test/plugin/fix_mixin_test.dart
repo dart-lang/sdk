@@ -61,7 +61,7 @@ class FixesMixinTest extends AbstractPluginTest {
 class _TestFixContributor implements FixContributor {
   List<PrioritizedSourceChange> changes;
 
-  _TestFixContributor(this.changes);
+  new(this.changes);
 
   @override
   Future<void> computeFixes(
@@ -75,7 +75,7 @@ class _TestFixContributor implements FixContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with FixesMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   PrioritizedSourceChange createChange() {
     return PrioritizedSourceChange(0, SourceChange(''));

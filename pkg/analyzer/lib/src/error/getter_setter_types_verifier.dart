@@ -24,12 +24,11 @@ class GetterSetterTypesVerifier {
   /// The source file for which diagnostics are being generated.
   final Source diagnosticSource;
 
-  GetterSetterTypesVerifier({
+  new({
     required this.library,
-    required DiagnosticReporter diagnosticReporter,
+    required this._diagnosticReporter,
     required this.diagnosticSource,
-  }) : _typeSystem = library.typeSystem,
-       _diagnosticReporter = diagnosticReporter;
+  }) : _typeSystem = library.typeSystem;
 
   bool get _skipGetterSetterTypesCheck {
     return library.featureSet.isEnabled(Feature.getter_setter_error);

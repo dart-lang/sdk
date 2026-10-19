@@ -46,7 +46,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
-  AnalysisResultImpl({required this.session});
+  new({required this.session});
 }
 
 /// A visitor which locates the [AstNode] which declares an [Element].
@@ -62,7 +62,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
   final int _nameOffset;
   AstNode? result;
 
-  DeclarationByElementLocator(this.fragment, this._nameOffset);
+  new(this.fragment, this._nameOffset);
 
   @override
   void visitNode(AstNode node) {
@@ -116,25 +116,25 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is VariableDeclaration) {
+      } else if (node is Field2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
       }
     } else if (fragment is TopLevelFunctionFragment) {
-      if (node is FunctionDeclaration && _hasOffset(node.name)) {
+      if (node is TopLevelFunctionDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is LocalFunctionFragment) {
-      if (node is FunctionDeclaration && _hasOffset(node.name)) {
+      if (node is LocalFunctionDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is LocalVariableFragment) {
-      if (node is VariableDeclaration && _hasOffset(node.name)) {
+      if (node is LocalVariable && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is MethodFragment) {
-      if (node is MethodDeclaration && _hasOffset(node.name)) {
+      if (node is MethodDeclarationV1OriginImpl && _hasOffset(node.nameToken)) {
         result = node;
       }
     } else if (fragment is FormalParameterFragment) {
@@ -146,21 +146,21 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is FunctionDeclaration) {
+      } else if (node is TopLevelSetterDeclarationImpl) {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is MethodDeclaration) {
-        if (_hasOffset(node.name)) {
+      } else if (node is MethodDeclarationV1OriginImpl) {
+        if (_hasOffset(node.nameToken)) {
           result = node;
         }
       }
     } else if (fragment is TopLevelVariableFragment) {
-      if (node is VariableDeclaration && _hasOffset(node.name)) {
+      if (node is TopLevelVariable2 && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is TypeAliasFragment) {
-      if (node is GenericTypeAlias) {
+      if (node is GenericTypeAlias2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -190,12 +190,7 @@ class ElementDeclarationResultImpl implements FragmentDeclarationResult {
   @override
   final ResolvedUnitResult? resolvedUnit;
 
-  ElementDeclarationResultImpl(
-    this.fragment,
-    this.node,
-    this.parsedUnit,
-    this.resolvedUnit,
-  );
+  new(this.fragment, this.node, this.parsedUnit, this.resolvedUnit);
 }
 
 class ErrorsResultImpl implements ErrorsResult {
@@ -226,7 +221,7 @@ class ErrorsResultImpl implements ErrorsResult {
   @override
   final AnalysisOptions analysisOptions;
 
-  ErrorsResultImpl({
+  new({
     required this.session,
     required this.file,
     required this.content,
@@ -260,7 +255,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   @override
   final bool isPart;
 
-  FileResultImpl({required super.session, required this.fileState})
+  new({required super.session, required this.fileState})
     : content = fileState.content,
       lineInfo = fileState.lineInfo,
       isLibrary = fileState.kind is LibraryFileKind,
@@ -283,14 +278,14 @@ class LibraryElementResultImpl implements LibraryElementResult {
   @override
   final LibraryElementImpl element;
 
-  LibraryElementResultImpl(this.element);
+  new(this.element);
 }
 
 class MissingSdkLibraryResultImpl implements MissingSdkLibraryResult {
   @override
   final Uri missingUri;
 
-  MissingSdkLibraryResultImpl({required this.missingUri});
+  new({required this.missingUri});
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -298,7 +293,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl({required super.session, required this.units});
+  new({required super.session, required this.units});
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
@@ -338,9 +333,21 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
-      // ignore: analyzer_to_be_deprecated_use
+    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
       declaration = V1Projection.toV1CompilationUnitMember(declaration);
+    } else if (!useV2 && declaration is VariableDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is FunctionTypeAlias2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
     }
 
     return ElementDeclarationResultImpl(
@@ -359,7 +366,7 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   @override
   final List<Diagnostic> diagnostics;
 
-  ParsedUnitResultImpl({
+  new({
     required super.session,
     required super.fileState,
     required this.unit,
@@ -380,7 +387,7 @@ class ParseStringResultImpl implements ParseStringResult {
   @override
   final CompilationUnit unit;
 
-  ParseStringResultImpl(this.content, this.unit, this.errors);
+  new(this.content, this.unit, this.errors);
 
   @override
   LineInfo get lineInfo => unit.lineInfo;
@@ -416,7 +423,7 @@ class ResolvedForCompletionResultImpl {
   /// offset. Other nodes are provided mostly FYI.
   final List<AstNode> resolvedNodes;
 
-  ResolvedForCompletionResultImpl({
+  new({
     required this.analysisSession,
     required this.fileState,
     required this.path,
@@ -438,11 +445,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ResolvedUnitResultImpl> units;
 
-  ResolvedLibraryResultImpl({
-    required super.session,
-    required this.element,
-    required this.units,
-  });
+  new({required super.session, required this.element, required this.units});
 
   @override
   TypeProviderImpl get typeProvider => element.typeProvider;
@@ -497,9 +500,21 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
-      // ignore: analyzer_to_be_deprecated_use
+    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
       declaration = V1Projection.toV1CompilationUnitMember(declaration);
+    } else if (!useV2 && declaration is VariableDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is FunctionTypeAlias2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
     }
 
     return ElementDeclarationResultImpl(
@@ -519,7 +534,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   @override
   final List<Diagnostic> diagnostics;
 
-  ResolvedUnitResultImpl({
+  new({
     required super.session,
     required super.fileState,
     required this.unit,
@@ -552,7 +567,7 @@ class UnitElementResultImpl extends FileResultImpl
   @override
   final LibraryFragmentImpl fragment;
 
-  UnitElementResultImpl({
+  new({
     required super.session,
     required super.fileState,
     required this.fragment,

@@ -2087,32 +2087,14 @@ class SuperIndexedAccessGenerator extends Generator {
         length: noLength,
       );
     } else {
-      if (voidContext) {
-        _helper.readInternalThisVariable();
-        return intern.createSuperMethodInvocation(
-          name: indexSetName,
-          procedure: setter,
-          typeArguments: null,
-          arguments: intern.createArguments(
-            fileOffset,
-            arguments: [
-              new PositionalArgument(index),
-              new PositionalArgument(value),
-            ],
-            hasNamedBeforePositional: false,
-            positionalCount: 2,
-          ),
-          fileOffset: fileOffset,
-        );
-      } else {
-        _helper.readInternalThisVariable();
-        return intern.createSuperIndexSet(
-          setter: setter,
-          index: index,
-          value: value,
-          fileOffset: fileOffset,
-        );
-      }
+      _helper.readInternalThisVariable();
+      return intern.createSuperIndexSet(
+        setter: setter,
+        index: index,
+        value: value,
+        forEffect: voidContext,
+        fileOffset: fileOffset,
+      );
     }
   }
 

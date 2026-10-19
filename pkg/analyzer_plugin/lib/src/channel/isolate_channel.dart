@@ -24,7 +24,7 @@ class BuiltInServerIsolateChannel extends ServerIsolateChannel {
 
   /// Initialize a newly created channel to communicate with an isolate running
   /// the given [entryPoint].
-  BuiltInServerIsolateChannel(
+  new(
     this.entryPoint,
     this.pluginId,
     InstrumentationService instrumentationService,
@@ -53,7 +53,7 @@ class DiscoveredServerIsolateChannel extends ServerIsolateChannel {
 
   /// Initialize a newly created channel to communicate with an isolate running
   /// the code at the given [uri].
-  DiscoveredServerIsolateChannel(
+  new(
     this.pluginUri,
     this.packagesUri,
     InstrumentationService instrumentationService,
@@ -89,7 +89,7 @@ class PluginIsolateChannel implements PluginCommunicationChannel {
   StreamSubscription? _subscription;
 
   /// Initialize a newly created channel to communicate with the server.
-  PluginIsolateChannel(this._sendPort) {
+  new(this._sendPort) {
     _receivePort = ReceivePort();
     _sendPort.send(_receivePort.sendPort);
   }
@@ -166,7 +166,7 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   /// Return a communication channel appropriate for communicating with a
   /// built-in plugin.
-  factory ServerIsolateChannel.builtIn(
+  factory builtIn(
     EntryPoint entryPoint,
     String pluginId,
     InstrumentationService instrumentationService,
@@ -174,14 +174,14 @@ abstract class ServerIsolateChannel implements ServerCommunicationChannel {
 
   /// Return a communication channel appropriate for communicating with a
   /// discovered plugin.
-  factory ServerIsolateChannel.discovered(
+  factory discovered(
     Uri pluginUri,
     Uri packagesUri,
     InstrumentationService instrumentationService,
   ) = DiscoveredServerIsolateChannel;
 
   /// Initialize a newly created channel.
-  ServerIsolateChannel._(this.instrumentationService);
+  new _(this.instrumentationService);
 
   /// Return the id of the plugin running in the isolate, used to identify the
   /// plugin to the instrumentation service.

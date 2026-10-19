@@ -223,7 +223,7 @@ abstract final class _StringBase implements String {
     // outside of the range U+0000 .. U+10FFFF.
     int bits = 0;
     int takeCount = (end == null) ? -1 : (end - start); // -1 means no limit.
-    var list = <int>[];
+    var list = _GrowableList<int>(0);
     while (takeCount != 0 && it.moveNext()) {
       takeCount -= 1;
       int code = it.current;
@@ -247,7 +247,7 @@ abstract final class _StringBase implements String {
         "Contains invalid character code, not 0 <= code <= 0x10FFFF",
       );
     }
-    List<int> codeUnitList = makeListFixedLength<int>(list);
+    List<int> codeUnitList = list._mutateIntoFixedLengthList();
     int length = codeUnitList.length;
     bool isOneByteString = (bits <= _maxLatin1);
     if (isOneByteString) {

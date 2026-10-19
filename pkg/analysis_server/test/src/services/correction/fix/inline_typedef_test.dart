@@ -36,7 +36,7 @@ void g(_F2<void Function(int)> f) {}
 }
 
 @reflectiveTest
-class InlineTypedefTest extends FixProcessorLintTest {
+class InlineTypedefTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.inlineTypedef;
 

@@ -114,9 +114,8 @@ extension AstNodeExtension on AstNode {
 
   /// Return `true` if this node has an `override` annotation.
   bool get hasOverride {
-    var node = this;
-    if (node is AnnotatedNode) {
-      for (var annotation in node.metadata) {
+    if (this is AnnotatedNode) {
+      for (var annotation in metadata) {
         if (annotation.name.name == 'override' &&
             annotation.arguments == null) {
           return true;
@@ -346,11 +345,10 @@ extension ExpressionExtension on Expression {
   /// Whether this [Expression] should be wrapped with parentheses when we want
   /// to use it as operand of a logical and-expression.
   bool get shouldWrapParenthesisBeforeAnd {
-    var self = this;
-    if (self is! BinaryExpression) {
+    if (this is! BinaryExpression) {
       return false;
     }
-    var precedence = self.operator.type.precedence;
+    var precedence = operator.type.precedence;
     return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
   }
 }
@@ -405,6 +403,18 @@ extension NodeListExtension<E extends AstNode> on NodeList<E> {
   }
 }
 
+extension SimpleIdentifierExtension on SimpleIdentifier {
+  /// Whether this is the name of a method invocation, as in `a.foo()`.
+  ///
+  /// A diagnostic for a failed read covers both `a.foo` and `a.foo()`; the
+  /// fixes that declare something that can only be read, such as a getter or
+  /// a field, don't apply to an invoked name.
+  bool get isInvocationName {
+    var parent = this.parent;
+    return parent is MethodInvocation && parent.methodName == this;
+  }
+}
+
 extension StatementExtension on Statement {
   ThrowStatement? get followingThrow {
     var block = parent;
@@ -421,20 +431,17 @@ extension StatementExtension on Statement {
   }
 
   List<Statement> get selfOrBlockStatements {
-    var self = this;
-    return self is Block ? self.statements : [self];
+    return this is Block ? statements : [this];
   }
 }
 
 extension TokenQuestionExtension on Token? {
   Token? get asFinalKeyword {
-    var self = this;
-    return self != null && self.keyword == Keyword.FINAL ? self : null;
+    return this != null && keyword == Keyword.FINAL ? this : null;
   }
 
   Token? get asVarKeyword {
-    var self = this;
-    return self != null && self.keyword == Keyword.VAR ? self : null;
+    return this != null && keyword == Keyword.VAR ? this : null;
   }
 }
 

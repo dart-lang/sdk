@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryLibraryDirectiveTest extends FixProcessorLintTest {
+class RemoveUnnecessaryLibraryDirectiveTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryLibraryDirective;
 

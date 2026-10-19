@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
@@ -63,6 +64,17 @@ class GenericInferrer {
   /// `null`).
   final SyntacticEntity? errorEntity;
 
+  /// The invoked entity whose type arguments are inferred, or `null` if the
+  /// inference is not for the type arguments of an invocation.
+  ///
+  /// For example, it is `null` for a generic function instantiation of the
+  /// value returned by `f()`, even though [errorEntity] is the invocation.
+  ///
+  /// Inference failures are reported against it, rather than against the
+  /// resolution of the invocation node, which is recorded only after the
+  /// inference.
+  final InvocationTarget? invocationTarget;
+
   /// Indicates whether the "generic metadata" feature is enabled.  When it is,
   /// type arguments are allowed to be instantiated with generic function types.
   final bool _genericMetadataIsEnabled;
@@ -101,15 +113,16 @@ class GenericInferrer {
 
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  GenericInferrer(
+  new(
     this._typeSystem,
     List<TypeParameterElementImpl> typeFormals, {
     DiagnosticReporter? diagnosticReporter,
     this.errorEntity,
-    required bool genericMetadataIsEnabled,
+    this.invocationTarget,
+    required this._genericMetadataIsEnabled,
     required this.inferenceUsingBoundsIsEnabled,
-    required bool strictInference,
-    required TypeSystemOperations typeSystemOperations,
+    required this._strictInference,
+    required this._typeSystemOperations,
     required this.dataForTesting,
   }) : assert(diagnosticReporter == null || errorEntity != null),
        _typeParameters = typeFormals,
@@ -119,10 +132,7 @@ class GenericInferrer {
        ),
        _constraints = {for (var formal in typeFormals) formal: []},
        _diagnosticReporter = diagnosticReporter,
-       _typeFormals = typeFormals,
-       _genericMetadataIsEnabled = genericMetadataIsEnabled,
-       _strictInference = strictInference,
-       _typeSystemOperations = typeSystemOperations;
+       _typeFormals = typeFormals;
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
@@ -619,22 +629,15 @@ class GenericInferrer {
       // immediately cast with `as`.
       return;
     }
-    if (errorEntity is NamedFunctionInvocation) {
+    if (errorEntity is NamedFunctionInvocation && invocationTarget != null) {
       if (errorEntity.parent2 is AsExpression) {
         return;
       }
       _reportNamedInferenceFailure(
         diagnosticReporter: diagnosticReporter,
         errorEntity: errorEntity.name,
-        element: switch (errorEntity.resolution) {
-          ExecutableInvocationResolution(:var element) => element,
-          InvalidInvocationResolution(:var candidates)
-              when candidates.isNotEmpty =>
-            candidates.first,
-          InvalidInvocationResolution(
-            recovery: ExecutableInvocationResolution(:var element),
-          ) =>
-            element,
+        element: switch (invocationTarget) {
+          InvocationTargetExecutableElement(:var element) => element,
           _ => null,
         },
         name: errorEntity.name.lexeme,

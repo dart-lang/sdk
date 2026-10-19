@@ -29,7 +29,7 @@ part 'ir.g.dart';
 class ArgumentNamesRef {
   final int index;
 
-  ArgumentNamesRef(this.index);
+  new(this.index);
 
   @override
   int get hashCode => index.hashCode;
@@ -67,7 +67,7 @@ abstract class BaseIRContainer with IRToStringMixin {
   final List<List<String?>> _argumentNamesTable;
   final List<List<int>> _stackIndicesTable;
 
-  BaseIRContainer(RawIRWriter writer)
+  new(RawIRWriter writer)
     : _opcodes = writer._opcodes,
       _params0 = writer._params0,
       _params1 = writer._params1,
@@ -124,7 +124,7 @@ abstract class BaseIRContainer with IRToStringMixin {
 class CallDescriptorRef {
   final int index;
 
-  CallDescriptorRef(this.index);
+  new(this.index);
 
   @override
   int get hashCode => index.hashCode;
@@ -148,16 +148,13 @@ class FunctionFlags {
 
   final int _flags;
 
-  const FunctionFlags({
-    bool async = false,
-    bool generator = false,
-    bool instance = false,
-  }) : _flags =
-           (async ? (1 << _asyncBit) : 0) |
-           (generator ? (1 << _generatorBit) : 0) |
-           (instance ? (1 << _instanceBit) : 0);
+  const new({bool async = false, bool generator = false, bool instance = false})
+    : _flags =
+          (async ? (1 << _asyncBit) : 0) |
+          (generator ? (1 << _generatorBit) : 0) |
+          (instance ? (1 << _instanceBit) : 0);
 
-  const FunctionFlags._(this._flags);
+  const new _(this._flags);
 
   @override
   int get hashCode => _flags.hashCode;
@@ -199,7 +196,7 @@ class FunctionFlags {
 class LiteralRef {
   final int index;
 
-  LiteralRef(this.index);
+  new(this.index);
 
   @override
   int get hashCode => index.hashCode;
@@ -360,7 +357,7 @@ class RawIRWriter with _RawIRWriterMixin {
 class StackIndicesRef {
   final int index;
 
-  StackIndicesRef(this.index);
+  new(this.index);
 
   @override
   int get hashCode => index.hashCode;
@@ -383,7 +380,7 @@ class StackIndicesRef {
 class TypeRef {
   final int index;
 
-  TypeRef(this.index);
+  new(this.index);
 
   @override
   int get hashCode => index.hashCode;

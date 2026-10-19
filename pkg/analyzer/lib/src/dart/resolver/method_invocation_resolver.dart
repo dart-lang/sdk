@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -41,7 +43,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  MethodInvocationResolver(this._typeAnalyzer)
+  new(this._typeAnalyzer)
     : _inheritance = _typeAnalyzer.inheritance,
       _definingLibrary = _typeAnalyzer.definingLibrary,
       _definingLibraryUri = _typeAnalyzer.definingLibrary.uri,
@@ -99,8 +101,9 @@ class MethodInvocationResolver with ScopeHelpers {
         candidate = imports.single.importedLibrary?.loadLibraryFunction;
       }
     }
+    ScopeLookupResult? lookup;
     if (candidate == null) {
-      var lookup = prefix.scope.lookup(name.lexeme);
+      lookup = prefix.scope.lookup(name.lexeme);
       reportDeprecatedExportUseGetter(
         scopeLookupResult: lookup,
         nameToken: name,
@@ -143,7 +146,7 @@ class MethodInvocationResolver with ScopeHelpers {
       );
       return;
     }
-    if (element is! InternalExecutableElement) {
+    if (element == null) {
       if (name.isSynthetic) {
         // The parser has already reported the missing name. But the prefix
         // is still used, so its imports must not be reported as unused.
@@ -152,8 +155,15 @@ class MethodInvocationResolver with ScopeHelpers {
       _lookupFailureReporter.reportReadFailure(
         domain: PrefixedLookupDomain(prefix),
         name: name,
-        syntax: ReadSyntax.invocation,
-        foundInstead: null,
+        foundInstead:
+            lookup?.setter ??
+            prefix.scope.getPrivateDeclarationOfImportedLibrary(name.lexeme),
+      );
+    } else if (element is! InternalExecutableElement) {
+      // Such as a type alias of a function type; other types are invoked as
+      // instance creations.
+      diagnosticReporter.report(
+        diag.invocationOfNonFunction.withArguments(name: name.lexeme).at(name),
       );
     }
     _resolveNamedInvocation(
@@ -224,10 +234,9 @@ class MethodInvocationResolver with ScopeHelpers {
       var receiverType = _typeAnalyzer.thisType;
       if (receiverType == null) {
         _lookupFailureReporter.reportReadFailure(
-          domain: UnqualifiedLookupDomain(thisType: null),
+          domain: UnqualifiedLookupDomain(),
           name: name,
-          syntax: ReadSyntax.invocation,
-          foundInstead: null,
+          foundInstead: lookup.setter,
         );
       } else {
         var setter = lookup.setter;
@@ -239,8 +248,9 @@ class MethodInvocationResolver with ScopeHelpers {
                 setter.enclosingElement is ExtensionElement ||
                 setter is ExecutableElement && setter.isStatic);
         var needsError = true;
+        Element? setterInstead;
         if (stopsLookup) {
-          candidate = setter;
+          candidate = setterInstead = setter;
         } else {
           var result = _typeAnalyzer.typePropertyResolver.resolve(
             receiver: null,
@@ -253,12 +263,13 @@ class MethodInvocationResolver with ScopeHelpers {
             parentNode: node,
           );
           candidate = element = result.getter2;
+          setterInstead = result.setter2;
           callFunctionType = result.callFunctionType;
           recordFieldType = result.recordField?.type;
           isFunctionInterfaceCall =
               receiverType.isDartCoreFunction &&
               name.lexeme == MethodElement.CALL_METHOD_NAME;
-          needsError = result.needsGetterError;
+          needsError = result.getterOutcome == LookupOutcome.notFound;
           if (element is InternalExecutableElement && element.isStatic) {
             _reportInstanceAccessToStaticMember(name, element, true);
           }
@@ -271,10 +282,9 @@ class MethodInvocationResolver with ScopeHelpers {
             !(receiverType is InterfaceTypeImpl &&
                 receiverType.element.name == null)) {
           _lookupFailureReporter.reportReadFailure(
-            domain: UnqualifiedLookupDomain(thisType: receiverType),
+            domain: UnqualifiedLookupDomain(),
             name: name,
-            syntax: ReadSyntax.invocation,
-            foundInstead: null,
+            foundInstead: setterInstead,
           );
         }
       }
@@ -584,9 +594,7 @@ class MethodInvocationResolver with ScopeHelpers {
         _lookupFailureReporter.reportReadFailure(
           domain: ExtensionOverrideLookupDomain(receiver.element),
           name: name,
-          syntax: ReadSyntax.invocation,
-          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
-            receiver,
+          foundInstead: receiver.element.getMemberForFailedLookup(
             Name(_definingLibraryUri, name.lexeme),
           ),
         );
@@ -725,14 +733,17 @@ class MethodInvocationResolver with ScopeHelpers {
     if (element == null &&
         result.callFunctionType == null &&
         !isFunctionInterfaceCall &&
-        result.needsGetterError &&
+        result.getterOutcome == LookupOutcome.notFound &&
         !(receiverType is InterfaceTypeImpl &&
             receiverType.element.name == null)) {
       _lookupFailureReporter.reportReadFailure(
         domain: InstanceLookupDomain(receiverType),
         name: name,
-        syntax: ReadSyntax.invocation,
-        foundInstead: null,
+        foundInstead: _typeAnalyzer.typePropertyResolver.getMemberForFailedRead(
+          result: result,
+          receiverType: receiverType,
+          name: name.lexeme,
+        ),
       );
     }
     var invocation = _createNamedInvocation(node, receiver);
@@ -764,21 +775,6 @@ class MethodInvocationResolver with ScopeHelpers {
     InvocationTarget? target;
     if (element is InternalExecutableElement) {
       target = InvocationTargetExecutableElement(element);
-      node.resolution = ExecutableInvocationResolutionImpl(
-        element: element,
-        invokeType: element.type,
-        type: element.returnType,
-      );
-      if (candidate is MultiplyDefinedElement) {
-        node.resolution = InvalidInvocationResolutionImpl(
-          candidates: [candidate],
-          recovery: FunctionCallInvocationResolutionImpl(
-            invokeType: element.type,
-            type: element.returnType,
-          ),
-          type: element.returnType,
-        );
-      }
     } else if (callFunctionType != null) {
       target = InvocationTargetFunctionTypedExpression(callFunctionType);
     }
@@ -903,8 +899,9 @@ class MethodInvocationResolver with ScopeHelpers {
       _lookupFailureReporter.reportReadFailure(
         domain: StaticLookupDomain(declaration),
         name: name,
-        syntax: ReadSyntax.invocation,
-        foundInstead: null,
+        foundInstead: declaration.getMemberForFailedLookup(
+          Name(_definingLibraryUri, name.lexeme),
+        ),
       );
     }
     _resolveNamedInvocation(
@@ -1002,7 +999,6 @@ class MethodInvocationResolver with ScopeHelpers {
           _lookupFailureReporter.reportReadFailure(
             domain: SuperLookupDomain(enclosingInterface.thisType),
             name: name,
-            syntax: ReadSyntax.invocation,
             foundInstead: foundInstead,
           );
       }

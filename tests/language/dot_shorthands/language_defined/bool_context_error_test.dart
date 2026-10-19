@@ -16,73 +16,73 @@ extension type const Bool(bool _) implements bool {
 void main() {
   if (.one) {
     // ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.isTrue) {
     // ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (!.one) {
     //  ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (!.isTrue) {
     //  ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.one || .two) {
     // ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
     //         ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.isTrue || .isFalse) {
     // ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     //            ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'isFalse' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.one && .two) {
     // ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'one' isn't defined for the type 'bool'.
     //         ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
     print('not ok');
   }
   if (.isTrue && .isFalse) {
     // ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     //            ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'isFalse' isn't defined for the type 'bool'.
     print('not ok');
   }
   while (.two) {
     //    ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
     print('not ok');
   }
   while (.isTrue) {
     //    ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
     print('not ok');
   }
@@ -92,21 +92,21 @@ void main() {
     if (counter > 2) break;
   } while (.two);
   //        ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
   do {
     counter++;
     if (counter > 2) break;
   } while (.isTrue);
   //        ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
   assert(.two, '');
   //      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'two' isn't defined for the type 'bool'.
   assert(.isTrue, '');
   //      ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'isTrue' isn't defined for the type 'bool'.
 }

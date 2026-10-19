@@ -56,6 +56,7 @@ import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -109,7 +110,7 @@ typedef WhyNotPromotedGetter =
 /// The context shared between different units of the same library.
 final class LibraryResolutionContext {
   /// The declarations for [VariableFragment]s.
-  final Map<VariableFragment, VariableDeclaration> _variableNodes =
+  final Map<VariableFragment, VariableBindingImpl> _variableNodes =
       Map.identity();
 }
 
@@ -127,7 +128,7 @@ class SwitchExhaustiveness {
 
   bool isExhaustive = false;
 
-  factory SwitchExhaustiveness(TypeImpl expressionType) {
+  factory(TypeImpl expressionType) {
     if (expressionType is InterfaceType) {
       var enum_ = expressionType.element;
       if (enum_ is EnumElementImpl) {
@@ -140,7 +141,7 @@ class SwitchExhaustiveness {
     return SwitchExhaustiveness._(null, false);
   }
 
-  SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
+  new _(this._enumConstants, this._isNullEnumValueCovered);
 
   void visitSwitchExpressionCase(SwitchExpressionCaseImpl node) {
     if (_enumConstants != null) {
@@ -392,7 +393,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   /// actually correct.
   late final Expando<AstNode> _replacements = Expando();
 
-  TypeAnalyzer({
+  new({
     required InheritanceManager3 inheritanceManager,
     required LibraryFragmentImpl libraryFragment,
     required LibraryResolutionContext libraryResolutionContext,
@@ -414,7 +415,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
          typeAnalyzerOptions: typeAnalyzerOptions,
        );
 
-  TypeAnalyzer._(
+  new _(
     this.inheritance,
     this.definingLibrary,
     this.libraryResolutionContext,
@@ -1338,11 +1339,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       return expression;
     }
 
-    // Don't rewrite function declarations.
-    if (expression.parent2 is FunctionDeclaration) {
-      return expression;
-    }
-
     var staticType = expression.staticType;
     if (staticType is! FunctionTypeImpl || staticType.typeParameters.isEmpty) {
       return expression;
@@ -1457,32 +1453,36 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (parent is CompilationUnit) {
       return node is ClassDeclaration ||
           node is Directive ||
+          node is EnumDeclaration ||
           node is ExtensionDeclaration ||
-          node is FunctionDeclaration ||
+          node is ExtensionTypeDeclaration ||
+          node is MixinDeclaration ||
+          node is TopLevelFunctionDeclaration ||
           node is TopLevelGetterDeclaration ||
-          node is TopLevelVariableDeclaration;
+          node is TopLevelSetterDeclaration ||
+          node is TopLevelVariablesDeclaration;
     }
 
-    if (parent is ClassBody) {
-      parent = parent.parent2;
+    if (parent is ClassBody || parent is EnumBody) {
+      parent = parent!.parent2;
     }
 
-    if (parent is ClassDeclarationImpl) {
-      enclosingInstanceElement = parent.declaredFragment!.element;
-      return true;
+    // The visit methods of these declarations set only the enclosing
+    // instance element before visiting their members.
+    InstanceElementImpl? enclosingElement = switch (parent) {
+      ClassDeclarationImpl() => parent.declaredFragment!.element,
+      EnumDeclarationImpl() => parent.declaredFragment!.element,
+      ExtensionDeclarationImpl() => parent.declaredFragment!.element,
+      ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
+      MixinDeclarationImpl() => parent.declaredFragment!.element,
+      _ => null,
+    };
+    if (enclosingElement == null) {
+      return false;
     }
 
-    if (parent is ExtensionDeclarationImpl) {
-      enclosingInstanceElement = parent.declaredFragment!.element;
-      return true;
-    }
-
-    if (parent is MixinDeclarationImpl) {
-      enclosingInstanceElement = parent.declaredFragment!.element;
-      return true;
-    }
-
-    return false;
+    enclosingInstanceElement = enclosingElement;
+    return true;
   }
 
   /// Pushes an entry onto [_rewriteStack].
@@ -1688,12 +1688,15 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       nameErrorEntity: nameToken,
     );
 
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       lookupFailureReporter.reportReadFailure(
         domain: InstanceLookupDomain(receiverType.unwrapTypeView()),
         name: nameToken,
-        syntax: ReadSyntax.reference,
-        foundInstead: null,
+        foundInstead: typePropertyResolver.getMemberForFailedRead(
+          result: result,
+          receiverType: receiverType.unwrapTypeView(),
+          name: nameToken.lexeme,
+        ),
       );
     }
 
@@ -1764,7 +1767,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       parentNode: node,
     );
 
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       diagnosticReporter.report(
         diag.undefinedOperator
             .withArguments(
@@ -1984,7 +1987,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           }
         }
       }
-      parameters.accept2(this);
       for (var parameter in formalParameters) {
         var element = parameter.declaredFragment?.element;
         if (element != null) {
@@ -2017,6 +2019,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           }
         }
       }
+      // Visit after declaring the parameters, because the formal parameter
+      // list may contain expressions.
+      parameters.accept2(this);
     }
 
     TypeImpl returnedType;
@@ -2805,7 +2810,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var condition = node.condition2;
 
     flowAnalysis.flow?.doStatement_bodyBegin(node, offset: node.offset);
-    node.body.accept2(this);
+    node.body2.accept2(this);
 
     flowAnalysis.flow?.doStatement_conditionBegin(
       offset: node.whileKeyword.offset,
@@ -3101,9 +3106,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
     node.typeArguments?.accept2(this);
 
-    var receiverContextType = ExtensionMemberResolver(
-      this,
-    ).computeOverrideReceiverContextType(node);
+    var receiverContextType = ExtensionMemberResolver(this)
+        .computeOverrideReceiverContextType(node);
     InvocationTargetExtensionOverride? target;
     if (receiverContextType != null) {
       target = InvocationTargetExtensionOverride(
@@ -3147,18 +3151,23 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
-      checkUnreachableNode(node);
-      node.visitChildren2(this);
-      elementResolver.visitFieldDeclaration(node);
-    });
+  void visitField2(covariant Field2Impl node) {
+    _variableDeclarationResolver.resolve(node);
+    _checkTypeInferenceError(node);
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _visitFormalParameter(node);
     elementResolver.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+      checkUnreachableNode(node);
+      node.visitChildren2(this);
+    });
   }
 
   @override
@@ -3192,85 +3201,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     _forResolver.resolveStatement(node);
-    nullSafetyDeadCodeVerifier.flowEnd(node.body);
-    _recordMayCompleteNormally(node);
-    inferenceLogWriter?.exitStatement(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    bool isLocal = node.parent2 is FunctionDeclarationStatement;
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-    var functionType = element.type;
-
-    _withEnclosingExecutableElement(element, () {
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
-      node.returnType?.accept2(this);
-
-      // Use typeParameters or parameters for the offset if available, because
-      // they will be visited before the body, and may contain expressions.
-      var enterOffset =
-          (node.functionExpression.typeParameters ??
-                  node.functionExpression.parameters ??
-                  node.functionExpression.body)
-              .offset;
-      if (isLocal) {
-        flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
-      } else {
-        flowAnalysis.flowAnalysisRoot_enter(
-          node,
-          element.formalParameters,
-          offset: enterOffset,
-        );
-      }
-      flowAnalysis.executableDeclaration_enter(
-        node,
-        element.formalParameters,
-        isClosure: isLocal,
-        offset: enterOffset,
-      );
-
-      // node.functionExpression isn't a real expression, so visit it directly
-      // rather than going through `analyzeExpression`.
-      inferenceLogWriter?.setExpressionVisitCodePath(
-        node.functionExpression,
-        ExpressionVisitCodePath.analyzeExpression,
-      );
-      pushRewrite(node.functionExpression);
-      // Stack: (functionExpression)
-      node.functionExpression.resolveExpression(this, functionType);
-      popRewrite();
-      elementResolver.visitFunctionDeclaration(node);
-
-      if (!node.isSetter) {
-        checkForBodyMayCompleteNormally(
-          body: node.functionExpression.body,
-          errorNode: node.name,
-        );
-      }
-      var exitOffset = node.functionExpression.body.flowEndOffset;
-      flowAnalysis.executableDeclaration_exit(
-        node.functionExpression.body,
-        isLocal,
-        offset: exitOffset,
-      );
-      if (isLocal) {
-        flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
-      } else {
-        flowAnalysis.flowAnalysisRoot_exit();
-      }
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    });
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    inferenceLogWriter?.enterStatement(node);
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body2);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
@@ -3301,10 +3232,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitFunctionTypeAlias(node);
+    elementResolver.visitFunctionTypeAlias2(node);
   }
 
   @override
@@ -3314,10 +3245,15 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitGenericTypeAlias(node);
+    elementResolver.visitGenericTypeAlias2(node);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _resolveMethodDeclaration(node);
   }
 
   @override
@@ -3407,8 +3343,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         node.expression2,
         guardedPattern.pattern,
         guardedPattern.whenClause?.expression2,
-        node.thenStatement,
-        node.elseStatement,
+        node.thenStatement2,
+        node.elseStatement2,
         guardedPattern.variables,
         afterExpressionOffset: caseClause.caseKeyword.offset,
         thenBeginOffset: node.rightParenthesis.offset,
@@ -3421,8 +3357,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       analyzeIfStatement(
         node,
         node.expression2,
-        node.thenStatement,
-        node.elseStatement,
+        node.thenStatement2,
+        node.elseStatement2,
         thenBeginOffset: node.rightParenthesis.offset,
         elseBeginOffset: node.elseKeyword?.offset,
       );
@@ -3631,6 +3567,72 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    inferenceLogWriter?.enterStatement(node);
+    checkUnreachableNode(node);
+    var element = node.declaredFragment!.element;
+
+    _withEnclosingExecutableElement(element, () {
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+
+      // Use the type parameters or formal parameters for the offset, because
+      // they are visited before the body, and may contain expressions.
+      var enterOffset = (node.typeParameters ?? node.formalParameters).offset;
+      flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: true,
+        offset: enterOffset,
+      );
+
+      _functionExpressionResolver.resolveLocalFunction(node);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      var exitOffset = node.body.flowEndOffset;
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        true,
+        offset: exitOffset,
+      );
+      flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
+
+    _recordMayCompleteNormally(node);
+    inferenceLogWriter?.exitStatement(node);
+  }
+
+  @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    _resolveVariable(node);
+  }
+
+  @override
+  void visitLocalVariablesDeclaration(
+    covariant LocalVariablesDeclarationImpl node,
+  ) {
+    flowAnalysis.localVariablesDeclaration(node);
+    checkUnreachableNode(node);
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitLocalVariablesDeclarationStatement(
+    covariant LocalVariablesDeclarationStatementImpl node,
+  ) {
+    inferenceLogWriter?.enterStatement(node);
+    checkUnreachableNode(node);
+    node.visitChildren2(this);
+    _recordMayCompleteNormally(node);
+    inferenceLogWriter?.exitStatement(node);
+  }
+
+  @override
   void visitLogicalAnd(
     covariant LogicalAndImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3722,75 +3724,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-    var returnType = element.returnType;
-
-    _withEnclosingExecutableElement(element, () {
-      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
-        checkUnreachableNode(node);
-        node.documentationComment?.accept2(this);
-        node.metadata.accept2(this);
-        node.returnType?.accept2(this);
-        node.typeParameters?.accept2(this);
-
-        // Use typeParameters or parameters for the offset if available, because
-        // they will be visited before the body, and may contain expressions.
-        var enterOffset =
-            (node.typeParameters ?? node.parameters ?? node.body).offset;
-        flowAnalysis.flowAnalysisRoot_enter(
-          node,
-          element.formalParameters,
-          offset: enterOffset,
-        );
-        flowAnalysis.executableDeclaration_enter(
-          node,
-          element.formalParameters,
-          isClosure: false,
-          offset: enterOffset,
-        );
-
-        // Visit the formal parameters inside the flow analysis region, so that
-        // any expressions in their default values are analyzed as part of this
-        // declaration's flow analysis. (Otherwise `visitFormalParameterList`
-        // would have to establish a flow analysis region of its own.)
-        node.parameters?.accept2(this);
-
-        if (!element.isStatic) {
-          flow.thisBinding_begin(
-            null,
-            thisType: SharedTypeView(enclosingInstanceElement!.thisType),
-            offset: node.body.offset,
-          );
-        }
-        withThisAccessibility(
-          !element.isStatic,
-          () => node.body.resolve(
-            this,
-            returnType is DynamicType ? null : returnType,
-          ),
-        );
-        elementResolver.visitMethodDeclaration(node);
-
-        if (!node.isSetter) {
-          checkForBodyMayCompleteNormally(
-            body: node.body,
-            errorNode: node.name,
-          );
-        }
-        flowAnalysis.executableDeclaration_exit(
-          node.body,
-          false,
-          offset: node.body.flowEndOffset,
-        );
-        if (!element.isStatic) {
-          flow.thisBinding_end(offset: node.body.flowEndOffset);
-        }
-        flowAnalysis.flowAnalysisRoot_exit();
-        nullSafetyDeadCodeVerifier.flowEnd(node);
-      });
-    });
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _resolveMethodDeclaration(node);
   }
 
   @override
@@ -3921,6 +3856,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
     checkUnreachableNode(node);
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _resolveMethodDeclaration(node);
   }
 
   @override
@@ -4446,6 +4386,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _resolveMethodDeclaration(node);
+  }
+
+  @override
   void visitShowCombinator(ShowCombinator node) {}
 
   @override
@@ -4644,6 +4589,49 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      checkUnreachableNode(node);
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+
+      // Use the type parameters or formal parameters for the offset, because
+      // they are visited before the body, and may contain expressions.
+      var enterOffset = (node.typeParameters ?? node.formalParameters).offset;
+      flowAnalysis.flowAnalysisRoot_enter(
+        node,
+        element.formalParameters,
+        offset: enterOffset,
+      );
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: false,
+        offset: enterOffset,
+      );
+
+      node.typeParameters?.accept2(this);
+      node.formalParameters.accept2(this);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        false,
+        offset: node.body.flowEndOffset,
+      );
+      flowAnalysis.flowAnalysisRoot_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
+  }
+
+  @override
   void visitTopLevelGetterDeclaration(
     covariant TopLevelGetterDeclarationImpl node,
   ) {
@@ -4655,7 +4643,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
       node.returnType?.accept2(this);
-      node.recoveryTypeParameters?.accept2(this);
       node.recoveryFormalParameters?.accept2(this);
 
       var enterOffset = node.body.offset;
@@ -4685,10 +4672,56 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      checkUnreachableNode(node);
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+
+      // Use the formal parameters for the offset, because they are visited
+      // before the body, and may contain expressions.
+      var enterOffset = node.formalParameters.offset;
+      flowAnalysis.flowAnalysisRoot_enter(
+        node,
+        element.formalParameters,
+        offset: enterOffset,
+      );
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: false,
+        offset: enterOffset,
+      );
+
+      node.formalParameters.accept2(this);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        false,
+        offset: node.body.flowEndOffset,
+      );
+      flowAnalysis.flowAnalysisRoot_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
+  }
+
+  @override
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    _variableDeclarationResolver.resolve(node);
+    _checkTypeInferenceError(node);
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitTopLevelVariableDeclaration(node);
   }
 
   @override
@@ -4829,51 +4862,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-
-    libraryResolutionContext._variableNodes[fragment] = node;
-    _variableDeclarationResolver.resolve(node);
-
-    var initializer = node.initializer2;
-    if (initializer != null) {
-      var parent = node.parent2 as VariableDeclarationList;
-      var declaredType = parent.type;
-      var initializerStaticType = initializer.typeOrThrow;
-      flowAnalysis.flow?.initialize(
-        node.declaredFragment?.element as PromotableElementImpl,
-        SharedTypeView(initializerStaticType),
-        flowAnalysis.getExpressionInfo(initializer),
-        isFinal: parent.isFinal,
-        isLate: parent.isLate,
-        isImplicitlyTyped: declaredType == null,
-        offset: node.end,
-      );
-    }
-
-    _checkTypeInferenceError(node);
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    flowAnalysis.variableDeclarationList(node);
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
-    elementResolver.visitVariableDeclarationList(node);
-  }
-
-  @override
-  void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    inferenceLogWriter?.enterStatement(node);
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
-    _recordMayCompleteNormally(node);
-    inferenceLogWriter?.exitStatement(node);
-  }
-
-  @override
   void visitWhileStatement(covariant WhileStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
@@ -4897,9 +4885,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       flowAnalysis.getExpressionInfo(condition),
       offset: node.rightParenthesis.offset,
     );
-    node.body.accept2(this);
+    node.body2.accept2(this);
     flowAnalysis.flow?.whileStatement_end(offset: node.endToken.offset);
-    nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body2);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
@@ -5030,7 +5018,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
   }
 
-  void _checkTypeInferenceError(VariableDeclaration node) {
+  void _checkTypeInferenceError(VariableBindingImpl node) {
     var fragment = node.declaredFragment;
     if (fragment is! PropertyInducingFragmentImpl) {
       return;
@@ -5066,6 +5054,28 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
   }
 
+  /// Completes [node] after its resolution has been recorded.
+  void _completeNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+  }) {
+    node.recordStaticType(
+      node.resolution?.type ?? node.typeOrThrow,
+      typeAnalyzer: this,
+    );
+
+    var replacement = insertGenericFunctionInstantiation(
+      node,
+      contextType: contextType,
+    );
+    checkForArgumentTypesNotAssignableInList(
+      node.argumentList,
+      whyNotPromotedArguments,
+    );
+    _insertImplicitCallTearOff(replacement, contextType: contextType);
+  }
+
   /// Helper function used to print information to the console in debug mode.
   /// This method returns `true` so that it can be conveniently called inside of
   /// an `assert` statement.
@@ -5080,6 +5090,29 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     return _bodyContext!.computeInferredReturnType(
       endOfBlockIsReachable: flow == null || flow.isReachable,
     );
+  }
+
+  /// Infers [node] as an invocation of [target], and returns the inferred
+  /// type.
+  ///
+  /// The caller records the resolution of [node] after the inference.
+  TypeImpl _inferNamedFunctionInvocation(
+    NamedFunctionInvocationImpl node, {
+    required TypeImpl contextType,
+    required InvocationTarget? target,
+    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
+  }) {
+    checkUnreachableNode(node);
+    node.typeArguments?.accept2(this);
+    return NamedFunctionInvocationInferrer(
+          typeAnalyzer: this,
+          node: node,
+          argumentList: node.argumentList,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+          contextType: contextType,
+          target: target,
+        ).resolveInvocation()
+        as TypeImpl;
   }
 
   /// Infers type arguments corresponding to [typeParameters] used it the
@@ -5250,64 +5283,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     statement.mayCompleteNormally = flowAnalysis.flow?.isReachable ?? true;
   }
 
+  /// Re-infers [node], invoking the target recorded by its previous
+  /// resolution.
   void _resolveDirectNamedFunctionInvocation(
     NamedFunctionInvocationImpl node, {
     required TypeImpl contextType,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
-    _resolveNamedFunctionInvocation(node, contextType: contextType);
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  /// Resolves the context shared by every canonical dot-shorthand head.
-  ///
-  /// The surrounding context is preserved separately from the normalized
-  /// interface type used for static namespace lookup. Operation-specific
-  /// resolvers consume this result instead of repeating context normalization.
-  DotShorthandContextResolutionImpl _resolveDotShorthandContext() {
-    var contextType = getDotShorthandContext().unwrapTypeSchemaView<TypeImpl>();
-    var lookupType = typeSystem.futureOrBase(contextType);
-    if (lookupType is InterfaceTypeImpl &&
-        lookupType.element.isAccessibleIn(definingLibrary)) {
-      return ValidDotShorthandContextResolutionImpl(
-        contextType: contextType,
-        lookupType: lookupType,
-      );
-    }
-    return InvalidDotShorthandContextResolutionImpl(
-      contextType: contextType is UnknownInferredType ? null : contextType,
-    );
-  }
-
-  void _resolveDotShorthandNameExpression(
-    DotShorthandNameExpressionImpl node,
-    TypeImpl contextType,
-  ) {
-    checkUnreachableNode(node);
-    var shorthandContext = _resolveDotShorthandContext();
-    node.shorthandContext = shorthandContext;
-    var resolution = _propertyElementResolver.resolveDotShorthand(
-      node,
-      contextType: contextType,
-      shorthandContext: shorthandContext,
-    );
-    node.resolution = resolution;
-    node.recordStaticType(resolution.type, typeAnalyzer: this);
-
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
-  }
-
-  void _resolveNamedFunctionInvocation(
-    NamedFunctionInvocationImpl node, {
-    required TypeImpl contextType,
-  }) {
-    checkUnreachableNode(node);
-    node.typeArguments?.accept2(this);
-
     var previousResolution = node.resolution;
     var previousInvokeType = node.staticInvokeType;
     // Re-inference of `..call()` needs the receiver's generic signature,
@@ -5337,18 +5319,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       _ => null,
     };
 
-    var whyNotPromotedArguments =
-        <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    var inferredType =
-        NamedFunctionInvocationInferrer(
-              typeAnalyzer: this,
-              node: node,
-              argumentList: node.argumentList,
-              whyNotPromotedArguments: whyNotPromotedArguments,
-              contextType: contextType,
-              target: target,
-            ).resolveInvocation()
-            as TypeImpl;
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    var inferredType = _inferNamedFunctionInvocation(
+      node,
+      contextType: contextType,
+      target: target,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    );
 
     node.resolution = switch (previousResolution) {
       ExecutableInvocationResolutionImpl(:var element) =>
@@ -5367,20 +5344,132 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (target == null) {
       node.staticInvokeType = previousInvokeType;
     }
-    node.recordStaticType(
-      node.resolution?.type ?? node.typeOrThrow,
-      typeAnalyzer: this,
+    _completeNamedFunctionInvocation(
+      node,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
     );
+    inferenceLogWriter?.exitExpression(node);
+  }
+
+  /// Resolves the context shared by every canonical dot-shorthand head.
+  ///
+  /// The surrounding context is preserved separately from the normalized
+  /// interface type used for static namespace lookup. Operation-specific
+  /// resolvers consume this result instead of repeating context normalization.
+  DotShorthandContextResolutionImpl _resolveDotShorthandContext() {
+    var contextType = getDotShorthandContext().unwrapTypeSchemaView<TypeImpl>();
+    var lookupType = typeSystem.futureOrBase(contextType);
+    if (lookupType is InterfaceTypeImpl &&
+        lookupType.element.isAccessibleIn(definingLibrary)) {
+      return ValidDotShorthandContextResolutionImpl(
+        contextType: contextType,
+        lookupType: lookupType,
+      );
+    }
+    if (contextType is UnknownInferredType) {
+      return const MissingDotShorthandContextResolutionImpl();
+    }
+    return InvalidDotShorthandContextResolutionImpl(
+      contextType: contextType,
+      lookupType: lookupType,
+    );
+  }
+
+  void _resolveDotShorthandNameExpression(
+    DotShorthandNameExpressionImpl node,
+    TypeImpl contextType,
+  ) {
+    checkUnreachableNode(node);
+    var shorthandContext = _resolveDotShorthandContext();
+    node.shorthandContext = shorthandContext;
+    var resolution = _propertyElementResolver.resolveDotShorthand(
+      node,
+      contextType: contextType,
+      shorthandContext: shorthandContext,
+    );
+    node.resolution = resolution;
+    node.recordStaticType(resolution.type, typeAnalyzer: this);
 
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
     );
-    checkForArgumentTypesNotAssignableInList(
-      node.argumentList,
-      whyNotPromotedArguments,
-    );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
+  }
+
+  /// Resolves a member method, operator, getter, or setter declaration.
+  void _resolveMethodDeclaration(MethodDeclarationV1OriginImpl node) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+        checkUnreachableNode(node);
+        node.documentationComment?.accept2(this);
+        node.metadata.accept2(this);
+        node.returnType?.accept2(this);
+        node.writtenTypeParameters?.accept2(this);
+
+        // Use typeParameters or parameters for the offset if available, because
+        // they will be visited before the body, and may contain expressions.
+        var enterOffset =
+            (node.writtenTypeParameters ??
+                    node.writtenFormalParameters ??
+                    node.body)
+                .offset;
+        flowAnalysis.flowAnalysisRoot_enter(
+          node,
+          element.formalParameters,
+          offset: enterOffset,
+        );
+        flowAnalysis.executableDeclaration_enter(
+          node,
+          element.formalParameters,
+          isClosure: false,
+          offset: enterOffset,
+        );
+
+        // Visit the formal parameters inside the flow analysis region, so that
+        // any expressions in their default values are analyzed as part of this
+        // declaration's flow analysis. (Otherwise `visitFormalParameterList`
+        // would have to establish a flow analysis region of its own.)
+        node.writtenFormalParameters?.accept2(this);
+
+        if (!element.isStatic) {
+          flow.thisBinding_begin(
+            null,
+            thisType: SharedTypeView(enclosingInstanceElement!.thisType),
+            offset: node.body.offset,
+          );
+        }
+        withThisAccessibility(
+          !element.isStatic,
+          () => node.body.resolve(
+            this,
+            returnType is DynamicType ? null : returnType,
+          ),
+        );
+
+        if (node is! SetterDeclarationImpl) {
+          checkForBodyMayCompleteNormally(
+            body: node.body,
+            errorNode: node.nameToken,
+          );
+        }
+        flowAnalysis.executableDeclaration_exit(
+          node.body,
+          false,
+          offset: node.body.flowEndOffset,
+        );
+        if (!element.isStatic) {
+          flow.thisBinding_end(offset: node.body.flowEndOffset);
+        }
+        flowAnalysis.flowAnalysisRoot_exit();
+        nullSafetyDeadCodeVerifier.flowEnd(node);
+      });
+    });
   }
 
   void _resolveParsedCascadeInvocation(
@@ -5508,22 +5597,24 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         return;
       }
       switch (shorthandContext) {
-        case ValidDotShorthandContextResolutionImpl():
+        case MissingDotShorthandContextResolutionImpl():
+          diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
+        case InvalidDotShorthandContextResolutionImpl():
+          lookupFailureReporter.reportReadFailure(
+            domain: DotShorthandLookupDomain.invalid(shorthandContext),
+            name: head.name,
+            foundInstead: null,
+          );
+        case ValidDotShorthandContextResolutionImpl(:var lookupType):
           lookupFailureReporter.reportReadFailure(
             domain: DotShorthandLookupDomain.declaration(shorthandContext),
             name: head.name,
-            syntax: ReadSyntax.invocation,
-            foundInstead: null,
+            foundInstead:
+                element ??
+                lookupType.element.getMemberForFailedLookup(
+                  Name(definingLibrary.uri, head.name.lexeme),
+                ),
           );
-        case InvalidDotShorthandContextResolutionImpl(:var contextType?):
-          lookupFailureReporter.reportReadFailure(
-            domain: DotShorthandLookupDomain.type(contextType),
-            name: head.name,
-            syntax: ReadSyntax.invocation,
-            foundInstead: null,
-          );
-        case InvalidDotShorthandContextResolutionImpl():
-          diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
       }
       element = null;
     }
@@ -5533,11 +5624,21 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       typeArguments: typeArguments,
       argumentList: node.argumentList,
     )..shorthandContext = shorthandContext;
+    replace(invocation);
+    var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
+    var inferredType = _inferNamedFunctionInvocation(
+      invocation,
+      contextType: contextType,
+      target: element != null
+          ? InvocationTargetExecutableElement(element)
+          : null,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    );
     if (element != null) {
       invocation.resolution = ExecutableInvocationResolutionImpl(
         element: element,
-        invokeType: element.type,
-        type: element.type.returnType,
+        invokeType: invocation.staticInvokeType as FunctionTypeImpl,
+        type: inferredType,
       );
     } else {
       invocation.resolution = InvalidInvocationResolutionImpl(
@@ -5547,8 +5648,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       );
       invocation.staticInvokeType = InvalidTypeImpl.instance;
     }
-    replace(invocation);
-    _resolveNamedFunctionInvocation(invocation, contextType: contextType);
+    _completeNamedFunctionInvocation(
+      invocation,
+      contextType: contextType,
+      whyNotPromotedArguments: whyNotPromotedArguments,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -5592,6 +5696,30 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  /// Resolves the variable [node], and initializes it in flow analysis.
+  void _resolveVariable(VariableBindingImpl node) {
+    var fragment = node.declaredFragment!;
+
+    libraryResolutionContext._variableNodes[fragment] = node;
+    _variableDeclarationResolver.resolve(node);
+
+    var initializer = node.initializer2;
+    if (initializer != null) {
+      var initializerStaticType = initializer.typeOrThrow;
+      flowAnalysis.flow?.initialize(
+        fragment.element as PromotableElementImpl,
+        SharedTypeView(initializerStaticType),
+        flowAnalysis.getExpressionInfo(initializer),
+        isFinal: fragment.isFinal,
+        isLate: fragment.isLate,
+        isImplicitlyTyped: fragment.hasImplicitType,
+        offset: node.end,
+      );
+    }
+
+    _checkTypeInferenceError(node);
   }
 
   bool _shouldSkipImplicitCallTearOffDueToForm(
@@ -5985,7 +6113,7 @@ class _WhyNotPromotedVisitor
 
   PropertyAccessorElement? propertyReference;
 
-  _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
+  new(this.source, this._errorEntity, this._dataForTesting);
 
   @override
   List<DiagnosticMessage> visitDemoteViaExplicitWrite(

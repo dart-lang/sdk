@@ -13,13 +13,13 @@ void test(dynamic d, Object o, Function f) {
   d.call;
   o.call;
   //^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'call' isn't defined for the type 'Object'.
   f.call;
   d.call();
   o.call();
   //^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'call' isn't defined for the type 'Object'.
   f.call();
 }

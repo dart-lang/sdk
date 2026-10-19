@@ -72,7 +72,7 @@ void f() {
 //  ^
 // [diag.missingIdentifier] Expected an identifier.
 //    ^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unknown'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unknown'.
 }
 
 void g(int a, int b) {}
@@ -3884,7 +3884,7 @@ var x = A.foo();
 // [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -3935,7 +3935,7 @@ var x = A.foo(a: 0);
 // [diag.undefinedNamedParameter] The named parameter 'a' isn't defined.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -4000,7 +4000,7 @@ var x = E.foo();
 // [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -4043,7 +4043,7 @@ V1: MethodInvocation
 main() {
   foo(0);
 //^^^
-// [diag.undefinedFunction] The function 'foo' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -4088,7 +4088,7 @@ import 'dart:math' as math;
 main() {
   math.foo(0);
 //     ^^^
-// [diag.undefinedFunction] The function 'foo' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'math'.
 }
 ''');
 
@@ -4140,7 +4140,7 @@ V1: MethodInvocation
 main() {
   bar.foo(0);
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'bar'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'bar'.
 }
 ''');
 
@@ -4195,7 +4195,7 @@ class C {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4250,7 +4250,7 @@ int x = 0;
 main() {
   C.foo(x);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4313,7 +4313,7 @@ class C extends S {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4367,7 +4367,7 @@ class C {}
 main() {
   C.foo<int>();
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4429,7 +4429,7 @@ V1: MethodInvocation
 class C<T> {
   static main() => C.T();
 //                   ^
-// [diag.undefinedMethodOnTypeLiteral] The method 'T' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'T'.
 }
 ''');
 
@@ -4471,7 +4471,7 @@ V1: MethodInvocation
 main() {
   42.foo(0);
 //   ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'int'.
 }
 ''');
 
@@ -4523,7 +4523,7 @@ main() {
   var v = () {};
   v.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Null Function()'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Null Function()'.
 }
 ''');
 
@@ -4579,7 +4579,7 @@ class C {
   main() {
     foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -4709,7 +4709,7 @@ V1: MethodInvocation
 main(Object o) {
   o.call();
 //  ^^^^
-// [diag.undefinedMethod] The method 'call' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'call' isn't defined for the type 'Object'.
 }
 ''');
   }
@@ -4727,7 +4727,7 @@ class B extends A {
   main() {
     _foo(0);
 //  ^^^^
-// [diag.undefinedMethod] The method '_foo' isn't defined for the type 'B'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_foo'.
   }
 }
 ''');
@@ -4775,7 +4775,7 @@ class C {
 main() {
   C..foo();
 //   ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -4788,7 +4788,7 @@ main() {
 // ^^
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 //   ^^^^^^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'toString' isn't defined for the type 'A'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'A' doesn't have a static member or constructor named 'toString'.
 }
 ''');
   }
@@ -7535,7 +7535,7 @@ extension type X(B it) implements A {}
 void f(X x) {
   x.foo();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'X'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'X'.
 }
 ''');
 
@@ -10543,7 +10543,7 @@ V1: MethodInvocation
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo()}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');
@@ -10587,7 +10587,7 @@ typedef void F({a = b?.foo()});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');

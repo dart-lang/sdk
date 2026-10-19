@@ -59,7 +59,23 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
+      FieldsDeclaration
+        staticKeyword: static
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: f
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> f@34
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -71,7 +87,7 @@ ExtensionDeclaration
             VariableDeclaration
               name: f
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> f@34
@@ -102,7 +118,24 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
+      GetterDeclaration
+        returnType: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        getKeyword: get
+        name: g
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> g@31
+          element: <testLibrary>::@extension::E::@getter::g
+            type: int Function()
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -112,7 +145,7 @@ ExtensionDeclaration
         name: g
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
             staticType: int
           semicolon: ;
@@ -144,7 +177,24 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+          element: <null>
+          type: void
+        name: m
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> m@28
+          element: <testLibrary>::@extension::E::@method::m
+            type: void Function()
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -186,11 +236,11 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
-      MethodDeclaration
-        propertyKeyword: set
+    members2
+      SetterDeclaration
+        setKeyword: set
         name: s
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -203,7 +253,18 @@ ExtensionDeclaration
                 element: isPublic
                   type: int
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> s@27
+          element: <testLibrary>::@extension::E::@setter::s
+            type: void Function(int)
+    members(v1)
+      MethodDeclaration
+        propertyKeyword: set
+        name: s
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

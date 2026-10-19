@@ -1600,6 +1600,19 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
     Format(instr, "vuminv 'vd, 'vn");
     return;
   }
+  // REV64 Vd.4S, Vn.4S.
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x4EA00800) {
+    Format(instr, "vrev64s 'vd, 'vn");
+    return;
+  }
+  // EXT Vd.16B, Vn.16B, Vm.16B, #index.
+  if ((instr->InstructionBits() & 0xFFE08400) == 0x6E000000) {
+    Format(instr, "vext 'vd, 'vn, 'vm");
+    buffer_pos_ +=
+        Utils::SNPrint(current_position_in_buffer(), remaining_size_in_buffer(),
+                       ", #%d", instr->Bits(11, 4));
+    return;
+  }
   // TBL Vd.16B, {Vn.16B}, Vm.16B (Q=1, len=0, op=0 table lookup form).
   if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4E000000) {
     Format(instr, "vtbl1 'vd, 'vn, 'vm");

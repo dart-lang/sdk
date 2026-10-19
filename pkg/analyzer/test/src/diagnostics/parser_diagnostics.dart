@@ -126,7 +126,7 @@ extension ParseStringResultExtension on ParseStringResult {
     return FindNode2(content, unit);
   }
 
-  @ToBeDeprecated('Use findNode instead.')
+  @V1Ast('The V2 counterpart is findNode.')
   FindNode get findNodeV1 {
     return FindNode(content, unit);
   }

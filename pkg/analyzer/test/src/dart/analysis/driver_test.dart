@@ -6134,12 +6134,12 @@ class DriverEventCollector {
   final List<_PendingFuture> _pendingFutures = [];
   final List<Completer<void>> _statusIdleCompleters = [];
 
-  DriverEventCollector(this.driver, {IdProvider? idProvider})
+  new(this.driver, {IdProvider? idProvider})
     : idProvider = idProvider ?? IdProvider() {
     _listenSchedulerEvents(driver.scheduler);
   }
 
-  DriverEventCollector.forCollection(
+  new forCollection(
     AnalysisContextCollectionImpl collection, {
     IdProvider? idProvider,
   }) : idProvider = idProvider ?? IdProvider() {
@@ -9772,7 +9772,7 @@ void f (B b) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      84 +6 UNDEFINED_GETTER
+      84 +6 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }
@@ -10340,7 +10340,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
       updatedA: r'''
 class A {
@@ -12345,6 +12345,8 @@ void f(B b) {
           B
             requestedDeclaredGetters
               _foo: <null>
+            requestedDeclaredSetters
+              _foo=: <null>
             requestedDeclaredMethods
               _foo: <null>
         exportedExtensions: []
@@ -12355,7 +12357,7 @@ void f(B b) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      66 +4 UNDEFINED_METHOD
+      66 +4 UNDEFINED_INSTANCE_MEMBER_READ
       35 +4 UNUSED_ELEMENT
 ''',
     );
@@ -14967,7 +14969,7 @@ void f (B b) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      84 +6 UNDEFINED_GETTER
+      84 +6 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }
@@ -15108,7 +15110,7 @@ class A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }
@@ -15354,7 +15356,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -15369,12 +15371,8 @@ void f(A a) {
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -15388,7 +15386,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
       updatedA: r'''
 class A {
@@ -17192,7 +17190,7 @@ class A {}
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -17207,12 +17205,8 @@ class A {}
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -17226,7 +17220,7 @@ class A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
     );
   }
@@ -18817,6 +18811,8 @@ void f() {
           A
             requestedDeclaredGetters
               c2: <null>
+            requestedDeclaredSetters
+              c2=: <null>
             requestedDeclaredMethods
               c2: <null>
         interfaces
@@ -18830,7 +18826,7 @@ void f() {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      32 +2 UNDEFINED_METHOD
+      32 +2 UNDEFINED_STATIC_MEMBER_READ
 ''',
       updatedA: r'''
 class A {
@@ -20357,6 +20353,8 @@ class A {
           A
             requestedDeclaredGetters
               c2: <null>
+            requestedDeclaredSetters
+              c2=: <null>
             requestedDeclaredMethods
               c2: <null>
         interfaces
@@ -20370,7 +20368,7 @@ class A {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      32 +2 UNDEFINED_METHOD
+      32 +2 UNDEFINED_STATIC_MEMBER_READ
 ''',
     );
   }
@@ -22388,6 +22386,168 @@ class B {}
 [status] idle
 [future] getErrors T2
   ErrorsResult #5
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_docImport_topLevelGetter_add_nameOfPartDocImportPrefix() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+/// @docImport 'a.dart';
+part of 'test.dart';
+part 'c.dart';
+
+/// [foo]
+void g() {}
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+/// @docImport 'dart:async' as prefix;
+part of 'b.dart';
+
+/// [prefix.Completer] and [prefix.Random]
+void f() {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+int get foo => 0;
+''',
+      testCode: r'''
+/// @docImport 'dart:math' as prefix;
+library;
+part 'b.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredFunctions
+      f: #M0
+      g: #M1
+    exportMapId: #M2
+    exportMap
+      f: #M0
+      g: #M1
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H1
+    declaredGetters
+      foo: #M3
+    declaredVariables
+      foo: #M4
+    exportMapId: #M5
+    exportMap
+      foo: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M5
+        exportMap
+          foo: #M3
+          foo=: <null>
+          prefix: <null>
+          prefix=: <null>
+        reExportDeprecatedOnly
+          foo: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+int get foo => 0;
+int get prefix => 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredGetters
+      foo: #M3
+      prefix: #M6
+    declaredVariables
+      foo: #M4
+      prefix: #M7
+    exportMapId: #M8
+    exportMap
+      foo: #M3
+      prefix: #M6
+  requirements
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: prefix
+    expectedId: <null>
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #4
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #5
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #6
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M8
+        exportMap
+          foo: #M3
+          foo=: <null>
+          prefix: #M6
+          prefix=: <null>
+        reExportDeprecatedOnly
+          foo: false
+          prefix: false
+[status] idle
+[future] getErrors T2
+  ErrorsResult #7
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
@@ -30284,7 +30444,7 @@ void f() {
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      32 +3 UNDEFINED_METHOD
+      32 +3 UNDEFINED_INSTANCE_MEMBER_READ
       7 +8 UNUSED_IMPORT
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
@@ -30307,7 +30467,7 @@ void f() {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      32 +3 UNDEFINED_METHOD
+      32 +3 UNDEFINED_INSTANCE_MEMBER_READ
       7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
@@ -35583,7 +35743,7 @@ library;
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      30 +1 UNDEFINED_IDENTIFIER
+      30 +1 UNDEFINED_UNQUALIFIED_NAME_READ
 ''',
     );
   }
@@ -40570,7 +40730,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
       updatedA: r'''
 mixin A {
@@ -41677,7 +41837,7 @@ mixin A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }
@@ -41733,7 +41893,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -41748,12 +41908,8 @@ void f(A a) {
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -41767,7 +41923,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
       updatedA: r'''
 mixin A {
@@ -42456,7 +42612,7 @@ mixin A {}
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -42471,12 +42627,8 @@ mixin A {}
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -42490,7 +42642,7 @@ mixin A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
     );
   }
@@ -44456,6 +44608,184 @@ double bar() {}
     );
   }
 
+  test_dependency_topLevelGetter_add_nameOfPartPrefix() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+import 'a.dart';
+part 'c.dart';
+int g() => foo;
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+import 'dart:async' as prefix;
+void f() {
+  prefix.Completer<int>();
+  prefix.Random();
+}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+int get foo => 0;
+''',
+      testCode: r'''
+import 'dart:math' as prefix;
+part 'b.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredVariables
+      foo: #M1
+    exportMapId: #M2
+    exportMap
+      foo: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      f: #M3
+      g: #M4
+    exportMapId: #M5
+    exportMap
+      f: #M3
+      g: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M2
+        exportMap
+          int: <null>
+          int=: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M2
+        exportMap
+          foo: #M0
+          foo=: <null>
+          int: <null>
+          int=: <null>
+          prefix: <null>
+          prefix=: <null>
+        reExportDeprecatedOnly
+          foo: false
+        requestedDeclaredVariables
+          foo: #M1
+[status] idle
+[future] getErrors T1
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+int get foo => 0;
+int get prefix => 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredGetters
+      foo: #M0
+      prefix: #M7
+    declaredVariables
+      foo: #M1
+      prefix: #M8
+    exportMapId: #M9
+    exportMap
+      foo: #M0
+      prefix: #M7
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: prefix
+    expectedId: <null>
+    actualId: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #4
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #5
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #6
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isPart
+    errors
+      96 +6 UNDEFINED_PREFIXED_NAME_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M9
+        exportMap
+          foo: #M0
+          foo=: <null>
+          int: <null>
+          int=: <null>
+          prefix: #M7
+          prefix=: <null>
+        reExportDeprecatedOnly
+          foo: false
+          prefix: false
+        requestedDeclaredVariables
+          foo: #M1
+[status] idle
+[future] getErrors T2
+  ErrorsResult #7
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
   test_dependency_topLevelGetter_change_invoked() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -44640,6 +44970,154 @@ double get b => 1.2;
     topLevelVariables
       hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
+''',
+    );
+  }
+
+  test_dependency_topLevelVariable_add_private_importPrefixed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+final a = 0;
+''',
+      testCode: r'''
+import 'a.dart' as p;
+void f() {
+  p._foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+    exportMapId: #M2
+    exportMap
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      f: #M3
+    exportMapId: #M4
+    exportMap
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M2
+        exportMap
+          _foo: <null>
+          _foo=: <null>
+        requestedDeclaredClasses
+          _foo: <null>
+        requestedDeclaredEnums
+          _foo: <null>
+        requestedDeclaredExtensions
+          _foo: <null>
+        requestedDeclaredExtensionTypes
+          _foo: <null>
+        requestedDeclaredMixins
+          _foo: <null>
+        requestedDeclaredTypeAliases
+          _foo: <null>
+        requestedDeclaredFunctions
+          _foo: <null>
+        requestedDeclaredGetters
+          _foo: <null>
+        requestedDeclaredSetters
+          _foo=: <null>
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
+''',
+      // Add the private variable, now it is reported as private.
+      updatedA: r'''
+final a = 0;
+final _foo = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredGetters
+      _foo: #M6
+      a: #M0
+    declaredVariables
+      _foo: #M7
+      a: #M1
+    exportMapId: #M8
+    exportMap
+      _foo: #M6
+      a: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: _foo
+    expectedId: <null>
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M8
+        exportMap
+          _foo: #M6
+          _foo=: <null>
+        reExportDeprecatedOnly
+          _foo: false
+        requestedDeclaredGetters
+          _foo: #M6
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
 ''',
     );
   }
@@ -100848,6 +101326,133 @@ typedef B = int;
     );
   }
 
+  test_manifest_typeAlias_modifier_hasSelfReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef A<T extends List<T>> = (A<T>, T) Function();
+typedef B<T extends List<T>> = (dynamic, T) Function();
+typedef C<T extends List<T>> = (C<T>, T) Function();
+typedef D<T extends List<T>> = (dynamic, T) Function();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredTypeAliases
+      A: #M0
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      B: #M1
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      C: #M2
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      D: #M3
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+    exportMapId: #M4
+    exportMap
+      A: #M0
+      B: #M1
+      C: #M2
+      D: #M3
+''',
+      updatedCode: r'''
+typedef A<T extends List<T>> = (A<T>, T) Function();
+typedef B<T extends List<T>> = (dynamic, T) Function();
+typedef C<T extends List<T>> = (dynamic, T) Function();
+typedef D<T extends List<T>> = (D<T>, T) Function();
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredTypeAliases
+      A: #M0
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      B: #M1
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      C: #M5
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      D: #M6
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+    exportMapId: #M7
+    exportMap
+      A: #M0
+      B: #M1
+      C: #M5
+      D: #M6
+''',
+    );
+  }
+
   test_manifest_typeAlias_modifier_isProperRename() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -101807,7 +102412,7 @@ const x = 0;
     flags: exists isLibrary
     errors
       7 +8 IMPORT_OF_NON_LIBRARY
-      30 +1 UNDEFINED_IDENTIFIER
+      30 +1 UNDEFINED_UNQUALIFIED_NAME_READ
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
 [status] idle
@@ -101818,7 +102423,7 @@ const x = 0;
     flags: isLibrary
     errors
       7 +8 IMPORT_OF_NON_LIBRARY
-      30 +1 UNDEFINED_IDENTIFIER
+      30 +1 UNDEFINED_UNQUALIFIED_NAME_READ
 ''');
       await disposeAnalysisContextCollection();
     }
@@ -104755,7 +105360,7 @@ class _AlwaysReportedLint extends AnalysisRule {
     uniqueName: 'LintCode.always_reported_lint',
   );
 
-  _AlwaysReportedLint() : super(name: 'always_reported_lint', description: '');
+  new() : super(name: 'always_reported_lint', description: '');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -104774,7 +105379,7 @@ class _AlwaysReportedLint extends AnalysisRule {
 class _AlwaysReportedLintVisitor extends SimpleAstVisitor2<void> {
   final AnalysisRule rule;
 
-  _AlwaysReportedLintVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -104824,23 +105429,23 @@ mixin _EventsMixin {
 }
 
 sealed class _FineOperation {
-  const _FineOperation();
+  const new();
 }
 
 final class _FineOperationAddTestFile extends _FineOperation {
-  const _FineOperationAddTestFile();
+  const new();
 }
 
 final class _FineOperationGetTestLibrary extends _FineOperation {
-  const _FineOperationGetTestLibrary();
+  const new();
 }
 
 final class _FineOperationTestFileGetErrors extends _FineOperation {
-  const _FineOperationTestFileGetErrors();
+  const new();
 }
 
 final class _FineOperationTestFileGetIndex extends _FineOperation {
-  const _FineOperationTestFileGetIndex();
+  const new();
 }
 
 /// Helper for triggering requirements manually.
@@ -104851,7 +105456,7 @@ final class _FineOperationTestFileGetIndex extends _FineOperation {
 class _ManualRequirements {
   final List<CompilationUnitImpl> units;
 
-  _ManualRequirements(this.units);
+  new(this.units);
 
   _ManualRequirementsUnit get singleUnit {
     var unit = units.single;
@@ -104869,7 +105474,7 @@ class _ManualRequirements {
 class _ManualRequirementsUnit {
   final CompilationUnitImpl unit;
 
-  _ManualRequirementsUnit(this.unit);
+  new(this.unit);
 
   List<LibraryElementImpl> get importedLibraries {
     var result = <LibraryElementImpl>[];
@@ -104919,7 +105524,7 @@ class _PendingFuture<T> {
   final DriverEvent Function(T value) createEvent;
   final List<DriverEvent> eventsList;
 
-  _PendingFuture({
+  new({
     required this.future,
     required this.createEvent,
     required this.eventsList,

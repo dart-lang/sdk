@@ -2722,7 +2722,7 @@ primaryConstructorBodyWithoutDeclaration:
     a primary constructor body but doesn't declare a primary constructor:
 
     ```dart
-    %ignore=undefined_identifier
+    %ignore=undefined_unqualified_name_read
     class C {
       [!this!] : assert(x > 0);
     }

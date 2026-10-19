@@ -27,14 +27,7 @@ class DartDocumentationComputer {
     Element? documentedGetter;
 
     // Look for documentation comments of overridden members
-    var overridden = findOverriddenElements(element);
-    var candidates = [
-      element,
-      ...overridden.superElements,
-      ...overridden.interfaceElements,
-      if (element case PropertyAccessorElement(:var variable)) variable,
-    ];
-    for (var candidate in candidates) {
+    for (var candidate in _documentationCandidates(element)) {
       if (candidate.documentationComment != null) {
         documentedElement = candidate;
         break;
@@ -89,6 +82,18 @@ class DartDocumentationComputer {
 
     return doc is DocumentationWithSummary ? doc.summary : doc?.full;
   }
+
+  /// Lazily iterates through elements that might supply documentation for
+  /// [element], in priority order.
+  Iterable<Element> _documentationCandidates(Element element) sync* {
+    // Use yield so we can avoid calling `findOverridenElements` unnecessarily
+    // if `element` has the documentation we want.
+    yield element;
+    var overridden = findOverriddenElements(element);
+    yield* overridden.superElements;
+    yield* overridden.interfaceElements;
+    if (element case PropertyAccessorElement(:var variable)) yield variable;
+  }
 }
 
 /// The preferred kind of documentation for requests that might return many
@@ -99,23 +104,22 @@ extension on Element {
   /// The element whose documentation should be used when showing documentation
   /// for this element.
   Element? get elementWithDocumentation {
-    var self = this;
-    if (self is FieldFormalParameterElement) {
-      return self.field;
-    } else if (self is SuperFormalParameterElement) {
+    if (this is FieldFormalParameterElement) {
+      return field;
+    } else if (this is SuperFormalParameterElement) {
       // Treat a super formal parameter like a field formal parameter if it's
       // eventually assigned to a field, but as any other formal parameter if it
       // isn't.
-      var superParameter = self.superConstructorParameter;
+      var superParameter = superConstructorParameter;
       while (superParameter is SuperFormalParameterElement) {
         superParameter = superParameter.superConstructorParameter;
       }
       if (superParameter is FieldFormalParameterElement) {
         return superParameter.field;
       }
-      return self.enclosingElement;
-    } else if (self is FormalParameterElement) {
-      return self.enclosingElement;
+      return enclosingElement;
+    } else if (this is FormalParameterElement) {
+      return enclosingElement;
     }
     return this;
   }

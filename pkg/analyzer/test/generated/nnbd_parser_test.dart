@@ -27,7 +27,41 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x1
+      semicolon: ;
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x2
+            equals: =
+            initializer: BinaryOperatorInvocation
+              leftOperand: ParsedUnqualifiedName
+                name: x
+              operator: +
+              rightOperand: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: bar
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    IntegerLiteral
+                      literal: 7
+                  rightParenthesis: )
+              binaryOperator: add
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -46,21 +80,7 @@ Block
           VariableDeclaration
             name: x2
             equals: =
-            initializer2: BinaryOperatorInvocation
-              leftOperand: ParsedUnqualifiedName
-                name: x
-              operator: +
-              rightOperand: ParsedValueArguments
-                operand: ParsedUnqualifiedName
-                  name: bar
-                argumentList: ArgumentList
-                  leftParenthesis: (
-                  arguments2
-                    IntegerLiteral
-                      literal: 7
-                  rightParenthesis: )
-              binaryOperator: add
-            initializer(v1): BinaryExpression
+            initializer: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: x
               operator: +
@@ -93,26 +113,26 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: A
           question: ?
         variables
-          VariableDeclaration
+          LocalVariable
             name: a
       semicolon: ;
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: String
           question: ?
         variables
-          VariableDeclaration
+          LocalVariable
             name: s
             equals: =
-            initializer2: SimpleStringLiteral
+            initializer: SimpleStringLiteral
               literal: ''
       semicolon: ;
     ExpressionStatement
@@ -188,6 +208,66 @@ Block
             propertyName: SimpleIdentifier
               token: length
       semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: A
+          question: ?
+        variables
+          VariableDeclaration
+            name: a
+      semicolon: ;
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: String
+          question: ?
+        variables
+          VariableDeclaration
+            name: s
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: ''
+      semicolon: ;
+    ExpressionStatement
+      expression: CascadeExpression
+        target: SimpleIdentifier
+          token: a
+        cascadeSections
+          PropertyAccess
+            target: MethodInvocation
+              operator: ?..
+              methodName: SimpleIdentifier
+                token: foo
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            operator: .
+            propertyName: SimpleIdentifier
+              token: length
+          AssignmentExpression
+            leftHandSide: PropertyAccess
+              operator: ..
+              propertyName: SimpleIdentifier
+                token: x27
+            operator: =
+            rightHandSide: PostfixExpression
+              operand: SimpleIdentifier
+                token: s
+              operator: !
+          PropertyAccess
+            target: MethodInvocation
+              operator: ..
+              methodName: SimpleIdentifier
+                token: toString
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+            operator: .
+            propertyName: SimpleIdentifier
+              token: length
+      semicolon: ;
   rightBracket: }
 ''');
   }
@@ -203,7 +283,29 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x1
+      semicolon: ;
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: X
+          question: ?
+        variables
+          LocalVariable
+            name: x2
+            equals: =
+            initializer: ParsedUnqualifiedName
+              name: x
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -222,9 +324,7 @@ Block
           VariableDeclaration
             name: x2
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: x
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: x
       semicolon: ;
   rightBracket: }
@@ -242,14 +342,14 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: Function
           question: ?
         variables
-          VariableDeclaration
+          LocalVariable
             name: f1
       semicolon: ;
     ExpressionStatement
@@ -276,6 +376,29 @@ Block
               literal: 42
           rightParenthesis: )
       semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: Function
+          question: ?
+        variables
+          VariableDeclaration
+            name: f1
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: PostfixExpression
+          operand: SimpleIdentifier
+            token: f1
+          operator: !
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      semicolon: ;
   rightBracket: }
 ''');
   }
@@ -291,13 +414,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: Function
         variables
-          VariableDeclaration
+          LocalVariable
             name: f2
       semicolon: ;
     ExpressionStatement
@@ -336,6 +459,34 @@ Block
               literal: 42
           rightParenthesis: )
       semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: Function
+        variables
+          VariableDeclaration
+            name: f2
+      semicolon: ;
+    ExpressionStatement
+      expression: FunctionExpressionInvocation
+        function: PostfixExpression
+          operand: SimpleIdentifier
+            token: f2
+          operator: !
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
+            IntegerLiteral
+              literal: 42
+          rightParenthesis: )
+      semicolon: ;
   rightBracket: }
 ''');
   }
@@ -350,7 +501,7 @@ void f(dynamic a) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -387,7 +538,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: IfNull
         leftOperand: ParsedUnqualifiedName
@@ -416,7 +567,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -453,7 +604,7 @@ void f() { a..[27]?..x; }
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -470,7 +621,7 @@ Block
               rightBracket: ]
           CascadeSection
             operator: ?..
-            body: ParsedCascadeName
+            body: CascadePropertyExtraction
               name: x
         cascadeSections
           IndexExpression
@@ -498,7 +649,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -537,7 +688,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -547,7 +698,7 @@ Block
         sections
           CascadeSection
             operator: ?..
-            body: ParsedCascadeName
+            body: CascadePropertyExtraction
               name: x27
         cascadeSections
           PropertyAccess
@@ -569,7 +720,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -599,7 +750,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -608,7 +759,7 @@ Block
           token: X
         question: ?
         thenExpression2: DirectAssignment
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: x2
           operator: =
           value: BinaryOperatorInvocation
@@ -665,7 +816,7 @@ D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -680,7 +831,7 @@ Block
             token: <empty> <synthetic>
           question: ?
           thenExpression2: DirectAssignment
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x2
             operator: =
             value: BinaryOperatorInvocation
@@ -739,7 +890,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -748,7 +899,7 @@ Block
           token: X
         question: ?
         thenExpression2: DirectAssignment
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: x2
           operator: =
           value: ParsedUnqualifiedName
@@ -779,19 +930,28 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -811,7 +971,7 @@ Block
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix
@@ -821,7 +981,7 @@ Block
             operand: SimpleIdentifier
               token: x
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -838,7 +998,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -850,7 +1010,7 @@ Block
             token: x
           question: ?
           thenExpression2: DirectAssignment
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: y
             operator: =
             value: IntegerLiteral
@@ -863,7 +1023,7 @@ Block
               literal: 7
           colon: :
           elseExpression2: DirectAssignment
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: y
             operator: =
             value: IntegerLiteral
@@ -892,7 +1052,7 @@ Block
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: y
             operation: increment
             position: prefix
@@ -902,7 +1062,7 @@ Block
             operand: SimpleIdentifier
               token: y
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -919,12 +1079,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+            question: ?
+          variables
+            LocalVariable
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
             question: ?
@@ -932,7 +1102,7 @@ Block
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -952,7 +1122,7 @@ Block
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix
@@ -962,7 +1132,7 @@ Block
             operand: SimpleIdentifier
               token: x
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -979,7 +1149,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -996,7 +1166,7 @@ Block
               literal: 7
           rightBracket: ]
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1013,7 +1183,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1033,7 +1203,7 @@ Block
               literal: null
           rightBracket: ]
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1055,10 +1225,10 @@ Block
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: ConditionalExpression
             condition2: ParsedUnqualifiedName
@@ -1089,7 +1259,25 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: C
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1104,7 +1292,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1121,7 +1309,25 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: C
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1136,7 +1342,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1153,7 +1359,26 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: C
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1169,7 +1394,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1186,7 +1411,32 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            returnType: NamedType
+              name: C
+              question: ?
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1208,7 +1458,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1225,7 +1475,29 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            importPrefix: ImportPrefixReference
+              name: C
+              period: .
+            name: a
+            question: ?
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+          question: ?
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 7
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1244,7 +1516,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 7
       semicolon: ;
   rightBracket: }
@@ -1261,7 +1533,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: ParsedUnqualifiedName
@@ -1292,7 +1564,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: ParsedUnqualifiedName
@@ -1325,7 +1597,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: IsExpression
@@ -1374,7 +1646,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParenthesizedExpression
@@ -1434,7 +1706,7 @@ main() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ParsedValueArguments
         operand: ParsedUnqualifiedName
@@ -1492,7 +1764,7 @@ main() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ParsedValueArguments
         operand: ParsedUnqualifiedName
@@ -1550,29 +1822,25 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: String
-                question: ?
-              variables
-                VariableDeclaration
-                  name: x
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: String
+              question: ?
+            fields
+              Field
+                name: x
             semicolon: ;
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: y
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -1580,14 +1848,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -1614,6 +1874,56 @@ CompilationUnit
                   literal: 0
             body: EmptyFunctionBody
               semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: String
+                question: ?
+              variables
+                VariableDeclaration
+                  name: x
+            semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: y
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Object
+                  question: ?
+                name: o
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: AsExpression
+                  expression: SimpleIdentifier
+                    token: o
+                  asOperator: as
+                  type: NamedType
+                    name: String
+                    question: ?
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: y
+                equals: =
+                expression: IntegerLiteral
+                  literal: 0
+            body: EmptyFunctionBody
+              semicolon: ;
         rightBracket: }
 ''');
   }
@@ -1637,29 +1947,25 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: String
-                question: ?
-              variables
-                VariableDeclaration
-                  name: x
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: String
+              question: ?
+            fields
+              Field
+                name: x
             semicolon: ;
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: y
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -1667,14 +1973,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -1717,6 +2015,67 @@ CompilationUnit
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: String
+                question: ?
+              variables
+                VariableDeclaration
+                  name: x
+            semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: y
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Object
+                  question: ?
+                name: o
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: y
+                equals: =
+                expression: ConditionalExpression
+                  condition: IsExpression
+                    expression: SimpleIdentifier
+                      token: o
+                    isOperator: is
+                    type: NamedType
+                      name: String
+                      question: ?
+                  question: ?
+                  thenExpression: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: o
+                    period: .
+                    identifier: SimpleIdentifier
+                      token: length
+                  colon: :
+                  elseExpression: NullLiteral
+                    literal: null
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: NullLiteral
+                  literal: null
+            body: EmptyFunctionBody
+              semicolon: ;
         rightBracket: }
 ''');
   }
@@ -1740,29 +2099,25 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: String
-                question: ?
-              variables
-                VariableDeclaration
-                  name: x
+        members2
+          FieldsDeclaration
+            type: NamedType
+              name: String
+              question: ?
+            fields
+              Field
+                name: x
             semicolon: ;
-          FieldDeclaration
-            fields: VariableDeclarationList
-              type: NamedType
-                name: int
-              variables
-                VariableDeclaration
-                  name: y
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: y
             semicolon: ;
-          ConstructorDeclaration
-            typeName2: Foo
-            typeName(v1): SimpleIdentifier
-              token: Foo
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Foo
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -1770,14 +2125,6 @@ CompilationUnit
                     name: Object
                     question: ?
                   name: o
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: Object
-                  question: ?
-                name: o
               rightParenthesis: )
             separator: :
             initializers
@@ -1819,6 +2166,66 @@ CompilationUnit
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: String
+                question: ?
+              variables
+                VariableDeclaration
+                  name: x
+            semicolon: ;
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: y
+            semicolon: ;
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Foo
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Object
+                  question: ?
+                name: o
+              rightParenthesis: )
+            separator: :
+            initializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: y
+                equals: =
+                expression: ConditionalExpression
+                  condition: IsExpression
+                    expression: SimpleIdentifier
+                      token: o
+                    isOperator: is
+                    type: NamedType
+                      name: String
+                  question: ?
+                  thenExpression: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: o
+                    period: .
+                    identifier: SimpleIdentifier
+                      token: length
+                  colon: :
+                  elseExpression: NullLiteral
+                    literal: null
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: NullLiteral
+                  literal: null
+            body: EmptyFunctionBody
+              semicolon: ;
         rightBracket: }
 ''');
   }
@@ -1833,7 +2240,20 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: ParsedUnqualifiedName
+                name: y
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -1841,11 +2261,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: ParsedUnqualifiedName
-                name: y
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: SimpleIdentifier
                 token: y
               operator: !
@@ -1864,15 +2280,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedNameAccess
                 operand: NullAssertionExpression
                   operand: ParsedNameAccess
@@ -1887,7 +2303,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: PrefixedIdentifier
@@ -1918,15 +2343,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedNameAccess
                 operand: NullAssertionExpression
                   operand: ParsedValueArguments
@@ -1945,7 +2370,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: MethodInvocation
@@ -1979,15 +2413,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedNameAccess
                 operand: NullAssertionExpression
                   operand: ParsedUnqualifiedName
@@ -1999,7 +2433,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PropertyAccess
                 target: PostfixExpression
                   operand: SimpleIdentifier
@@ -2026,7 +2469,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: ParsedNameAccess
@@ -2075,15 +2518,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: ParsedValueArguments
                 operand: ParsedNameAccess
                   operand: NullAssertionExpression
@@ -2099,7 +2542,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: MethodInvocation
                 target: PostfixExpression
                   operand: SimpleIdentifier
@@ -2129,15 +2581,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedUnqualifiedName
@@ -2150,7 +2602,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   methodName: SimpleIdentifier
@@ -2177,15 +2638,15 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ReceiverIndexExpression
                   receiver: ParsedUnqualifiedName
@@ -2199,7 +2660,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: IndexExpression
                   target: SimpleIdentifier
@@ -2227,15 +2697,15 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ReceiverIndexExpression
                   receiver: ParsedNameAccess
@@ -2252,7 +2722,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: IndexExpression
                   target: PropertyAccess
@@ -2284,15 +2763,15 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedUnqualifiedName
                   name: y
@@ -2301,7 +2780,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: SimpleIdentifier
                   token: y
@@ -2324,15 +2812,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedNameAccess
@@ -2348,7 +2836,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SimpleIdentifier
@@ -2378,15 +2875,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedNameAccess
@@ -2402,7 +2899,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SimpleIdentifier
@@ -2432,15 +2938,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedValueArguments
                   operand: ParsedNameAccess
@@ -2456,7 +2962,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: MethodInvocation
                   target: SuperExpression
@@ -2486,15 +3001,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: ConstructorInvocation
                 keyword: const
                 constructorReference: ConstructorReference2
@@ -2504,7 +3019,16 @@ Block
                   leftParenthesis: (
                   rightParenthesis: )
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: InstanceCreationExpression
                 keyword: const
                 constructorName: ConstructorName
@@ -2529,15 +3053,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: ConstructorInvocation
                 keyword: new
                 constructorReference: ConstructorReference2
@@ -2547,7 +3071,16 @@ Block
                   leftParenthesis: (
                   rightParenthesis: )
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
@@ -2572,7 +3105,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2607,7 +3140,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2656,7 +3189,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2698,7 +3231,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2744,7 +3277,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2800,7 +3333,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2860,7 +3393,20 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: DoubleLiteral
+                literal: 1.2
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2868,11 +3414,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: DoubleLiteral
-                literal: 1.2
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: DoubleLiteral
                 literal: 1.2
               operator: !
@@ -2891,7 +3433,20 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: IntegerLiteral
+                literal: 0
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2899,11 +3454,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: IntegerLiteral
-                literal: 0
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: IntegerLiteral
                 literal: 0
               operator: !
@@ -2922,15 +3473,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: ListLiteral
                 leftBracket: [
                 elements2
@@ -2940,7 +3491,16 @@ Block
                     literal: 2
                 rightBracket: ]
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: ListLiteral
                 leftBracket: [
                 elements
@@ -2965,15 +3525,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements2
@@ -2986,7 +3546,16 @@ Block
                 rightBracket: }
                 isMap: false
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements
@@ -3014,15 +3583,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: NullAssertionExpression
+            initializer: NullAssertionExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements2
@@ -3033,7 +3602,16 @@ Block
                 rightBracket: }
                 isMap: false
               operator: !
-            initializer(v1): PostfixExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: PostfixExpression
               operand: SetOrMapLiteral
                 leftBracket: {
                 elements
@@ -3059,7 +3637,20 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: SimpleStringLiteral
+                literal: "seven"
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3067,11 +3658,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: SimpleStringLiteral
-                literal: "seven"
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: SimpleStringLiteral
                 literal: "seven"
               operator: !
@@ -3090,7 +3677,20 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: NullLiteral
+                literal: null
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3098,11 +3698,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: NullLiteral
-                literal: null
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: NullLiteral
                 literal: null
               operator: !
@@ -3121,7 +3717,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: NullAssertionExpression
@@ -3163,7 +3759,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: NullAssertionExpression
@@ -3226,7 +3822,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+            equals: =
+            initializer: NullAssertionExpression
+              operand: SymbolLiteral
+                poundSign: #
+                components
+                  seven
+              operator: !
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3234,13 +3845,7 @@ Block
           VariableDeclaration
             name: x
             equals: =
-            initializer2: NullAssertionExpression
-              operand: SymbolLiteral
-                poundSign: #
-                components
-                  seven
-              operator: !
-            initializer(v1): PostfixExpression
+            initializer: PostfixExpression
               operand: SymbolLiteral
                 poundSign: #
                 components
@@ -3261,15 +3866,15 @@ void f(Point p) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: ParsedUnqualifiedName
@@ -3281,7 +3886,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PrefixedIdentifier
                   prefix: SimpleIdentifier
@@ -3308,15 +3922,15 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParenthesizedExpression
                   leftParenthesis: (
@@ -3330,7 +3944,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: ParenthesizedExpression
                   leftParenthesis: (
@@ -3356,15 +3979,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: ParsedUnqualifiedName
@@ -3376,7 +3999,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PrefixedIdentifier
                   prefix: SimpleIdentifier
@@ -3403,15 +4035,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: ParsedUnqualifiedName
@@ -3423,7 +4055,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PropertyAccess
                   target: SimpleIdentifier
@@ -3450,15 +4091,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
-        keyword: var
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
         variables
-          VariableDeclaration
+          LocalVariable
             name: x
             equals: =
-            initializer2: BinaryOperatorInvocation
+            initializer: BinaryOperatorInvocation
               leftOperand: NullAssertionExpression
                 operand: ParsedNameAccess
                   operand: SuperReference
@@ -3470,7 +4111,16 @@ Block
               rightOperand: IntegerLiteral
                 literal: 7
               binaryOperator: add
-            initializer(v1): BinaryExpression
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: BinaryExpression
               leftOperand: PostfixExpression
                 operand: PropertyAccess
                   target: SuperExpression
@@ -3497,7 +4147,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnaryOperatorInvocation
         operator: -
@@ -3527,11 +4177,11 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: NullAssertionExpression
         operand: IncrementOrDecrementExpression
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: x
           operator: ++
           operation: increment

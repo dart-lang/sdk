@@ -11,5 +11,5 @@ class MockLibraryUnit {
   /// The source content of the compilation unit.
   final String content;
 
-  MockLibraryUnit(this.path, this.content);
+  new(this.path, this.content);
 }

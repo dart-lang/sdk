@@ -16,7 +16,7 @@ final class BlockDocDirective implements DocDirective {
   final DocDirectiveTag openingTag;
   final DocDirectiveTag? closingTag;
 
-  BlockDocDirective(this.openingTag, this.closingTag);
+  new(this.openingTag, this.closingTag);
 
   @override
   DocDirectiveType get type => openingTag.type;
@@ -57,11 +57,7 @@ sealed class DocDirectiveArgument {
   /// The value of the argument.
   final String value;
 
-  DocDirectiveArgument({
-    required this.offset,
-    required this.end,
-    required this.value,
-  });
+  new({required this.offset, required this.end, required this.value});
 }
 
 /// A named argument in a doc directive. See [DocDirective] for their syntax.
@@ -69,7 +65,7 @@ final class DocDirectiveNamedArgument extends DocDirectiveArgument {
   /// The name of the argument.
   final String name;
 
-  DocDirectiveNamedArgument({
+  new({
     required super.offset,
     required super.end,
     required this.name,
@@ -82,7 +78,7 @@ final class DocDirectiveParameter {
   final String name;
   final DocDirectiveParameterFormat expectedFormat;
 
-  const DocDirectiveParameter(this.name, this.expectedFormat);
+  const new(this.name, this.expectedFormat);
 }
 
 /// The expected format of a doc directive parameter, which indicates some
@@ -105,17 +101,13 @@ enum DocDirectiveParameterFormat {
 
   final String displayString;
 
-  const DocDirectiveParameterFormat(this.displayString);
+  new(this.displayString);
 }
 
 /// A positional argument in a doc directive. See [DocDirective] for their
 /// syntax.
 final class DocDirectivePositionalArgument extends DocDirectiveArgument {
-  DocDirectivePositionalArgument({
-    required super.offset,
-    required super.end,
-    required super.value,
-  });
+  new({required super.offset, required super.end, required super.value});
 }
 
 /// A documentation directive, found in a doc comment.
@@ -140,7 +132,7 @@ final class DocDirectiveTag {
   final List<DocDirectiveArgument> positionalArguments;
   final List<DocDirectiveNamedArgument> namedArguments;
 
-  DocDirectiveTag({
+  new({
     required this.offset,
     required this.end,
     required this.nameOffset,
@@ -363,7 +355,7 @@ enum DocDirectiveType {
   /// arguments.
   final bool restParametersAllowed;
 
-  const DocDirectiveType(
+  new(
     this.name, {
     this.positionalParameters = const <DocDirectiveParameter>[],
     this.namedParameters = const <DocDirectiveParameter>[],
@@ -371,7 +363,7 @@ enum DocDirectiveType {
   }) : isBlock = false,
        opposingName = null;
 
-  const DocDirectiveType.block(
+  new block(
     this.name,
     this.opposingName, {
     this.positionalParameters = const <DocDirectiveParameter>[],
@@ -379,7 +371,7 @@ enum DocDirectiveType {
   }) : isBlock = true,
        namedParameters = const <DocDirectiveParameter>[];
 
-  const DocDirectiveType.end(this.name, {required String openingTag})
+  new end(this.name, {required String openingTag})
     : opposingName = openingTag,
       isBlock = false,
       positionalParameters = const <DocDirectiveParameter>[],
@@ -398,7 +390,7 @@ final class DocImport {
 
   ImportDirective import;
 
-  DocImport({required this.offset, required this.import});
+  new({required this.offset, required this.import});
 }
 
 /// A Markdown fenced code block found in a documentation comment.
@@ -425,7 +417,7 @@ final class MdCodeBlock {
   /// The type of Markdown code block that is being represented.
   final CodeBlockType type;
 
-  MdCodeBlock({
+  new({
     required this.infoString,
     required List<MdCodeBlockLine> lines,
     required this.type,
@@ -441,13 +433,13 @@ final class MdCodeBlockLine {
   /// The length of the fenced code block.
   final int length;
 
-  MdCodeBlockLine({required this.offset, required this.length});
+  new({required this.offset, required this.length});
 }
 
 final class SimpleDocDirective implements DocDirective {
   final DocDirectiveTag tag;
 
-  SimpleDocDirective(this.tag);
+  new(this.tag);
 
   @override
   DocDirectiveType get type => tag.type;

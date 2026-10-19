@@ -26,7 +26,13 @@ final bool compilerAssertsEnabled = (() {
 })();
 
 bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
-  return getPragma(coreTypes, node, name, defaultValue: '') != null;
+  return getPragma<Constant>(
+        coreTypes,
+        node,
+        name,
+        defaultValue: BoolConstant(true),
+      ) !=
+      null;
 }
 
 T? getPragma<T>(
@@ -71,17 +77,14 @@ bool hasWasmImportPragma(CoreTypes coreTypes, Member member) {
 }
 
 ImportName? getWasmImportPragma(CoreTypes coreTypes, Member member) {
-  String? importName = getPragma(coreTypes, member, "wasm:import");
-  if (importName != null) {
-    int dot = importName.indexOf('.');
+  final importName = getPragma<Constant>(coreTypes, member, "wasm:import");
+  if (importName is StringConstant) {
+    final value = importName.value;
+    final dot = value.indexOf('.');
     if (dot != -1) {
-      assert(!member.isInstanceMember);
-      String module = importName.substring(0, dot);
-      String name = importName.substring(dot + 1);
-      return ImportName(module, name);
+      return ImportName(value.substring(0, dot), value.substring(dot + 1));
     }
   }
-
   return null;
 }
 
@@ -124,21 +127,23 @@ bool? getWasmNeverInlinePragma(CoreTypes coreTypes, Member member) {
 }
 
 String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
-  return getPragma<String>(
+  final value = getPragma<Constant>(
     coreTypes,
     member,
     'wasm:export',
-    defaultValue: member.name.text,
+    defaultValue: StringConstant(member.name.text),
   );
+  return value is StringConstant ? value.value : null;
 }
 
 String? getWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
-  return getPragma<String>(
+  final value = getPragma<Constant>(
     coreTypes,
     member,
     'wasm:weak-export',
-    defaultValue: member.name.text,
+    defaultValue: StringConstant(member.name.text),
   );
+  return value is StringConstant ? value.value : null;
 }
 
 bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {

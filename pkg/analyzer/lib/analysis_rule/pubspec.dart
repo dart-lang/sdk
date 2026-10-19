@@ -42,7 +42,7 @@ class PubspecEntry {
   final PubspecNode? key;
   final PubspecNode value;
 
-  PubspecEntry(this.key, this.value);
+  new(this.key, this.value);
 
   @override
   String toString() => '${key != null ? '$key: ' : ''}$value';

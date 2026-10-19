@@ -33,28 +33,26 @@ Future<int> findUnusedPort() async {
   return port;
 }
 
-/// Finds unused port and binds a new http server to it.
+/// Binds a new http server to [hostname].
 ///
-/// Retries a few times to recover from errors due to
-/// another thread or process opening the same port.
-/// Starts by trying to bind to [port] if specified.
+/// Tries [port] first if specified, then falls back to port 0 so the OS picks a
+/// port that is free for this exact bind. A port from [findUnusedPort] is only
+/// known to be free on `[::1]`. It can still be held over IPv4, which makes the
+/// dual-stack `[::]` bind used for `'any'` fail with "Address already in use".
+///
+/// Retries a few times to recover from transient bind errors.
 Future<HttpServer> startHttpServer(String hostname, {int? port}) async {
-  HttpServer? httpServer;
-  final retries = 5;
-  var i = 0;
-  var foundPort = port ?? await findUnusedPort();
-  while (i < retries) {
-    i++;
+  const retries = 5;
+  var requestedPort = port ?? 0;
+  for (var attempt = 1; ; attempt++) {
     try {
-      httpServer = await HttpMultiServer.bind(hostname, foundPort);
+      return await HttpMultiServer.bind(hostname, requestedPort);
     } on SocketException {
-      if (i == retries) rethrow;
+      if (attempt == retries) rethrow;
     }
-    if (httpServer != null || i == retries) return httpServer!;
-    foundPort = await findUnusedPort();
+    requestedPort = 0;
     await Future<void>.delayed(const Duration(milliseconds: 100));
   }
-  return httpServer!;
 }
 
 /// Handles [requests] using [handler].

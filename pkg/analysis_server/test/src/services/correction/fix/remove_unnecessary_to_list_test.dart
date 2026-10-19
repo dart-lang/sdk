@@ -37,7 +37,7 @@ var t1 = [
 }
 
 @reflectiveTest
-class RemoveUnnecessaryToListTest extends FixProcessorLintTest {
+class RemoveUnnecessaryToListTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryToList;
 

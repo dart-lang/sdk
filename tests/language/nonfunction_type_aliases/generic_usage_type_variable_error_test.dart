@@ -110,7 +110,7 @@ main() {
   // [error column 3]
   // [cfe] Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
   //                        ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
 
   T<Object>();

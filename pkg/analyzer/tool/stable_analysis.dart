@@ -141,7 +141,7 @@ void main(List<String> args) {
 }
 
 class BypassedAnalysisDriverScheduler extends AnalysisDriverScheduler {
-  BypassedAnalysisDriverScheduler(super.logger);
+  new(super.logger);
 
   @override
   void start() {

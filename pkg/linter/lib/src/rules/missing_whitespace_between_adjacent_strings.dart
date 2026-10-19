@@ -81,11 +81,10 @@ extension on StringLiteral {
   /// Returns whether this ends with whitespace, where an initial
   /// [InterpolationExpression] counts as whitespace.
   bool get endsWithWhitespace {
-    var self = this;
-    if (self is SimpleStringLiteral) {
-      return self.value.endsWithWhitespace;
-    } else if (self is StringInterpolation) {
-      var last = self.elements.last as InterpolationString;
+    if (this is SimpleStringLiteral) {
+      return value.endsWithWhitespace;
+    } else if (this is StringInterpolation) {
+      var last = elements.last as InterpolationString;
       return last.value.isEmpty || last.value.endsWithWhitespace;
     }
     throw ArgumentError(
@@ -97,11 +96,10 @@ extension on StringLiteral {
   /// Returns whether this contains whitespace, where any
   /// [InterpolationExpression] does not count as whitespace.
   bool get hasWhitespace {
-    var self = this;
-    if (self is SimpleStringLiteral) {
-      return self.value.hasWhitespace;
-    } else if (self is StringInterpolation) {
-      return self.elements.any(
+    if (this is SimpleStringLiteral) {
+      return value.hasWhitespace;
+    } else if (this is StringInterpolation) {
+      return elements.any(
         (e) => e is InterpolationString && e.value.hasWhitespace,
       );
     }
@@ -111,11 +109,10 @@ extension on StringLiteral {
   /// Returns whether this starts with whitespace, where an initial
   /// [InterpolationExpression] counts as whitespace.
   bool get startsWithWhitespace {
-    var self = this;
-    if (self is SimpleStringLiteral) {
-      return self.value.startsWithWhitespace;
-    } else if (self is StringInterpolation) {
-      var first = self.elements.first as InterpolationString;
+    if (this is SimpleStringLiteral) {
+      return value.startsWithWhitespace;
+    } else if (this is StringInterpolation) {
+      var first = elements.first as InterpolationString;
       return first.value.isEmpty || first.value.startsWithWhitespace;
     }
     throw ArgumentError(

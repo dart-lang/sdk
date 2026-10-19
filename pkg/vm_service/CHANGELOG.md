@@ -1,4 +1,11 @@
-## 15.3.1-wip
+## 15.4.0
+- Update to version `4.23` of the spec.
+- Add `staticType` property to `BoundVariable`.
+- Add `ffiLayout` property to `Class`.
+- Add `FfiStructLayout` and `FfiStructField` types.
+- Fix issue where requests for RPCs without a known return type (e.g., private
+  RPCs or service extensions invoked via `callMethod`) would never complete if
+  the response was a `null` instance.
 
 ## 15.3.0
 - Add support for WebSocket profiling.

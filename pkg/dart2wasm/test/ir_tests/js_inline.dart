@@ -48,5 +48,5 @@ WasmI32 addWasmI32(WasmI32 a, WasmI32 b) =>
 int addInt(int a, int b) =>
     JS<WasmI32>('(a, b) => a + b', a.toWasmI32(), b.toWasmI32()).toIntSigned();
 
-dynamic passIntToJS(int a) => JS<void>('(a) => {}', a.toWasmI32());
-dynamic passWasmI32ToJS(WasmI32 a) => JS<void>('(a) => {}', a);
+dynamic passIntToJS(int a) => JS<WasmVoid>('(a) => {}', a.toWasmI32());
+dynamic passWasmI32ToJS(WasmI32 a) => JS<WasmVoid>('(a) => {}', a);

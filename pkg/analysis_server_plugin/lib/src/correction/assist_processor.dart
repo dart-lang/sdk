@@ -26,8 +26,7 @@ class AssistProcessor {
 
   final List<Assist> _assists = [];
 
-  AssistProcessor(this._assistContext, {AssistPerformance? performance})
-    : _performance = performance;
+  new(this._assistContext, {this._performance});
 
   Future<List<Assist>> compute() async {
     _timer.start();

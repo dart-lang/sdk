@@ -210,43 +210,46 @@ bool _hasTimer() {
   return JS('', 'self.setTimeout') != null;
 }
 
-class _AsyncAwaitCompleter<T> implements Completer<T> {
+class _AsyncAwaitCompleter<T> {
   final _future = _Future<T>();
-  bool isSync;
+  bool _hasSuspended = false;
 
-  _AsyncAwaitCompleter() : isSync = false;
+  _AsyncAwaitCompleter();
 
-  void complete([FutureOr<T>? value]) {
-    // All paths require that if value is null, null as T succeeds.
-    value = (value == null) ? value as T : value;
-    if (!isSync) {
-      _future._asyncComplete(value);
-    } else if (value is Future<T>) {
-      assert(!_future._isComplete);
+  void _complete(FutureOr<T> value) {
+    // NOTE: We don't check `_hasSuspended`:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
+    if (value is Future<T>) {
       _future._chainFuture(value);
     } else {
       _future._completeWithValue(value);
     }
   }
 
-  void completeError(Object e, [StackTrace? st]) {
-    st ??= AsyncError.defaultStackTrace(e);
-    if (isSync) {
-      _future._completeError(e, st);
+  void _completeError(Object e, StackTrace s) {
+    // If throwing synchronously, delay error completion to a microtask so the
+    // caller can attach an error handler before the error is reported as
+    // uncaught.
+    final error = _interceptCaughtError(e, s);
+    if (_hasSuspended) {
+      _future._completeErrorObject(error);
     } else {
-      _future._asyncCompleteError(e, st);
+      _future._asyncCompleteErrorObject(error);
     }
   }
-
-  Future<T> get future => _future;
-  bool get isCompleted => !_future._mayComplete;
 }
 
 /// Creates a Completer for an `async` function.
 ///
 /// Used as part of the runtime support for the async/await transformation.
 @pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
-Completer<T> _makeAsyncAwaitCompleter<T>() {
+_AsyncAwaitCompleter<T> _makeAsyncAwaitCompleter<T>() {
   return _AsyncAwaitCompleter<T>();
 }
 
@@ -263,8 +266,8 @@ dynamic _asyncStartSync(
   _AsyncAwaitCompleter completer,
 ) {
   bodyFunction(async_status_codes.SUCCESS, null);
-  completer.isSync = true;
-  return completer.future;
+  completer._hasSuspended = true;
+  return completer._future;
 }
 
 /// Performs the `await` operation of an `async` function.
@@ -284,8 +287,8 @@ dynamic _asyncAwait(dynamic object, _WrappedAsyncBody bodyFunction) {
 ///
 /// This function is used when the `async` function returns (explicitly or
 /// implicitly).
-dynamic _asyncReturn(dynamic object, Completer completer) {
-  completer.complete(object);
+dynamic _asyncReturn(dynamic object, _AsyncAwaitCompleter completer) {
+  completer._complete(object);
 }
 
 /// Completes the future of an `async` function with an error.
@@ -293,9 +296,9 @@ dynamic _asyncReturn(dynamic object, Completer completer) {
 /// Used as part of the runtime support for the async/await transformation.
 ///
 /// This function is used when the `async` function re-throws an exception.
-dynamic _asyncRethrow(dynamic object, Completer completer) {
+dynamic _asyncRethrow(dynamic object, _AsyncAwaitCompleter completer) {
   // The error is a js-error.
-  completer.completeError(
+  completer._completeError(
     unwrapException(object),
     getTraceFromException(object),
   );

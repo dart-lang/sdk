@@ -11,7 +11,7 @@
 /// represented.
 final class NullValue {
   final String T;
-  const NullValue(this.T);
+  const new(this.T);
 
   @override
   String toString() => "NullValue<$T>";

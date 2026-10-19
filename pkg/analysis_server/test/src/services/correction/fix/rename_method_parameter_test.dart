@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RenameMethodParameterTest extends FixProcessorLintTest {
+class RenameMethodParameterTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.renameMethodParameter;
 

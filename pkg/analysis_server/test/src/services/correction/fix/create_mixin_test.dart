@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateMixinLowercaseTest extends FixProcessorTest {
+class CreateMixinLowercaseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMixinLowercase;
 
@@ -40,6 +39,15 @@ class A {
   int Function() get f {
     return _f ?? _defaultF;
   }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_invocation() async {
+    await resolveTestCode('''
+void f() {
+  myMixin();
 }
 ''');
     await assertNoFix();
@@ -114,7 +122,8 @@ class MyClass with myMixin {}
 }
 
 @reflectiveTest
-class CreateMixinLowercaseWithTest extends FixProcessorTest {
+class CreateMixinLowercaseWithTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMixinLowercaseWith;
 
@@ -188,7 +197,7 @@ A? a;
 }
 
 @reflectiveTest
-class CreateMixinUppercaseTest extends FixProcessorTest {
+class CreateMixinUppercaseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMixinUppercase;
 
@@ -314,8 +323,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Test])
 void f() {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -324,11 +332,7 @@ void f() {}
 
 mixin Test {
 }
-''',
-      filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
-      },
-    );
+''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 
@@ -441,7 +445,8 @@ mixin Foo {
 }
 
 @reflectiveTest
-class CreateMixinUppercaseWithTest extends FixProcessorTest {
+class CreateMixinUppercaseWithTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMixinUppercaseWith;
 

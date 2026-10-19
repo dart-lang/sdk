@@ -252,7 +252,7 @@ class ConflictingFlagLists {
   /// feature.
   final bool firstValue;
 
-  ConflictingFlagLists(this.feature, this.firstValue);
+  new(this.feature, this.firstValue);
 }
 
 /// Validation result indicating that the user requested conflicting values for
@@ -272,7 +272,7 @@ class ConflictingFlags extends ValidationResult {
   /// The string at [previousStringIndex] requested the opposite.
   final bool requestedValue;
 
-  ConflictingFlags(
+  new(
     super.stringIndex,
     this.previousStringIndex,
     this.feature,
@@ -296,7 +296,7 @@ class EnabledDisabledFlags {
   final List<bool> enabled;
   final List<bool> disabled;
 
-  EnabledDisabledFlags(this.enabled, this.disabled);
+  new(this.enabled, this.disabled);
 }
 
 /// Information about a single experimental flag that the user might use to
@@ -338,7 +338,7 @@ class ExperimentalFeature implements Feature {
   /// is implied by main.
   final List<String> channels;
 
-  ExperimentalFeature({
+  new({
     required this.index,
     required this.enableString,
     required this.isEnabledByDefault,
@@ -389,7 +389,7 @@ class IllegalUseOfExpiredFlag extends ValidationResult {
   /// Information about the feature associated with the error.
   final ExperimentalFeature feature;
 
-  IllegalUseOfExpiredFlag(super.flagIndex, this.feature) : super._();
+  new(super.flagIndex, this.feature) : super._();
 
   @override
   String get flag => feature.stringForValue(!feature.isEnabledByDefault);
@@ -413,7 +413,7 @@ class UnnecessaryUseOfExpiredFlag extends ValidationResult {
   /// Information about the feature associated with the warning.
   final ExperimentalFeature feature;
 
-  UnnecessaryUseOfExpiredFlag(super.flagIndex, this.feature) : super._();
+  new(super.flagIndex, this.feature) : super._();
 
   @override
   String get flag => feature.stringForValue(feature.isEnabledByDefault);
@@ -431,7 +431,7 @@ class UnrecognizedFlag extends ValidationResult {
   @override
   final String flag;
 
-  UnrecognizedFlag(super.flagIndex, this.flag) : super._();
+  new(super.flagIndex, this.flag) : super._();
 
   @override
   bool get isError => true;
@@ -446,7 +446,7 @@ abstract class ValidationResult {
   /// warning.
   final int stringIndex;
 
-  ValidationResult._(this.stringIndex);
+  new _(this.stringIndex);
 
   /// The supplied string associated with the error or warning.
   String get flag;

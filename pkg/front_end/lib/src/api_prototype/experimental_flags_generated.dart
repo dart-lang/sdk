@@ -398,10 +398,10 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag thisPromotion = const ExperimentalFlag(
     name: 'this-promotion',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 15),
+    experimentReleasedVersion: const Version(3, 15),
   );
 
   static const ExperimentalFlag tripleShift = const ExperimentalFlag(

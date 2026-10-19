@@ -79,10 +79,10 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -103,7 +103,19 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@37
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -135,11 +147,11 @@ extension type const A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -152,7 +164,23 @@ ConstructorDeclaration
           element: isPublic
             type: int
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    element: <testLibrary>::@extensionType::A::@constructor::new
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@49
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function(int)
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -165,20 +193,14 @@ ConstructorDeclaration
           type: int
     rightParenthesis: )
   separator: =
-  factoryRedirectionTarget: ConstructorReference2
-    typeReference: ConstructorTypeReference
-      name: A
-      element: <testLibrary>::@extensionType::A
-      type: A
-    element: <testLibrary>::@extensionType::A::@constructor::new
-  body: EmptyFunctionBody
-    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
       element: <testLibrary>::@extensionType::A
       type: A
     element: <testLibrary>::@extensionType::A::@constructor::new
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> named@49
     element: <testLibrary>::@extensionType::A::@constructor::named
       type: A Function(int)
@@ -194,9 +216,9 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -220,7 +242,18 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -257,15 +290,11 @@ extension type const A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-    element: <testLibrary>::@extensionType::A
-    staticType: null
-  parameters: FormalParameterList
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -277,18 +306,6 @@ ConstructorDeclaration
         declaredFragment: <testLibraryFragment> it@61
           element: isPublic
             type: int
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
-    parameter: RegularFormalParameter
-      type: NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-      name: it
-      declaredFragment: <testLibraryFragment> it@61
-        element: isPublic
-          type: int
     rightParenthesis: )
   separator: =
   factoryRedirectionTarget: ConstructorReference2
@@ -302,6 +319,29 @@ ConstructorDeclaration
     element: <testLibrary>::@extensionType::A::@constructor::named
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function(int)
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: it
+      declaredFragment: <testLibraryFragment> it@61
+        element: isPublic
+          type: int
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -313,6 +353,8 @@ ConstructorDeclaration
       element: <testLibrary>::@extensionType::A::@constructor::named
       staticType: null
     element: <testLibrary>::@extensionType::A::@constructor::named
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@extensionType::A::@constructor::new
       type: A Function(int)
@@ -328,7 +370,29 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@33
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
   newKeyword: new
   name: named
   parameters: FormalParameterList
@@ -339,13 +403,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -366,7 +429,30 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@39
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   name: named
@@ -378,13 +464,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -405,7 +490,28 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
   newKeyword: new
   parameters: FormalParameterList
     leftParenthesis: (
@@ -415,13 +521,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -442,7 +547,29 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   parameters: FormalParameterList
@@ -453,13 +580,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -480,16 +606,12 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-    element: <testLibrary>::@extensionType::A
-    staticType: null
+  typeName: A
   period: .
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -510,7 +632,24 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@39
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -542,14 +681,10 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-    element: <testLibrary>::@extensionType::A
-    staticType: null
-  parameters: FormalParameterList
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -573,7 +708,22 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -610,9 +760,31 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: A
+  period: .
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@31
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -626,13 +798,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -653,9 +824,29 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -667,13 +858,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -732,7 +922,40 @@ ExtensionTypeDeclaration
         type: A Function(String)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> foo@49
+        semicolon: ;
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: bar
+            equals: =
+            initializer: IntegerLiteral
+              literal: 1
+              staticType: int
+            declaredFragment: <testLibraryFragment> bar@77
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -745,7 +968,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@49
@@ -763,7 +986,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@77
@@ -842,7 +1065,7 @@ extension type A<T>(int it) {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
     element: <null>
@@ -856,7 +1079,7 @@ MethodDeclaration
         declaredFragment: <testLibraryFragment> U@41
           defaultType: dynamic
     rightBracket: >
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -878,7 +1101,45 @@ MethodDeclaration
           element: isPublic
             type: U
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: TypeLiteral
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
+            staticType: Type
+          semicolon: ;
+        ExpressionStatement
+          expression2: TypeLiteral
+            type: NamedType
+              name: U
+              element: #E1 U
+              type: U
+            staticType: Type
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@37
+    element: <testLibrary>::@extensionType::A::@method::foo
+      type: void Function<U>(T, U)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@41
+          defaultType: dynamic
+    rightBracket: >
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -904,7 +1165,7 @@ MethodDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: TypeLiteral
+          expression: TypeLiteral
             type: NamedType
               name: T
               element: #E0 T
@@ -912,7 +1173,7 @@ MethodDeclaration
             staticType: Type
           semicolon: ;
         ExpressionStatement
-          expression2: TypeLiteral
+          expression: TypeLiteral
             type: NamedType
               name: U
               element: #E1 U
@@ -3808,7 +4069,23 @@ ExtensionTypeDeclaration
         type: A Function(InvalidType)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        fields
+          Field
+            name: int
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: 'not a type'
+            declaredFragment: <testLibraryFragment> int@49
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -3821,7 +4098,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@49
         semicolon: ;
@@ -3878,7 +4155,23 @@ ExtensionTypeDeclaration
         type: A Function(int)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        fields
+          Field
+            name: int
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: 'not a type'
+            declaredFragment: <testLibraryFragment> int@65
+        semicolon: ;
+    members(v1)
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -3891,7 +4184,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@65
         semicolon: ;
@@ -4421,7 +4714,7 @@ ExtensionTypeDeclaration
         type: A Function({bool it})
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         colon: :
@@ -4443,7 +4736,7 @@ ExtensionTypeDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: UnqualifiedNameExpression
                   name: it
@@ -4486,7 +4779,7 @@ ExtensionTypeDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: UnqualifiedNameExpression
                   name: it
@@ -4620,7 +4913,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: it
@@ -4696,16 +4989,12 @@ ExtensionTypeDeclaration
         type: A Function(int)
   body: BlockClassBody
     leftBracket: {
-    members
-      ConstructorDeclaration
-        typeName2: A
-        typeName(v1): SimpleIdentifier
-          token: A
-          element: <testLibrary>::@extensionType::A
-          staticType: null
+    members2
+      ConstructorDeclaration2
+        typeName: A
         period: .
         name: named
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             FieldFormalParameter
@@ -4717,7 +5006,20 @@ ExtensionTypeDeclaration
                   type: int
                   field: <testLibrary>::@extensionType::A::@field::it
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: EmptyFunctionBody
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> named@31
+          element: <testLibrary>::@extensionType::A::@constructor::named
+            type: A Function(int)
+    members(v1)
+      ConstructorDeclaration
+        typeName: SimpleIdentifier
+          token: A
+          element: <testLibrary>::@extensionType::A
+          staticType: null
+        period: .
+        name: named
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: FieldFormalParameter
             thisKeyword: this
@@ -4784,17 +5086,13 @@ ExtensionTypeDeclaration
         type: A Function(num)
   body: BlockClassBody
     leftBracket: {
-    members
-      ConstructorDeclaration
+    members2
+      ConstructorDeclaration2
         constKeyword: const
-        typeName2: A
-        typeName(v1): SimpleIdentifier
-          token: A
-          element: <testLibrary>::@extensionType::A
-          staticType: null
+        typeName: A
         period: .
         name: named
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -4806,18 +5104,6 @@ ExtensionTypeDeclaration
               declaredFragment: <testLibraryFragment> a@47
                 element: isPublic
                   type: int
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
-            type: NamedType
-              name: int
-              element: dart:core::@class::int
-              type: int
-            name: a
-            declaredFragment: <testLibraryFragment> a@47
-              element: isPublic
-                type: int
           rightParenthesis: )
         separator: :
         initializers
@@ -4844,6 +5130,45 @@ ExtensionTypeDeclaration
         declaredFragment: <testLibraryFragment> named@37
           element: <testLibrary>::@extensionType::A::@constructor::named
             type: A Function(int)
+    members(v1)
+      ConstructorDeclaration
+        constKeyword: const
+        typeName: SimpleIdentifier
+          token: A
+          element: <testLibrary>::@extensionType::A
+          staticType: null
+        period: .
+        name: named
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            name: a
+            declaredFragment: <testLibraryFragment> a@47
+              element: isPublic
+                type: int
+          rightParenthesis: )
+        separator: :
+        initializers
+          ConstructorFieldInitializer
+            fieldName: SimpleIdentifier
+              token: it
+              element: <testLibrary>::@extensionType::A::@field::it
+              staticType: null
+            equals: =
+            expression: SimpleIdentifier
+              token: a
+              element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
+              staticType: int
+            fieldElement: <testLibrary>::@extensionType::A::@field::it
+        body: EmptyFunctionBody
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> named@37
+          element: <testLibrary>::@extensionType::A::@constructor::named
+            type: A Function(int)
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
 ''');
@@ -4861,7 +5186,7 @@ extension type E<T extends Unresolved>(int it) {}
     await resolveTestCodeWithDiagnostics(r'''
 extension type E<@Unresolved T>(int it) {}
 //                ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'Unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation] Undefined name 'Unresolved' used as an annotation.
 ''');
   }
 

@@ -22,7 +22,7 @@ part 'package:analyzer/src/diagnostic/diagnostic.g.dart';
 class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
   final List<ExpectedType>? expectedTypes;
 
-  const DiagnosticCodeWithExpectedTypes({
+  const new({
     super.correctionMessage,
     super.hasPublishedDocs = false,
     super.isUnresolvedIdentifier = false,
@@ -87,16 +87,16 @@ class DiagnosticMessageImpl implements DiagnosticMessage {
   @override
   final String? url;
 
-  /// Initialize a newly created message to represent a [message] reported in
+  /// Initialize a newly created message to represent a [_message] reported in
   /// the file at the given [filePath] at the given [offset] and with the given
   /// [length].
-  DiagnosticMessageImpl({
+  new({
     required this.filePath,
     required this.length,
-    required String message,
+    required this._message,
     required this.offset,
     required this.url,
-  }) : _message = message;
+  });
 
   @override
   String messageText({required bool includeUrl}) {
@@ -131,7 +131,7 @@ class DiagnosticWithArguments<T extends Object>
   /// [DiagnosticReporter.reportError].
   final T withArguments;
 
-  const DiagnosticWithArguments({
+  const new({
     required super.name,
     required super.problemMessage,
     super.correctionMessage,
@@ -196,7 +196,7 @@ base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
 final class DiagnosticWithoutArgumentsImpl
     extends DiagnosticCodeWithExpectedTypes
     with DiagnosticWithoutArguments {
-  const DiagnosticWithoutArgumentsImpl({
+  const new({
     required super.name,
     required super.problemMessage,
     super.correctionMessage,
@@ -283,11 +283,7 @@ final class LocatableDiagnosticImpl implements LocatableDiagnostic {
   @override
   final Iterable<DiagnosticMessage> contextMessages;
 
-  LocatableDiagnosticImpl(
-    this.code,
-    this.arguments, {
-    this.contextMessages = const [],
-  });
+  new(this.code, this.arguments, {this.contextMessages = const []});
 
   @override
   LocatedDiagnostic at(SyntacticEntity node) =>
@@ -327,7 +323,7 @@ final class LocatedDiagnostic {
   final int offset;
   final int length;
 
-  LocatedDiagnostic(this.locatableDiagnostic, this.offset, this.length);
+  new(this.locatableDiagnostic, this.offset, this.length);
 }
 
 extension on SourceSpan {

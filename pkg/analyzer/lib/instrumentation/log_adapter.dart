@@ -34,12 +34,9 @@ class InstrumentationLogAdapter implements InstrumentationService {
   /// Initialize a newly created instrumentation service to communicate with the
   /// given [_instrumentationLogger].
   ///
-  /// Any file paths in [watchEventExclusionFiles] will be excluded from the
+  /// Any file paths in [_watchEventExclusionFiles] will be excluded from the
   /// logging of watch events (to prevent feedback loops).
-  InstrumentationLogAdapter(
-    this._instrumentationLogger, {
-    Set<String>? watchEventExclusionFiles,
-  }) : _watchEventExclusionFiles = watchEventExclusionFiles;
+  new(this._instrumentationLogger, {this._watchEventExclusionFiles});
 
   /// The current time, expressed as a decimal encoded number of milliseconds.
   String get _timestamp => DateTime.now().millisecondsSinceEpoch.toString();

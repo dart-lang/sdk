@@ -75,12 +75,9 @@ class ConstantEvaluationEngine {
 
   /// Initialize a newly created [ConstantEvaluationEngine].
   ///
-  /// [declaredVariables] is the set of variables declared on the command
+  /// [_declaredVariables] is the set of variables declared on the command
   /// line using '-D'.
-  ConstantEvaluationEngine({
-    required DeclaredVariables declaredVariables,
-    required this.configuration,
-  }) : _declaredVariables = declaredVariables;
+  new({required this._declaredVariables, required this.configuration});
 
   /// Compute the constant value associated with the given [constant].
   void computeConstantValue(ConstantEvaluationTarget constant) {
@@ -541,26 +538,29 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   /// computing the constant.
   final DiagnosticReporter _diagnosticReporter;
 
+  /// Whether errors for invalid named reads are reported, see
+  /// [InvalidConstant.isInvalidNamedRead].
+  final bool _reportsInvalidNamedReads;
+
   /// Helper class used to compute constant values.
   late final DartObjectComputer _dartObjectComputer;
 
   /// Initializes a newly created constant visitor. The [_evaluationEngine] is
-  /// used to evaluate constructor invocations. The [lexicalEnvironment]
+  /// used to evaluate constructor invocations. The [_lexicalEnvironment]
   /// is a map containing values which should override identifiers, or `null` if
   /// no overriding is necessary. The [_diagnosticReporter] is used to report
   /// errors found during evaluation.
   ///
-  /// The [substitution] is specified for constructor invocations.
-  ConstantVisitor(
+  /// The [_substitution] is specified for constructor invocations.
+  new(
     this._evaluationEngine,
     this._library,
     this._diagnosticReporter, {
-    Map<FormalParameterElement, DartObjectImpl>? lexicalEnvironment,
-    Map<TypeParameterElement, TypeImpl>? lexicalTypeEnvironment,
-    Substitution? substitution,
-  }) : _lexicalEnvironment = lexicalEnvironment,
-       _lexicalTypeEnvironment = lexicalTypeEnvironment,
-       _substitution = substitution {
+    this._lexicalEnvironment,
+    this._lexicalTypeEnvironment,
+    this._substitution,
+    this._reportsInvalidNamedReads = true,
+  }) {
     _dartObjectComputer = DartObjectComputer(typeSystem, _library.featureSet);
   }
 
@@ -981,8 +981,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   Constant visitImportPrefixedNameExpression(
     covariant ImportPrefixedNameExpressionImpl node,
   ) {
-    if (node.importPrefix.element case PrefixElement prefix
-        when prefix.fragments.any((fragment) => fragment.isDeferred)) {
+    if (node.importPrefix.element case PrefixElementImpl(isDeferred: true)) {
       return _getDeferredLibraryError(node, node.name);
     }
     return _getConstantValue(
@@ -1144,8 +1143,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     covariant ReceiverPropertyExtractionImpl node,
   ) {
     if (node.receiver case StaticQualifierImpl(:var importPrefix, :var name)) {
-      if (importPrefix?.element case PrefixElement prefix
-          when prefix.fragments.any((fragment) => fragment.isDeferred)) {
+      if (importPrefix?.element case PrefixElementImpl(isDeferred: true)) {
         return _getDeferredLibraryError(node, name);
       }
       return _getConstantValue(
@@ -1157,6 +1155,14 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     var targetResult = evaluateConstant(node.receiver);
     if (targetResult is! DartObjectImpl) {
       return targetResult;
+    }
+
+    if (node.isInvalidNamedRead) {
+      return InvalidConstant.genericError(
+        node: node,
+        isUnresolved: true,
+        isInvalidNamedRead: true,
+      );
     }
 
     var propertyElement = node.resolution?.element;
@@ -1892,10 +1898,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.baseElement;
 
+    var isInvalidNamedRead = expression?.isInvalidNamedRead ?? false;
+
     // Invalid name lookup can retain a declaration that has no readable value.
     // In particular, recovering a type declaration must not create a type literal.
-    if (expression is NameExpression &&
-        expression.resolution is InvalidNamedReadResolution &&
+    if (isInvalidNamedRead &&
         element is! VariableElement &&
         element is! ExecutableElement) {
       element = null;
@@ -2045,7 +2052,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     // The expression is unresolved by the time we are evaluating it. We'll mark
     // it and return immediately.
     if (expression != null && expression.staticType is InvalidType) {
-      return InvalidConstant.genericError(node: errorNode, isUnresolved: true);
+      return InvalidConstant.genericError(
+        node: errorNode,
+        isUnresolved: true,
+        isInvalidNamedRead: isInvalidNamedRead,
+      );
     }
 
     // TODO(srawlins): Use a specific error code.
@@ -2098,7 +2109,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
           return diag.nonConstantCaseExpressionFromDeferredLibrary;
         } else if (current is SwitchPatternCase) {
           return diag.patternConstantFromDeferredLibrary;
-        } else if (current is VariableDeclaration) {
+        } else if (current is VariableBindingImpl) {
           return diag.constInitializedWithNonConstantValueFromDeferredLibrary;
         }
         previous = current;
@@ -2212,17 +2223,33 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   /// Returns the first not-potentially constant error found with [node] or
   /// `null` if there are none.
   InvalidConstant? _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(
+    var (
+      :reportable,
+      :firstInvalidNamedRead,
+    ) = getReportableNotPotentiallyConstants(
       node,
       featureSet: _library.featureSet,
     );
-    if (notPotentiallyConstants.isEmpty) return null;
 
     // Only report the first invalid constant we see.
-    return InvalidConstant.forEntity(
-      entity: notPotentiallyConstants.first,
-      locatableDiagnostic: diag.invalidConstant,
-    );
+    if (reportable.firstOrNull case var first?) {
+      return InvalidConstant.forEntity(
+        entity: first,
+        locatableDiagnostic: diag.invalidConstant,
+      );
+    }
+
+    // Still an error, but evaluated like the invalid named read itself.
+    if (firstInvalidNamedRead != null) {
+      return InvalidConstant.forEntity(
+        entity: firstInvalidNamedRead,
+        locatableDiagnostic: diag.invalidConstant,
+        isUnresolved: true,
+        isInvalidNamedRead: true,
+      );
+    }
+
+    return null;
   }
 
   /// Return the value of the given [expression], or a representation of a fake
@@ -2234,7 +2261,9 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       // being able to continue the evaluation with populating fields. Fix the
       // interaction with g3 more elegantly.
       case InvalidConstant(isUnresolved: true):
-        if (!expressionValue.avoidReporting) {
+        if (!expressionValue.avoidReporting &&
+            (_reportsInvalidNamedReads ||
+                !expressionValue.isInvalidNamedRead)) {
           _diagnosticReporter.report(
             expressionValue.locatableDiagnostic.atOffset(
               offset: expressionValue.offset,
@@ -2262,16 +2291,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       return leftResult;
     }
 
-    DartObjectImpl computeRightOperand() {
-      var constant = evaluateConstant(rightOperand);
-      switch (constant) {
-        case DartObjectImpl():
-          return constant;
-        case InvalidConstant():
-          throw EvaluationException(constant.locatableDiagnostic);
-      }
-    }
-
     var skipsRightOperand = isAnd
         ? leftResult.toBoolValue() == false
         : leftResult.toBoolValue() == true;
@@ -2282,10 +2301,22 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       }
     }
 
+    // An error in the right operand is returned as is, the same as an error
+    // in the left operand. The right operand is not used when the left one
+    // short-circuits, or isn't a bool, which is reported instead.
+    DartObjectImpl? rightResult;
+    if (leftResult.isBool && !skipsRightOperand) {
+      var constant = evaluateConstant(rightOperand);
+      if (constant is! DartObjectImpl) {
+        return constant;
+      }
+      rightResult = constant;
+    }
+
     if (isAnd) {
-      return _dartObjectComputer.lazyAnd(node, leftResult, computeRightOperand);
+      return _dartObjectComputer.lazyAnd(node, leftResult, () => rightResult!);
     } else {
-      return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
+      return _dartObjectComputer.lazyOr(node, leftResult, () => rightResult!);
     }
   }
 
@@ -2316,7 +2347,7 @@ class DartObjectComputer {
   final TypeSystemImpl _typeSystem;
   final FeatureSet _featureSet;
 
-  DartObjectComputer(this._typeSystem, this._featureSet);
+  new(this._typeSystem, this._featureSet);
 
   Constant add(
     Expression node,
@@ -2866,21 +2897,18 @@ class _ConstructorInvocationEvaluator {
   /// This constructor is private, as the entry point for using a
   /// [_ConstructorInvocationEvaluator] is the static method,
   /// [_ConstructorInvocationEvaluator.evaluate].
-  _ConstructorInvocationEvaluator._(
+  new _(
     this._evaluationEngine,
     this._declaredVariables,
     this._library,
     this._errorNode,
     this._constructor,
     this._typeArguments, {
-    required List<DartObjectImpl> argumentValues,
-    required Map<FormalParameterElement, DartObjectImpl> argumentValueMap,
-    required Map<FormalParameterElement, AstNode?> argumentNodeMap,
-    required ConstructorInvocationDataImpl invocation,
-  }) : _argumentValues = argumentValues,
-       _argumentValueMap = argumentValueMap,
-       _argumentNodeMap = argumentNodeMap,
-       _invocation = invocation;
+    required this._argumentValues,
+    required this._argumentValueMap,
+    required this._argumentNodeMap,
+    required this._invocation,
+  });
 
   InterfaceTypeImpl get definingType => _constructor.returnType;
 
@@ -3814,7 +3842,7 @@ class _EnumConstant {
   final int index;
   final String name;
 
-  _EnumConstant({required this.index, required this.name});
+  new({required this.index, required this.name});
 }
 
 /// The result of evaluation the initializers declared on a const constructor.
@@ -3846,7 +3874,7 @@ class _InitializersEvaluationResult {
   /// constructor, otherwise `null`.
   final List<Argument>? superArguments;
 
-  _InitializersEvaluationResult(
+  new(
     this.result, {
     required this.evaluationIsComplete,
     this.superName,
@@ -3859,7 +3887,7 @@ class _RedirectionResult {
   final Map<FormalParameterElement, DartObjectImpl> argumentValueMap;
   final Map<FormalParameterElement, AstNode?> argumentNodeMap;
 
-  _RedirectionResult({
+  new({
     required this.constructor,
     required this.argumentValueMap,
     required this.argumentNodeMap,

@@ -1,0 +1,56 @@
+name: Publish package to pub.dev
+
+# Publishes `pkg/<package>` or `third_party/pkg/<package>` to pub.dev when a
+# `<package>-v<version>` tag is pushed. Tags are created on
+# dart.googlesource.com/sdk by the `tag-packages` builder (for commits on `main`
+# with a `PUBLISH=<package>-v<version>` line in the commit message) and
+# mirrored to GitHub, see docs/Publishing-SDK-packages.md.
+#
+# Publishing is authenticated with the GitHub Actions OIDC token, which pub.dev
+# verifies against the automated publishing configuration of each package,
+# including that the tag matches `<package>-v{{version}}`.
+
+on:
+  push:
+    tags:
+      - '*-v[0-9]*'
+
+# Declare default permissions as read only.
+permissions: read-all
+
+jobs:
+  publish:
+    name: Publish package
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'dart-lang/sdk' }}
+    permissions:
+      # Needed to access OIDC token.
+      id-token: write
+      contents: read
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Set up Dart"
+        uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
+      - name: "Publish package to pub.dev"
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          # Package names cannot contain '-', so everything before the first
+          # '-v' is the package name.
+          PKG="${TAG%%-v*}"
+          # Packages from DEPS are not tracked in this repository, so they are
+          # never present in the checkout.
+          for DIR in "pkg/$PKG" "third_party/pkg/$PKG"; do
+            [[ -f "$DIR/pubspec.yaml" ]] && break
+          done
+          if [[ ! -f "$DIR/pubspec.yaml" ]]; then
+            echo "Invalid package tag: $TAG" >&2
+            exit 1
+          fi
+          # --skip-validation is required: validation resolves dependencies
+          # for the whole pub workspace, which requires the SDK being built
+          # from this repository rather than a released SDK.
+          dart pub publish --force --skip-validation --directory="$DIR"

@@ -2888,6 +2888,77 @@ import '^
     expect(res.any((c) => c.label == 'dart:async'), isTrue);
   }
 
+  Future<void> test_import_package_afterSlash() async {
+    newFile(join(projectFolderPath, 'lib', 'foo', 'bar', 'my_file.dart'), '');
+    newFolder(join(projectFolderPath, 'lib', 'foo', 'bar', 'sub'));
+
+    content = '''
+import 'package:test/foo/bar/^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    for (var expected in ['my_file.dart', 'sub/']) {
+      var item = res.singleWhere((c) => c.label == expected);
+
+      var textEdit = toTextEdit(item.textEdit!);
+
+      // The inserted text is still the full URI, we're only changing labels.
+      expect(textEdit.newText, 'package:test/foo/bar/$expected');
+
+      // And applying the edit still produces the expected code.
+      var updated = applyTextEdits(code.code, [toTextEdit(item.textEdit!)]);
+      expect(updated, "import 'package:test/foo/bar/$expected';$eol");
+    }
+  }
+
+  Future<void> test_import_package_afterSlash_withPrefix() async {
+    newFile(join(projectFolderPath, 'lib', 'foo', 'bar', 'my_file.dart'), '');
+
+    content = '''
+import 'package:test/foo/bar/my_^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    // Label should still include `my_`, we only trim up to a slash.
+    var item = res.singleWhere((c) => c.label == 'my_file.dart');
+
+    // The inserted text is still the full URI, we're only changing labels.
+    var textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, 'package:test/foo/bar/my_file.dart');
+
+    // And applying the edit still produces the expected code.
+    var updated = applyTextEdits(code.code, [toTextEdit(item.textEdit!)]);
+    expect(updated, "import 'package:test/foo/bar/my_file.dart';$eol");
+  }
+
+  Future<void> test_import_package_noSlash() async {
+    newFile(join(projectFolderPath, 'lib', 'my_file.dart'), '');
+
+    content = '''
+import 'package:te^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    for (var expected in ['package:test/', 'package:test/my_file.dart']) {
+      var item = res.singleWhere((c) => c.label == expected);
+
+      var textEdit = toTextEdit(item.textEdit!);
+      expect(textEdit.newText, expected);
+
+      var updated = applyTextEdits(code.code, [toTextEdit(item.textEdit!)]);
+      expect(updated, "import '$expected';$eol");
+    }
+  }
+
   Future<void> test_import_partial() async {
     content = '''
 import 'dart:^';

@@ -179,7 +179,7 @@ class C {
 dynamic d;
 ''');
     var namedType =
-        result.findNode.topLevelVariableDeclaration('dynamic d').variables.type
+        result.findNode.topLevelVariablesDeclaration('dynamic d').type
             as NamedType;
     expect(namedType.element!.kind, ElementKind.DYNAMIC);
     // `dynamic` isn't defined in the source code anywhere, so its offset is 0.
@@ -325,10 +325,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<FieldFragment>(
       fieldDeclaration,
       fieldDeclaration.declaredFragment!,
@@ -342,10 +339,7 @@ class C {
   static const int x = 0;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<FieldFragment>(
       fieldDeclaration,
       fieldDeclaration.declaredFragment!,
@@ -397,9 +391,9 @@ void f((int x)) {}
 //     ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var function = result.findNode.functionDeclaration('f(');
+    var function = result.findNode.topLevelFunctionDeclaration('f(');
     var parameter =
-        function.functionExpression.parameters!.allFormalParameters[0]
+        function.formalParameters.allFormalParameters[0]
             as RegularFormalParameter;
     expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
@@ -414,9 +408,9 @@ void f(void (int x)) {}
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var function = result.findNode.functionDeclaration('f(');
+    var function = result.findNode.topLevelFunctionDeclaration('f(');
     var parameter =
-        function.functionExpression.parameters!.allFormalParameters[0]
+        function.formalParameters.allFormalParameters[0]
             as RegularFormalParameter;
     expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
@@ -431,10 +425,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<FormalParameterFragment>(
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
@@ -451,19 +442,17 @@ class C {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<FormalParameterFragment>(
-      topLevelVariableDeclaration,
-      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
+      topLevelVariable,
+      topLevelVariable
+          .declaredFragment!
           .element
           .setter!
           .formalParameters
           .single
           .firstFragment,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -501,7 +490,7 @@ class C {
   int get foo => 0;
 }
 ''');
-    var getterDeclaration = result.findNode.methodDeclaration('foo');
+    var getterDeclaration = result.findNode.getterDeclaration('foo');
     checkOffset<GetterFragment>(
       getterDeclaration,
       getterDeclaration.declaredFragment!,
@@ -515,10 +504,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<GetterFragment>(
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
@@ -545,17 +531,11 @@ int get foo => 0;
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<GetterFragment>(
-      topLevelVariableDeclaration,
-      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
-          .element
-          .getter!
-          .firstFragment,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!.element.getter!.firstFragment,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -678,7 +658,7 @@ void f() {
   int i = 0;
 }
 ''');
-    var localVariable = result.findNode.variableDeclaration('i = 0');
+    var localVariable = result.findNode.localVariable('i = 0');
     checkOffset<LocalVariableFragment>(
       localVariable,
       localVariable.declaredFragment!,
@@ -693,7 +673,7 @@ void f() {
   const int i = 0;
 }
 ''');
-    var localVariable = result.findNode.variableDeclaration('i = 0');
+    var localVariable = result.findNode.localVariable('i = 0');
     checkOffset<LocalVariableFragment>(
       localVariable,
       localVariable.declaredFragment!,
@@ -708,9 +688,7 @@ void f() {
   void g() {}
 }
 ''');
-    var localFunction = result.findNode
-        .functionDeclarationStatement('g()')
-        .functionDeclaration;
+    var localFunction = result.findNode.localFunctionDeclaration('g()');
     checkOffset<LocalFunctionFragment>(
       localFunction,
       localFunction.declaredFragment!,
@@ -778,7 +756,7 @@ mixin {}
 Never n = throw '';
 ''');
     var namedType =
-        result.findNode.topLevelVariableDeclaration('Never n').variables.type
+        result.findNode.topLevelVariablesDeclaration('Never n').type
             as NamedType;
     expect(namedType.element!.kind, ElementKind.NEVER);
     // `Never` isn't defined in the source code anywhere, so its offset is 0.
@@ -833,7 +811,7 @@ class C {
   set foo(int value) {}
 }
 ''');
-    var setterDeclaration = result.findNode.methodDeclaration('foo');
+    var setterDeclaration = result.findNode.setterDeclaration('foo');
     checkOffset<SetterFragment>(
       setterDeclaration,
       setterDeclaration.declaredFragment!,
@@ -847,10 +825,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<SetterFragment>(
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
@@ -865,7 +840,7 @@ class C {
     var result = await resolveTestCodeWithDiagnostics(r'''
 set foo(int value) {}
 ''');
-    var setterDeclaration = result.findNode.functionDeclaration('foo');
+    var setterDeclaration = result.findNode.topLevelSetterDeclaration('foo');
     checkOffset<SetterFragment>(
       setterDeclaration,
       setterDeclaration.declaredFragment!,
@@ -877,17 +852,11 @@ set foo(int value) {}
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<SetterFragment>(
-      topLevelVariableDeclaration,
-      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
-          .element
-          .setter!
-          .firstFragment,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!.element.setter!.firstFragment,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -950,9 +919,8 @@ class C extends B {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 ''');
-    var topLevelFunctionDeclaration = result.findNode.functionDeclaration(
-      'foo',
-    );
+    var topLevelFunctionDeclaration = result.findNode
+        .topLevelFunctionDeclaration('foo');
     checkOffset<TopLevelFunctionFragment>(
       topLevelFunctionDeclaration,
       topLevelFunctionDeclaration.declaredFragment!,
@@ -964,14 +932,11 @@ void foo() {}
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<TopLevelVariableFragment>(
-      topLevelVariableDeclaration,
-      topLevelVariableDeclaration.declaredFragment!,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -979,14 +944,11 @@ int? x;
     var result = await resolveTestCodeWithDiagnostics(r'''
 const int x = 0;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<TopLevelVariableFragment>(
-      topLevelVariableDeclaration,
-      topLevelVariableDeclaration.declaredFragment!,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!,
+      topLevelVariable.name.offset,
     );
   }
 

@@ -29,7 +29,7 @@ All CLs changing core libraries sources (i.e. Dart files residing in `sdk/lib`
 directory with the exception of `_http` and `_internal` sub-directories)
 require either:
 
-* `CR+1` from representatives of all backend teams
+* `Code-Review+1` from representatives of all backend teams
   (g2/dart-core-library-change-approvers-vm,
   g2/dart-core-library-change-approvers-wasm,
   g2/dart-core-library-change-approvers-web) and Core Library API owners
@@ -78,5 +78,18 @@ submission.
 
 ## Cherry-Pick-Review
 
-All CLs to the stable, beta, and dev branches must be reviewed (`CR+1`) by a
-Dart team lead (g2/dart-admin) before submitting.
+All CLs to the stable, beta, and dev branches must be reviewed
+(`Code-Review+1`) by a Dart team lead (g2/dart-admin) before submitting.
+
+## GitHub-PR-Review
+
+All CLs imported from GitHub pull requests by Copybara (owned by the
+`copybara-worker-blackhole@google.com` service account) require two
+`Code-Review+1` votes before submitting.
+
+Gerrit normally requires approval from two trusted contributors, where
+uploading a change counts as the uploader's approval. Pull requests are uploaded
+by the Copybara service account rather than the author, so the upload does not
+represent a review of the code. Two explicit `Code-Review+1` votes from Dart
+committers are required instead. If the author of the pull request is a
+committer, their own `Code-Review+1` counts as one of the two.

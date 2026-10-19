@@ -23,7 +23,7 @@ final class FixInFileProcessor {
   /// the Set will be ammended with this information.
   /// If not passing [alreadyCalculated] the calculation will always be
   /// performed.
-  FixInFileProcessor(this._fixContext, {this.alreadyCalculated});
+  new(this._fixContext, {this.alreadyCalculated});
 
   Future<List<Fix>> compute({Iterable<Diagnostic>? diagnostics}) async {
     var diagnostic = _fixContext.diagnostic;
@@ -188,7 +188,7 @@ class _EmptyFixState implements _FixState {
   @override
   final ChangeBuilder builder;
 
-  _EmptyFixState(this.builder);
+  new(this.builder);
 
   @override
   int get fixCount => 0;
@@ -211,9 +211,5 @@ class _NotEmptyFixState implements _FixState {
   @override
   final int fixCount;
 
-  _NotEmptyFixState({
-    required this.builder,
-    required this.fixKind,
-    required this.fixCount,
-  });
+  new({required this.builder, required this.fixKind, required this.fixCount});
 }

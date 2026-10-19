@@ -146,8 +146,6 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
 
 extension on Element? {
   /// Returns `true` if this element is the `toString` method.
-  bool get isToStringMethod {
-    var self = this;
-    return self is MethodElement && self.name == _objectToStringName;
-  }
+  bool get isToStringMethod =>
+      this is MethodElement && name == _objectToStringName;
 }

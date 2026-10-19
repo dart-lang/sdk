@@ -8,7 +8,7 @@ import 'package:analyzer/src/fine/requirement_failure.dart';
 
 /// The status of analysis.
 sealed class AnalysisStatus {
-  const AnalysisStatus._();
+  const new _();
 
   bool get isIdle => !isWorking;
 
@@ -19,7 +19,7 @@ final class AnalysisStatusIdle extends AnalysisStatus {
   /// Statistics accumulated during the finished period of working.
   final AnalysisStatusWorkingStatistics? workingStatistics;
 
-  AnalysisStatusIdle._({required this.workingStatistics}) : super._();
+  new _({required this.workingStatistics}) : super._();
 
   @override
   bool get isWorking => false;
@@ -35,7 +35,7 @@ final class AnalysisStatusWorking extends AnalysisStatus {
   /// Accumulator for statistics during this working period.
   final AnalysisStatusWorkingStatistics workingStatistics;
 
-  AnalysisStatusWorking._({required this.workingStatistics}) : super._();
+  new _({required this.workingStatistics}) : super._();
 
   @override
   bool get isWorking => true;
@@ -87,7 +87,7 @@ class AnalysisStatusWorkingStatistics {
   final Map<RequirementFailureKindId, int>
   libraryDiagnosticsBundleRequirementsFailures = {};
 
-  AnalysisStatusWorkingStatistics({
+  new({
     required this.withFineDependencies,
     required this.changedFiles,
     required this.removedFiles,
@@ -150,8 +150,7 @@ class StatusSupport {
   /// The last status sent to [_eventsController].
   AnalysisStatus _currentStatus = AnalysisStatusIdle._(workingStatistics: null);
 
-  StatusSupport({required StreamController<Object> eventsController})
-    : _eventsController = eventsController;
+  new({required this._eventsController});
 
   /// The last status sent to [_eventsController].
   AnalysisStatus get currentStatus => _currentStatus;

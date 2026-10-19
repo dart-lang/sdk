@@ -1,0 +1,22 @@
+class C {
+  int operator [](int i) => 0;
+  void operator []=(int i, int v) {}
+}
+
+class D extends C {
+  void compound(num n, double d, C c, X s) {}
+  void ifNull(num n, C c, X s) {}
+  void plainAssignmentIndex(num n, C c, C? nc, X s) {}
+  void plainAssignmentValue(num n, C c, C? nc, X s) {}
+  void reads(num n, C c, C? nc, X s) {}
+  void valueContext(num n, C c, X s) {}
+}
+
+class X {}
+
+extension E on X {
+  int operator [](int i) => 0;
+  void operator []=(int i, int v) {}
+}
+
+main() {}

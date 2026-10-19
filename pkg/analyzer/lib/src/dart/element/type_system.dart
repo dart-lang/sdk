@@ -34,13 +34,14 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 class ExtensionTypeErasure extends ReplacementVisitor {
-  const ExtensionTypeErasure();
+  const new();
 
   TypeImpl perform(TypeImpl type) {
     return type.accept(this) ?? type;
@@ -69,12 +70,12 @@ class RelatedTypeParameters2 {
   final List<TypeParameterElementImpl> typeParameters;
   final List<TypeParameterTypeImpl> typeParameterTypes;
 
-  RelatedTypeParameters2._(this.typeParameters, this.typeParameterTypes);
+  new _(this.typeParameters, this.typeParameterTypes);
 }
 
 /// Aborts recursive type operations that exceed the depth limit.
 final class TypeOperationDepthLimitExceeded implements Exception {
-  const TypeOperationDepthLimitExceeded();
+  const new();
 }
 
 /// The [TypeSystem] implementation.
@@ -104,7 +105,7 @@ class TypeSystemImpl implements TypeSystem {
 
   int _typeOperationDepth = 0;
 
-  TypeSystemImpl({required TypeProvider typeProvider})
+  new({required TypeProvider typeProvider})
     : typeProvider = typeProvider as TypeProviderImpl {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
     _leastUpperBoundHelper = LeastUpperBoundHelper(this);
@@ -799,9 +800,8 @@ class TypeSystemImpl implements TypeSystem {
           hasProgress = true;
           break;
         } else if (freeParameters.every(defaults.containsKey)) {
-          defaults[parameter] = Substitution.fromMap(
-            defaults,
-          ).substituteType(value);
+          defaults[parameter] = Substitution.fromMap(defaults)
+              .substituteType(value);
           partials.remove(parameter);
           hasProgress = true;
           break;
@@ -1334,9 +1334,8 @@ class TypeSystemImpl implements TypeSystem {
     TypeImpl type, {
     required bool allowSuperBounded,
   }) {
-    return TypeBoundedHelper(
-      this,
-    ).isWellBounded(type, allowSuperBounded: allowSuperBounded);
+    return TypeBoundedHelper(this)
+        .isWellBounded(type, allowSuperBounded: allowSuperBounded);
   }
 
   /// Returns the least closure of [type] with respect to [typeParameters].
@@ -1677,6 +1676,7 @@ class TypeSystemImpl implements TypeSystem {
     required TypeImpl contextReturnType,
     DiagnosticReporter? diagnosticReporter,
     SyntacticEntity? errorEntity,
+    InvocationTarget? invocationTarget,
     required bool genericMetadataIsEnabled,
     required bool inferenceUsingBoundsIsEnabled,
     bool isConst = false,
@@ -1695,6 +1695,7 @@ class TypeSystemImpl implements TypeSystem {
       typeParameters,
       diagnosticReporter: diagnosticReporter,
       errorEntity: errorEntity,
+      invocationTarget: invocationTarget,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: strictInference,
@@ -2201,7 +2202,7 @@ class TypeSystemImpl implements TypeSystem {
 class _RemoveBoundsOfGenericFunctionTypeVisitor extends ReplacementVisitor {
   final DartType _bottomType;
 
-  _RemoveBoundsOfGenericFunctionTypeVisitor._(this._bottomType);
+  new _(this._bottomType);
 
   @override
   DartType visitTypeParameterBound(DartType type) {
@@ -2219,7 +2220,7 @@ class _TypeVariableEliminator extends Substitution {
   final DartType _topType;
   final DartType _bottomType;
 
-  _TypeVariableEliminator(this._topType, this._bottomType);
+  new(this._topType, this._bottomType);
 
   @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {

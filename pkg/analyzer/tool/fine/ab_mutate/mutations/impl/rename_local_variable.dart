@@ -17,7 +17,7 @@ class RenameLocalVariableMutation extends Mutation {
   final String localName;
   final int localOffset;
 
-  RenameLocalVariableMutation({
+  new({
     required super.path,
     required this.localName,
     required this.localOffset,
@@ -29,8 +29,7 @@ class RenameLocalVariableMutation extends Mutation {
   @override
   MutationResult apply(CompilationUnit unit, String content) {
     var declaration = unit.nodeCovering2(offset: localOffset);
-    if (declaration is! VariableDeclaration ||
-        declaration.name.lexeme != localName) {
+    if (declaration is! LocalVariable || declaration.name.lexeme != localName) {
       throw StateError('Did not find expected local variable.');
     }
 
@@ -91,10 +90,13 @@ class RenameLocalVariableMutation extends Mutation {
     var bodies = <FunctionBody>[];
     unit.visitChildren2(
       FunctionAstVisitor(
-        functionDeclaration: (node) {
-          bodies.add(node.functionExpression.body);
+        localFunctionDeclaration: (node) {
+          bodies.add(node.body);
         },
         methodDeclaration: (node) {
+          bodies.add(node.body);
+        },
+        topLevelFunctionDeclaration: (node) {
           bodies.add(node.body);
         },
       ),
@@ -102,24 +104,24 @@ class RenameLocalVariableMutation extends Mutation {
 
     // Collect locals in all function/method bodies.
     for (var body in bodies) {
-      var locals = <VariableDeclaration>[];
+      var locals = <LocalVariable>[];
       body.visitChildren2(
         FunctionAstVisitor(
-          variableDeclaration: (node) {
-            // Only locals inside block statements.
-            if (node.parent2?.parent2 is VariableDeclarationStatement) {
+          localVariable: (node) {
+            // Only locals declared by statements, not by `for` loops.
+            if (node.parent2?.parent2 is! ForPartsWithDeclarations) {
               locals.add(node);
             }
           },
         ),
       );
 
-      for (var variableDeclaration in locals) {
-        var offset = variableDeclaration.name.offset;
+      for (var localVariable in locals) {
+        var offset = localVariable.name.offset;
         mutations.add(
           RenameLocalVariableMutation(
             path: filePath,
-            localName: variableDeclaration.name.lexeme,
+            localName: localVariable.name.lexeme,
             localOffset: offset,
           ),
         );

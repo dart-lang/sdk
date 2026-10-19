@@ -369,7 +369,6 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override
@@ -378,7 +377,6 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override

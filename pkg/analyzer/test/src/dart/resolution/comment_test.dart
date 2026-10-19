@@ -4583,6 +4583,257 @@ Comment
 ''');
   }
 
+  test_docImport_partOf_class_qualified_importPrefix_extendsLibraryDocImportPrefix_deferred() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+/// @docImport 'a.dart' deferred as p;
+//                      ^^^^^^^^
+// [diag.docImportCannotBeDeferred] Doc imports can't be deferred.
+library;
+
+part 'part.dart';
+''',
+      part: r'''
+/// @docImport 'b.dart' as p;
+part of 'test.dart';
+
+/// [p.A] and [p.B].
+void g() {}
+''',
+    });
+
+    var node = results[part]!.findNode.comment('/// [p.A]');
+    assertResolvedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/part.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: A
+          element: <null>
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/part.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          element: <null>
+          staticType: null
+        element: <null>
+        staticType: null
+      element: <null>
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/part.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: B
+          element: package:test/b.dart::@class::B
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/part.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: B
+          element: package:test/b.dart::@class::B
+          staticType: null
+        element: package:test/b.dart::@class::B
+        staticType: null
+      element: package:test/b.dart::@class::B
+  tokens
+    /// [p.A] and [p.B].
+''');
+  }
+
+  test_docImport_partOf_class_qualified_importPrefix_extendsLibraryDocImportPrefix_shadowedByNoPrefix_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/x.dart', r'''
+int get p => 0;
+''');
+    var subpart = getFile('$testPackageLibPath/subpart.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+/// @docImport 'a.dart' as p;
+library;
+
+part 'part.dart';
+''',
+      getFile('$testPackageLibPath/part.dart'): r'''
+/// @docImport 'x.dart';
+part of 'test.dart';
+
+part 'subpart.dart';
+''',
+      subpart: r'''
+/// @docImport 'c.dart' as p;
+part of 'part.dart';
+
+/// [p.A] and [p.C].
+void g() {}
+''',
+    });
+
+    var node = results[subpart]!.findNode.comment('/// [p.A]');
+    assertResolvedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: A
+          element: <null>
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          element: <null>
+          staticType: null
+        element: <null>
+        staticType: null
+      element: <null>
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: C
+          element: package:test/c.dart::@class::C
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: C
+          element: package:test/c.dart::@class::C
+          staticType: null
+        element: package:test/c.dart::@class::C
+        staticType: null
+      element: package:test/c.dart::@class::C
+  tokens
+    /// [p.A] and [p.C].
+''');
+  }
+
+  test_docImport_partOf_class_qualified_importPrefix_extendsLibraryDocImportPrefix_shadowedByNoPrefix_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/x.dart', r'''
+set p(int _) {}
+''');
+    var subpart = getFile('$testPackageLibPath/subpart.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+/// @docImport 'a.dart' as p;
+library;
+
+part 'part.dart';
+''',
+      getFile('$testPackageLibPath/part.dart'): r'''
+/// @docImport 'x.dart';
+part of 'test.dart';
+
+part 'subpart.dart';
+''',
+      subpart: r'''
+/// @docImport 'c.dart' as p;
+part of 'part.dart';
+
+/// [p.A] and [p.C].
+void g() {}
+''',
+    });
+
+    var node = results[subpart]!.findNode.comment('/// [p.A]');
+    assertResolvedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: A
+          element: <null>
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: A
+          element: <null>
+          staticType: null
+        element: <null>
+        staticType: null
+      element: <null>
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: C
+          element: package:test/c.dart::@class::C
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: C
+          element: package:test/c.dart::@class::C
+          staticType: null
+        element: package:test/c.dart::@class::C
+        staticType: null
+      element: package:test/c.dart::@class::C
+  tokens
+    /// [p.A] and [p.C].
+''');
+  }
+
   test_docImport_partOf_class_qualified_importPrefix_extendsPartDocImportPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -4722,6 +4973,92 @@ Comment
       element: <null>
   tokens
     /// [p.C]
+''');
+  }
+
+  test_docImport_partOf_class_qualified_importPrefix_extendsPartDocImportPrefix_shadowsNoPrefix() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    newFile('$testPackageLibPath/c.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/x.dart', r'''
+int get p => 0;
+''');
+    var subpart = getFile('$testPackageLibPath/subpart.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+library;
+
+part 'part.dart';
+''',
+      getFile('$testPackageLibPath/part.dart'): r'''
+/// @docImport 'x.dart';
+/// @docImport 'b.dart' as p;
+part of 'test.dart';
+
+part 'subpart.dart';
+''',
+      subpart: r'''
+/// @docImport 'c.dart' as p;
+part of 'part.dart';
+
+/// [p.B] and [p.C].
+void g() {}
+''',
+    });
+
+    var node = results[subpart]!.findNode.comment('/// [p.B]');
+    assertResolvedNodeText(node, r'''
+Comment
+  references
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: B
+          element: package:test/b.dart::@class::B
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: B
+          element: package:test/b.dart::@class::B
+          staticType: null
+        element: package:test/b.dart::@class::B
+        staticType: null
+      element: package:test/b.dart::@class::B
+    CommentReference
+      components
+        CommentReferenceComponent
+          name: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+        CommentReferenceComponent
+          period: .
+          name: C
+          element: package:test/c.dart::@class::C
+      expression: PrefixedIdentifier
+        prefix: SimpleIdentifier
+          token: p
+          element: <testLibrary>::@fragment::package:test/subpart.dart::@docImportPrefix::p
+          staticType: null
+        period: .
+        identifier: SimpleIdentifier
+          token: C
+          element: package:test/c.dart::@class::C
+          staticType: null
+        element: package:test/c.dart::@class::C
+        staticType: null
+      element: package:test/c.dart::@class::C
+  tokens
+    /// [p.B] and [p.C].
 ''');
   }
 

@@ -4,6 +4,10 @@
 
 /// An implementation of [Pipeline] that runs in-memory.
 ///
+/// Kept alongside `test/memory_pipeline_test.dart` so this general-purpose
+/// modular framework continues to support in-memory execution and keeps the
+/// shared [Pipeline] abstractions free of `dart:io` dependencies.
+///
 /// To define a step, implement [MemoryModularStep].
 library;
 

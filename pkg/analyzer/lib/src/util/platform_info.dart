@@ -12,7 +12,7 @@ import 'package:analyzer/src/util/platform_info_js.dart'
 const platform = PlatformInfoImpl();
 
 abstract class PlatformInfo {
-  const PlatformInfo();
+  const new();
 
   /// Returns [Platform.environment].
   ///

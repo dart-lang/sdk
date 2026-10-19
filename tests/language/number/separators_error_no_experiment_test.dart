@@ -61,7 +61,7 @@ main() {
   // [cfe] This requires the experimental 'digit-separators' language feature to be enabled.
   x = 3._14;
   //    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter '_14' isn't defined for the type 'int'.
 
   // Exponent notation.
@@ -96,6 +96,6 @@ main() {
 
   x = 1._0e-1;
   //    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter '_0e' isn't defined for the type 'int'.
 }

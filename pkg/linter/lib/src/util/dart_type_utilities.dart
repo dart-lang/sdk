@@ -232,8 +232,6 @@ bool _isTypeUnrelatedToFunctionType(DartType type) {
   return true;
 }
 
-typedef AstNodePredicate = bool Function(AstNode node);
-
 extension on TypeSystem {
   bool interfaceTypesAreUnrelated(
     InterfaceType leftType,

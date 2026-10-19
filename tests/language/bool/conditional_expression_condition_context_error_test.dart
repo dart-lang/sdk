@@ -7,6 +7,6 @@ T castObject<T>(Object value) => value as T;
 main() {
   print((castObject(true)..whatever()) ? 1 : 2);
   //                       ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'whatever' isn't defined for the type 'bool'.
 }

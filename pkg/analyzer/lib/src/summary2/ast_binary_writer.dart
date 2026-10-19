@@ -15,7 +15,7 @@ import 'package:analyzer/src/summary2/tokens_writer.dart';
 class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   final ResolutionSink _sink;
 
-  AstBinaryWriter({required ResolutionSink sink}) : _sink = sink;
+  new({required this._sink});
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
@@ -391,13 +391,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _sink.writeEnum(AstNodeTag.FormalParameterList);
     _writeNodeList(node.requiredPositionalFormalParameters);
     _writeOptionalNode(node.delimitedFormalParameters);
-  }
-
-  @override
-  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _sink.writeEnum(AstNodeTag.ForPartsWithDeclarations);
-    _writeNode(node.variables);
-    _storeForParts(node);
   }
 
   @override
@@ -1068,22 +1061,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _storeExpression(node);
   }
 
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _sink.writeEnum(AstNodeTag.VariableDeclarationList);
-    _writeByte(
-      AstBinaryFlags.encode(
-        isConst: node.isConst,
-        isFinal: node.isFinal,
-        isLate: node.lateKeyword != null,
-        isVar: node.keyword?.keyword == Keyword.VAR,
-      ),
-    );
-    _writeOptionalNode(node.type);
-    _writeNodeList(node.variables);
-    _storeAnnotatedNode(node);
-  }
-
   void _storeAnnotatedNode(AnnotatedNode node) {
     _writeNodeList(node.metadata);
   }
@@ -1183,13 +1160,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     DotShorthandContextResolutionImpl resolution,
   ) {
     switch (resolution) {
+      case MissingDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.missing);
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.invalid);
+        _sink.writeType(resolution.contextType);
+        _sink.writeType(resolution.lookupType);
       case ValidDotShorthandContextResolutionImpl():
         _sink.writeEnum(DotShorthandContextResolutionTag.valid);
         _sink.writeType(resolution.contextType);
         _sink.writeType(resolution.lookupType);
-      case InvalidDotShorthandContextResolutionImpl():
-        _sink.writeEnum(DotShorthandContextResolutionTag.invalid);
-        _sink.writeType(resolution.contextType);
     }
   }
 

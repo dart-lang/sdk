@@ -1316,49 +1316,39 @@ extension on AstNode {
   /// This is usually a [Declaration] but could be a
   /// [PrimaryConstructorDeclaration].
   AstNode? get declaration {
-    var self = this;
-    var parent = self.parent;
+    var parent = this.parent;
 
-    if (self is PrimaryConstructorName &&
+    if (this is PrimaryConstructorName &&
         parent is PrimaryConstructorDeclaration) {
       return parent;
     }
 
-    if (self is FunctionExpression && parent is FunctionDeclaration) {
+    if (this is FunctionExpression && parent is FunctionDeclaration) {
       return parent;
     }
 
-    if (self is SimpleIdentifier &&
+    if (this is SimpleIdentifier &&
         parent is ConstructorDeclaration &&
-        parent.typeName == self) {
+        parent.typeName == this) {
       return parent;
     }
 
-    switch (self) {
-      case ConstructorDeclaration():
-      case FunctionDeclaration():
-      case MethodDeclaration():
-      case PrimaryConstructorDeclaration():
-        return self;
-    }
-
-    return null;
+    return switch (this) {
+      ConstructorDeclaration() ||
+      FunctionDeclaration() ||
+      MethodDeclaration() ||
+      PrimaryConstructorDeclaration() => this,
+      _ => null,
+    };
   }
 
-  FormalParameterList? get formalParameterList {
-    var self = this;
-    switch (self) {
-      case ConstructorDeclaration():
-        return self.parameters;
-      case FunctionDeclaration():
-        return self.functionExpression.parameters;
-      case MethodDeclaration():
-        return self.parameters;
-      case PrimaryConstructorDeclaration():
-        return self.formalParameters;
-    }
-    return null;
-  }
+  FormalParameterList? get formalParameterList => switch (this) {
+    ConstructorDeclaration() => parameters,
+    FunctionDeclaration() => functionExpression.parameters,
+    MethodDeclaration() => parameters,
+    PrimaryConstructorDeclaration() => formalParameters,
+    _ => null,
+  };
 }
 
 extension _FormalParameterListExtension on FormalParameterList {

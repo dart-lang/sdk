@@ -207,7 +207,30 @@ augment class A {
 ''');
     var node = result.findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@65
+          defaultType: null
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@61
+    element: <testLibrary>::@class::A::@method::foo
+      type: void Function()
+V1: MethodDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -244,7 +267,30 @@ augment class A {
 ''');
     var node = result.findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@68
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@64
+    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>()
+V1: MethodDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -287,7 +333,34 @@ void f(A a) {
 ''');
     var node = result.findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@68
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@71
+          defaultType: null
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@64
+    element: <testLibrary>::@class::A::@method::foo
+      type: void Function<T>()
+V1: MethodDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -941,9 +1014,32 @@ augment void f<T>();
 //             ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
 ''');
-    var node = result.findNode.functionDeclaration('augment void f');
+    var node = result.findNode.topLevelFunctionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@27
+          defaultType: null
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@25
+    element: <testLibrary>::@function::f
+      type: void Function()
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -979,9 +1075,32 @@ FunctionDeclaration
 void f<T>() {}
 augment void f<T>();
 ''');
-    var node = result.findNode.functionDeclaration('augment void f');
+    var node = result.findNode.topLevelFunctionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@30
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@28
+    element: <testLibrary>::@function::f
+      type: void Function<T>()
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -1023,9 +1142,36 @@ void g() {
   f<int>();
 }
 ''');
-    var node = result.findNode.functionDeclaration('augment void f');
+    var node = result.findNode.topLevelFunctionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@30
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@33
+          defaultType: null
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@28
+    element: <testLibrary>::@function::f
+      type: void Function<T>()
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void

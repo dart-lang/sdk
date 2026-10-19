@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ChangeToStaticAccessTest extends FixProcessorTest {
+class ChangeToStaticAccessTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.changeToStaticAccess;
 

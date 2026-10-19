@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveDeadCodeClassicTest extends FixProcessorTest
+class RemoveDeadCodeClassicTest extends FixProcessorForBuiltInDiagnosticTest
     with RemoveDeadCodeClassicTestCases {
   @override
   String get testPackageLanguageVersion => '3.8.0';
@@ -25,7 +25,7 @@ class RemoveDeadCodeClassicTest extends FixProcessorTest
 
 /// Test cases for dead code removal that don't rely on the
 /// `sound-flow-analysis` feature
-mixin RemoveDeadCodeClassicTestCases on FixProcessorTest {
+mixin RemoveDeadCodeClassicTestCases on FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeDeadCode;
 
@@ -909,7 +909,8 @@ void f() {
 }
 
 @reflectiveTest
-class RemoveDeadCodeSoundFlowAnalysisTest extends FixProcessorTest
+class RemoveDeadCodeSoundFlowAnalysisTest
+    extends FixProcessorForBuiltInDiagnosticTest
     with RemoveDeadCodeClassicTestCases {
   Future<void> test_conditional_unnecessaryNullCheck_equalsNull() async {
     await resolveTestCode(r'''

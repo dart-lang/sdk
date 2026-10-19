@@ -15,6 +15,7 @@ import 'package:native_stack_traces/src/macho.dart' show MachO;
 import 'package:path/path.dart' as path;
 
 final isAOTRuntime = isVmAotConfiguration;
+final isInterpreter = isVmDynConfiguration;
 final buildDir = path.dirname(Platform.executable);
 final sdkDir = path.dirname(path.dirname(buildDir));
 late final platformDill = () {

@@ -50,7 +50,7 @@ Element? getElementOfNode(AstNode? node) {
 
 /// Return the [Element] of the given V1 [node], or `null` if [node] is `null`
 /// or does not have an element.
-@ToBeDeprecated('Use getElementOfNode2 instead')
+@V1Ast('The V2 counterpart is getElementOfNode2.')
 Element? getElementOfNodeV1(AstNode? node) {
   if (node == null) {
     return null;
@@ -163,7 +163,7 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
 
 /// Returns the [MockLibraryImportElement] that is referenced by the V1
 /// [prefixNode] with a [PrefixElement], maybe `null`.
-@ToBeDeprecated('Use _getImportElementInfoFromReference instead')
+@V1Ast('The V2 counterpart is _getImportElementInfoFromReference.')
 MockLibraryImportElement? _getImportElementInfoFromReferenceV1(
   ImportPrefixReference prefixNode,
 ) {
@@ -199,7 +199,7 @@ MockLibraryImportElement? _getImportElementInfoFromReferenceV1(
 
 /// Returns the [MockLibraryImportElement] that is referenced by the V1
 /// [prefixNode] with a [PrefixElement], maybe `null`.
-@ToBeDeprecated('Use _getImportElementInfo2 instead')
+@V1Ast('The V2 counterpart is _getImportElementInfo2.')
 MockLibraryImportElement? _getImportElementInfoV1(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
@@ -311,7 +311,7 @@ class MatchInfo {
   final int length;
   final MatchKind matchKind;
 
-  MatchInfo(this.offset, this.length, this.matchKind);
+  new(this.offset, this.length, this.matchKind);
 }
 
 /// Instances of the enum [MatchKind] represent the kind of reference that was
@@ -347,7 +347,7 @@ class MatchKind {
 
   final String name;
 
-  const MatchKind(this.name);
+  const new(this.name);
 
   @override
   String toString() => name;
@@ -357,7 +357,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   final Element element;
   final List<MatchInfo> references = [];
 
-  ReferencesCollector(this.element);
+  new(this.element);
 
   @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1114,7 +1114,7 @@ V1: PropertyAccess
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.singleReceiverPropertyExtraction;
@@ -1150,7 +1150,7 @@ typedef void F({a = b?.foo});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.singleReceiverPropertyExtraction;
@@ -1184,7 +1184,7 @@ V1: PropertyAccess
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?..foo}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.singleFormalParameter;
@@ -2757,7 +2757,7 @@ extension type A(int it) {}
 void f(A a) {
   (a).foo;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 }
 ''');
 
@@ -3346,7 +3346,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.$3;
 //  ^^
-// [diag.undefinedGetter] The getter '$3' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$3' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3425,7 +3425,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.$0a;
 //  ^^^
-// [diag.undefinedGetter] The getter '$0a' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$0a' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3462,7 +3462,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.$zero;
 //  ^^^^^
-// [diag.undefinedGetter] The getter '$zero' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$zero' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3499,7 +3499,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.a$0;
 //  ^^^
-// [diag.undefinedGetter] The getter 'a$0' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a$0' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3571,7 +3571,7 @@ V1: PropertyAccess
 void f(({int foo}) r) {
   r.bar;
 //  ^^^
-// [diag.undefinedGetter] The getter 'bar' isn't defined for the type '({int foo})'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'bar' isn't defined for the type '({int foo})'.
 }
 ''');
 
@@ -3610,7 +3610,7 @@ V1: PropertyAccess
 void f((int foo, String) r) {
   r.foo;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -4231,7 +4231,7 @@ V1: PropertyAccess
 ''');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_realTarget_views() async {
     var result = await resolveTestCode(r'''
 void f(int? x) {
@@ -4615,7 +4615,7 @@ V1: PropertyAccess
 void f() {
   (a).foo;
 // ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 

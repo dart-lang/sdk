@@ -333,13 +333,13 @@ $script
 
 /*
 Helper function to turn WebAssembly arrays into strings (which isn't possible
-with JavaScript alone). Generated from this WAT module via `wasm-as -all`
-and `base64 -w 0`:
+with JavaScript alone). Generated from this WAT module via `wasm-as --enable-gc
+--enable-reference-types` and `base64 -w 0`:
 
 (module
   (type $i8array (array (mut i8)))
   (type $i16array (array (mut i16)))
-  (type $externarray (array (mut externref)))
+  (type $externarray (array (mut (ref extern))))
   (import "wasm:js-string" "fromCharCodeArray"
     (func $fromCharCodeArray (param (ref null $i16array) i32 i32) (result (ref extern)))
   )
@@ -407,7 +407,7 @@ and `base64 -w 0`:
   )
 
   (func (export "stringToCharCodeArray")
-    (param $str externref)
+    (param $str (ref extern))
     (param $array (ref $i16array))
     (param $start i32)
 
@@ -420,12 +420,12 @@ and `base64 -w 0`:
 
   (func (export "emptyExternRefArray")
     (result (ref $externarray))
-    (array.new_default $externarray (i32.const 0))
+    (array.new $externarray (extern.convert_any (ref.i31 (i32.const 0))) (i32.const 0))
   )
 )
  */
 const _wasmStandaloneArrayHelper =
-    'AGFzbQEAAAABOQledwFeeAFebwFgA2MAf38BZG9gA29jAH8Bf2ADZAF/fwFkb2ADZAB/fwFkb2ADb2QAfwBgAAFkAgJHAg53YXNtOmpzLXN0cmluZxFmcm9tQ2hhckNvZGVBcnJheQADDndhc206anMtc3RyaW5nEWludG9DaGFyQ29kZUFycmF5AAQDBQQFBgcIB2AEFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAIXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAxVzdHJpbmdUb0NoYXJDb2RlQXJyYXkABBNlbXB0eUV4dGVyblJlZkFycmF5AAUKagRGAgF/AWQAIAIhA0EAIAL7BgAhBAJAA0AgA0F/aiEDIANBAEgNASAEIAMgACADIAFq+w0B+w4ADAALAAsgBEEAIAT7DxAACw0AIAAgASABIAJqEAALCwAgACABIAIQARoLBwBBAPsHAgs=';
+    'AGFzbQEAAAABOwledwFeeAFeZG8BYANjAH9/AWRvYANvYwB/AX9gA2QBf38BZG9gA2QAf38BZG9gA2RvZAB/AGAAAWQCAkcCDndhc206anMtc3RyaW5nEWZyb21DaGFyQ29kZUFycmF5AAMOd2FzbTpqcy1zdHJpbmcRaW50b0NoYXJDb2RlQXJyYXkABAMFBAUGBwgHYAQUc3RyaW5nRnJvbUFzY2lpQnl0ZXMAAhdzdHJpbmdGcm9tQ2hhckNvZGVBcnJheQADFXN0cmluZ1RvQ2hhckNvZGVBcnJheQAEE2VtcHR5RXh0ZXJuUmVmQXJyYXkABQpwBEYCAX8BZAAgAiEDQQAgAvsGACEEAkADQCADQX9qIQMgA0EASA0BIAQgAyAAIAMgAWr7DQH7DgAMAAsACyAEQQAgBPsPEAALDQAgACABIAEgAmoQAAsLACAAIAEgAhABGgsNAEEA+xz7G0EA+wYCCw==';
 
 /*
 
@@ -762,6 +762,7 @@ String dart2wasmHtml(
       loadDeferredModules: (modules, handleWasmBytes) =>
         Promise.all(modules.map((m) => handleWasmBytes(m, fetch(m)))),
     });
+    window.appInstanceForTesting = appInstance;
     dartMainRunner(() => {
       appInstance.invokeMain();
     });

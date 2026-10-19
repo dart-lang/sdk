@@ -8,7 +8,7 @@ part of '../types.dart';
 /// uniqueness.
 class MapPatternStaticType<Type extends Object>
     extends RestrictedStaticType<Type, MapTypeRestriction<Type>> {
-  MapPatternStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,
@@ -96,12 +96,7 @@ class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
   final Set<MapKey> keys;
   final String typeArgumentsText;
 
-  MapTypeRestriction(
-    this.keyType,
-    this.valueType,
-    this.keys,
-    this.typeArgumentsText,
-  );
+  new(this.keyType, this.valueType, this.keys, this.typeArgumentsText);
 
   @override
   late final int hashCode = Object.hash(

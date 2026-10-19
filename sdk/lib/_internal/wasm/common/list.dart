@@ -100,8 +100,10 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
         return;
       }
 
-      if (iterable is List) {
-        final iterableList = unsafeCast<List<E>>(iterable);
+      if (iterable case List<E> iterableList) {
+        if (skipCount + length > iterableList.length) {
+          throw IterableElementError.tooFew();
+        }
         for (int i = skipCount, j = start; i < skipCount + length; i++, j++) {
           _data[j] = iterableList[i];
         }
@@ -145,8 +147,7 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
       return;
     }
 
-    if (iterable is List) {
-      final iterableList = unsafeCast<List<E>>(iterable);
+    if (iterable case List<E> iterableList) {
       final elementCount = iterableList.length;
       RangeErrorUtils.checkValidRange(index, index + elementCount, length);
       for (int i = 0, j = index; i < elementCount; i++, j++) {
@@ -155,6 +156,7 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
       return;
     }
 
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     for (var value in iterable) {
       this[index++] = value;
     }

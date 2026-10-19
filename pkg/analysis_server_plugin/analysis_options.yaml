@@ -19,9 +19,9 @@ analyzer:
 linter:
   rules:
     - always_use_package_imports
+    - avoid_bool_literals_in_conditional_expressions
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
-    - avoid_bool_literals_in_conditional_expressions
     - avoid_unused_constructor_parameters
     - flutter_style_todos
     - no_literal_bool_comparisons
@@ -29,6 +29,8 @@ linter:
     - unawaited_futures
     - unnecessary_async
     - unnecessary_breaks
+    - unnecessary_const_in_enum_constructor
     - unnecessary_library_directive
     - unnecessary_parenthesis
+    - unnecessary_type_name_in_constructor
     - unreachable_from_main

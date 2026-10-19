@@ -30,7 +30,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 class WidgetPreviewVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
-  WidgetPreviewVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   /// Check is [node] is a Widget Preview application and verify its
   /// correctness.
@@ -61,10 +61,10 @@ class WidgetPreviewVerifier {
         isFactory: parent.factoryKeyword != null,
         parameters: parent.parameters,
       ),
-      FunctionDeclaration() => _isValidFunctionPreviewApplication(
+      TopLevelFunctionDeclaration() => _isValidFunctionPreviewApplication(
         declaration: parent,
       ),
-      MethodDeclaration() => _isValidMethodPreviewApplication(
+      MethodDeclaration2() => _isValidMethodPreviewApplication(
         declaration: parent,
       ),
       PrimaryConstructorBody(:var declaration?) =>
@@ -169,24 +169,19 @@ class WidgetPreviewVerifier {
   ///
   /// Function preview applications are valid if:
   ///   - The function name is public
-  ///   - The function is not a nested function
   ///   - The function is not external
   ///   - The function returns a subtype of `Widget` or `WidgetBuilder`
   ///   - The function does not have any required arguments
   bool _isValidFunctionPreviewApplication({
-    required FunctionDeclaration declaration,
+    required TopLevelFunctionDeclaration declaration,
   }) {
-    if (declaration case FunctionDeclaration(
+    if (declaration case TopLevelFunctionDeclaration(
       :var name,
       :var externalKeyword,
       :NamedType returnType,
-      functionExpression: FunctionExpression(
-        parameters: FormalParameterList(:var allFormalParameters),
-      ),
+      formalParameters: FormalParameterList(:var allFormalParameters),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
-          // Check for nested function.
-          declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
           !_hasRequiredParameters(allFormalParameters);
@@ -204,19 +199,16 @@ class WidgetPreviewVerifier {
   ///   - The function returns a subtype of `Widget` or `WidgetBuilder`
   ///   - The function does not have any required arguments
   bool _isValidMethodPreviewApplication({
-    required MethodDeclaration declaration,
+    required MethodDeclaration2 declaration,
   }) {
-    if (declaration case MethodDeclaration(
-      :var isStatic,
+    if (declaration case MethodDeclaration2(
+      staticKeyword: _?,
       :var externalKeyword,
       :var name,
       :NamedType returnType,
-      parameters: FormalParameterList(:var allFormalParameters),
+      formalParameters: FormalParameterList(:var allFormalParameters),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
-          isStatic &&
-          // Check for nested function.
-          declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
           !_hasRequiredParameters(allFormalParameters);
@@ -230,9 +222,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor
   final DiagnosticReporter diagnosticReporter;
 
   NamedArgument? rootArgument;
-  _InvalidWidgetPreviewArgumentDetectorVisitor({
-    required this.diagnosticReporter,
-  });
+  new({required this.diagnosticReporter});
 
   @override
   void visitArgumentList(ArgumentList node) {

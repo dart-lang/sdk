@@ -86,7 +86,7 @@ class ElementResolver {
 
   /// Initialize a newly created visitor to work for the given [_typeAnalyzer]
   /// to resolve the nodes in a compilation unit.
-  ElementResolver(this._typeAnalyzer)
+  new(this._typeAnalyzer)
     : _definingLibrary = _typeAnalyzer.definingLibrary,
       _methodInvocationResolver = MethodInvocationResolver(_typeAnalyzer);
 
@@ -201,15 +201,11 @@ class ElementResolver {
 
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
 
-  void visitFieldDeclaration(FieldDeclaration node) {}
-
   void visitFieldFormalParameter(FieldFormalParameter node) {}
 
-  void visitFunctionDeclaration(FunctionDeclaration node) {}
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {}
 
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {}
-
-  void visitGenericTypeAlias(GenericTypeAlias node) {}
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var importElement = node.libraryImport;
@@ -235,8 +231,6 @@ class ElementResolver {
   }
 
   void visitLibraryDirective(LibraryDirective node) {}
-
-  void visitMethodDeclaration(MethodDeclaration node) {}
 
   void visitMixinDeclaration(MixinDeclaration node) {}
 
@@ -370,8 +364,6 @@ class ElementResolver {
     }
   }
 
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {}
-
   void visitTypeParameter(TypeParameter node) {}
 
   void visitUnqualifiedFunctionInvocation(
@@ -385,8 +377,6 @@ class ElementResolver {
       contextType: contextType,
     );
   }
-
-  void visitVariableDeclarationList(VariableDeclarationList node) {}
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
   /// using those argument, compute the list of parameters that correspond to

@@ -22,7 +22,7 @@ import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 class AstBinaryReader {
   final ResolutionReader _reader;
 
-  AstBinaryReader({required ResolutionReader reader}) : _reader = reader;
+  new({required this._reader});
 
   AstNode readNode() {
     var node = _readNode();
@@ -434,14 +434,17 @@ class AstBinaryReader {
 
   DotShorthandContextResolutionImpl _readDotShorthandContextResolution() {
     switch (_reader.readEnum(DotShorthandContextResolutionTag.values)) {
+      case DotShorthandContextResolutionTag.missing:
+        return const MissingDotShorthandContextResolutionImpl();
+      case DotShorthandContextResolutionTag.invalid:
+        return InvalidDotShorthandContextResolutionImpl(
+          contextType: _reader.readType() as TypeImpl,
+          lookupType: _reader.readType() as TypeImpl,
+        );
       case DotShorthandContextResolutionTag.valid:
         return ValidDotShorthandContextResolutionImpl(
           contextType: _reader.readType() as TypeImpl,
           lookupType: _reader.readType() as InterfaceTypeImpl,
-        );
-      case DotShorthandContextResolutionTag.invalid:
-        return InvalidDotShorthandContextResolutionImpl(
-          contextType: _reader.readType(),
         );
     }
   }
@@ -657,19 +660,6 @@ class AstBinaryReader {
     return !kind.isPositional && AstBinaryFlags.formalParameterIsRequired(flags)
         ? Tokens.required_()
         : null;
-  }
-
-  ForPartsWithDeclarations _readForPartsWithDeclarations() {
-    var variables = _readNode() as VariableDeclarationListImpl;
-    var condition = _readOptionalNode() as ExpressionImpl?;
-    var updaters = _readNodeList<ExpressionImpl>();
-    return ForPartsWithDeclarationsImpl(
-      variables: variables,
-      condition2: condition,
-      leftSeparator: Tokens.semicolon(),
-      rightSeparator: Tokens.semicolon(),
-      updaters2: updaters,
-    );
   }
 
   ForPartsWithExpression _readForPartsWithExpression() {
@@ -1235,7 +1225,7 @@ class AstBinaryReader {
       case AstNodeTag.ForElement:
         return _readForElement();
       case AstNodeTag.ForPartsWithDeclarations:
-        return _readForPartsWithDeclarations();
+        throw UnsupportedError('Local variables are not serialized.');
       case AstNodeTag.ForPartsWithExpression:
         return _readForPartsWithExpression();
       case AstNodeTag.FieldFormalParameter:
@@ -1414,9 +1404,8 @@ class AstBinaryReader {
       case AstNodeTag.UnaryOperatorInvocation:
         return _readUnaryOperatorInvocation();
       case AstNodeTag.VariableDeclaration:
-        return _readVariableDeclaration();
       case AstNodeTag.VariableDeclarationList:
-        return _readVariableDeclarationList();
+        throw UnsupportedError('Variables are not serialized.');
     }
   }
 
@@ -1949,47 +1938,6 @@ class AstBinaryReader {
     node.resolution = _reader.readOptionalObject(_readNamedReadResolution);
     _readExpressionResolution(node);
     return node;
-  }
-
-  VariableDeclaration _readVariableDeclaration() {
-    var flags = _readByte();
-    var name = _readDeclarationName();
-    var initializer = _readOptionalNode() as ExpressionImpl?;
-
-    var node = VariableDeclarationImpl(
-      comment: null,
-      metadata: [],
-      name: name,
-      equals: Tokens.eq(),
-      initializer2: initializer,
-    );
-
-    node.hasInitializer = AstBinaryFlags.hasInitializer(flags);
-
-    return node;
-  }
-
-  VariableDeclarationList _readVariableDeclarationList() {
-    var flags = _readByte();
-    var type = _readOptionalNode() as TypeAnnotationImpl?;
-    var variables = _readNodeList<VariableDeclarationImpl>();
-    var metadata = _readNodeList<AnnotationImpl>();
-
-    return VariableDeclarationListImpl(
-      comment: null,
-      keyword: Tokens.choose(
-        AstBinaryFlags.isConst(flags),
-        Tokens.const_(),
-        AstBinaryFlags.isFinal(flags),
-        Tokens.final_(),
-        AstBinaryFlags.isVar(flags),
-        Tokens.var_(),
-      ),
-      lateKeyword: AstBinaryFlags.isLate(flags) ? Tokens.late_() : null,
-      metadata: metadata,
-      type: type,
-      variables: variables,
-    );
   }
 
   void _resolveArguments(Element? executable, ArgumentListImpl argumentList) {

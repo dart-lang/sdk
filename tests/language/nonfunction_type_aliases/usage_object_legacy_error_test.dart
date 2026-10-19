@@ -47,12 +47,12 @@ abstract class D4 = C with T;
 main() {
   T.named();
 //  ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
 // [cfe] Member not found: 'Object.named'.
 
   T.staticMethod<T>();
 //  ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
 // [cfe] A constructor invocation can't have type arguments after the constructor name.
 // [cfe] Member not found: 'Object.staticMethod'.
 }

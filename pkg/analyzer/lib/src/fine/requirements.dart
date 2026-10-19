@@ -11,6 +11,7 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
+import 'package:analyzer/src/fine/library_manifest_ids.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
@@ -43,7 +44,7 @@ class ExportRequirement {
   final List<ExportRequirementCombinator> combinators;
   final Map<LookupName, ManifestItemId> exportedIds;
 
-  ExportRequirement({
+  new({
     required this.fragmentUri,
     required this.exportedUri,
     required this.hashForRequirements,
@@ -51,7 +52,7 @@ class ExportRequirement {
     required this.exportedIds,
   });
 
-  factory ExportRequirement.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExportRequirement(
       fragmentUri: reader.readUri(),
       exportedUri: reader.readUri(),
@@ -76,7 +77,7 @@ class ExportRequirement {
     }
 
     // SAFETY: every library has the manifest.
-    var libraryManifest = libraryElement.manifest!.instance;
+    var libraryManifest = libraryElement.manifest!.ids!;
 
     if (libraryManifest.hashForRequirements == hashForRequirements) {
       return null;
@@ -155,9 +156,9 @@ class ExportRequirement {
 
 @visibleForTesting
 sealed class ExportRequirementCombinator {
-  ExportRequirementCombinator();
+  new();
 
-  factory ExportRequirementCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     var kind = reader.readEnum(_ExportRequirementCombinatorKind.values);
     switch (kind) {
       case _ExportRequirementCombinatorKind.hide:
@@ -175,9 +176,9 @@ final class ExportRequirementHideCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> hiddenBaseNames;
 
-  ExportRequirementHideCombinator({required this.hiddenBaseNames});
+  new({required this.hiddenBaseNames});
 
-  factory ExportRequirementHideCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExportRequirementHideCombinator(
       hiddenBaseNames: reader.readBaseNameSet(),
     );
@@ -195,9 +196,9 @@ final class ExportRequirementShowCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> shownBaseNames;
 
-  ExportRequirementShowCombinator({required this.shownBaseNames});
+  new({required this.shownBaseNames});
 
-  factory ExportRequirementShowCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExportRequirementShowCombinator(
       shownBaseNames: reader.readBaseNameSet(),
     );
@@ -246,7 +247,7 @@ class InstanceItemRequirements {
   ManifestItemIdList? allDeclaredSetters;
   ManifestItemIdList? allDeclaredMethods;
 
-  InstanceItemRequirements({
+  new({
     required this.requestedDeclaredFields,
     required this.requestedDeclaredGetters,
     required this.requestedDeclaredSetters,
@@ -257,7 +258,7 @@ class InstanceItemRequirements {
     required this.allDeclaredMethods,
   });
 
-  factory InstanceItemRequirements.empty() {
+  factory empty() {
     return InstanceItemRequirements(
       requestedDeclaredFields: {},
       requestedDeclaredGetters: {},
@@ -270,7 +271,7 @@ class InstanceItemRequirements {
     );
   }
 
-  factory InstanceItemRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return InstanceItemRequirements(
       requestedDeclaredFields: reader.readNameToOptionalIdMap(),
       requestedDeclaredGetters: reader.readNameToOptionalIdMap(),
@@ -333,7 +334,7 @@ class InterfaceItemRequirements {
   /// The recorded value of [ClassItem.directSubtypesOfSealed].
   ManifestItemIdList? directSubtypesOfSealed;
 
-  InterfaceItemRequirements({
+  new({
     required this.interfaceId,
     required this.hasNonFinalField,
     required this.allDeclaredConstructors,
@@ -348,7 +349,7 @@ class InterfaceItemRequirements {
     required this.directSubtypesOfSealed,
   });
 
-  factory InterfaceItemRequirements.empty() {
+  factory empty() {
     return InterfaceItemRequirements(
       interfaceId: null,
       hasNonFinalField: null,
@@ -365,7 +366,7 @@ class InterfaceItemRequirements {
     );
   }
 
-  factory InterfaceItemRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
       hasNonFinalField: reader.readOptionalBool(),
@@ -430,13 +431,13 @@ class LibraryExportRequirements {
   final Set<LookupName> declaredTopNames;
   final List<ExportRequirement> exports;
 
-  LibraryExportRequirements({
+  new({
     required this.libraryUri,
     required this.declaredTopNames,
     required this.exports,
   });
 
-  factory LibraryExportRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryExportRequirements(
       libraryUri: reader.readUri(),
       declaredTopNames: reader.readLookupNameSet(),
@@ -495,7 +496,7 @@ class LibraryExportRequirements {
         }).toList();
 
         // SAFETY: every library has the manifest.
-        var manifest = exportedLibrary.manifest!.instance;
+        var manifest = exportedLibrary.manifest!.ids!;
 
         var exportMap = globalResultRequirements.untracked(
           reason: 'Recoding requirements',
@@ -616,7 +617,7 @@ class LibraryRequirements {
   ManifestItemIdList? allDeclaredGetters;
   ManifestItemIdList? allDeclaredSetters;
 
-  LibraryRequirements({
+  new({
     required this.hashForRequirements,
     required this.name,
     required this.isOriginNotExistingFile,
@@ -653,7 +654,7 @@ class LibraryRequirements {
     required this.allDeclaredSetters,
   });
 
-  factory LibraryRequirements.fromManifest(LibraryManifest manifest) {
+  factory fromManifest(LibraryManifestIds manifest) {
     return LibraryRequirements(
       hashForRequirements: manifest.hashForRequirements,
       name: null,
@@ -692,7 +693,7 @@ class LibraryRequirements {
     );
   }
 
-  factory LibraryRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryRequirements(
       hashForRequirements: Hash.read(reader),
       name: reader.readOptionalStringUtf8(),
@@ -806,7 +807,7 @@ class OpaqueApiUse {
   final Uri? targetElementLibraryUri;
   final String? targetElementName;
 
-  OpaqueApiUse({
+  new({
     required this.kindId,
     required this.targetRuntimeType,
     required this.methodName,
@@ -814,7 +815,7 @@ class OpaqueApiUse {
     this.targetElementName,
   });
 
-  factory OpaqueApiUse.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return OpaqueApiUse(
       kindId: reader.readEnum(RequirementFailureKindId.values),
       targetRuntimeType: reader.readStringUtf8(),
@@ -880,7 +881,7 @@ class RequirementsManifest {
   final List<LibraryElementRequirementState> _libraryElementStates = [];
   final List<PrefixScopeRequirementState> _prefixScopeStates = [];
 
-  RequirementsManifest()
+  new()
     : this._(
         id: ManifestItemId.generate(),
         libraries: {},
@@ -888,13 +889,13 @@ class RequirementsManifest {
         opaqueApiUses: [],
       );
 
-  factory RequirementsManifest.fromBytes(Uint8List bytes) {
+  factory fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
     return RequirementsManifest.read(reader);
   }
 
-  factory RequirementsManifest.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return RequirementsManifest._(
       id: ManifestItemId.read(reader),
       libraries: reader.readMap(
@@ -908,7 +909,7 @@ class RequirementsManifest {
     );
   }
 
-  RequirementsManifest._({
+  new _({
     required this.id,
     required this.libraries,
     required this.exportRequirements,
@@ -986,7 +987,7 @@ class RequirementsManifest {
         performance.getDataSet<Uri>('libDetailsUris').add(libraryUri);
       }
 
-      var libraryManifest = libraryManifestHandle.instance;
+      var libraryManifest = libraryManifestHandle.ids!;
       if (libraryRequirements.name case var expected?) {
         var actual = libraryManifest.name;
         if (expected != actual) {
@@ -1043,7 +1044,7 @@ class RequirementsManifest {
       }
 
       if (libraryRequirements.libraryMetadataId case var expectedId?) {
-        var actualId = libraryManifest.libraryMetadata.id;
+        var actualId = libraryManifest.libraryMetadataId;
         if (actualId != expectedId) {
           return LibraryMetadataMismatch(libraryUri: libraryUri);
         }
@@ -1155,7 +1156,7 @@ class RequirementsManifest {
           in libraryRequirements.requestedDeclaredTypeAliases.entries) {
         var name = entry.key;
         var expectedId = entry.value;
-        var actualId = libraryManifest.declaredTypeAliases[name]?.id;
+        var actualId = libraryManifest.declaredTypeAliases[name];
         if (expectedId != actualId) {
           return TopLevelIdMismatch(
             libraryUri: libraryUri,
@@ -1170,7 +1171,7 @@ class RequirementsManifest {
           in libraryRequirements.requestedDeclaredFunctions.entries) {
         var name = entry.key;
         var expectedId = entry.value;
-        var actualId = libraryManifest.declaredFunctions[name]?.id;
+        var actualId = libraryManifest.declaredFunctions[name];
         if (expectedId != actualId) {
           return TopLevelIdMismatch(
             libraryUri: libraryUri,
@@ -1185,7 +1186,7 @@ class RequirementsManifest {
           in libraryRequirements.requestedDeclaredVariables.entries) {
         var name = entry.key;
         var expectedId = entry.value;
-        var actualId = libraryManifest.declaredVariables[name]?.id;
+        var actualId = libraryManifest.declaredVariables[name];
         if (expectedId != actualId) {
           return TopLevelIdMismatch(
             libraryUri: libraryUri,
@@ -1199,7 +1200,7 @@ class RequirementsManifest {
       for (var entry in libraryRequirements.requestedDeclaredGetters.entries) {
         var name = entry.key;
         var expectedId = entry.value;
-        var actualId = libraryManifest.declaredGetters[name]?.id;
+        var actualId = libraryManifest.declaredGetters[name];
         if (expectedId != actualId) {
           return TopLevelIdMismatch(
             libraryUri: libraryUri,
@@ -1213,7 +1214,7 @@ class RequirementsManifest {
       for (var entry in libraryRequirements.requestedDeclaredSetters.entries) {
         var name = entry.key;
         var expectedId = entry.value;
-        var actualId = libraryManifest.declaredSetters[name]?.id;
+        var actualId = libraryManifest.declaredSetters[name];
         if (expectedId != actualId) {
           return TopLevelIdMismatch(
             libraryUri: libraryUri,
@@ -1290,8 +1291,7 @@ class RequirementsManifest {
       }
 
       if (libraryRequirements.allDeclaredTypeAliases case var required?) {
-        var actualItems = libraryManifest.declaredTypeAliases.values;
-        var actualIds = actualItems.map((item) => item.id);
+        var actualIds = libraryManifest.declaredTypeAliases.values;
         if (!required.equalToIterable(actualIds)) {
           return LibraryChildrenIdsMismatch(
             libraryUri: libraryUri,
@@ -1303,8 +1303,7 @@ class RequirementsManifest {
       }
 
       if (libraryRequirements.allDeclaredFunctions case var required?) {
-        var actualItems = libraryManifest.declaredFunctions.values;
-        var actualIds = actualItems.map((item) => item.id);
+        var actualIds = libraryManifest.declaredFunctions.values;
         if (!required.equalToIterable(actualIds)) {
           return LibraryChildrenIdsMismatch(
             libraryUri: libraryUri,
@@ -1316,8 +1315,7 @@ class RequirementsManifest {
       }
 
       if (libraryRequirements.allDeclaredVariables case var required?) {
-        var actualItems = libraryManifest.declaredVariables.values;
-        var actualIds = actualItems.map((item) => item.id);
+        var actualIds = libraryManifest.declaredVariables.values;
         if (!required.equalToIterable(actualIds)) {
           return LibraryChildrenIdsMismatch(
             libraryUri: libraryUri,
@@ -1329,8 +1327,7 @@ class RequirementsManifest {
       }
 
       if (libraryRequirements.allDeclaredGetters case var required?) {
-        var actualItems = libraryManifest.declaredGetters.values;
-        var actualIds = actualItems.map((item) => item.id);
+        var actualIds = libraryManifest.declaredGetters.values;
         if (!required.equalToIterable(actualIds)) {
           return LibraryChildrenIdsMismatch(
             libraryUri: libraryUri,
@@ -1342,8 +1339,7 @@ class RequirementsManifest {
       }
 
       if (libraryRequirements.allDeclaredSetters case var required?) {
-        var actualItems = libraryManifest.declaredSetters.values;
-        var actualIds = actualItems.map((item) => item.id);
+        var actualIds = libraryManifest.declaredSetters.values;
         if (!required.equalToIterable(actualIds)) {
           return LibraryChildrenIdsMismatch(
             libraryUri: libraryUri,
@@ -1358,13 +1354,8 @@ class RequirementsManifest {
         var instanceName = instanceEntry.key;
         var instanceRequirements = instanceEntry.value;
 
-        var instanceItem =
-            libraryManifest.declaredClasses[instanceName] ??
-            libraryManifest.declaredEnums[instanceName] ??
-            libraryManifest.declaredExtensions[instanceName] ??
-            libraryManifest.declaredExtensionTypes[instanceName] ??
-            libraryManifest.declaredMixins[instanceName];
-        if (instanceItem is! InstanceItem) {
+        var instanceItem = libraryManifest.getInstance(instanceName);
+        if (instanceItem == null) {
           return TopLevelNotInstance(
             libraryUri: libraryUri,
             name: instanceName,
@@ -1437,8 +1428,7 @@ class RequirementsManifest {
         }
 
         if (instanceRequirements.allDeclaredFields case var required?) {
-          var actualItems = instanceItem.declaredFields.values;
-          var actualIds = actualItems.map((item) => item.id);
+          var actualIds = instanceItem.declaredFields.values;
           if (!required.equalToIterable(actualIds)) {
             return InstanceChildrenIdsMismatch(
               libraryUri: libraryUri,
@@ -1451,8 +1441,7 @@ class RequirementsManifest {
         }
 
         if (instanceRequirements.allDeclaredGetters case var required?) {
-          var actualItems = instanceItem.declaredGetters.values;
-          var actualIds = actualItems.map((item) => item.id);
+          var actualIds = instanceItem.declaredGetters.values;
           if (!required.equalToIterable(actualIds)) {
             return InstanceChildrenIdsMismatch(
               libraryUri: libraryUri,
@@ -1465,8 +1454,7 @@ class RequirementsManifest {
         }
 
         if (instanceRequirements.allDeclaredSetters case var required?) {
-          var actualItems = instanceItem.declaredSetters.values;
-          var actualIds = actualItems.map((item) => item.id);
+          var actualIds = instanceItem.declaredSetters.values;
           if (!required.equalToIterable(actualIds)) {
             return InstanceChildrenIdsMismatch(
               libraryUri: libraryUri,
@@ -1479,8 +1467,7 @@ class RequirementsManifest {
         }
 
         if (instanceRequirements.allDeclaredMethods case var required?) {
-          var actualItems = instanceItem.declaredMethods.values;
-          var actualIds = actualItems.map((item) => item.id);
+          var actualIds = instanceItem.declaredMethods.values;
           if (!required.equalToIterable(actualIds)) {
             return InstanceChildrenIdsMismatch(
               libraryUri: libraryUri,
@@ -1495,12 +1482,8 @@ class RequirementsManifest {
 
       for (var interfaceEntry in libraryRequirements.interfaces.entries) {
         var interfaceName = interfaceEntry.key;
-        var interfaceItem =
-            libraryManifest.declaredClasses[interfaceName] ??
-            libraryManifest.declaredEnums[interfaceName] ??
-            libraryManifest.declaredExtensionTypes[interfaceName] ??
-            libraryManifest.declaredMixins[interfaceName];
-        if (interfaceItem is! InterfaceItem) {
+        var interfaceItem = libraryManifest.getInterface(interfaceName);
+        if (interfaceItem == null) {
           return TopLevelNotInterface(
             libraryUri: libraryUri,
             name: interfaceName,
@@ -1509,7 +1492,7 @@ class RequirementsManifest {
 
         var interfaceRequirements = interfaceEntry.value;
         if (interfaceRequirements.interfaceId case var expectedId?) {
-          var actualId = interfaceItem.interface.id;
+          var actualId = interfaceItem.interfaceId;
           if (expectedId != actualId) {
             return InterfaceIdMismatch(
               libraryUri: libraryUri,
@@ -1533,8 +1516,7 @@ class RequirementsManifest {
         }
 
         if (interfaceRequirements.allDeclaredConstructors case var required?) {
-          var actualItems = interfaceItem.declaredConstructors.values;
-          var actualIds = actualItems.map((item) => item.id);
+          var actualIds = interfaceItem.declaredConstructors.values;
           if (!required.equalToIterable(actualIds)) {
             return InterfaceChildrenIdsMismatch(
               libraryUri: libraryUri,
@@ -1632,7 +1614,7 @@ class RequirementsManifest {
         }
 
         if (interfaceRequirements.allSubtypesRequested) {
-          interfaceItem as ClassItem;
+          interfaceItem as ClassItemIds;
           var required = interfaceRequirements.allSubtypes;
           var actualIds = interfaceItem.allSubtypes;
           if (required != actualIds) {
@@ -1647,7 +1629,7 @@ class RequirementsManifest {
         }
 
         if (interfaceRequirements.directSubtypesOfSealedRequested) {
-          interfaceItem as ClassItem;
+          interfaceItem as ClassItemIds;
           var required = interfaceRequirements.directSubtypesOfSealed;
           var actualIds = interfaceItem.directSubtypesOfSealed;
           if (required != actualIds) {
@@ -1707,7 +1689,7 @@ class RequirementsManifest {
       return;
     }
 
-    var item = itemRequirements.item as ClassItem;
+    var item = itemRequirements.item as ClassItemIds;
     var requirements = itemRequirements.requirements;
 
     requirements.allSubtypesRequested = true;
@@ -1726,7 +1708,7 @@ class RequirementsManifest {
       return;
     }
 
-    var item = itemRequirements.item as ClassItem;
+    var item = itemRequirements.item as ClassItemIds;
     var requirements = itemRequirements.requirements;
 
     requirements.directSubtypesOfSealedRequested = true;
@@ -1779,7 +1761,7 @@ class RequirementsManifest {
     var setterLookupName = '$id='.asLookupName;
 
     for (var importedLibrary in importedLibraries) {
-      if (importedLibrary.manifest?.instance case var manifest?) {
+      if (importedLibrary.manifest?.ids case var manifest?) {
         var libraryRequirements = _getLibraryRequirements(importedLibrary);
 
         var getterId = manifest.getExportedId(getterLookupName);
@@ -1815,7 +1797,7 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     requirements.allDeclaredConstructors ??= ManifestItemIdList(
-      item.declaredConstructors.values.map((item) => item.id).toList(),
+      item.declaredConstructors.values.toList(),
     );
 
     requirements.allInheritedConstructors ??= ManifestItemIdList(
@@ -1837,7 +1819,7 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     requirements.allDeclaredFields ??= ManifestItemIdList(
-      item.declaredFields.values.map((item) => item.id).toList(),
+      item.declaredFields.values.toList(),
     );
   }
 
@@ -1924,7 +1906,7 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     requirements.allDeclaredGetters ??= ManifestItemIdList(
-      item.declaredGetters.values.map((item) => item.id).toList(),
+      item.declaredGetters.values.toList(),
     );
   }
 
@@ -1942,7 +1924,7 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     requirements.allDeclaredMethods ??= ManifestItemIdList(
-      item.declaredMethods.values.map((item) => item.id).toList(),
+      item.declaredMethods.values.toList(),
     );
   }
 
@@ -1960,7 +1942,7 @@ class RequirementsManifest {
     var requirements = itemRequirements.requirements;
 
     requirements.allDeclaredSetters ??= ManifestItemIdList(
-      item.declaredSetters.values.map((item) => item.id).toList(),
+      item.declaredSetters.values.toList(),
     );
   }
 
@@ -1970,8 +1952,8 @@ class RequirementsManifest {
       return;
     }
 
-    var interface = itemRequirements.item.interface;
-    itemRequirements.requirements.interfaceId = interface.id;
+    var interfaceId = itemRequirements.item.interfaceId;
+    itemRequirements.requirements.interfaceId = interfaceId;
   }
 
   /// Record that a member with [nameObj] was requested from the interface
@@ -2002,7 +1984,7 @@ class RequirementsManifest {
     if (forSuper) {
       var superIndex = forMixinIndex >= 0
           ? forMixinIndex
-          : item.interface.superImplemented.length - 1;
+          : item.superImplementedMembers.length - 1;
       var superMethods = requirements.superMethods[superIndex] ??= {};
       methodId = item.getSuperImplementedMethodId(superIndex, methodName);
       superMethods[methodName] = methodId;
@@ -2064,7 +2046,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2080,7 +2062,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2098,7 +2080,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2112,7 +2094,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2128,7 +2110,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2144,14 +2126,14 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     requirements.allDeclaredGetters ??= ManifestItemIdList(
-      manifest.declaredGetters.values.map((item) => item.id).toList(),
+      manifest.declaredGetters.values.toList(),
     );
   }
 
@@ -2160,7 +2142,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2176,14 +2158,14 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     requirements.allDeclaredSetters ??= ManifestItemIdList(
-      manifest.declaredSetters.values.map((item) => item.id).toList(),
+      manifest.declaredSetters.values.toList(),
     );
   }
 
@@ -2194,14 +2176,14 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     requirements.allDeclaredFunctions ??= ManifestItemIdList(
-      manifest.declaredFunctions.values.map((item) => item.id).toList(),
+      manifest.declaredFunctions.values.toList(),
     );
   }
 
@@ -2212,14 +2194,14 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     requirements.allDeclaredVariables ??= ManifestItemIdList(
-      manifest.declaredVariables.values.map((item) => item.id).toList(),
+      manifest.declaredVariables.values.toList(),
     );
   }
 
@@ -2228,14 +2210,14 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     requirements.allDeclaredTypeAliases ??= ManifestItemIdList(
-      manifest.declaredTypeAliases.values.map((item) => item.id).toList(),
+      manifest.declaredTypeAliases.values.toList(),
     );
   }
 
@@ -2244,7 +2226,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2260,7 +2242,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2285,7 +2267,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2298,7 +2280,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2313,7 +2295,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2328,7 +2310,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2343,7 +2325,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2358,14 +2340,14 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     var lookupName = name.asLookupName;
-    var id = manifest.declaredGetters[lookupName]?.id;
+    var id = manifest.declaredGetters[lookupName];
     requirements.requestedDeclaredGetters[lookupName] = id;
   }
 
@@ -2373,7 +2355,7 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2389,7 +2371,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2404,14 +2386,14 @@ class RequirementsManifest {
   }) {
     assert(!name.endsWith('='));
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     var lookupName = '$name='.asLookupName;
-    var id = manifest.declaredSetters[lookupName]?.id;
+    var id = manifest.declaredSetters[lookupName];
     requirements.requestedDeclaredSetters[lookupName] = id;
   }
 
@@ -2419,14 +2401,14 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     var lookupName = name.asLookupName;
-    var id = manifest.declaredFunctions[lookupName]?.id;
+    var id = manifest.declaredFunctions[lookupName];
     requirements.requestedDeclaredFunctions[lookupName] = id;
   }
 
@@ -2434,14 +2416,14 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     var lookupName = name.asLookupName;
-    var id = manifest.declaredVariables[lookupName]?.id;
+    var id = manifest.declaredVariables[lookupName];
     requirements.requestedDeclaredVariables[lookupName] = id;
   }
 
@@ -2449,14 +2431,14 @@ class RequirementsManifest {
     required LibraryElementImpl element,
     required String name,
   }) {
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
     var lookupName = name.asLookupName;
-    var id = manifest.declaredTypeAliases[lookupName]?.id;
+    var id = manifest.declaredTypeAliases[lookupName];
     requirements.requestedDeclaredTypeAliases[lookupName] = id;
   }
 
@@ -2467,7 +2449,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2481,7 +2463,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2495,7 +2477,7 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
@@ -2509,13 +2491,13 @@ class RequirementsManifest {
       return;
     }
 
-    var manifest = element.manifest?.instance;
+    var manifest = element.manifest?.ids;
     if (manifest == null) {
       return;
     }
 
     var requirements = _getLibraryRequirements(element);
-    requirements.libraryMetadataId ??= manifest.libraryMetadata.id;
+    requirements.libraryMetadataId ??= manifest.libraryMetadataId;
   }
 
   /// Record that all accessible extensions inside a [LibraryFragmentImpl]
@@ -2529,7 +2511,7 @@ class RequirementsManifest {
     }
 
     for (var importedLibrary in importedLibraries) {
-      if (importedLibrary.manifest?.instance case var manifest?) {
+      if (importedLibrary.manifest?.ids case var manifest?) {
         var libraryRequirements = _getLibraryRequirements(importedLibrary);
         libraryRequirements.exportedExtensions ??= manifest.exportedExtensions;
       }
@@ -2679,9 +2661,9 @@ class RequirementsManifest {
     }
 
     var libraryElement = element.library;
-    var manifest = libraryElement.manifest?.instance;
+    var manifest = libraryElement.manifest?.ids;
 
-    // If we are linking the library, its manifest is not set yet.
+    // If we are linking the library, its manifest is not ready yet.
     // But then we also don't care about this dependency.
     if (manifest == null) {
       return null;
@@ -2699,15 +2681,8 @@ class RequirementsManifest {
 
     var libraryRequirements = _getLibraryRequirements(libraryElement);
     var instancesMap = libraryRequirements.instances;
-    var instanceItem =
-        manifest.declaredClasses[instanceName] ??
-        manifest.declaredEnums[instanceName] ??
-        manifest.declaredExtensions[instanceName] ??
-        manifest.declaredExtensionTypes[instanceName] ??
-        manifest.declaredMixins[instanceName];
-
     // SAFETY: every instance element must be in the manifest.
-    instanceItem as InstanceItem;
+    var instanceItem = manifest.getInstance(instanceName)!;
 
     var requirements = instancesMap[instanceName] ??=
         InstanceItemRequirements.empty();
@@ -2727,9 +2702,9 @@ class RequirementsManifest {
     }
 
     var libraryElement = element.library;
-    var manifest = libraryElement.manifest?.instance;
+    var manifest = libraryElement.manifest?.ids;
 
-    // If we are linking the library, its manifest is not set yet.
+    // If we are linking the library, its manifest is not ready yet.
     // But then we also don't care about this dependency.
     if (manifest == null) {
       return null;
@@ -2747,14 +2722,8 @@ class RequirementsManifest {
 
     var libraryRequirements = _getLibraryRequirements(libraryElement);
     var interfacesMap = libraryRequirements.interfaces;
-    var interfaceItem =
-        manifest.declaredClasses[interfaceName] ??
-        manifest.declaredEnums[interfaceName] ??
-        manifest.declaredExtensionTypes[interfaceName] ??
-        manifest.declaredMixins[interfaceName];
-
     // SAFETY: every interface element must be in the manifest.
-    interfaceItem as InterfaceItem;
+    var interfaceItem = manifest.getInterface(interfaceName)!;
 
     var requirements = interfacesMap[interfaceName] ??=
         InterfaceItemRequirements.empty();
@@ -2776,7 +2745,7 @@ class RequirementsManifest {
       return result;
     }
 
-    result = LibraryRequirements.fromManifest(element.manifest!.instance);
+    result = LibraryRequirements.fromManifest(element.manifest!.ids!);
     state._result = result;
     libraries[element.uri] = result;
     return result;
@@ -2813,13 +2782,13 @@ class RequirementsManifestDigest {
   final bool hasOpaqueApiUses;
   final Map<Uri, Hash> libraryHashes;
 
-  RequirementsManifestDigest({
+  new({
     required this.bundleId,
     required this.hasOpaqueApiUses,
     required this.libraryHashes,
   });
 
-  factory RequirementsManifestDigest.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return RequirementsManifestDigest(
       bundleId: ManifestItemId.read(reader),
       hasOpaqueApiUses: reader.readBool(),
@@ -2872,23 +2841,17 @@ class RequirementsManifestDigest {
 enum _ExportRequirementCombinatorKind { hide, show }
 
 class _InstanceItemWithRequirements {
-  final InstanceItem item;
+  final InstanceItemIds item;
   final InstanceItemRequirements requirements;
 
-  _InstanceItemWithRequirements({
-    required this.item,
-    required this.requirements,
-  });
+  new({required this.item, required this.requirements});
 }
 
 class _InterfaceItemWithRequirements {
-  final InterfaceItem item;
+  final InterfaceItemIds item;
   final InterfaceItemRequirements requirements;
 
-  _InterfaceItemWithRequirements({
-    required this.item,
-    required this.requirements,
-  });
+  new({required this.item, required this.requirements});
 }
 
 extension RequirementsManifestExtension on RequirementsManifest? {

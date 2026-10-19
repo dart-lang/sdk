@@ -70,7 +70,7 @@ var a = A(3);
 }
 
 @reflectiveTest
-class RemoveConstructorNameTest extends FixProcessorLintTest {
+class RemoveConstructorNameTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeConstructorName;
 

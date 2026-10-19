@@ -12,7 +12,7 @@ import 'kinds.dart';
 abstract class Mutation {
   final String path;
 
-  Mutation({required this.path});
+  new({required this.path});
 
   MutationKind get kind;
 

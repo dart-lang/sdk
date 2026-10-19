@@ -3102,7 +3102,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DON'T** assign `this` to a local variable to perform type promotion.\n\n**BAD:**\n```dart\n%experiments=this-promotion\nclass C {\n  void m() {\n    var [!self!] = this;\n    if (self is D) {}\n  }\n}\nclass D extends C {}\n```\n\n**GOOD:**\n```dart\n%experiments=this-promotion\nclass C {\n  void m() {\n    if (this is D) {}\n  }\n}\nclass D extends C {}\n```",
+    "details": "**DON'T** assign `this` to a local variable to perform type promotion.\n\n**BAD:**\n```dart\nclass C {\n  void m() {\n    var [!self!] = this;\n    if (self is D) {}\n  }\n}\nclass D extends C {}\n```\n\n**GOOD:**\n```dart\nclass C {\n  void m() {\n    if (this is D) {}\n  }\n}\nclass D extends C {}\n```",
     "sinceDartSdk": "3.14"
   },
   {

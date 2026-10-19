@@ -1659,7 +1659,7 @@ abstract class TypeConstraintGenerator<
   /// True if the language feature inference-using-bounds is enabled.
   final bool inferenceUsingBoundsIsEnabled;
 
-  TypeConstraintGenerator({required this.inferenceUsingBoundsIsEnabled});
+  new({required this.inferenceUsingBoundsIsEnabled});
 
   /// The current sate of the constraint generator.
   ///
@@ -2909,7 +2909,7 @@ class TypeDeclarationMatchResult<
   /// If [typeDeclaration] is not generic, [typeArguments] is an empty list.
   final List<SharedType> typeArguments;
 
-  TypeDeclarationMatchResult({
+  new({
     required this.typeDeclarationKind,
     required this.typeDeclarationType,
     required this.typeDeclaration,

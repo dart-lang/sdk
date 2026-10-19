@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class UseDivisionTest extends FixProcessorTest {
+class UseDivisionTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.useDivision;
 
@@ -202,7 +202,8 @@ void f<T extends A>(T t) {
 }
 
 @reflectiveTest
-class UseEffectiveIntegerDivisionTest extends FixProcessorTest {
+class UseEffectiveIntegerDivisionTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.useEffectiveIntegerDivision;
 

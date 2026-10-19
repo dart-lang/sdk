@@ -19,7 +19,7 @@ class RecordNamedField extends RecordField {
   final String name;
   final Expression expression;
 
-  RecordNamedField(this.name, this.expression);
+  new(this.name, this.expression);
 
   @override
   String toString() => 'RecordNamedField($name,$expression)';
@@ -36,7 +36,7 @@ class RecordNamedField extends RecordField {
 class RecordPositionalField extends RecordField {
   final Expression expression;
 
-  RecordPositionalField(this.expression);
+  new(this.expression);
 
   @override
   String toString() => 'RecordPositionalField($expression)';

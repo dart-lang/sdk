@@ -51,7 +51,7 @@ void f2() {
 }
 
 @reflectiveTest
-class RemoveEmptyCatchTest extends FixProcessorLintTest {
+class RemoveEmptyCatchTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeEmptyCatch;
 

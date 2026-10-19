@@ -301,7 +301,7 @@ callMe(f()) { f(); }
 f(Object p) {
   (p is String) && callMe(() { p.length; });
 //                               ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
   p = 0;
 }
 ''');
@@ -312,7 +312,7 @@ f(Object p) {
 f(Object p) {
   ((p is String) && ((p = 42) == 42)) && p.length != 0;
 //                                         ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
 }
 ''');
   }
@@ -322,7 +322,7 @@ f(Object p) {
 f(Object p) {
   (p is String) && (((p = 42) == 42) && p.length != 0);
 //                                        ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
 }
 ''');
   }
@@ -333,7 +333,7 @@ callMe(f()) { f(); }
 g(Object p) {
   p is String ? callMe(() { p.length; }) : 0;
 //                            ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
   p = 42;
 }
 ''');
@@ -346,7 +346,7 @@ g(Object p) {
   p = 42;
   p is String ? callMe(() { p.length; }) : 0;
 //                            ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
 }
 ''');
   }
@@ -359,7 +359,7 @@ f(Object p) {
     callMe(() {
       p.length;
 //      ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
     });
   }
   p = 0;
@@ -379,7 +379,7 @@ f(A<V> p) {
   if (p is B) {
     p.b;
 //    ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'A<V>'.
   }
 }
 ''');
@@ -397,7 +397,7 @@ f(A<V> p) {
   if (p is B<int>) {
     p.b;
 //    ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'A<V>'.
   }
 }
 ''');
@@ -410,7 +410,7 @@ f(Object p) {
     p = 0;
     p.length;
 //    ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
   }
 }
 ''');
@@ -423,7 +423,7 @@ f(Object p) {
   if (p is String) {
     p.length;
 //    ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
   }
 }
 ''');
@@ -438,7 +438,7 @@ g(Object p) {
   if (p is String) {
     p.length;
 //    ^^^^^^
-// [diag.undefinedGetter] The getter 'length' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'length' isn't defined for the type 'Object'.
   }
 }
 ''');
@@ -456,7 +456,7 @@ f(A<V> p) {
   if (p is B) {
     p.b;
 //    ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'A<V>'.
   }
 }
 ''');
@@ -474,7 +474,7 @@ f(A<V> p) {
   if (p is B) {
     p.b;
 //    ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'A<V>'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'A<V>'.
   }
 }
 ''');

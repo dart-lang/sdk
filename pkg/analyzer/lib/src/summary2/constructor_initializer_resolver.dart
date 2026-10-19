@@ -12,7 +12,7 @@ class ConstructorInitializerResolver {
   final Linker _linker;
   final LibraryBuilder _libraryBuilder;
 
-  ConstructorInitializerResolver(this._linker, this._libraryBuilder);
+  new(this._linker, this._libraryBuilder);
 
   void resolve() {
     var libraryElement = _libraryBuilder.element;

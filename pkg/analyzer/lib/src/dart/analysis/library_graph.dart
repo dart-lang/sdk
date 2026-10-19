@@ -14,22 +14,6 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
-/// Ensure that the `FileState._libraryCycle` for the [file] and anything it
-/// depends on is computed.
-void computeLibraryCycle({
-  required bool withFineDependencies,
-  required Uint32List saltForElements,
-  required SourceFactory sourceFactory,
-  required LibraryFileKind file,
-}) {
-  var libraryWalker = _LibraryWalker(
-    withFineDependencies: withFineDependencies,
-    saltForElements: saltForElements,
-    sourceFactory: sourceFactory,
-  );
-  libraryWalker.walk(libraryWalker.getNode(file));
-}
-
 /// Information about libraries that reference each other, so form a cycle.
 class LibraryCycle {
   static int _nextId = 0;
@@ -78,7 +62,7 @@ class LibraryCycle {
   /// elements from their dependency cycles, not on all of them.
   final String nonTransitiveApiSignature;
 
-  LibraryCycle({
+  new({
     required this.withFineDependencies,
     required this.libraries,
     required this.libraryUris,
@@ -124,12 +108,37 @@ class LibraryCycle {
   }
 }
 
+/// Computes [LibraryCycle]s of libraries in one analysis context.
+///
+/// Holds the state that is the same for all library cycles of the context,
+/// so that it is computed once, not for each library cycle.
+class LibraryCycleComputer {
+  final bool withFineDependencies;
+  final Uint32List saltForElements;
+  final _UriResolutionEnvironment _uriResolutionEnvironment;
+
+  /// The resolution of [sourceFactory] must not change, same as for other
+  /// state of the analysis context.
+  new({
+    required this.withFineDependencies,
+    required this.saltForElements,
+    required SourceFactory sourceFactory,
+  }) : _uriResolutionEnvironment = _UriResolutionEnvironment(sourceFactory);
+
+  /// Ensure that the `FileState._libraryCycle` for the [file] and anything it
+  /// depends on is computed.
+  void compute(LibraryFileKind file) {
+    var libraryWalker = _LibraryWalker(this);
+    libraryWalker.walk(libraryWalker.getNode(file));
+  }
+}
+
 /// Node in [_LibraryWalker].
 class _LibraryNode extends graph.Node<_LibraryNode> {
   final _LibraryWalker walker;
   final LibraryFileKind kind;
 
-  _LibraryNode(this.walker, this.kind);
+  new(this.walker, this.kind);
 
   @override
   bool get isEvaluated => kind.internal_libraryCycle != null;
@@ -163,16 +172,10 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// Helper that organizes dependencies of a library into topologically
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
-  final bool withFineDependencies;
-  final Uint32List saltForElements;
-  final SourceFactory sourceFactory;
+  final LibraryCycleComputer computer;
   final Map<LibraryFileKind, _LibraryNode> nodesOfFiles = {};
 
-  _LibraryWalker({
-    required this.withFineDependencies,
-    required this.saltForElements,
-    required this.sourceFactory,
-  });
+  new(this.computer);
 
   @override
   void evaluate(_LibraryNode v) {
@@ -182,7 +185,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   @override
   void evaluateScc(List<_LibraryNode> scc) {
     var apiSignature = ApiSignature();
-    apiSignature.addUint32List(saltForElements);
+    apiSignature.addUint32List(computer.saltForElements);
 
     // Sort libraries to produce stable signatures.
     scc.sort((first, second) {
@@ -235,8 +238,11 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     {
       var manifestBuilder = ApiSignature();
       var apiSignatureBuilder = ApiSignature();
-      manifestBuilder.addBytes(saltForElements);
-      _addUriResolutionToSignature(manifestBuilder, transitivePackages);
+      manifestBuilder.addBytes(computer.saltForElements);
+      computer._uriResolutionEnvironment.addToSignature(
+        manifestBuilder,
+        transitivePackages,
+      );
 
       var sortedFiles = libraries
           .expand((library) => library.files)
@@ -254,7 +260,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Create the LibraryCycle instance for the cycle.
     var cycle = LibraryCycle(
-      withFineDependencies: withFineDependencies,
+      withFineDependencies: computer.withFineDependencies,
       libraries: libraries.toFixedList(),
       libraryUris: libraryUris,
       transitivePackages: transitivePackages,
@@ -274,54 +280,6 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
     return nodesOfFiles.putIfAbsent(file, () => _LibraryNode(this, file));
   }
 
-  /// Add URI resolution environment to [signature].
-  ///
-  /// Library manifests are reused across analysis contexts. If two contexts
-  /// resolve the same `package:` URI to different file system locations, the
-  /// manifests **must not** be considered interchangeable - otherwise we can
-  /// end up reusing a manifest built for a different package layout and get
-  /// mismatched element IDs.
-  ///
-  /// To make the manifest key sensitive to the resolution environment (without
-  /// over-invalidating), we:
-  ///
-  /// * include the SDK root path (when using a folder-based SDK), and
-  /// * include the file system paths of the **transitively referenced**
-  ///   packages only - i.e. the packages in [packageNames], not every package
-  ///   visible in the analysis context.
-  ///
-  /// This design strikes a balance:
-  /// * Different package configurations that map a dependency to different
-  ///   locations produce different keys, forcing a rebuild where reuse would
-  ///   be detrimental to element ID stability.
-  /// * Contexts whose *overall* resolution differs but that map the relevant
-  ///   packages identically can still reuse manifests.
-  ///
-  /// Trade-off: a dependency package (or the SDK) moving on disk changes the
-  /// key for all cycles that depend on it, even if the package's *API* hasn't
-  /// changed. This is intentional - package dependencies change rarely, but
-  /// different package of the same (not well configured) workspace would
-  /// constantly churn new element IDs for unfortunate shared library manifest.
-  void _addUriResolutionToSignature(
-    ApiSignature signature,
-    Set<String> packageNames,
-  ) {
-    var sdk = sourceFactory.dartSdk;
-    if (sdk is FolderBasedDartSdk) {
-      signature.addString(sdk.directory.path);
-    }
-
-    var packageMap = sourceFactory.packageMap;
-    if (packageMap != null) {
-      var packagePaths = packageNames
-          .map((packageName) => packageMap[packageName])
-          .nonNulls
-          .map((folder) => folder.path)
-          .sorted();
-      signature.addStringList(packagePaths);
-    }
-  }
-
   void _appendDirectlyReferenced(
     Set<LibraryCycle> directDependencies,
     ApiSignature apiSignature,
@@ -337,6 +295,88 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
       if (directDependencies.add(referencedCycle)) {
         apiSignature.addString(referencedCycle.apiSignature);
       }
+    }
+  }
+}
+
+/// The URI resolution environment of a [SourceFactory], for manifest
+/// signatures of [LibraryCycle]s.
+///
+/// Library manifests are reused across analysis contexts. If two contexts
+/// resolve the same `package:` URI to different file system locations, the
+/// manifests **must not** be considered interchangeable - otherwise we can
+/// end up reusing a manifest built for a different package layout and get
+/// mismatched element IDs.
+///
+/// To make the manifest key sensitive to the resolution environment (without
+/// over-invalidating), we:
+///
+/// * include the SDK root path (when using a folder-based SDK), and
+/// * include the file system paths of the **transitively referenced**
+///   packages only - i.e. the packages of the cycle, not every package
+///   visible in the analysis context.
+///
+/// This design strikes a balance:
+/// * Different package configurations that map a dependency to different
+///   locations produce different keys, forcing a rebuild where reuse would
+///   be detrimental to element ID stability.
+/// * Contexts whose *overall* resolution differs but that map the relevant
+///   packages identically can still reuse manifests.
+///
+/// Trade-off: a dependency package (or the SDK) moving on disk changes the
+/// key for all cycles that depend on it, even if the package's *API* hasn't
+/// changed. This is intentional - package dependencies change rarely, but
+/// different package of the same (not well configured) workspace would
+/// constantly churn new element IDs for unfortunate shared library manifest.
+class _UriResolutionEnvironment {
+  /// The root path of the folder-based SDK, or `null` otherwise.
+  final String? _sdkPath;
+
+  /// The paths of all packages, sorted.
+  ///
+  /// Each cycle sorts only the indexes of its packages, which is cheaper than
+  /// sorting long paths with shared prefixes, and gives the same order.
+  final List<String> _sortedPackagePaths;
+
+  /// The index in [_sortedPackagePaths] for each package name, or `null` if
+  /// the source factory has no package map.
+  final Map<String, int>? _packageNameToIndex;
+
+  factory(SourceFactory sourceFactory) {
+    var sdk = sourceFactory.dartSdk;
+    var sdkPath = sdk is FolderBasedDartSdk ? sdk.directory.path : null;
+
+    var packageMap = sourceFactory.packageMap;
+    if (packageMap == null) {
+      return _UriResolutionEnvironment._(sdkPath, const [], null);
+    }
+
+    var packages = packageMap.entries
+        .map((entry) => (name: entry.key, path: entry.value.path))
+        .sortedBy((package) => package.path);
+    return _UriResolutionEnvironment._(
+      sdkPath,
+      [for (var package in packages) package.path],
+      {for (var (index, package) in packages.indexed) package.name: index},
+    );
+  }
+
+  new _(this._sdkPath, this._sortedPackagePaths, this._packageNameToIndex);
+
+  /// Adds this environment, restricted to [packageNames], to [signature].
+  ///
+  /// Names that are not in the package map are ignored.
+  void addToSignature(ApiSignature signature, Set<String> packageNames) {
+    if (_sdkPath case var sdkPath?) {
+      signature.addString(sdkPath);
+    }
+
+    if (_packageNameToIndex case var packageNameToIndex?) {
+      var indexes = [for (var name in packageNames) ?packageNameToIndex[name]]
+        ..sort();
+      signature.addStringList([
+        for (var index in indexes) _sortedPackagePaths[index],
+      ]);
     }
   }
 }

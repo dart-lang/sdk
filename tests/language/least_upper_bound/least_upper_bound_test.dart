@@ -53,11 +53,11 @@ void testAB(A a, B b) {
   // [cfe] A value of type 'Object' can't be assigned to a variable of type 'B'.
   (true ? a : b).a = 0;
   //             ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'a' isn't defined for the type 'Object'.
   (false ? a : b).b = 0;
   //              ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'b' isn't defined for the type 'Object'.
   var c = new C();
   (true ? a as dynamic : c).a = 0;
@@ -74,7 +74,7 @@ void testBC(B b, C c) {
   (true ? b : c).b = 0;
   (false ? b : c).c = 0;
   //              ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'c' isn't defined for the type 'B'.
   var a = null;
   (true ? b : a).b = 0;
@@ -98,11 +98,11 @@ void testCD(C c, D d) {
   (false ? c : d).b = 0;
   (true ? c : d).c = 0;
   //             ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'c' isn't defined for the type 'B'.
   (false ? c : d).d = 0;
   //              ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'd' isn't defined for the type 'B'.
 }
 
@@ -150,6 +150,6 @@ void testEF(E<B> e, F<C> f) {
   r5 = (true ? e : f).e;
   r5 = (false ? e : f).f;
   //                   ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'f' isn't defined for the type 'E<B>'.
 }

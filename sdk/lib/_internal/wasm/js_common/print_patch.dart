@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_js_helper" show JS, jsStringFromDartString, JSExternWrapperExt;
+import "dart:_wasm";
 
 @patch
-void printToConsole(String line) => JS<void>(
+void printToConsole(String line) => JS<WasmVoid>(
   's => printToConsole(s)',
   jsStringFromDartString(line).wrappedExternRef,
 );

@@ -26,7 +26,7 @@ class SingleSpace {
   /// Additional properties for map/list semantics.
   final Map<Key, Space> additionalProperties;
 
-  SingleSpace(
+  new(
     this.type, {
     this.properties = const {},
     this.additionalProperties = const {},
@@ -73,9 +73,9 @@ class Space {
   final List<SingleSpace> singleSpaces;
 
   /// Create an empty space.
-  Space.empty(this.path) : singleSpaces = [SingleSpace.empty];
+  new empty(this.path) : singleSpaces = [SingleSpace.empty];
 
-  Space(
+  new(
     Path path,
     StaticType type, {
     Map<Key, Space> properties = const {},
@@ -88,9 +88,9 @@ class Space {
          ),
        ]);
 
-  Space._(this.path, this.singleSpaces);
+  new _(this.path, this.singleSpaces);
 
-  factory Space.fromSingleSpaces(Path path, List<SingleSpace> singleSpaces) {
+  factory fromSingleSpaces(Path path, List<SingleSpace> singleSpaces) {
     Set<SingleSpace> singleSpacesSet = {};
 
     for (SingleSpace singleSpace in singleSpaces) {

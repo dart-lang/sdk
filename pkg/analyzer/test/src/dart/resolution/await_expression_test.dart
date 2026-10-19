@@ -123,7 +123,7 @@ AwaitExpression
 void f() async {
   await unresolved;
 //      ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
 
@@ -151,7 +151,7 @@ import 'dart:math' as prefix;
 void f() async {
   await prefix.unresolved;
 //             ^^^^^^^^^^
-// [diag.undefinedPrefixedName] The name 'unresolved' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'unresolved' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 
@@ -189,7 +189,7 @@ AwaitExpression
 void f() async {
   await 0.isEven.unresolved;
 //               ^^^^^^^^^^
-// [diag.undefinedGetter] The getter 'unresolved' isn't defined for the type 'bool'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'unresolved' isn't defined for the type 'bool'.
 }
 ''');
 

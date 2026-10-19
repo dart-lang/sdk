@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class MakeFieldPublicTest extends FixProcessorLintTest {
+class MakeFieldPublicTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.makeFieldPublic;
 

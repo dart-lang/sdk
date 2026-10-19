@@ -164,7 +164,7 @@ class _And extends _Node {
   final _Node left;
   final _Node right;
 
-  _And(this.left, this.right);
+  new(this.left, this.right);
 
   @override
   void _visit(_Harness h) {
@@ -174,7 +174,7 @@ class _And extends _Node {
 }
 
 class _Empty extends _Node {
-  _Empty();
+  new();
 
   @override
   void _visit(_Harness h) {}
@@ -274,7 +274,7 @@ class _Harness {
 abstract class _Node {
   int? id;
 
-  _Node({this.id});
+  new({this.id});
 
   @override
   String toString() => '$id';
@@ -286,7 +286,7 @@ class _Or extends _Node {
   final _Node left;
   final _Node right;
 
-  _Or(this.left, this.right, {super.id});
+  new(this.left, this.right, {super.id});
 
   @override
   void _visit(_Harness h) {
@@ -301,14 +301,14 @@ class _Or extends _Node {
 class _VariableBindElement extends _VariableElement {
   final String id;
 
-  _VariableBindElement(this.id);
+  new(this.id);
 
   @override
   String toString() => id;
 }
 
 class _VariableBinder extends VariableBinder<_Node, _VariableElement> {
-  _VariableBinder({required super.errors});
+  new({required super.errors});
 
   @override
   _VariableElement joinPatternVariables({
@@ -343,7 +343,7 @@ class _VariableJoinElement extends _VariableElement {
   @override
   final JoinedPatternVariableInconsistency inconsistency;
 
-  _VariableJoinElement({required this.components, required this.inconsistency});
+  new({required this.components, required this.inconsistency});
 
   @override
   String toString() {
@@ -359,9 +359,7 @@ class _VarPattern extends _Node {
   final String name;
   final _VariableBindElement element;
 
-  _VarPattern(this.name, int id)
-    : element = _VariableBindElement('$id'),
-      super(id: id);
+  new(this.name, int id) : element = _VariableBindElement('$id'), super(id: id);
 
   @override
   void _visit(_Harness h) {

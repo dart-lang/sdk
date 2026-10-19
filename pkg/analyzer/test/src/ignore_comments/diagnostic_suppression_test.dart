@@ -275,7 +275,7 @@ int y = (0 as int);
     var file = getFile('$workspaceRootPath/flutter/lib/flutter.dart');
 
     await resolveFileWithDiagnostics(file, '''
-// ignore: undefined_function
+// ignore: undefined_unqualified_name_read
 f() => g();
 ''');
   }
@@ -286,7 +286,7 @@ f() => g();
     await resolveFileWithDiagnostics(file, '''
 f() => g();
 //     ^
-// [diag.undefinedFunction] The function 'g' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'g'.
 ''');
   }
 
@@ -295,7 +295,7 @@ f() => g();
 
     await resolveFileWithDiagnostics(file, '''
 import 'dart:collection' as c;
-// ignore: undefined_prefixed_name
+// ignore: undefined_prefixed_name_read
 f() => c.g;
 ''');
   }

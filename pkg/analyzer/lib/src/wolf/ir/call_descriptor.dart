@@ -19,7 +19,7 @@ class ElementCallDescriptor extends CallDescriptor {
   @override
   final List<DartType> typeArguments;
 
-  ElementCallDescriptor(this.element, {this.typeArguments = const []});
+  new(this.element, {this.typeArguments = const []});
 
   @override
   String get name => element.lookupName!;

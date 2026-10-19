@@ -22,7 +22,7 @@ main() {
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected '(' after this.
   //               ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'baz' isn't defined for the type 'Foo<int>'.
   new Foo.bar<int>();
   //      ^
@@ -54,7 +54,7 @@ main() {
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected '(' after this.
   //                 ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'baz' isn't defined for the type 'Foo<int>'.
   const Foo.bar<int>();
   //        ^
@@ -77,13 +77,13 @@ main() {
   Foo.bar();
   Foo.bar.baz();
 //        ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 // [cfe] The method 'baz' isn't defined for the type 'Foo<X> Function<X>()'.
   Foo<int>();
   Foo<int>.bar();
   Foo<int>.bar.baz();
   //           ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'baz' isn't defined for the type 'Foo<int> Function()'.
   Foo.bar<int>();
   //  ^
@@ -96,6 +96,6 @@ main() {
 // [cfe] A constructor tear-off can't have type arguments after the constructor name.
   Foo.bar.baz<int>();
 //        ^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 // [cfe] The method 'baz' isn't defined for the type 'Foo<X> Function<X>()'.
 }

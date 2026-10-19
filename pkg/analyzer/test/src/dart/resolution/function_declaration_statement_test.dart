@@ -26,9 +26,61 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: g
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@17
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@20
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: a
+        declaredFragment: <testLibraryFragment> a@25
+          element: isPublic
+            type: T
+      RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E1 U
+          type: U
+        name: b
+        declaredFragment: <testLibraryFragment> b@30
+          element: isPublic
+            type: U
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: a@25
+        type: T
+      staticType: T
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> g@15
+    element: g@15
+      type: T Function<T, U>(T, U)
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: T
@@ -49,28 +101,6 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
-        leftParenthesis: (
-        requiredPositionalFormalParameters
-          RegularFormalParameter
-            type: NamedType
-              name: T
-              element: #E0 T
-              type: T
-            name: a
-            declaredFragment: <testLibraryFragment> a@25
-              element: isPublic
-                type: T
-          RegularFormalParameter
-            type: NamedType
-              name: U
-              element: #E1 U
-              type: U
-            name: b
-            declaredFragment: <testLibraryFragment> b@30
-              element: isPublic
-                type: U
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -93,13 +123,7 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression2: UnqualifiedNameExpression
-          name: a
-          resolution: VariableReadResolution
-            element: a@25
-            type: T
-          staticType: T
-        expression(v1): SimpleIdentifier
+        expression: SimpleIdentifier
           token: a
           element: a@25
           staticType: T
@@ -123,9 +147,79 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@33
+          defaultType: dynamic
+      TypeParameter
+        name: V
+        extendsKeyword: extends
+        bound: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        declaredFragment: <testLibraryFragment> V@36
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E1 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@51
+          element: isPublic
+            type: T
+      RegularFormalParameter
+        type: NamedType
+          name: U
+          element: #E0 U
+          type: U
+        name: y
+        declaredFragment: <testLibraryFragment> y@56
+          element: isPublic
+            type: U
+      RegularFormalParameter
+        type: NamedType
+          name: V
+          element: #E2 V
+          type: V
+        name: z
+        declaredFragment: <testLibraryFragment> z@61
+          element: isPublic
+            type: V
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function<T extends U, U, V extends U>(T, U, V)
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
@@ -160,37 +254,6 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
-        leftParenthesis: (
-        requiredPositionalFormalParameters
-          RegularFormalParameter
-            type: NamedType
-              name: T
-              element: #E1 T
-              type: T
-            name: x
-            declaredFragment: <testLibraryFragment> x@51
-              element: isPublic
-                type: T
-          RegularFormalParameter
-            type: NamedType
-              name: U
-              element: #E0 U
-              type: U
-            name: y
-            declaredFragment: <testLibraryFragment> y@56
-              element: isPublic
-                type: U
-          RegularFormalParameter
-            type: NamedType
-              name: V
-              element: #E2 V
-              type: V
-            name: z
-            declaredFragment: <testLibraryFragment> z@61
-              element: isPublic
-                type: V
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -243,9 +306,47 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: {
+      formalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            question: ?
+            element: #E0 T
+            type: T?
+          name: a
+          declaredFragment: <testLibraryFragment> a@27
+            element: isPublic
+              type: T?
+      rightDelimiter: }
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function<T>({T? a})
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
@@ -262,23 +363,6 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
-        leftParenthesis: (
-        delimitedFormalParameters: DelimitedFormalParameters
-          leftDelimiter: {
-          formalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: T
-                question: ?
-                element: #E0 T
-                type: T?
-              name: a
-              declaredFragment: <testLibraryFragment> a@27
-                element: isPublic
-                  type: T?
-          rightDelimiter: }
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         leftDelimiter: {
         parameter: RegularFormalParameter
@@ -316,9 +400,47 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: [
+      formalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: T
+            question: ?
+            element: #E0 T
+            type: T?
+          name: a
+          declaredFragment: <testLibraryFragment> a@27
+            element: isPublic
+              type: T?
+      rightDelimiter: ]
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function<T>([T?])
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
@@ -335,23 +457,6 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
-        leftParenthesis: (
-        delimitedFormalParameters: DelimitedFormalParameters
-          leftDelimiter: [
-          formalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: T
-                question: ?
-                element: #E0 T
-                type: T?
-              name: a
-              declaredFragment: <testLibraryFragment> a@27
-                element: isPublic
-                  type: T?
-          rightDelimiter: ]
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         leftDelimiter: [
         parameter: RegularFormalParameter
@@ -389,9 +494,48 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    delimitedFormalParameters: DelimitedFormalParameters
+      leftDelimiter: {
+      formalParameters
+        RegularFormalParameter
+          requiredKeyword: required
+          type: NamedType
+            name: T
+            question: ?
+            element: #E0 T
+            type: T?
+          name: a
+          declaredFragment: <testLibraryFragment> a@36
+            element: isPublic
+              type: T?
+      rightDelimiter: }
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function<T>({required T? a})
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
@@ -408,24 +552,6 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
-        leftParenthesis: (
-        delimitedFormalParameters: DelimitedFormalParameters
-          leftDelimiter: {
-          formalParameters
-            RegularFormalParameter
-              requiredKeyword: required
-              type: NamedType
-                name: T
-                question: ?
-                element: #E0 T
-                type: T?
-              name: a
-              declaredFragment: <testLibraryFragment> a@36
-                element: isPublic
-                  type: T?
-          rightDelimiter: }
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         leftDelimiter: {
         parameter: RegularFormalParameter
@@ -464,9 +590,43 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: a
+        declaredFragment: <testLibraryFragment> a@25
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function<T>(T)
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: void
@@ -483,19 +643,6 @@ FunctionDeclarationStatement
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
-        leftParenthesis: (
-        requiredPositionalFormalParameters
-          RegularFormalParameter
-            type: NamedType
-              name: T
-              element: #E0 T
-              type: T
-            name: a
-            declaredFragment: <testLibraryFragment> a@25
-              element: isPublic
-                type: T
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -530,9 +677,21 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  name: g
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> g@13
+    element: g@13
+      type: Null Function()
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     name: g
     functionExpression: FunctionExpression
@@ -562,9 +721,23 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
+LocalFunctionDeclaration
+  name: g
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> g@13
+    element: g@13
+      type: int Function()
+V1: FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     name: g
     functionExpression: FunctionExpression
@@ -573,7 +746,7 @@ FunctionDeclarationStatement
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
-        expression2: IntegerLiteral
+        expression: IntegerLiteral
           literal: 0
           staticType: int
         semicolon: ;

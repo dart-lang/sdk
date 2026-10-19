@@ -100,7 +100,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   @override
   void visitSwitchCase(SwitchCase node) {
     _find(node.expression2);
-    node.statements.accept2(this);
+    node.statements2.accept2(this);
   }
 
   /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
@@ -130,7 +130,7 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   /// treated as "const".
   bool treatFinalInstanceVarAsConst = false;
 
-  ConstantFinder({required this.configuration});
+  new({required this.configuration});
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
@@ -178,9 +178,21 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(covariant Field2Impl node) {
+    super.visitField2(node);
+    _visitVariable(node);
+  }
+
+  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     super.visitFieldFormalParameter(node);
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    super.visitLocalVariable(node);
+    _visitVariable(node);
   }
 
   @override
@@ -196,15 +208,26 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    super.visitVariableDeclaration(node);
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    super.visitTopLevelVariable2(node);
+    _visitVariable(node);
+  }
+
+  void _visitFormalParameter(FormalParameterImpl node) {
+    if (node.defaultClause != null && node.declaredFragment != null) {
+      constantsToCompute.add(node.declaredFragment!.element);
+    }
+  }
+
+  void _visitVariable(VariableBindingImpl node) {
     var initializer = node.initializer2;
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     if (initializer != null &&
-        (node.isConst ||
+        (fragment.isConst ||
             treatFinalInstanceVarAsConst &&
                 element is FieldElementImpl &&
-                node.isFinal &&
+                fragment.isFinal &&
                 !element.isStatic)) {
       constantsToCompute.add(element);
       // Fill error nodes.
@@ -214,12 +237,6 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
           fromAst: node.initializer2,
         );
       }
-    }
-  }
-
-  void _visitFormalParameter(FormalParameterImpl node) {
-    if (node.defaultClause != null && node.declaredFragment != null) {
-      constantsToCompute.add(node.declaredFragment!.element);
     }
   }
 }
@@ -234,7 +251,7 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   /// Initialize a newly created reference finder to find references from a
   /// given variable to other variables and to add those references to the given
   /// graph. The [_callback] will be invoked for every dependency found.
-  ReferenceFinder(this._callback);
+  new(this._callback);
 
   @override
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {

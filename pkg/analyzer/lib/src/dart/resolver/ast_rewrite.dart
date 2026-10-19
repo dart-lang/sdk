@@ -27,11 +27,7 @@ class AstRewriter {
   final ScopeContext _scopeContext;
   final LibraryElementImpl _libraryElement;
 
-  AstRewriter(
-    this._diagnosticReporter,
-    this._scopeContext,
-    this._libraryElement,
-  );
+  new(this._diagnosticReporter, this._scopeContext, this._libraryElement);
 
   AssignmentTargetImpl parsedAssignmentTarget(
     Scope nameScope,
@@ -39,8 +35,6 @@ class AstRewriter {
   ) {
     AssignmentTargetImpl target;
     switch (node) {
-      case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
-        target = UnqualifiedNameAssignmentTargetImpl(name: name);
       case ParsedNameAccessAssignmentTargetImpl(
         :var operand,
         :var operator,
@@ -107,19 +101,6 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionImpl node,
   ) {
-    if (node is ParsedCascadeNameImpl) {
-      var expression = CascadePropertyExtractionImpl(name: node.name);
-      node.replaceWith(expression);
-      return RewrittenParsedExpression._(expression);
-    }
-    if (node is ParsedDotShorthandNameImpl) {
-      var expression = DotShorthandNameExpressionImpl(
-        period: node.period,
-        name: node.name,
-      );
-      node.replaceWith(expression);
-      return RewrittenParsedExpression._(expression);
-    }
     if (node is ParsedValueArgumentsImpl &&
         node.cascadeInvocationParts != null) {
       return PreparedCascadeInvocation(node);
@@ -628,8 +609,6 @@ class AstRewriter {
         lookup,
         hasSelector: hasSelector || !identical(node, root),
       );
-    } else if (node is ParsedCascadeNameImpl) {
-      receiver = CascadePropertyExtractionImpl(name: node.name);
     } else {
       // Nested call syntax and ordinary expressions use their own visitors,
       // including constructor and extension-override selection.
@@ -796,7 +775,7 @@ sealed class ParsedExpressionResult {}
 final class PreparedCascadeInvocation extends ParsedExpressionResult {
   final ParsedValueArgumentsImpl valueArguments;
 
-  PreparedCascadeInvocation(this.valueArguments);
+  new(this.valueArguments);
 }
 
 /// A shorthand call needs the context established by its enclosing expression
@@ -804,7 +783,7 @@ final class PreparedCascadeInvocation extends ParsedExpressionResult {
 final class PreparedDotShorthandInvocation extends ParsedExpressionResult {
   final ParsedValueArgumentsImpl valueArguments;
 
-  PreparedDotShorthandInvocation(this.valueArguments);
+  new(this.valueArguments);
 }
 
 /// A call ready for receiver traversal and subsequent member lookup.
@@ -813,7 +792,7 @@ final class PreparedReceiverInvocation extends ParsedExpressionResult {
   final TypeArgumentListImpl? typeArguments;
   final ParsedValueArgumentsImpl valueArguments;
 
-  PreparedReceiverInvocation._({
+  new _({
     required this.receiver,
     required this.typeArguments,
     required this.valueArguments,
@@ -824,5 +803,5 @@ final class PreparedReceiverInvocation extends ParsedExpressionResult {
 final class RewrittenParsedExpression extends ParsedExpressionResult {
   final InstanceReceiverImpl expression;
 
-  RewrittenParsedExpression._(this.expression);
+  new _(this.expression);
 }

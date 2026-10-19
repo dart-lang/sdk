@@ -56,16 +56,7 @@ abstract class ConstructorDeclaration {
 
   bool get hasParameters;
 
-  /// Whether this declaration hold the implementation for the constructor.
-  ///
-  /// For augmentations, only one of the constructor declarations is considered
-  /// as the implementation. Other declarations can only provide annotations
-  /// for the generated AST node.
-  bool get isImplementation;
-
-  List<Initializer> get initializers;
-
-  void registerInitializers(List<Initializer> initializers);
+  List<Initializer> get _initializers;
 
   bool get isPrimaryConstructor;
 
@@ -84,7 +75,6 @@ abstract class ConstructorDeclaration {
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-    required bool isImplementation,
   });
 
   void buildOutlineNodes({
@@ -116,8 +106,6 @@ abstract class ConstructorDeclaration {
     ComputeDefaultTypeContext context, {
     required bool inErrorRecovery,
   });
-
-  void prepareInitializers();
 
   void prependInitializer(Initializer initializer);
 
@@ -178,11 +166,6 @@ mixin _ConstructorDeclarationMixin
   List<SourceNominalParameterBuilder>? get _typeParameters;
 
   bool get _isPrimaryConstructor;
-
-  late final bool _isImplementation;
-
-  @override
-  bool get isImplementation => _isImplementation;
 
   late final List<FormalParameterBuilder>? _initializerScopeParameters =
       _computeInitializerScopeParameters();
@@ -383,8 +366,14 @@ mixin _ConstructorDeclarationMixin
         superConstructorSignature.namedParameters;
 
     int superInitializingFormalIndex = -1;
-    List<int?>? positionalSuperParameters;
-    List<String>? namedSuperParameters;
+    // Mapping for positional parameters that need cloning of default values.
+    // Maps from positional indices in this constructor super constructor
+    // positional indices.
+    Map<int, int> positionalTargetToSourceMapping = {};
+    // Mapping for named parameters that need cloning of default values.
+    // Maps from named indices in this constructor to super constructor
+    // parameter names.
+    Map<int, String> namedTargetToSourceMapping = {};
 
     Supertype? supertype = hierarchy.getClassAsInstanceOf(
       classBuilder.cls,
@@ -397,6 +386,8 @@ mixin _ConstructorDeclarationMixin
           supertype.typeArguments,
         );
 
+    int positionalIndex = 0;
+    int namedIndex = 0;
     for (int formalIndex = 0; formalIndex < formals!.length; formalIndex++) {
       FormalParameterBuilder formal = formals![formalIndex];
       if (formal.isSuperInitializingFormal) {
@@ -417,9 +408,8 @@ mixin _ConstructorDeclarationMixin
             correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer &&
                 !formal.isRequiredPositional) {
-              (positionalSuperParameters ??= <int?>[]).add(formalIndex);
-            } else {
-              (positionalSuperParameters ??= <int?>[]).add(null);
+              positionalTargetToSourceMapping[positionalIndex] =
+                  superInitializingFormalIndex;
             }
           } else {
             assert(
@@ -442,7 +432,7 @@ mixin _ConstructorDeclarationMixin
             }
             correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
-              (namedSuperParameters ??= <String>[]).add(formal.name);
+              namedTargetToSourceMapping[namedIndex] = formal.name;
             }
           } else {
             // TODO(cstefantsova): Report an error.
@@ -459,15 +449,23 @@ mixin _ConstructorDeclarationMixin
         formal.variable.hasDeclaredDefaultValue =
             formal.hasDeclaredDefaultValue;
       }
+      if (formal.isNamed) {
+        namedIndex++;
+      } else {
+        positionalIndex++;
+      }
     }
 
-    if (positionalSuperParameters != null || namedSuperParameters != null) {
+    if (positionalTargetToSourceMapping.isNotEmpty ||
+        namedTargetToSourceMapping.isNotEmpty) {
       _addSuperParameterDefaultValueCloners(
         libraryBuilder: libraryBuilder,
         delayedDefaultValueCloners: delayedDefaultValueCloners,
         superTarget: superTarget,
-        positionalSuperParameters: positionalSuperParameters,
-        namedSuperParameters: namedSuperParameters,
+        parameterMapping: new SuperParameterMapping(
+          positionalTargetToSourceMapping,
+          namedTargetToSourceMapping,
+        ),
       );
     }
   }
@@ -475,8 +473,7 @@ mixin _ConstructorDeclarationMixin
   void _addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   });
 
@@ -564,12 +561,12 @@ mixin _ConstructorDeclarationMixin
   ) {
     if (!_hasSuperInitializingFormals) return;
 
-    if (_buildInitializersForOutline && initializers.isNotEmpty) {
+    if (_buildInitializersForOutline && _initializers.isNotEmpty) {
       // If the initializers aren't built yet, we can't compute the super
       // target. The synthetic initializers should be excluded, since they can
       // be built separately from formal field initializers.
       bool allInitializersAreSynthetic = true;
-      for (Initializer initializer in initializers) {
+      for (Initializer initializer in _initializers) {
         if (!initializer.isSynthetic) {
           allInitializersAreSynthetic = false;
           break;
@@ -577,8 +574,8 @@ mixin _ConstructorDeclarationMixin
       }
       Member? superTarget;
       bool isInvalid = false;
-      Initializer? lastInitializer = initializers.isNotEmpty
-          ? initializers.last
+      Initializer? lastInitializer = _initializers.isNotEmpty
+          ? _initializers.last
           : null;
       if (lastInitializer is SuperInitializer) {
         superTarget = lastInitializer.target;
@@ -646,7 +643,6 @@ mixin _ConstructorDeclarationMixin
         beginInitializers: _initializersStartToken,
         isConst: isConst,
         forPrimaryConstructor: _isPrimaryConstructor,
-        isImplementation: isImplementation,
       );
     }
   }
@@ -764,8 +760,11 @@ mixin _ConstructorEncodingMixin
   ConstructorEncoding get _encoding;
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
-    _encoding.registerInitializers(initializers);
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
+    _encoding.registerInitializers(initializers, isErroneous: isErroneous);
   }
 
   String? get _nativeMethodName;
@@ -778,7 +777,7 @@ mixin _ConstructorEncodingMixin
   FunctionSignature get signature => _encoding.signature;
 
   @override
-  List<Initializer> get initializers => _encoding.initializers;
+  List<Initializer> get _initializers => _encoding.initializers;
 
   @override
   bool get isRedirecting => _encoding.isRedirecting;
@@ -791,11 +790,6 @@ mixin _ConstructorEncodingMixin
   @override
   void prependInitializer(Initializer initializer) {
     _encoding.prependInitializer(initializer);
-  }
-
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
   }
 
   @override
@@ -836,15 +830,13 @@ mixin _ConstructorEncodingMixin
   void _addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
     required SourceLibraryBuilder libraryBuilder,
+    required ParameterMapping<Constructor> parameterMapping,
   }) {
     _encoding.addSuperParameterDefaultValueCloners(
       delayedDefaultValueCloners: delayedDefaultValueCloners,
       superTarget: superTarget,
-      positionalSuperParameters: positionalSuperParameters,
-      namedSuperParameters: namedSuperParameters,
+      parameterMapping: parameterMapping,
       libraryBuilder: libraryBuilder,
     );
   }
@@ -1003,9 +995,7 @@ class RegularConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-    required bool isImplementation,
   }) {
-    _isImplementation = isImplementation;
     _fragment.builder = constructorBuilder;
     _typeParameters = encodingStrategy.createTypeParameters(
       declarationBuilder: declarationBuilder,
@@ -1176,9 +1166,7 @@ class DefaultEnumConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-    required bool isImplementation,
   }) {
-    _isImplementation = isImplementation;
     _encoding = encodingStrategy.createEncoding(isExternal: false);
     _registerInferable(constructorBuilder);
   }
@@ -1336,9 +1324,7 @@ class PrimaryConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-    required bool isImplementation,
   }) {
-    _isImplementation = isImplementation;
     _fragment.builder = constructorBuilder;
     _bodyFragment?.builder = constructorBuilder;
     _bodyFragment?.registerPrimaryConstructorFragment(
@@ -1562,15 +1548,18 @@ abstract class ConstructorFragmentDeclaration {
     required ScopeProviderInfo? scopeProviderInfo,
   });
 
+  void prepareInitializers();
+
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  });
+
   InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 
   void becomeNative(SourceLoader loader);
-
-  /// Returns the [Variable] for the tear off, if any, of the
-  /// [index]th formal parameter declared in the constructor.
-  FunctionParameter? getTearOffParameter(int index);
 
   LocalScope computeFormalParameterScope(LookupScope parent);
 
@@ -1581,23 +1570,12 @@ abstract class ConstructorFragmentDeclaration {
   bool get isExternal;
 
   bool get isNative;
-
-  /// Whether this constructor declaration holds the implementation for this
-  /// constructor.
-  bool get isImplementation;
 }
 
 mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   Constructor get _constructor;
 
   Procedure? get _constructorTearOff;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void registerInitializers(List<Initializer> initializers) {
-    _constructor.initializers.addAll(initializers);
-    setParents(initializers, _constructor);
-  }
 
   @override
   bool get isPrimaryConstructor => false;
@@ -1692,15 +1670,8 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   }
 
   @override
-  List<Initializer> get initializers {
+  List<Initializer> get _initializers {
     throw new UnsupportedError("Unexpected call to $runtimeType.initializers");
-  }
-
-  @override
-  void prepareInitializers() {
-    throw new UnsupportedError(
-      "Unexpected call to $runtimeType.prepareInitializers",
-    );
   }
 
   @override
@@ -1740,10 +1711,6 @@ class DefaultConstructorDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isImplementation => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -1751,13 +1718,7 @@ class DefaultConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-    required bool isImplementation,
-  }) {
-    assert(
-      isImplementation,
-      "Unexpected non-implementation default constructor.",
-    );
-  }
+  }) {}
 
   @override
   void addSuperParameterDefaultValueCloners(
@@ -1826,10 +1787,6 @@ class ForwardingConstructorDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isImplementation => true;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -1837,13 +1794,7 @@ class ForwardingConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-    required bool isImplementation,
-  }) {
-    assert(
-      isImplementation,
-      "Unexpected non-implementation forwarding constructor.",
-    );
-  }
+  }) {}
 
   @override
   void addSuperParameterDefaultValueCloners(

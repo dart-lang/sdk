@@ -10,7 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 class DartChangeWorkspace implements ChangeWorkspace {
   final List<AnalysisSession> sessions;
 
-  DartChangeWorkspace(this.sessions);
+  new(this.sessions);
 
   @override
   ResourceProvider get resourceProvider => sessions.first.resourceProvider;

@@ -21,7 +21,7 @@ import 'package:analyzer/src/error/listener.dart';
 class AnnotationResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  AnnotationResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   void resolve(AnnotationImpl node) {
     _typeAnalyzer.analyzeExpression(

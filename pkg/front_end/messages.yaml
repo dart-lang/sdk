@@ -3108,8 +3108,9 @@ partTwice:
     main.dart: "part 'part.dart'; part 'part.dart';"
 
 partOfTwoLibraries:
-  parameters: none
-  problemMessage: "A file can't be part of more than one library."
+  parameters:
+    Uri uri: The URI that is used as a part in more than one library.
+  problemMessage: "Can't use '#uri' as a part of more than one library."
   correctionMessage: "Try moving the shared declarations into the libraries, or into a new library."
   script:
     main.dart: "library lib; import 'lib.dart'; part 'part.dart';"
@@ -5789,6 +5790,7 @@ thisNotPromoted:
   problemMessage: "'this' can't be promoted."
   correctionMessage: "See #documentationUrl"
   script: |
+    // @dart=3.14
     extension on int? {
       bool extension_explicit_this() {
         if (this == null) return false;
@@ -7265,6 +7267,36 @@ wasmExternInvalidTarget:
 wasmIntrinsicTearOff:
   parameters: none
   problemMessage: This intrinsic extension member may not be torn off.
+
+wasmImportInvalidPragma:
+  parameters: none
+  problemMessage: "The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument."
+
+wasmExportInvalidPragma:
+  parameters: none
+  problemMessage: "The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters."
+
+wasmImportOrExportInvalidSignature:
+  parameters: none
+  problemMessage: "Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' cannot have type parameters, optional parameters, or named parameters."
+
+wasmImportOrExportInvalidParameterType:
+  parameters:
+    Type type: The invalid parameter type.
+  problemMessage: "Type '#type' is not a valid Wasm parameter type for imported or exported functions."
+
+wasmImportOrExportInvalidReturnType:
+  parameters:
+    Type type: The invalid return type.
+  problemMessage: "Type '#type' is not a valid Wasm return type for imported or exported functions (use 'WasmVoid' instead of 'void')."
+
+wasmImportOrExportTearOff:
+  parameters: none
+  problemMessage: "Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' may not be torn off."
+
+wasmFunctionFromFunctionInvalidArgument:
+  parameters: none
+  problemMessage: "The argument to 'WasmFunction.fromFunction' must be a tear-off of a static function with a valid Wasm signature."
 
 weakReferenceNotStatic:
   parameters: none

@@ -109,30 +109,5 @@ enum ${innerName}Kind {''');
       sb.writeln('''
 }''');
     });
-    sb.writeln('''
-
-/// Returns the set of node kinds that were not visited by [visitor].
-Set<Object> missingNodes($visitorName visitor) {
-  Set<Object> all = {''');
-    nestedClassNames.forEach((String innerName, Set<String> classNames) {
-      sb.writeln('''
-    ...${innerName}Kind.values,''');
-    });
-    sb.writeln('''
-  };
-  all.removeAll(visitor.visited);
-  return all;
-}''');
-    nestedClassNames.forEach((String innerName, Set<String> classNames) {
-      if (innerName == 'Node') return;
-      sb.writeln('''
-/// Returns the set of [${innerName}Kind]s not visited by [visitor].
-Set<${innerName}Kind> missing${innerName}s($visitorName visitor) {
-  Set<${innerName}Kind> all = 
-    new Set<${innerName}Kind>.of(${innerName}Kind.values);
-  all.removeAll(visitor.visited);
-  return all;
-}''');
-    });
   }
 }

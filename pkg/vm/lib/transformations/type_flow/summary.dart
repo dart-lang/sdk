@@ -151,13 +151,33 @@ class Narrow extends Statement {
     // normalization (so it's not enough to handle it in
     // SummaryCollector._makeNarrow).
     final arg = this.arg;
-    if (type is AnyInstanceType) {
-      if (arg is Type) {
+    final type = this.type;
+    if (arg is EmptyType || type is EmptyType) {
+      return emptyType;
+    }
+    if (condition != null) return null;
+    if (type == nullableAnyType) {
+      return arg;
+    }
+    if (arg is Type) {
+      if (arg == nullableAnyType) {
+        return type;
+      }
+      if (type is AnyInstanceType) {
         return (arg is NullableType) ? arg.baseType : arg;
       }
-      if (arg is Call && arg.isInstanceCreation) {
-        return arg;
+      if (arg is AnyInstanceType) {
+        return (type is NullableType) ? type.baseType : type;
       }
+      if (arg == nullableEmptyType || type == nullableEmptyType) {
+        return (arg is NullableType && type is NullableType)
+            ? nullableEmptyType
+            : emptyType;
+      }
+      return null;
+    }
+    if (arg is Call && arg.isInstanceCreation && type is AnyInstanceType) {
+      return arg;
     }
     return null;
   }
@@ -249,19 +269,26 @@ class Join extends Statement {
   @override
   TypeExpr? simplify(TypesBuilder typesBuilder) {
     final values = this.values;
+    final hasNull = values.any((v) => v is NullableType);
     // Calculate the set of values and remove duplicates and empty types.
     final valuesSet = Set<TypeExpr>();
     int n = values.length;
     int j = 0;
     for (int i = 0; i < n; ++i) {
-      final v = values[i];
+      TypeExpr v = values[i];
+      if (hasNull && v is AnyInstanceType) {
+        v = nullableAnyType;
+      }
       if (v is! EmptyType && valuesSet.add(v)) {
         values[j++] = v;
       }
     }
     n = j;
+    final hasNullableAny = valuesSet.contains(nullableAnyType);
+    final hasAnyInstance = valuesSet.contains(anyInstanceType);
     j = 0;
-    // Remove duplicate moves and narrow.
+    // Remove duplicate moves, narrow, and values subsumed by
+    // nullableAnyType / anyInstanceType.
     for (int i = 0; i < n; ++i) {
       final v = values[i];
       bool redundant = false;
@@ -281,17 +308,46 @@ class Join extends Statement {
         e = arg;
       }
       if (!redundant) {
+        if (hasNullableAny && v != nullableAnyType) {
+          redundant = true;
+        } else if (hasAnyInstance && v is! AnyInstanceType && !_canBeNull(v)) {
+          redundant = true;
+        }
+      }
+      if (!redundant) {
         values[j++] = v;
       }
     }
     n = j;
     if (n == 0) {
       return emptyType;
-    } else if (n == 1) {
+    } else if (n == 1 && condition == null) {
       return values[0];
     }
     values.removeRange(n, values.length);
     return null;
+  }
+
+  static bool _canBeNull(TypeExpr expr) {
+    while (true) {
+      switch (expr) {
+        case Type():
+          return expr is NullableType;
+        case Call(isInstanceCreation: true):
+          return false;
+        case Narrow(type: NullableType(), :final arg):
+        case UnaryOperation(op: UnaryOp.Move, :final arg):
+          expr = arg;
+        case Narrow():
+        // IsNull, IsEmpty, Not always evaluate to non-nullable bool or empty.
+        case UnaryOperation():
+        // And, Or always evaluate to non-nullable bool or empty.
+        case BinaryOperation():
+          return false;
+        default:
+          return true;
+      }
+    }
   }
 
   @override
@@ -803,10 +859,54 @@ class UnaryOperation extends Statement {
 
   @override
   TypeExpr? simplify(TypesBuilder typesBuilder) {
-    if (op == UnaryOp.Move && condition == null) {
+    final arg = this.arg;
+    if (arg is EmptyType && op != UnaryOp.IsEmpty) {
+      return emptyType;
+    }
+    if (condition != null) return null;
+    if (op == UnaryOp.Move) {
       return arg;
     }
-    return null;
+    if (arg is! Type) {
+      // A `Statement` may evaluate to a more specific type during analysis time.
+      return null;
+    }
+    switch (op) {
+      case UnaryOp.Move:
+        throw 'Unreachable';
+      case UnaryOp.IsNull:
+        if (arg is NullableType) {
+          final baseType = arg.baseType;
+          if (baseType is EmptyType) {
+            return typesBuilder.constantTrue;
+          }
+          // Unspecialized types (e.g. ConeType) may have empty specialization
+          // during analysis until subtypes are allocated.
+          if (baseType.isSpecialized) {
+            return typesBuilder.boolType;
+          }
+          return null;
+        }
+        return typesBuilder.constantFalse;
+      case UnaryOp.IsEmpty:
+        if (arg is EmptyType) {
+          return typesBuilder.constantTrue;
+        }
+        // Unspecialized types (e.g. ConeType) may have empty specialization
+        // during analysis until subtypes are allocated.
+        if (arg is NullableType || arg.isSpecialized) {
+          return typesBuilder.boolType;
+        }
+        return null;
+      case UnaryOp.Not:
+        if (identical(arg, typesBuilder.constantTrue)) {
+          return typesBuilder.constantFalse;
+        }
+        if (identical(arg, typesBuilder.constantFalse)) {
+          return typesBuilder.constantTrue;
+        }
+        return typesBuilder.boolType;
+    }
   }
 
   @override
@@ -886,6 +986,10 @@ class BinaryOperation extends Statement {
   @override
   TypeExpr? simplify(TypesBuilder typesBuilder) {
     final TypeExpr left = arg1;
+    if (left is EmptyType) {
+      return emptyType;
+    }
+    if (condition != null) return null;
     switch (op) {
       case BinaryOp.Or:
         if (identical(left, typesBuilder.constantTrue)) {
@@ -903,6 +1007,10 @@ class BinaryOperation extends Statement {
           return arg2;
         }
         break;
+    }
+    if (left is Type) {
+      // A `Type` cannot become a true/false constant during analysis time.
+      return typesBuilder.boolType;
     }
     return null;
   }

@@ -37,11 +37,7 @@ class LinkedElementFactory {
   bool isApplyingInformativeData = false;
   final Map<Uri, LibraryManifestHandle> libraryManifests = {};
 
-  LinkedElementFactory(
-    this.analysisContext,
-    this.analysisSession,
-    this.rootReference,
-  ) {
+  new(this.analysisContext, this.analysisSession, this.rootReference) {
     ArgumentError.checkNotNull(analysisContext, 'analysisContext');
     ArgumentError.checkNotNull(analysisSession, 'analysisSession');
   }
@@ -118,9 +114,9 @@ class LinkedElementFactory {
     }
   }
 
-  void discardLibraryManifestInstances() {
+  void discardDecodedLibraryManifests() {
     for (var handle in libraryManifests.values) {
-      handle.discardInstance();
+      handle.discardDecoded();
     }
   }
 

@@ -59,7 +59,8 @@ class C {
 }
 
 @reflectiveTest
-class ReplaceReturnTypeFutureLintTest extends FixProcessorLintTest {
+class ReplaceReturnTypeFutureLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 
@@ -123,7 +124,7 @@ class C {
 }
 
 @reflectiveTest
-class ReplaceReturnTypeFutureTest extends FixProcessorTest {
+class ReplaceReturnTypeFutureTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceReturnTypeFuture;
 

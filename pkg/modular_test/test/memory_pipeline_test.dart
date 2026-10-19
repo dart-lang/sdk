@@ -3,6 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Unit test for in-memory pipelines.
+///
+/// Even when no external suites currently run in-memory, keeping this test and
+/// [MemoryPipeline] ensures the modular framework continues to support
+/// in-memory execution and guards the shared [Pipeline] abstractions against
+/// accidental `dart:io` dependencies.
 library;
 
 import 'dart:async';

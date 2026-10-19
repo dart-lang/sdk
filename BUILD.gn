@@ -177,6 +177,16 @@ group("dart2wasm") {
   ]
 }
 
+group("dart2wasm_dev") {
+  deps = [
+    "utils/dart2wasm:dart2wasm_dev_snapshot",
+    "utils/dart2wasm:wasm_dev_rt",
+  ]
+  if (defined(is_product) && !is_product) {
+    deps += [ "utils/dart2wasm:dart2wasm_dev_asserts_snapshot" ]
+  }
+}
+
 group("dart2wasm_benchmark") {
   deps = [
     ":dart2wasm_platform",

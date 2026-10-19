@@ -18,7 +18,7 @@ class DartFoldingRequestImpl implements DartFoldingRequest {
   final ResolvedUnitResult result;
 
   /// Initialize a newly create request with the given data.
-  DartFoldingRequestImpl(this.resourceProvider, this.result);
+  new(this.resourceProvider, this.result);
 
   @override
   String get path => result.path;
@@ -30,7 +30,7 @@ class FoldingCollectorImpl implements FoldingCollector {
   List<FoldingRegion> regions = <FoldingRegion>[];
 
   /// Initialize a newly created collector.
-  FoldingCollectorImpl();
+  new();
 
   @override
   void addRange(SourceRange range, FoldingKind kind) {

@@ -17,5 +17,5 @@ class TimestampedData<E> {
 
   /// Initialize a newly created holder to associate the given [data] with the
   /// given [modificationTime].
-  TimestampedData(this.modificationTime, this.data);
+  new(this.modificationTime, this.data);
 }

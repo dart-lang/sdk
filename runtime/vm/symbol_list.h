@@ -472,10 +472,6 @@ namespace dart {
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
   V(_nextListener, "_nextListener")                                            \
-  V(_nativeGetFloat32, "_nativeGetFloat32")                                    \
-  V(_nativeSetFloat32, "_nativeSetFloat32")                                    \
-  V(_nativeGetFloat64, "_nativeGetFloat64")                                    \
-  V(_nativeSetFloat64, "_nativeSetFloat64")                                    \
   V(_nativeGetFloat32x4, "_nativeGetFloat32x4")                                \
   V(_nativeSetFloat32x4, "_nativeSetFloat32x4")                                \
   V(_nativeGetInt32x4, "_nativeGetInt32x4")                                    \

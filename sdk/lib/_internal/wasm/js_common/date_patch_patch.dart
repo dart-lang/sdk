@@ -12,7 +12,8 @@ import 'dart:_wasm';
 class DateTime {
   @patch
   static int _getCurrentMicros() =>
-      (JS<double>("Date.now") * Duration.microsecondsPerMillisecond).toInt();
+      (JS<WasmF64>("Date.now").toDouble() * Duration.microsecondsPerMillisecond)
+          .toInt();
 
   @patch
   static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch) =>
@@ -25,7 +26,7 @@ class DateTime {
             return '';
         }
         return match[1];
-      }""", secondsSinceEpoch.toDouble()),
+      }""", secondsSinceEpoch.toDouble().toWasmF64()),
       );
 
   // In Dart, the offset is the difference between local time and UTC,
@@ -33,8 +34,8 @@ class DateTime {
   // As a result, the signs are opposite, so we negate the value returned by JS.
   @patch
   static int _timeZoneOffsetInSecondsForClampedSeconds(int secondsSinceEpoch) =>
-      -JS<double>(
+      -JS<WasmF64>(
         "s => new Date(s * 1000).getTimezoneOffset() * 60 ",
-        secondsSinceEpoch.toDouble(),
-      ).toInt();
+        secondsSinceEpoch.toDouble().toWasmF64(),
+      ).toDouble().toInt();
 }

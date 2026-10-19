@@ -122,7 +122,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class RemoveThisAliasTest extends FixProcessorLintTest {
+class RemoveThisAliasTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeThisAlias;
 
@@ -996,6 +996,35 @@ extension Ext on B {
 ''');
   }
 
+  Future<void> test_use_method_implicit_interpolation() async {
+    // A method invocation needs its braces, so they're kept.
+    await resolveTestCode(r'''
+class A {
+  void a() {
+    var self = this;
+    if (self is B) {
+      print('${self.b()}');
+    }
+  }
+}
+class B extends A {
+  int b() => 0;
+}
+''');
+    await assertHasFix(r'''
+class A {
+  void a() {
+    if (this is B) {
+      print('${b()}');
+    }
+  }
+}
+class B extends A {
+  int b() => 0;
+}
+''');
+  }
+
   Future<void> test_use_method_implicit_sameNameAsAlias() async {
     await resolveTestCode('''
 class A {
@@ -1317,6 +1346,92 @@ class A {
   void a() {
     if (this is B) {
       x++;
+    }
+  }
+}
+class B extends A {
+  int x = 0;
+}
+''');
+  }
+
+  Future<void> test_use_property_implicit_interpolation() async {
+    await resolveTestCode(r'''
+class A {
+  void a() {
+    var self = this;
+    if (self is B) {
+      print('${self.x}!');
+    }
+  }
+}
+class B extends A {
+  int x = 0;
+}
+''');
+    await assertHasFix(r'''
+class A {
+  void a() {
+    if (this is B) {
+      print('$x!');
+    }
+  }
+}
+class B extends A {
+  int x = 0;
+}
+''');
+  }
+
+  Future<void>
+  test_use_property_implicit_interpolation_followedByIdentifierPart() async {
+    // The braces are still needed, or `y` would become part of the name.
+    await resolveTestCode(r'''
+class A {
+  void a() {
+    var self = this;
+    if (self is B) {
+      print('${self.x}y');
+    }
+  }
+}
+class B extends A {
+  int x = 0;
+}
+''');
+    await assertHasFix(r'''
+class A {
+  void a() {
+    if (this is B) {
+      print('${x}y');
+    }
+  }
+}
+class B extends A {
+  int x = 0;
+}
+''');
+  }
+
+  Future<void> test_use_property_implicit_interpolation_parenthesized() async {
+    await resolveTestCode(r'''
+class A {
+  void a() {
+    var self = this;
+    if (self is B) {
+      print('${(self).x}');
+    }
+  }
+}
+class B extends A {
+  int x = 0;
+}
+''');
+    await assertHasFix(r'''
+class A {
+  void a() {
+    if (this is B) {
+      print('$x');
     }
   }
 }

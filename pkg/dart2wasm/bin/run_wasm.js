@@ -415,6 +415,7 @@ const main = async () => {
     loadDeferredId: (id, handleWasmBytes) =>
       globalThis.loadDeferredId(id, readBytes, handleWasmBytes),
   });
+  globalThis.appInstanceForTesting = appInstance;
 
   // Call `main`. If tasks are placed into the event loop (by scheduling tasks
   // explicitly or awaiting Futures), these will automatically keep the script

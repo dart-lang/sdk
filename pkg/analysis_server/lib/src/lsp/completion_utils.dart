@@ -193,6 +193,8 @@ lsp.CompletionItem? toLspCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   CandidateSuggestion suggestion, {
+  required DartCompletionRequest request,
+  String? hiddenLabelPrefix,
   required ClientUriConverter uriConverter,
   required path.Context pathContext,
   required String completionFilePath,
@@ -204,7 +206,6 @@ lsp.CompletionItem? toLspCompletionItem(
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
   lsp.CompletionResolutionInfo? resolutionData,
-  required DartCompletionRequest request,
 }) {
   // isCallable is used to suffix the label with parens so it's clear the item
   // is callable.
@@ -286,6 +287,11 @@ lsp.CompletionItem? toLspCompletionItem(
   // Trim any trailing comma from the (displayed) label.
   if (label.endsWith(',')) {
     label = label.substring(0, label.length - 1);
+  }
+
+  // Finally, strip any prefix we want hidden from label.
+  if (hiddenLabelPrefix != null && label.startsWith(hiddenLabelPrefix)) {
+    label = label.substring(hiddenLabelPrefix.length);
   }
 
   var colorPreviewHex =

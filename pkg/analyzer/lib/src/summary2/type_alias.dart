@@ -13,16 +13,16 @@ class TypeAliasSelfReferenceFinder {
     for (var builder in linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations2) {
-          if (node is FunctionTypeAliasImpl) {
+          if (node is FunctionTypeAlias2Impl) {
             var finder = _Finder(linker, node);
             finder.functionTypeAlias(node);
-            var fragment = node.declaredFragment!;
-            fragment.hasSelfReference = finder.hasSelfReference;
-          } else if (node is GenericTypeAliasImpl) {
+            var element = node.declaredFragment!.element;
+            element.hasSelfReference = finder.hasSelfReference;
+          } else if (node is GenericTypeAlias2Impl) {
             var finder = _Finder(linker, node);
             finder.genericTypeAlias(node);
-            var fragment = node.declaredFragment!;
-            fragment.hasSelfReference = finder.hasSelfReference;
+            var element = node.declaredFragment!.element;
+            element.hasSelfReference = finder.hasSelfReference;
           }
         }
       }
@@ -36,15 +36,15 @@ class _Finder {
   final Set<AstNode> visited = Set.identity();
   bool hasSelfReference = false;
 
-  _Finder(this.linker, this.self);
+  new(this.linker, this.self);
 
-  void functionTypeAlias(FunctionTypeAlias node) {
+  void functionTypeAlias(FunctionTypeAlias2 node) {
     _typeParameterList(node.typeParameters);
     _formalParameterList(node.parameters);
     _visit(node.returnType);
   }
 
-  void genericTypeAlias(GenericTypeAlias node) {
+  void genericTypeAlias(GenericTypeAlias2 node) {
     _typeParameterList(node.typeParameters);
     _visit(node.type);
   }
@@ -105,11 +105,11 @@ class _Finder {
             if (visited.add(typeNode)) {
               _typeParameterList(typeNode.typeParameters);
             }
-          } else if (typeNode is FunctionTypeAlias) {
+          } else if (typeNode is FunctionTypeAlias2) {
             if (visited.add(typeNode)) {
               functionTypeAlias(typeNode);
             }
-          } else if (typeNode is GenericTypeAlias) {
+          } else if (typeNode is GenericTypeAlias2) {
             if (visited.add(typeNode)) {
               genericTypeAlias(typeNode);
             }

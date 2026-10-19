@@ -50,7 +50,7 @@ class FlowAnalysisLog {
   late final FlowLinkReader<PromotionInfo> _reader =
       new FlowLinkReader<PromotionInfo>();
 
-  FlowAnalysisLog._();
+  new _();
 
   /// Retrieves the full [PromotionInfo] map that was in effect at the given
   /// source code [offset].
@@ -186,7 +186,7 @@ class FlowAnalysisLogBuilder extends FlowAnalysisLog {
   /// in the log are sensible.
   int _minValidOffset = 0;
 
-  FlowAnalysisLogBuilder() : super._();
+  new() : super._();
 
   /// Records that type analysis is about to visit a construct whose source
   /// range begins at [offset], even though that's not the range that would be
@@ -491,7 +491,7 @@ class _OutOfOrderRegion {
   /// restored when the region ends.
   final int savedMinValidOffset;
 
-  _OutOfOrderRegion({
+  new({
     required this.startOffset,
     required this.promotionInfoIndex,
     required this.thisBindingIndex,

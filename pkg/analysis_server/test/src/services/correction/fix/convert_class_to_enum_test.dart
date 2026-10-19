@@ -67,7 +67,7 @@ var x = [_E.c0, _E.c1];
 }
 
 @reflectiveTest
-class ConvertClassToEnumTest extends FixProcessorLintTest {
+class ConvertClassToEnumTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertClassToEnum;
 

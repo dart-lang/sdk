@@ -8,7 +8,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show ProcessResult;
+import 'dart:io' show ProcessResult, pid;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
@@ -37,6 +37,15 @@ import 'package:watcher/watcher.dart' as watcher;
 import 'package:yaml/yaml.dart';
 
 const _builtAsAot = bool.fromEnvironment('built_as_aot');
+
+/// How old a temporary file, left by an interrupted compile, must be before it
+/// is deleted. This is much longer than any compile takes.
+const _staleTemporaryFileAge = Duration(days: 1);
+
+/// The names of the temporary files that `_compileAotSnapshot` writes.
+final _temporaryFileName = RegExp(
+  r'^(plugin\.aot|depfile\.txt)\.\d+\.\d+\.tmp$',
+);
 
 /// An indication of a problem with the execution of a plugin that occurs prior
 /// to the execution of the plugin's entry point in an isolate.
@@ -139,6 +148,9 @@ class PluginManager {
 
   final ProcessRunner _processRunner;
 
+  /// The version of the Dart SDK that this plugin manager is running in.
+  final String _dartVersion;
+
   /// The set of context root paths with no configured _new_ plugins.
   final contextRootsWithNoPlugins = <String>{};
 
@@ -154,7 +166,8 @@ class PluginManager {
     this.instrumentationService,
     this.sessionLogger, {
     this._processRunner = const ProcessRunner(),
-  });
+    @visibleForTesting String? dartVersion,
+  }) : _dartVersion = dartVersion ?? platform.version;
 
   /// All of the legacy plugins that are currently known.
   List<PluginIsolate> get legacyPluginIsolates =>
@@ -398,7 +411,7 @@ class PluginManager {
   /// Returns the "plugin state" folder for a plugin at [pluginPath].
   ///
   /// This is a directory under the state location for '.plugin_manager', named
-  /// with a hash based on [pluginPath].
+  /// with a hash based on [pluginPath] and the version of the Dart SDK.
   Folder pluginStateFolder(String pluginPath) {
     var stateFolder = _resourceProvider.getStateLocation('.plugin_manager');
     if (stateFolder == null) {
@@ -576,6 +589,15 @@ class PluginManager {
 
   /// Compiles [entrypoint] to an AOT snapshot and records timing to the
   /// instrumentation log.
+  ///
+  /// Other analysis servers (possibly running a different version of the Dart
+  /// SDK) may be loading `plugin.aot` and reading `depfile.txt` at any time, so
+  /// the compiler never writes to those files directly. It writes to temporary
+  /// files in the same folder, which are renamed over the final files once
+  /// they are complete. A rename within one folder is atomic, and gives the
+  /// snapshot a new inode, so a process that has already mapped the old
+  /// snapshot keeps a consistent image, and a new process never sees a
+  /// partially written one.
   ProcessResult _compileAotSnapshot(File entrypoint) {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot $entrypoint".',
@@ -583,31 +605,41 @@ class PluginManager {
     sessionLogger.logInfo('Running "dart compile aot-snapshot $entrypoint".');
 
     var stopwatch = Stopwatch()..start();
-    var depfile = entrypoint.parent.getFile('depfile.txt');
-    var aotSnapshotFile = entrypoint.parent.getFile('plugin.aot');
-    if (aotSnapshotFile.exists) {
-      try {
-        // Delete any existing AOT snapshot. On MacOS, sometimes this file
-        // becomes quarantined due to a race condition with codesigning and
-        // overwriting the file.
-        aotSnapshotFile.delete();
-      } catch (e) {
-        instrumentationService.logInfo(
-          'Could not delete existing AOT plugin entrypoint at '
-          '"$aotSnapshotFile": $e.',
-        );
-        sessionLogger.logInfo(
-          'Could not delete existing AOT plugin entrypoint at '
-          '"$aotSnapshotFile": $e.',
-        );
+    var binFolder = entrypoint.parent;
+    var depfile = binFolder.getFile('depfile.txt');
+    var aotSnapshotFile = binFolder.getFile('plugin.aot');
+    _deleteStaleTemporaryFiles(binFolder);
+    var suffix = '$pid.${DateTime.now().microsecondsSinceEpoch}.tmp';
+    var temporaryDepfile = binFolder.getFile('depfile.txt.$suffix');
+    var temporarySnapshot = binFolder.getFile('plugin.aot.$suffix');
+
+    ProcessResult result;
+    try {
+      result = _processRunner.runSync(
+        sdk.dart,
+        [
+          'compile',
+          'aot-snapshot',
+          '-o',
+          temporarySnapshot.path,
+          '--depfile',
+          temporaryDepfile.path,
+          entrypoint.path,
+        ],
+        stderrEncoding: utf8,
+        stdoutEncoding: utf8,
+      );
+      if (result.exitCode == 0) {
+        // Publish the depfile before the snapshot. A reader that sees the new
+        // depfile with the old snapshot finds the snapshot stale (so it
+        // recompiles), and never the other way around.
+        _publishFile(temporaryDepfile, depfile);
+        _publishFile(temporarySnapshot, aotSnapshotFile);
       }
+    } finally {
+      _deleteIfExists(temporaryDepfile);
+      _deleteIfExists(temporarySnapshot);
     }
-    var result = _processRunner.runSync(
-      sdk.dart,
-      ['compile', 'aot-snapshot', '--depfile', depfile.path, entrypoint.path],
-      stderrEncoding: utf8,
-      stdoutEncoding: utf8,
-    );
     stopwatch.stop();
 
     instrumentationService.logInfo(
@@ -835,6 +867,44 @@ class PluginManager {
     return packageConfigFile;
   }
 
+  /// Deletes [file] if it exists, ignoring any failure.
+  void _deleteIfExists(File file) {
+    try {
+      if (file.exists) file.delete();
+    } catch (e) {
+      instrumentationService.logInfo('Could not delete "$file": $e.');
+      sessionLogger.logInfo('Could not delete "$file": $e.');
+    }
+  }
+
+  /// Deletes the temporary files, left in [binFolder] by compiles that were
+  /// interrupted (for example when the analysis server was killed), that are
+  /// older than [_staleTemporaryFileAge].
+  ///
+  /// A temporary file can be a whole AOT snapshot, so they are worth removing.
+  void _deleteStaleTemporaryFiles(Folder binFolder) {
+    try {
+      var cutoff =
+          DateTime.now().millisecondsSinceEpoch -
+          _staleTemporaryFileAge.inMilliseconds;
+      for (var child in binFolder.getChildren()) {
+        if (child is! File || !_temporaryFileName.hasMatch(child.shortName)) {
+          continue;
+        }
+        if (child.exists && child.modificationStamp < cutoff) {
+          _deleteIfExists(child);
+        }
+      }
+    } catch (e) {
+      instrumentationService.logInfo(
+        'Could not delete stale temporary files in "$binFolder": $e.',
+      );
+      sessionLogger.logInfo(
+        'Could not delete stale temporary files in "$binFolder": $e.',
+      );
+    }
+  }
+
   /// Returns a viable existing plugin AOT snapshot, if it exists and its
   /// modification timestamp is newer than all of its dependencies, and `null`
   /// otherwise.
@@ -882,6 +952,29 @@ class PluginManager {
   }
 
   void _notifyPluginsChanged() => _pluginsChanged.add(null);
+
+  /// Atomically moves the completed [temporary] file over [destination].
+  ///
+  /// If [temporary] does not exist, there is nothing to publish. If the move
+  /// fails (for example on Windows, when another process has [destination]
+  /// open) but [destination] exists, then it is complete, so it is used as is.
+  /// It might be stale, in which case this load uses an out of date plugin.
+  /// The next lookup compares its modification time to its dependencies, finds
+  /// it stale, and compiles again.
+  void _publishFile(File temporary, File destination) {
+    if (!temporary.exists) return;
+    try {
+      temporary.renameSync(destination.path);
+    } on FileSystemException catch (e) {
+      if (!destination.exists) rethrow;
+      instrumentationService.logInfo(
+        'Could not replace "$destination": $e. Using the existing file.',
+      );
+      sessionLogger.logInfo(
+        'Could not replace "$destination": $e. Using the existing file.',
+      );
+    }
+  }
 
   /// Return the names of packages that are listed as dependencies in the given
   /// [pubspecFile].
@@ -934,9 +1027,14 @@ class PluginManager {
     return result;
   }
 
-  /// Returns a hex-encoded MD5 signature of the given file [path].
+  /// Returns a hex-encoded MD5 signature of the given file [path], and the
+  /// version of the Dart SDK that this plugin manager is running in.
+  ///
+  /// The Dart version is included so that analysis servers running different
+  /// versions of the Dart SDK do not share (and keep invalidating) each other's
+  /// compiled plugins.
   String _uniqueDirectoryName(String path) {
-    var bytes = md5.convert(path.codeUnits).bytes;
+    var bytes = md5.convert('$_dartVersion\n$path'.codeUnits).bytes;
     return hex.encode(bytes);
   }
 

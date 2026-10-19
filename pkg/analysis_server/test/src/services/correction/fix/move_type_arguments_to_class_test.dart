@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class MoveTypeArgumentsToClassTest extends FixProcessorTest {
+class MoveTypeArgumentsToClassTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.moveTypeArgumentsToClass;
 

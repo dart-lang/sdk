@@ -2,6 +2,79 @@
 
 **Released on:** Unreleased
 
+### Language
+
+Dart 3.15 allows [`this` to be type promoted][this-promotion-issue], just like
+a local variable. To use this feature, set your package's
+[SDK constraint][language version] lower bound to 3.15 or greater
+(`sdk: '^3.15.0'`).
+
+#### Type promotion of `this`
+
+Previously, a type test or null check on `this` had no effect on its static
+type, so code that wanted to take advantage of one had to copy `this` into a
+local variable first:
+
+```dart
+class Shape {
+  void describe() {
+    var self = this;
+    if (self is Circle) print('radius ${self.radius}');
+  }
+}
+
+class Circle extends Shape {
+  final double radius;
+  Circle(this.radius);
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    var self = this;
+    if (self == null) return true;
+    return self.isEven;
+  }
+}
+```
+
+Now `this` is promoted directly, and so is an implicit `this` in a member
+access:
+
+```dart
+class Shape {
+  void describe() {
+    if (this is Circle) print('radius $radius');
+  }
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    if (this == null) return true;
+    return isEven;
+  }
+}
+```
+
+The new [`unnecessary_this_alias`][unnecessary_this_alias] lint flags local
+variables that only exist to work around the old behavior, and `dart fix` can
+remove them.
+
+[this-promotion-issue]: https://github.com/dart-lang/language/issues/1397
+[language version]: https://dart.dev/to/language-version
+[unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
+
+### Tools
+
+#### Analyzer
+
+- When the value assigned through `operator []=` (in `a[i] = v`, `a[i] op= v`,
+  `a[i] ??= v`, `a[i]++`, and so on) isn't assignable to the parameter type,
+  the analyzer now reports `argument_type_not_assignable` instead of
+  `invalid_assignment`, consistent with how it reports a non-assignable index.
+  For more details, see SDK issue [#64561][].
+
+[#64561]: https://github.com/dart-lang/sdk/issues/64561
+
 ## 3.14.0
 
 **Released on:** Unreleased
@@ -178,6 +251,15 @@
 
 [#54366]: https://github.com/dart-lang/sdk/issues/54366
 
+#### Linter
+
+- Added the `future_sync_value` lint rule, which recommends using
+  `Future.syncValue` instead of `Future.sync` when the callback returns a
+  synchronous (non-`Future`) value.
+  For more details, see SDK issue [#61740][].
+
+[#61740]: https://github.com/dart-lang/sdk/issues/61740
+
 #### Dart CLI
 
 - `dart run <package>:<command>` and `dart test` now cache the precompiled
@@ -226,17 +308,31 @@
 
 #### Formatter
 
-The following bug fixes are *not* language versioned and apply also when
-formatting Dart 3.13 code:
+- Enable experiments specified by surrounding `analysis_options.yaml` file when
+  parsing code ([#1886][dart_style #1886]).
 
-- Don't crash when formatting an enum with a primary constructor when trailing
+- Fix crash when formatting an enum with a primary constructor when trailing
   commas are preserved ([#1885][dart_style #1885]).
 
 - Fix missing trailing comma on enum values when an enum has a primary
-  constructor ([#1888][dart_style #1888]).
+  constructor ([#1888][dart_style #1888]). Note that this style change is *not*
+  language-versioned and also applies when formatting Dart 3.13 code.
+
+- Fix crash when attempting to write a line with exactly 128 spaces of
+  indentation.
 
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1886]: https://github.com/dart-lang/dart_style/issues/1886
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+#### Pub
+
+- `dart pub upgrade` now accepts `<package>@<constraint>`, `<package>@latest`,
+  and `<package>@resolvable` targets to upgrade specific dependencies within a
+  version constraint or inspect why a newer version cannot be selected
+  (issue [dart-lang/pub#4569][]).
+
+[dart-lang/pub#4569]: https://github.com/dart-lang/pub/issues/4569
 
 #### dart2js
 

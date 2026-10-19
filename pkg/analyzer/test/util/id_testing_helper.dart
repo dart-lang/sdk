@@ -238,7 +238,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
   // TODO(paulberry): Maybe this should have access to the [ResolvedUnitResult] instead.
   final Map<Uri, AnnotatedCode> code;
 
-  AnalyzerCompiledData(
+  new(
     this.code,
     Uri mainUri,
     Map<Uri, Map<Id, ActualData<T>>> actualMaps,
@@ -261,19 +261,23 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
           if (declaration is ClassDeclaration &&
               declaration.namePart.typeName.lexeme == className) {
             if (declaration.body case BlockClassBody body) {
-              for (var member in body.members) {
+              for (var member in body.members2) {
                 if (member is ConstructorDeclaration) {
                   if (member.name!.lexeme == name) {
                     return member.offset;
                   }
-                } else if (member is FieldDeclaration) {
-                  for (var variable in member.fields.variables) {
+                } else if (member is FieldsDeclaration) {
+                  for (var variable in member.fields) {
                     if (variable.name.lexeme == name) {
                       return variable.offset;
                     }
                   }
-                } else if (member is MethodDeclaration) {
-                  if (member.name.lexeme == name) {
+                } else if (member
+                    case MethodDeclaration2(name: var memberName) ||
+                        OperatorDeclaration(operator: var memberName) ||
+                        GetterDeclaration(name: var memberName) ||
+                        SetterDeclaration(name: var memberName)) {
+                  if (memberName.lexeme == name) {
                     return member.offset;
                   }
                 }
@@ -286,11 +290,15 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         return 0;
       }
       for (var declaration in unit.declarations2) {
-        if (declaration is FunctionDeclaration) {
+        if (declaration is TopLevelFunctionDeclaration) {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
         } else if (declaration is TopLevelGetterDeclaration) {
+          if (declaration.name.lexeme == name) {
+            return declaration.offset;
+          }
+        } else if (declaration is TopLevelSetterDeclaration) {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
@@ -333,7 +341,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
 }
 
 abstract class DataComputer<T> {
-  const DataComputer();
+  const new();
 
   DataInterpreter<T> get dataValidator;
 
@@ -367,7 +375,7 @@ class TestConfig {
   final String name;
   final FeatureSet featureSet;
 
-  TestConfig(this.marker, this.name, {FeatureSet? featureSet})
+  new(this.marker, this.name, {FeatureSet? featureSet})
     : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }
 
@@ -375,7 +383,7 @@ class _TestFile {
   final Uri uri;
   final File file;
 
-  _TestFile({required this.uri, required this.file});
+  new({required this.uri, required this.file});
 
   String get path => file.path;
 }

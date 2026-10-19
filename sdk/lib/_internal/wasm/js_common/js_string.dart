@@ -747,13 +747,13 @@ int _jsStringIndexOf(
     // Note: Special cased in V8 to be fast as `F.p.c.b`.
     // Do not change to `(s, p, i) => s.indexOf(p, i)`!
     js
-        .JS<double>(
+        .JS<WasmI32>(
           'Function.prototype.call.bind(String.prototype.indexOf)',
           string,
           pattern,
           startIndex.toWasmI32(),
         )
-        .toInt();
+        .toIntSigned();
 
 @pragma("wasm:prefer-inline")
 int _jsStringLastIndexOf(
@@ -761,13 +761,13 @@ int _jsStringLastIndexOf(
   WasmExternRef? pattern,
   int start,
 ) => js
-    .JS<double>(
+    .JS<WasmI32>(
       '(s, p, i) => s.lastIndexOf(p, i)',
       string,
       pattern,
-      start.toDouble(),
+      start.toWasmI32(),
     )
-    .toInt();
+    .toIntSigned();
 
 // TODO(joshualitt): Create a subtype of `JSArrayImpl` that can support lazily
 // converting arguments `toDart` and return that here.
@@ -787,7 +787,7 @@ WasmExternRef? _jsStringSplit(WasmExternRef? string, WasmExternRef? token) =>
     );
 
 bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
-    js.JS<bool>('Object.is', ref1, ref2);
+    js.JS<WasmI32>('Object.is', ref1, ref2).toBool();
 
 @pragma("wasm:prefer-inline")
 int jsCharCodeAt(WasmExternRef? stringRef, int index) =>

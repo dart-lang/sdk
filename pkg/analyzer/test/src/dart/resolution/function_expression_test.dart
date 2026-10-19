@@ -102,7 +102,7 @@ FunctionExpression
     var result = await resolveTestCodeWithDiagnostics('''
 var f = ({int x = x}) {};
 //                ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'x'.
 ''');
 
     var node = result.findNode.singleFormalParameterList;

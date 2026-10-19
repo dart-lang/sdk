@@ -112,6 +112,26 @@
     await reassemble();
   }
 
+  // Older DartPad SDKs did not support $dartpadWorkspace.
+  self.$dartpadWorkspace = {
+    packageRoot: null,
+    async readFileAsText() {
+      throw new Error('Unsupported');
+    },
+    async readFileAsBytes() {
+      throw new Error('Unsupported');
+    },
+    async stat() {
+      throw new Error('Unsupported');
+    },
+    async listDirectory() {
+      throw new Error('Unsupported');
+    },
+    async resolvePackage() {
+      return null;
+    },
+  };
+
   self.$dartpadRunModes = {
     console: {
       run: async (run) => await run(),

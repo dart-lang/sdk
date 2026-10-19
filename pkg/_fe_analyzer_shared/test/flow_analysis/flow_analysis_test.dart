@@ -872,6 +872,47 @@ main() {
       ]);
     });
 
+    test(
+      'forEach_bodyBegin() does not write capture declared loop variable',
+      () {
+        // Each iteration gets a fresh copy of `x`, so a closure created later
+        // in the loop body can't affect the promotion.
+        var x = Var('x');
+        h.run([
+          forEachWithVariableDecl(x, expr('List<int?>'), [
+            if_(x.notEq(nullLiteral), [checkPromoted(x, 'int')]),
+            localFunction([x.write(expr('int?'))]),
+          ]),
+        ]);
+      },
+    );
+
+    test('forEach_bodyBegin() declared loop variable: write capture earlier '
+        'in the iteration', () {
+      var x = Var('x');
+      h.run([
+        forEachWithVariableDecl(x, expr('List<int?>'), [
+          localFunction([x.write(expr('int?'))]),
+          if_(x.notEq(nullLiteral), [checkNotPromoted(x)]),
+        ]),
+      ]);
+    });
+
+    test('forEach_bodyBegin() declared loop variable: write capture in a '
+        'nested loop', () {
+      // A closure created in an earlier iteration of the inner loop writes
+      // the same copy of `x`.
+      var x = Var('x');
+      h.run([
+        forEachWithVariableDecl(x, expr('List<int?>'), [
+          while_(expr('bool'), [
+            if_(x.notEq(nullLiteral), [checkNotPromoted(x)]),
+            localFunction([x.write(expr('int?'))]),
+          ]),
+        ]),
+      ]);
+    });
+
     test('forEach_bodyBegin() pushes conservative join state', () {
       var x = Var('x');
       h.run([

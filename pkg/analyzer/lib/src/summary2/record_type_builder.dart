@@ -32,17 +32,14 @@ class RecordTypeBuilder extends TypeBuilder {
   /// The actual built type, not a [TypeBuilder] anymore.
   RecordTypeImpl? _type;
 
-  RecordTypeBuilder({
+  new({
     required this.typeSystem,
     required this.node,
     required this.fieldTypes,
     required this.nullabilitySuffix,
   });
 
-  factory RecordTypeBuilder.of(
-    TypeSystemImpl typeSystem,
-    RecordTypeAnnotationImpl node,
-  ) {
+  factory of(TypeSystemImpl typeSystem, RecordTypeAnnotationImpl node) {
     return RecordTypeBuilder(
       typeSystem: typeSystem,
       node: node,

@@ -14,7 +14,7 @@ import 'package:collection/collection.dart';
 class FindElement extends _FindElementBase {
   final CompilationUnit unit;
 
-  FindElement(this.unit);
+  new(this.unit);
 
   @override
   LibraryFragment get libraryFragment => unit.declaredFragment!;
@@ -127,9 +127,9 @@ class FindElement extends _FindElementBase {
 
     unit.accept2(
       FunctionAstVisitor(
-        functionDeclarationStatement: (node) {
-          var element = node.functionDeclaration.declaredFragment?.element;
-          if (element is LocalFunctionElement && element.name == name) {
+        localFunctionDeclaration: (node) {
+          var element = node.declaredFragment?.element;
+          if (element != null && element.name == name) {
             if (result != null) {
               throw StateError('Not unique: $name');
             }
@@ -168,7 +168,7 @@ class FindElement extends _FindElementBase {
         declaredVariablePattern: (node) {
           updateResult(node.declaredFragment!.element);
         },
-        variableDeclaration: (node) {
+        localVariable: (node) {
           updateResult(node.declaredFragment!.element);
         },
       ),
@@ -235,11 +235,13 @@ class FindElement extends _FindElementBase {
 
     unit.accept2(
       FunctionAstVisitor(
-        functionExpression: (node, local) {
-          if (local) {
-            var functionElement = node.declaredFragment!.element;
-            findIn(functionElement.formalParameters);
-          }
+        functionExpression: (node) {
+          var functionElement = node.declaredFragment!.element;
+          findIn(functionElement.formalParameters);
+        },
+        localFunctionDeclaration: (node) {
+          var functionElement = node.declaredFragment!.element;
+          findIn(functionElement.formalParameters);
         },
       ),
     );
@@ -316,7 +318,7 @@ class FindElement extends _FindElementBase {
 class ImportFindElement extends _FindElementBase {
   final LibraryImport import;
 
-  ImportFindElement(this.import);
+  new(this.import);
 
   LibraryElement get importedLibrary => import.importedLibrary!;
 
@@ -332,7 +334,7 @@ class PartFindElement extends _FindElementBase {
   @override
   final LibraryFragment libraryFragment;
 
-  PartFindElement(this.libraryFragment);
+  new(this.libraryFragment);
 }
 
 abstract class _FindElementBase {

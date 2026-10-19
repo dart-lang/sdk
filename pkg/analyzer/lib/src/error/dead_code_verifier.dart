@@ -23,8 +23,7 @@ class DeadCodeForPartsState {
   /// [NullSafetyDeadCodeVerifier.for_conditionEnd].
   final bool _hadFirstDeadNode;
 
-  DeadCodeForPartsState._({required bool hadFirstDeadNode})
-    : _hadFirstDeadNode = hadFirstDeadNode;
+  new _({required this._hadFirstDeadNode});
 }
 
 /// A visitor that finds dead code, other than unreachable code that is
@@ -39,7 +38,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  DeadCodeVerifier(this._diagnosticReporter, LibraryElement library)
+  new(this._diagnosticReporter, LibraryElement library)
     : _wildCardVariablesEnabled = library.featureSet.isEnabled(
         Feature.wildcard_variables,
       );
@@ -70,18 +69,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var element = node.declaredFragment!.element;
-    // TODO(pq): ask the FunctionElement once implemented
-    if (_wildCardVariablesEnabled &&
-        element is LocalFunctionElement &&
-        element.name == '_') {
-      _diagnosticReporter.report(diag.deadCode.at(node));
-    }
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var libraryImport = node.libraryImport;
     if (libraryImport != null) {
@@ -105,6 +92,32 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    var element = node.declaredFragment!.element;
+    // TODO(pq): ask the FunctionElement once implemented
+    if (_wildCardVariablesEnabled && element.name == '_') {
+      _diagnosticReporter.report(diag.deadCode.at(node));
+    }
+    super.visitLocalFunctionDeclaration(node);
+  }
+
+  @override
+  void visitLocalVariable(LocalVariable node) {
+    var initializer = node.initializer;
+    if (initializer != null) {
+      var element = node.declaredFragment!.element;
+      // TODO(pq): ask the LocalVariableElement once implemented
+      if (_wildCardVariablesEnabled && element.isLate && element.name == '_') {
+        _diagnosticReporter.report(
+          diag.deadCodeLateWildcardVariableInitializer.at(initializer),
+        );
+      }
+    }
+
+    super.visitLocalVariable(node);
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
     List<Label> labels = <Label>[];
     for (SwitchMember member in node.members) {
@@ -113,24 +126,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
     _withLabelTracker(labels, () {
       super.visitSwitchStatement(node);
     });
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    var initializer = node.initializer2;
-    if (initializer != null && node.isLate) {
-      var element = node.declaredFragment!.element;
-      // TODO(pq): ask the LocalVariableElement once implemented
-      if (_wildCardVariablesEnabled &&
-          element is LocalVariableElement &&
-          element.name == '_') {
-        _diagnosticReporter.report(
-          diag.deadCodeLateWildcardVariableInitializer.at(initializer),
-        );
-      }
-    }
-
-    super.visitVariableDeclaration(node);
   }
 
   /// Resolve the names in the given [combinator] in the scope of the given
@@ -205,11 +200,7 @@ class NullSafetyDeadCodeVerifier {
   /// node is ignored, because it continues the same dead code range.
   _DeadCodeStart? _firstDead;
 
-  NullSafetyDeadCodeVerifier(
-    this._typeSystem,
-    this._diagnosticReporter,
-    this._flowAnalysis,
-  );
+  new(this._typeSystem, this._diagnosticReporter, this._flowAnalysis);
 
   /// The [node] ends a basic block in the control flow. If [_firstDead] is
   /// not `null`, and is covered by the [node], then we reached the end of
@@ -246,7 +237,7 @@ class NullSafetyDeadCodeVerifier {
       // semicolon that follows one or more constructor initializers.
     } else if (parent is ConstructorDeclaration &&
         firstDeadNode is BlockFunctionBody &&
-        firstDeadNode.block.statements.isEmpty) {
+        firstDeadNode.block.statements2.isEmpty) {
       // Don't report "dead code" for an unreachable, but empty block body that
       // follows one or more constructor initializers.
     } else {
@@ -255,26 +246,32 @@ class NullSafetyDeadCodeVerifier {
       // So, technically the code interval ends at the end of [node].
       // But we trim it to the last statement for presentation purposes.
       if (node != firstDeadNode) {
-        if (node is FunctionDeclaration) {
-          node = node.functionExpression.body;
+        if (node is LocalFunctionDeclaration) {
+          node = node.body;
+        }
+        if (node is TopLevelFunctionDeclaration) {
+          node = node.body;
         }
         if (node is TopLevelGetterDeclaration) {
+          node = node.body;
+        }
+        if (node is TopLevelSetterDeclaration) {
           node = node.body;
         }
         if (node is FunctionExpression) {
           node = node.body;
         }
-        if (node is MethodDeclaration) {
+        if (node is MethodDeclarationV1OriginImpl) {
           node = node.body;
         }
         if (node is BlockFunctionBody) {
           node = node.block;
         }
-        if (node is Block && node.statements.isNotEmpty) {
-          node = node.statements.last;
+        if (node is Block && node.statements2.isNotEmpty) {
+          node = node.statements2.last;
         }
-        if (node is SwitchMember && node.statements.isNotEmpty) {
-          node = node.statements.last;
+        if (node is SwitchMember && node.statements2.isNotEmpty) {
+          node = node.statements2.last;
         }
       } else if (parent is BinaryOperatorInvocation) {
         offset = parent.operator.offset;
@@ -292,7 +289,7 @@ class NullSafetyDeadCodeVerifier {
       } else if (parent is DoStatement) {
         var whileOffset = parent.whileKeyword.offset;
         var whileEnd = parent.semicolon.end;
-        var body = parent.body;
+        var body = parent.body2;
         if (body is Block) {
           whileOffset = body.rightBracket.offset;
         }
@@ -539,7 +536,7 @@ class _BreakDoStatementVisitor extends RecursiveAstVisitor2<void> {
   bool hasBreakStatement = false;
   final DoStatement doStatement;
 
-  _BreakDoStatementVisitor(this.doStatement);
+  new(this.doStatement);
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -562,11 +559,7 @@ class _CatchClausesVerifier {
   bool _done = false;
   final List<TypeImpl> _visitedTypes = [];
 
-  _CatchClausesVerifier(
-    this._typeSystem,
-    this._reportDiagnostic,
-    this.catchClauses,
-  );
+  new(this._typeSystem, this._reportDiagnostic, this.catchClauses);
 
   void nextCatchClause(CatchClauseImpl catchClause) {
     var currentType = catchClause.exceptionType?.type;
@@ -612,7 +605,7 @@ final class _DeadCodeStart {
   AstNode node;
   final Token firstToken;
 
-  _DeadCodeStart({required this.node, required this.firstToken});
+  new({required this.node, required this.firstToken});
 }
 
 /// An object used to track the usage of labels within a single label scope.
@@ -631,7 +624,7 @@ class _LabelTracker {
   final Map<String, int> labelMap = <String, int>{};
 
   /// Initialize a newly created label tracker.
-  _LabelTracker(this.outerTracker, this.labels) {
+  new(this.outerTracker, this.labels) {
     used = List.filled(labels.length, false);
     for (int i = 0; i < labels.length; i++) {
       labelMap[labels[i].name.lexeme] = i;
@@ -663,7 +656,7 @@ class _LabelTracker {
 extension DoStatementExtension on DoStatement {
   bool get hasBreakStatement {
     var visitor = _BreakDoStatementVisitor(this);
-    body.visitChildren2(visitor);
+    body2.visitChildren2(visitor);
     return visitor.hasBreakStatement;
   }
 }

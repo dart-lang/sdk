@@ -42,7 +42,7 @@ class FixPerformance {
   Duration? computeTime;
   List<ProducerTiming> producerTimings = [];
 
-  FixPerformance([this.operationPerformance]);
+  new([this.operationPerformance]);
 }
 
 /// The computer for Dart fixes.
@@ -61,11 +61,7 @@ class FixProcessor {
   /// be amended with this information.
   /// If not passing [alreadyCalculated] the calculation will always be
   /// performed.
-  FixProcessor(
-    this._fixContext, {
-    FixPerformance? performance,
-    this.alreadyCalculated,
-  }) : _performance = performance;
+  new(this._fixContext, {this._performance, this.alreadyCalculated});
 
   Future<List<Fix>> compute() async {
     _timer.start();

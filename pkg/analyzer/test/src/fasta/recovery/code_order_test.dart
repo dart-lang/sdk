@@ -236,6 +236,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: exte
+      semicolon: ; <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: UnrelatedClass
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -813,13 +837,11 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
-          ConstructorDeclaration
+        members2
+          ConstructorDeclaration2
             constKeyword: const
-            typeName2: A
-            typeName(v1): SimpleIdentifier
-              token: A
-            parameters: FormalParameterList
+            typeName: A
+            formalParameters: FormalParameterList
               leftParenthesis: (
               delimitedFormalParameters: DelimitedFormalParameters
                 leftDelimiter: [
@@ -828,7 +850,14 @@ CompilationUnit
                     name: x
                 rightDelimiter: ]
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: EmptyFunctionBody
+              semicolon: ;
+        members(v1)
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
               leftParenthesis: (
               leftDelimiter: [
               parameter: RegularFormalParameter
@@ -844,14 +873,13 @@ CompilationUnit
         typeName: B
       body: BlockClassBody
         leftBracket: {
-        members
-          FieldDeclaration
-            fields: VariableDeclarationList
-              variables
-                VariableDeclaration
-                  name: dynamic
+        members2
+          FieldsDeclaration
+            fields
+              Field
+                name: dynamic
             semicolon: ; <synthetic>
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -880,6 +908,35 @@ CompilationUnit
                           leftParenthesis: (
                           rightParenthesis: )
                     rightParenthesis: )
+                name: SimpleIdentifier
+                  token: A
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    InstanceCreationExpression
+                      keyword: const
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  rightParenthesis: )
+            fields
+              Field
+                name: x
+            semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: dynamic
+            semicolon: ; <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: A
                 arguments: ArgumentList
@@ -1015,6 +1072,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: imple
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: UnrelatedMixin
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: Foo
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1097,6 +1179,52 @@ f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            ExpressionStatement
+              expression2: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: catch
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    ParsedUnqualifiedName
+                      name: e
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: e
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
+                methodName: SimpleIdentifier
+                  token: catch
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: e
+                  rightParenthesis: )
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1117,19 +1245,7 @@ CompilationUnit
                   leftBracket: {
                   rightBracket: }
               ExpressionStatement
-                expression2: ParsedValueArguments
-                  operand: ParsedUnqualifiedName
-                    name: catch
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    arguments2
-                      ParsedUnqualifiedName
-                        name: e
-                    arguments(v1)
-                      SimpleIdentifier
-                        token: e
-                    rightParenthesis: )
-                expression(v1): MethodInvocation
+                expression: MethodInvocation
                   methodName: SimpleIdentifier
                     token: catch
                   argumentList: ArgumentList
@@ -1162,6 +1278,58 @@ f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: on
+                variables
+                  LocalVariable
+                    name: String
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: on
+                variables
+                  VariableDeclaration
+                    name: String
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression

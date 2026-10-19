@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToConstantPatternPatternTest extends FixProcessorLintTest {
+class ConvertToConstantPatternPatternTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToConstantPattern;
 

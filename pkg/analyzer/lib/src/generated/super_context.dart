@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// An indication of the kind of context in which a super reference was found.
 class SuperContext {
@@ -19,7 +19,9 @@ class SuperContext {
   static const SuperContext extensionType = SuperContext._('extensionType');
 
   /// An indication that the super reference is in a context in which it is
-  /// invalid because it is not in an instance member.
+  /// invalid because `this` is not available there, such as outside an
+  /// instance member, in a constructor initializer, or in a default value of
+  /// a member.
   static const SuperContext static = SuperContext._('static');
 
   /// An indication that the super reference is in a context in which it is
@@ -35,16 +37,23 @@ class SuperContext {
 
   /// Return an indication of the context in which the super [reference] is
   /// being used.
-  factory SuperContext.of(SuperReference reference) {
+  factory of(SuperReference reference) {
+    var inDefaultValue = false;
     for (AstNode? node = reference; node != null; node = node.parent2) {
       if (node is Annotation) {
         return SuperContext.annotation;
-      } else if (node is AnonymousMethodBody &&
-          node.parent2 is AnonymousMethodInvocation &&
-          (node.parent2 as AnonymousMethodInvocation).parameters == null) {
+      } else if (node case AnonymousMethodBody(
+        parent2: AnonymousMethodInvocation(parameters: null),
+      )) {
         return SuperContext.anonymousMethod;
-      } else if (node is ClassDeclaration) {
-        return SuperContext.valid;
+      } else if (node is AnonymousMethodInvocation ||
+          node is FunctionExpression ||
+          node is LocalFunctionDeclaration) {
+        inDefaultValue = false;
+      } else if (node is ClassDeclaration ||
+          node is EnumDeclaration ||
+          node is MixinDeclaration) {
+        return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;
       } else if (node is ConstructorDeclaration) {
@@ -53,29 +62,27 @@ class SuperContext {
         }
       } else if (node is ConstructorInitializer) {
         return SuperContext.static;
-      } else if (node is EnumDeclaration) {
-        return SuperContext.valid;
       } else if (node is ExtensionDeclaration) {
         return SuperContext.extension;
       } else if (node is ExtensionTypeDeclaration) {
         return SuperContext.extensionType;
-      } else if (node is FieldDeclaration) {
+      } else if (node is FieldsDeclaration) {
         if (node.staticKeyword != null) {
           return SuperContext.static;
         }
-        if (node.fields.lateKeyword == null) {
+        if (node.lateKeyword == null) {
           return SuperContext.static;
         }
-      } else if (node is MethodDeclaration) {
-        if (node.isStatic) {
+      } else if (node is FormalParameterDefaultClause) {
+        inDefaultValue = true;
+      } else if (node is MethodDeclarationV1OriginImpl) {
+        if (node.staticKeyword != null) {
           return SuperContext.static;
         }
-      } else if (node is MixinDeclaration) {
-        return SuperContext.valid;
       }
     }
     return SuperContext.static;
   }
 
-  const SuperContext._(this.name);
+  const new _(this.name);
 }

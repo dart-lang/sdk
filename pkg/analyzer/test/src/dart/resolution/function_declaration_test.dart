@@ -27,9 +27,42 @@ Stream<int> f() async* {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Stream
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:async::@class::Stream
+    type: Stream<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    keyword: async
+    star: *
+    block: Block
+      leftBracket: {
+      statements2
+        ReturnStatement
+          returnKeyword: return
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> f@34
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Stream
     typeArguments: TypeArgumentList
@@ -55,7 +88,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: IntegerLiteral
+            expression: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -79,9 +112,37 @@ Stream<int> f() async* => 0;
 // [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Stream
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:async::@class::Stream
+    type: Stream<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    keyword: async
+    star: *
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@34
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Stream
     typeArguments: TypeArgumentList
@@ -103,7 +164,7 @@ FunctionDeclaration
       keyword: async
       star: *
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -178,9 +239,46 @@ V1: SimpleIdentifier
 void m<T extends List<T>>() {}
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+                element: #E0 T
+                type: T
+            rightBracket: >
+          element: dart:core::@class::List
+          type: List<T>
+        declaredFragment: <testLibraryFragment> T@7
+          defaultType: List<dynamic>
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> m@5
+    element: <testLibrary>::@function::m
+      type: void Function<T extends List<T>>()
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
@@ -230,9 +328,38 @@ FunctionDeclaration
 void m<T extends num>() {}
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> T@7
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> m@5
+    element: <testLibrary>::@function::m
+      type: void Function<T extends num>()
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
@@ -278,51 +405,88 @@ void f() {
 }
 ''');
 
-    var node =
-        result.findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
     type: void
   name: m
-  functionExpression: FunctionExpression
-    typeParameters: TypeParameterList
-      leftBracket: <
-      typeParameters
-        TypeParameter
-          name: T
-          extendsKeyword: extends
-          bound: NamedType
-            name: List
-            typeArguments: TypeArgumentList
-              leftBracket: <
-              arguments
-                NamedType
-                  name: T
-                  element: #E0 T
-                  type: T
-              rightBracket: >
-            element: dart:core::@class::List
-            type: List<T>
-          declaredFragment: <testLibraryFragment> T@20
-            defaultType: List<dynamic>
-      rightBracket: >
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
-    declaredFragment: <testLibraryFragment> m@18
-      element: m@18
-        type: void Function<T extends List<T>>()
-    staticType: void Function<T extends List<T>>()
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+                element: #E0 T
+                type: T
+            rightBracket: >
+          element: dart:core::@class::List
+          type: List<T>
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: List<dynamic>
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
   declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends List<T>>()
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: m
+    functionExpression: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+            extendsKeyword: extends
+            bound: NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: T
+                    element: #E0 T
+                    type: T
+                rightBracket: >
+              element: dart:core::@class::List
+              type: List<T>
+            declaredFragment: <testLibraryFragment> T@20
+              defaultType: List<dynamic>
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+      declaredFragment: <testLibraryFragment> m@18
+        element: m@18
+          type: void Function<T extends List<T>>()
+      staticType: void Function<T extends List<T>>()
+    declaredFragment: <testLibraryFragment> m@18
+      element: m@18
+        type: void Function<T extends List<T>>()
 ''');
   }
 
@@ -335,43 +499,72 @@ void f() {
 }
 ''');
 
-    var node =
-        result.findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
     type: void
   name: m
-  functionExpression: FunctionExpression
-    typeParameters: TypeParameterList
-      leftBracket: <
-      typeParameters
-        TypeParameter
-          name: T
-          extendsKeyword: extends
-          bound: NamedType
-            name: num
-            element: dart:core::@class::num
-            type: num
-          declaredFragment: <testLibraryFragment> T@20
-            defaultType: num
-      rightBracket: >
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
-    declaredFragment: <testLibraryFragment> m@18
-      element: m@18
-        type: void Function<T extends num>()
-    staticType: void Function<T extends num>()
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
   declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends num>()
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+      element: <null>
+      type: void
+    name: m
+    functionExpression: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+            extendsKeyword: extends
+            bound: NamedType
+              name: num
+              element: dart:core::@class::num
+              type: num
+            declaredFragment: <testLibraryFragment> T@20
+              defaultType: num
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+      declaredFragment: <testLibraryFragment> m@18
+        element: m@18
+          type: void Function<T extends num>()
+      staticType: void Function<T extends num>()
+    declaredFragment: <testLibraryFragment> m@18
+      element: m@18
+        type: void Function<T extends num>()
 ''');
   }
 
@@ -496,6 +689,164 @@ V1: FunctionDeclaration
 ''');
   }
 
+  test_setter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+set foo(int value) {
+  value;
+}
+''');
+
+    var node = result.findNode.singleTopLevelSetterDeclaration;
+    assertResolvedNodeText(node, r'''
+TopLevelSetterDeclaration
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@12
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: UnqualifiedNameExpression
+            name: value
+            resolution: VariableReadResolution
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              type: int
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@4
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+V1: FunctionDeclaration
+  propertyKeyword: set
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@12
+          element: isPublic
+            type: int
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        statements
+          ExpressionStatement
+            expression: SimpleIdentifier
+              token: value
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              staticType: int
+            semicolon: ;
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> foo@4
+      element: <testLibrary>::@setter::foo
+        type: void Function(int)
+    staticType: void Function(int)
+  declaredFragment: <testLibraryFragment> foo@4
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+''');
+  }
+
+  test_setter_documentationComment_formalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+/// [value]
+set foo(int value) {}
+''');
+
+    var node = result.findNode.singleTopLevelSetterDeclaration;
+    assertResolvedNodeText(node, r'''
+TopLevelSetterDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        components
+          CommentReferenceComponent
+            name: value
+            element: <testLibrary>::@setter::foo::@formalParameter::value
+        element: <testLibrary>::@setter::foo::@formalParameter::value
+    tokens
+      /// [value]
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@24
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@16
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+V1: FunctionDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: value
+          element: <testLibrary>::@setter::foo::@formalParameter::value
+          staticType: null
+    tokens
+      /// [value]
+  propertyKeyword: set
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@24
+          element: isPublic
+            type: int
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> foo@16
+      element: <testLibrary>::@setter::foo
+        type: void Function(int)
+    staticType: void Function(int)
+  declaredFragment: <testLibraryFragment> foo@16
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+''');
+  }
+
   test_syncGenerator_blockBody_return() async {
     var result = await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {
@@ -505,9 +856,42 @@ Iterable<int> f() sync* {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Iterable
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:core::@class::Iterable
+    type: Iterable<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    keyword: sync
+    star: *
+    block: Block
+      leftBracket: {
+      statements2
+        ReturnStatement
+          returnKeyword: return
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> f@14
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Iterable
     typeArguments: TypeArgumentList
@@ -533,7 +917,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: IntegerLiteral
+            expression: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -555,9 +939,37 @@ Iterable<int> f() sync* => 0;
 // [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Iterable
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:core::@class::Iterable
+    type: Iterable<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    keyword: sync
+    star: *
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@14
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Iterable
     typeArguments: TypeArgumentList
@@ -579,7 +991,7 @@ FunctionDeclaration
       keyword: sync
       star: *
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -599,9 +1011,21 @@ _() {}
 // [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@0
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
+V1: FunctionDeclaration
   name: _
   functionExpression: FunctionExpression
     parameters: FormalParameterList
@@ -629,9 +1053,21 @@ _() {}
 // [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@16
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
+V1: FunctionDeclaration
   name: _
   functionExpression: FunctionExpression
     parameters: FormalParameterList

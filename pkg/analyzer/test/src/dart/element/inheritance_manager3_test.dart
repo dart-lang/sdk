@@ -3298,13 +3298,11 @@ class _InterfacePrinter {
   final ElementPrinter _elementPrinter;
   final _InstancePrinterConfiguration _configuration;
 
-  _InterfacePrinter({
-    required TreeStringSink sink,
-    required ElementPrinter elementPrinter,
-    required _InstancePrinterConfiguration configuration,
-  }) : _sink = sink,
-       _elementPrinter = elementPrinter,
-       _configuration = configuration;
+  new({
+    required this._sink,
+    required this._elementPrinter,
+    required this._configuration,
+  });
 
   void write(Interface interface) {
     _writeNameToMap('map', interface.map);

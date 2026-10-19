@@ -19,7 +19,7 @@ class LeastGreatestClosureHelper extends ReplacementVisitor {
   late final bool _isLeastClosure;
   bool _isCovariant = true;
 
-  LeastGreatestClosureHelper({
+  new({
     required this.typeSystem,
     required this.topType,
     required this.topFunctionType,
@@ -100,10 +100,7 @@ class PatternGreatestClosureHelper extends ReplacementVisitor {
   final TypeImpl bottomType;
   bool _isCovariant = true;
 
-  PatternGreatestClosureHelper({
-    required this.topType,
-    required this.bottomType,
-  });
+  new({required this.topType, required this.bottomType});
 
   @override
   void changeVariance() {

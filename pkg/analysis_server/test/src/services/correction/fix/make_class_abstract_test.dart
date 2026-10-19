@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class MakeClassAbstractTest extends FixProcessorTest {
+class MakeClassAbstractTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.makeClassAbstract;
 

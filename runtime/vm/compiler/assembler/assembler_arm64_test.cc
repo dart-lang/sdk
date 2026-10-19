@@ -2452,6 +2452,91 @@ ASSEMBLER_TEST_RUN(Tbl1, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Rev64S, assembler) {
+  __ fldrq(V1, Address(R0, 0));
+  __ vrev64_4s(V0, V1);
+  __ fstrq(V0, Address(R0, 16));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Rev64S, test) {
+  typedef void (*Rev64SCode)(uint32_t* buffer) DART_UNUSED;
+  uint32_t buffer[8] = {0x01234567, 0x89ABCDEF, 0x76543210, 0xFEDCBA98,
+                        0x5A5A5A5A, 0x5A5A5A5A, 0x5A5A5A5A, 0x5A5A5A5A};
+  reinterpret_cast<Rev64SCode>(test->entry())(buffer);
+  EXPECT_EQ(0x89ABCDEFu, buffer[4]);
+  EXPECT_EQ(0x01234567u, buffer[5]);
+  EXPECT_EQ(0xFEDCBA98u, buffer[6]);
+  EXPECT_EQ(0x76543210u, buffer[7]);
+  EXPECT_DISASSEMBLY(
+      "fldrq v1, [r0]\n"
+      "vrev64s v0, v1\n"
+      "fstrq v0, [r0, #16]\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Ext, assembler) {
+  __ fldrq(V1, Address(R0, 0));
+  __ fldrq(V2, Address(R0, 16));
+  __ vext(V0, V1, V2, 1);
+  __ fstrq(V0, Address(R0, 32));
+  __ vext(V0, V1, V2, 4);
+  __ fstrq(V0, Address(R0, 48));
+  __ vext(V0, V1, V2, 8);
+  __ fstrq(V0, Address(R0, 64));
+  __ vext(V0, V1, V2, 12);
+  __ fstrq(V0, Address(R0, 80));
+  __ vext(V0, V1, V2, 15);
+  __ fstrq(V0, Address(R0, 96));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Ext, test) {
+  typedef void (*ExtCode)(intptr_t buffer) DART_UNUSED;
+  // Byte i of Vn is i and byte i of Vm is 16 + i, so the result for an index
+  // is the 16 bytes that start at that index.
+  struct {
+    uint32_t vn[4];
+    uint32_t vm[4];
+    uint32_t result[5][4];
+  } buffer = {{0x03020100, 0x07060504, 0x0B0A0908, 0x0F0E0D0C},
+              {0x13121110, 0x17161514, 0x1B1A1918, 0x1F1E1D1C},
+              {}};
+  for (auto& result : buffer.result) {
+    for (auto& lane : result) {
+      lane = 0x5A5A5A5A;
+    }
+  }
+  EXECUTE_TEST_CODE_INTPTR_INTPTR(ExtCode, test->entry(),
+                                  reinterpret_cast<intptr_t>(&buffer));
+  const uint32_t expected[5][4] = {
+      {0x04030201, 0x08070605, 0x0C0B0A09, 0x100F0E0D},  // Index 1.
+      {0x07060504, 0x0B0A0908, 0x0F0E0D0C, 0x13121110},  // Index 4.
+      {0x0B0A0908, 0x0F0E0D0C, 0x13121110, 0x17161514},  // Index 8.
+      {0x0F0E0D0C, 0x13121110, 0x17161514, 0x1B1A1918},  // Index 12.
+      {0x1211100F, 0x16151413, 0x1A191817, 0x1E1D1C1B},  // Index 15.
+  };
+  for (intptr_t i = 0; i < 5; i++) {
+    for (intptr_t j = 0; j < 4; j++) {
+      EXPECT_EQ(expected[i][j], buffer.result[i][j]);
+    }
+  }
+  EXPECT_DISASSEMBLY(
+      "fldrq v1, [r0]\n"
+      "fldrq v2, [r0, #16]\n"
+      "vext v0, v1, v2, #1\n"
+      "fstrq v0, [r0, #32]\n"
+      "vext v0, v1, v2, #4\n"
+      "fstrq v0, [r0, #48]\n"
+      "vext v0, v1, v2, #8\n"
+      "fstrq v0, [r0, #64]\n"
+      "vext v0, v1, v2, #12\n"
+      "fstrq v0, [r0, #80]\n"
+      "vext v0, v1, v2, #15\n"
+      "fstrq v0, [r0, #96]\n"
+      "ret\n");
+}
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;

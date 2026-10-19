@@ -15,7 +15,7 @@ class ClassInfo<Class extends Object> {
 
   final _ImplementedNode<Class> _implementedNode;
 
-  ClassInfo(this._interfaceNode, this._implementedNode);
+  new(this._interfaceNode, this._implementedNode);
 
   Class get _class => _interfaceNode._class;
 }
@@ -57,7 +57,7 @@ class FieldNameNonPromotabilityInfo<Class extends Object, Field, Getter> {
   /// it.)
   final List<Class> conflictingNsmClasses = [];
 
-  FieldNameNonPromotabilityInfo._();
+  new _();
 }
 
 /// This class examines all the [Class]es in a library and determines which
@@ -375,7 +375,7 @@ class _ClassHierarchyWalker<Class extends Object>
 /// superclass chain (without having to worry about circularities) in order to
 /// include getters concretely implemented in superclasses and mixins.
 class _ImplementedNode<Class extends Object> extends _Node<Class> {
-  _ImplementedNode(super.fieldPromotability, super.element);
+  new(super.fieldPromotability, super.element);
 
   @override
   List<_Node<Class>> computeDependencies() {
@@ -400,7 +400,7 @@ class _ImplementedNode<Class extends Object> extends _Node<Class> {
 /// class hierarchy (without having to worry about circularities) in order to
 /// include getters defined in superclasses, mixins, and interfaces.
 class _InterfaceNode<Class extends Object> extends _Node<Class> {
-  _InterfaceNode(super.fieldPromotability, super.element);
+  new(super.fieldPromotability, super.element);
 
   @override
   List<_Node<Class>> computeDependencies() {
@@ -438,7 +438,7 @@ abstract class _Node<Class extends Object> extends Node<_Node<Class>> {
   /// component.
   Set<String>? _transitiveNames;
 
-  _Node(this._fieldPromotability, this._class);
+  new(this._fieldPromotability, this._class);
 
   @override
   bool get isEvaluated => _transitiveNames != null;

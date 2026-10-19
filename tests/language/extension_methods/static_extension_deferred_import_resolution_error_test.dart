@@ -10,10 +10,10 @@ void main() {
   Object o = 1;
   OnObject(o).onObject;
   // [error column 3, length 8]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Method not found: 'OnObject'.
   o.onObject;
   //^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'onObject' isn't defined for the type 'Object'.
 }

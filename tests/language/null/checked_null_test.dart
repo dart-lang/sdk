@@ -23,6 +23,6 @@ bar() {
   // crash.
   new A().a?.foo();
   //         ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'foo' isn't defined for the type 'Map<dynamic, dynamic>'.
 }

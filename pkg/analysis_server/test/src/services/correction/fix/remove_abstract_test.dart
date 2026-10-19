@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveAbstractMultiTest extends FixProcessorTest {
+class RemoveAbstractMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeAbstractMulti;
 
@@ -38,7 +38,7 @@ class MyClass {
 }
 
 @reflectiveTest
-class RemoveAbstractTest extends FixProcessorTest {
+class RemoveAbstractTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeAbstract;
 

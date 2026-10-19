@@ -120,8 +120,8 @@ enum _AstVersionPolicy {
   v2MigrationSdk,
 
   /// Generates the dual tree views for publication while V2 is experimental;
-  /// V1 projection APIs are marked `@ToBeDeprecated` rather than directing
-  /// clients to experimental replacements.
+  /// V1 projection APIs are marked `@V1Ast`, which only names their V2
+  /// counterparts, rather than being deprecated in favor of experimental API.
   v2MigrationPublishExperimental,
 
   /// Generates the dual tree views once V2 is stable: V2 is the public
@@ -160,7 +160,7 @@ enum _AstVersionPolicy {
       v2MigrationSdk ||
       v2MigrationPublishStable => "@Deprecated('Use $v2Name instead')",
       v2MigrationPublishExperimental =>
-        "@ToBeDeprecated('Use $v2Name instead')",
+        "@V1Ast('The V2 counterpart is $v2Name.')",
     };
   }
 }
@@ -180,7 +180,7 @@ class _AstVisitorGenerator {
 part of 'ast.dart';
 ''');
 
-  _AstVisitorGenerator(this.astLibrary);
+  new(this.astLibrary);
 
   Future<String> generate() async {
     _writeAstVisitor();
@@ -281,7 +281,7 @@ class _ConcreteAstVisitorGenerator {
 part of 'visitor.dart';
 ''');
 
-  _ConcreteAstVisitorGenerator(this.astLibrary);
+  new(this.astLibrary);
 
   Future<String> generate() async {
     _writeGeneralizing();
@@ -321,10 +321,10 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated()
+@V1Ast()
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const GeneralizingAstVisitor();
+  const new();
 
   R? visitNode(AstNode node) {
     node.visitChildren(this);
@@ -393,7 +393,7 @@ R? visit$name($name node) => visit${superNode.apiElementName}(node);
     out.writeln(_astVersionPolicy.v1AnnotationCode('RecursiveAstVisitor2'));
     out.writeln(r'''class RecursiveAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const RecursiveAstVisitor();
+  const new();
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete && node.isV1ViewNode) {
@@ -436,7 +436,7 @@ R? visit$name($name node) => visit${superNode.apiElementName}(node);
     out.writeln(r'''
 class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const RecursiveAstVisitor2();
+  const new();
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete && node.isV2ViewNode) {
@@ -470,7 +470,7 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 ${_astVersionPolicy.v1AnnotationCode('SimpleAstVisitor2')}
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const SimpleAstVisitor();
+  const new();
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete && node.isV1ViewNode) {
@@ -506,7 +506,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
     out.writeln('''
 class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const SimpleAstVisitor2();
+  const new();
 ''');
     for (var node in astLibrary.nodes) {
       if (node.isConcrete && node.isV2ViewNode) {
@@ -539,7 +539,7 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
     out.writeln(_astVersionPolicy.v1AnnotationCode('ThrowingAstVisitor2'));
     out.write(r'''class ThrowingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const ThrowingAstVisitor();
+  const new();
 
   Never _throw(AstNode node) {
     var typeName = node.runtimeType.toString();
@@ -584,7 +584,7 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
     out.writeln(r'''
 class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const ThrowingAstVisitor2();
+  const new();
 
   Never _throw(AstNode node) {
     var typeName = node.runtimeType.toString();
@@ -628,7 +628,7 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
-  TimedAstVisitor(this._baseVisitor, [Stopwatch? watch])
+  new(this._baseVisitor, [Stopwatch? watch])
     : stopwatch = watch ?? Stopwatch();
 ''');
     for (var node in astLibrary.nodes) {
@@ -674,7 +674,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
-  TimedAstVisitor2(this._baseVisitor, [Stopwatch? watch])
+  new(this._baseVisitor, [Stopwatch? watch])
     : stopwatch = watch ?? Stopwatch();
 ''');
     for (var node in astLibrary.nodes) {
@@ -717,7 +717,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     out.writeln(_astVersionPolicy.v1AnnotationCode('UnifyingAstVisitor2'));
     out.writeln(r'''class UnifyingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const UnifyingAstVisitor();
+  const new();
 
   R? visitNode(AstNode node) {
     node.visitChildren(this);
@@ -763,7 +763,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     out.writeln(r'''
 class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const UnifyingAstVisitor2();
+  const new();
 
   R? visitNode(AstNode node) {
     node.visitChildren2(this);
@@ -804,7 +804,7 @@ class _LinterVisitorGenerator {
 part of 'linter_visitor.dart';
 ''');
 
-  _LinterVisitorGenerator(this.astLibrary);
+  new(this.astLibrary);
 
   Future<String> generate() async {
     _writeLinterVisitor();
@@ -828,8 +828,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   /// Whether exceptions should be propagated (by rethrowing them).
   final bool _shouldPropagateExceptions;
 
-  AnalysisRuleVisitor(this._registry, {bool shouldPropagateExceptions = false})
-      : _shouldPropagateExceptions = shouldPropagateExceptions;
+  new(this._registry, {this._shouldPropagateExceptions = false});
 
   void afterLibrary() {
     _runAfterLibrarySubscriptions(_registry._afterLibrary);
@@ -922,10 +921,7 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   /// Whether exceptions should be propagated (by rethrowing them).
   final bool _shouldPropagateExceptions;
 
-  AnalysisRuleVisitor2(
-    this._registry, {
-    bool shouldPropagateExceptions = false,
-  }) : _shouldPropagateExceptions = shouldPropagateExceptions;
+  new(this._registry, {this._shouldPropagateExceptions = false});
 
   void afterLibrary() {
     _runAfterLibrarySubscriptions(_registry._afterLibrary);
@@ -1018,8 +1014,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   bool get hasNodeProcessors => _hasNodeProcessors;
 
-  RuleVisitorRegistryImpl({required bool enableTiming})
-    : _enableTiming = enableTiming;
+  new({required this._enableTiming});
 
   /// Get the timer associated with the given [rule].
   Stopwatch? _getTimer(AbstractAnalysisRule rule) {
@@ -1071,8 +1066,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   bool get hasNodeProcessors => _hasNodeProcessors;
 
-  RuleVisitorRegistryImpl2({required bool enableTiming})
-    : _enableTiming = enableTiming;
+  new({required this._enableTiming});
 
   /// Get the timer associated with the given [rule].
   Stopwatch? _getTimer(AbstractAnalysisRule rule) {
@@ -1122,7 +1116,7 @@ class _Node {
   final _AstNodeApi api;
   final String apiElementName;
 
-  _Node({
+  new({
     required this.implElement,
     required this.apiElement,
     required this.api,
@@ -1166,7 +1160,7 @@ class _RuleVisitorGenerator {
 part of 'rule_visitor_registry.dart';
 ''');
 
-  _RuleVisitorGenerator(this.astLibrary);
+  new(this.astLibrary);
 
   Future<String> generate() async {
     _writeRuleVisitor();

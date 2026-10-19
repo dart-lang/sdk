@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -20,7 +19,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddAwaitTest extends FixProcessorLintTest {
+class AddAwaitTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 
@@ -216,7 +215,8 @@ Future<void> f() async {
 }
 
 @reflectiveTest
-class AddAwaitTestArgumentAndAssignment extends FixProcessorTest {
+class AddAwaitTestArgumentAndAssignment
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 
@@ -251,6 +251,23 @@ void foo(Stream<int> stream) async {
     await assertHasFix('''
 void foo(Stream<int> stream) async {
   await for (var _ in stream) {}
+}
+''');
+  }
+
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+Future<String> bar() async => '';
+
+void baz(List<String> list) {
+  list[0] = bar();
+}
+''');
+    await assertHasFix('''
+Future<String> bar() async => '';
+
+Future<void> baz(List<String> list) async {
+  list[0] = await bar();
 }
 ''');
   }
@@ -374,7 +391,7 @@ Future<void> baz() async {
 }
 
 @reflectiveTest
-class AsyncReturnWithNoAwaitTest extends FixProcessorLintTest {
+class AsyncReturnWithNoAwaitTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 
@@ -413,10 +430,8 @@ class A {
 }
 
 @reflectiveTest
-class UnawaitedReturnInTryBlockTest extends FixProcessorErrorCodeTest {
-  @override
-  DiagnosticCode get diagnosticCode => diag.unawaitedReturnInTryBlock;
-
+class UnawaitedReturnInTryBlockTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 

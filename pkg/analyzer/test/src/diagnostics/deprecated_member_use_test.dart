@@ -351,7 +351,7 @@ import 'package:aaa/a.dart';
 void f() {
   x = 0;
 //^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
 }
 ''');
   }
@@ -1084,7 +1084,7 @@ import 'package:aaa/a.dart';
 void f() {
   for (x in [0]) {}
 //     ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
 }
 ''');
   }

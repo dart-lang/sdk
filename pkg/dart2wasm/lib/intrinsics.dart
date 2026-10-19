@@ -1237,7 +1237,8 @@ class Intrinsifier {
       }
     }
 
-    if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
+    final enclosingLibrary = node.target.enclosingLibrary;
+    if (enclosingLibrary == translator.coreTypes.coreLibrary) {
       switch (target.name.text) {
         case "_isIntrinsified":
           // This is part of the VM's [BigInt] implementation. We just return false.
@@ -1315,6 +1316,19 @@ class Intrinsifier {
       }
     }
 
+    if (enclosingLibrary == translator.internalLibrary) {
+      switch (target.name.text) {
+        case 'dummyExternRef':
+          final refExtern = w.RefType.extern(nullable: false);
+          instantiateDummyValue(
+            b,
+            refExtern,
+            (_, _) => throw AssertionError('unreachable'),
+          );
+          return refExtern;
+      }
+    }
+
     if (_isIntrinsicMemoryGetter(node.target)) {
       // External memory getters may only be invoked as a receiver to a
       // MemoryAccessExtension call, which is intrinsified. When TFA detects
@@ -1333,10 +1347,12 @@ class Intrinsifier {
   bool _isIntrinsicMemoryGetter(Member member) {
     if (member case Procedure(
       kind: ProcedureKind.Getter,
+      isStatic: true,
       isExternal: true,
       function: FunctionNode(returnType: final InterfaceType type),
     )) {
-      return type.classNode == translator.wasmMemoryClass;
+      return !type.isPotentiallyNullable &&
+          type.classNode == translator.wasmMemoryClass;
     }
 
     return false;
@@ -2152,10 +2168,12 @@ class Intrinsifier {
       case StaticIntrinsic.wasmFunctionFromFunction:
         assert(name == "fromFunction");
         Expression f = node.arguments.positional[0];
-        if (f is! ConstantExpression || f.constant is! StaticTearOffConstant) {
-          throw "Argument to WasmFunction.fromFunction isn't a static function";
-        }
-        StaticTearOffConstant func = f.constant as StaticTearOffConstant;
+        assert(
+          f is ConstantExpression && f.constant is StaticTearOffConstant,
+          "Argument to WasmFunction.fromFunction isn't a static function",
+        );
+        StaticTearOffConstant func =
+            (f as ConstantExpression).constant as StaticTearOffConstant;
         w.BaseFunction wasmFunction = translator.functions.getFunction(
           func.targetReference,
         )..isJSCalled = true;

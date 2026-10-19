@@ -62,7 +62,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertToDoubleQuotedStringTest extends FixProcessorLintTest {
+class ConvertToDoubleQuotedStringTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToDoubleQuotedString;
 

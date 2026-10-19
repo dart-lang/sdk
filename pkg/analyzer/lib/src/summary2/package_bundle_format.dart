@@ -52,7 +52,7 @@ class PackageBundleLibrary {
   final String uriStr;
   final List<PackageBundleUnit> units;
 
-  PackageBundleLibrary(this.uriStr, this.units);
+  new(this.uriStr, this.units);
 }
 
 class PackageBundleReader {
@@ -60,7 +60,7 @@ class PackageBundleReader {
   late final PackageBundleSdk? _sdk;
   late final Uint8List _resolutionBytes;
 
-  PackageBundleReader(Uint8List bytes) {
+  new(Uint8List bytes) {
     var reader = BinaryReader(bytes);
 
     var hasSdk = reader.readByte() != 0;
@@ -94,13 +94,13 @@ class PackageBundleSdk {
   /// The content of the `allowed_experiments.json` from SDK.
   final String allowedExperimentsJson;
 
-  PackageBundleSdk({
+  new({
     required this.languageVersionMajor,
     required this.languageVersionMinor,
     required this.allowedExperimentsJson,
   });
 
-  factory PackageBundleSdk._fromReader(BinaryReader reader) {
+  factory _fromReader(BinaryReader reader) {
     return PackageBundleSdk(
       languageVersionMajor: reader.readUint30(),
       languageVersionMinor: reader.readUint30(),
@@ -119,5 +119,5 @@ class PackageBundleSdk {
 class PackageBundleUnit {
   final String uriStr;
 
-  PackageBundleUnit(this.uriStr);
+  new(this.uriStr);
 }

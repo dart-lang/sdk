@@ -16,7 +16,7 @@ class MapKey extends Key {
   final Object value;
   final String valueAsText;
 
-  MapKey(this.value, this.valueAsText);
+  new(this.value, this.valueAsText);
 
   @override
   String get name => '[$valueAsText]';
@@ -55,7 +55,7 @@ abstract class ListKey implements Key {}
 class HeadKey extends Key implements ListKey {
   final int index;
 
-  HeadKey(this.index);
+  new(this.index);
 
   @override
   String get name => '[$index]';
@@ -88,7 +88,7 @@ class HeadKey extends Key implements ListKey {
 class TailKey extends Key implements ListKey {
   final int index;
 
-  TailKey(this.index);
+  new(this.index);
 
   @override
   String get name => '[${-(index + 1)}]';
@@ -125,7 +125,7 @@ class RestKey extends Key implements ListKey {
   final int headSize;
   final int tailSize;
 
-  RestKey(this.headSize, this.tailSize);
+  new(this.headSize, this.tailSize);
 
   @override
   String get name => '[$headSize:${-tailSize}]';
@@ -167,7 +167,7 @@ class NameKey extends Key {
   @override
   final String name;
 
-  NameKey(this.name);
+  new(this.name);
 
   @override
   int get hashCode => name.hashCode;
@@ -206,7 +206,7 @@ abstract class RecordKey implements Key {}
 class RecordIndexKey extends NameKey implements RecordKey {
   final int index;
 
-  RecordIndexKey(this.index) : super('\$${index + 1}');
+  new(this.index) : super('\$${index + 1}');
 
   @override
   int compareTo(Key other) {
@@ -227,7 +227,7 @@ class RecordIndexKey extends NameKey implements RecordKey {
 
 /// Specialized [NameKey] for a named record field.
 class RecordNameKey extends NameKey implements RecordKey {
-  RecordNameKey(super.name);
+  new(super.name);
 }
 
 class ExtensionKey implements Key {
@@ -236,7 +236,7 @@ class ExtensionKey implements Key {
   final String name;
   final StaticType type;
 
-  ExtensionKey(this.receiverType, this.name, this.type);
+  new(this.receiverType, this.name, this.type);
 
   @override
   int compareTo(Key other) {

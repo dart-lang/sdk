@@ -27,7 +27,7 @@ final class DartAssistContext {
   /// The length of the selection.
   final int selectionLength;
 
-  DartAssistContext(
+  new(
     this.instrumentationService,
     this.workspace,
     this.libraryResult,

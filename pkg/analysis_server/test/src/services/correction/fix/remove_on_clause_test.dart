@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveOnClauseMultiTest extends FixProcessorTest {
+class RemoveOnClauseMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeOnClauseMulti;
 
@@ -46,7 +46,7 @@ augment extension E { }
 }
 
 @reflectiveTest
-class RemoveOnClauseTest extends FixProcessorTest {
+class RemoveOnClauseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeOnClause;
 

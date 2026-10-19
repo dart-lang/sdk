@@ -287,7 +287,7 @@ class C {
     assertIsConst(result, "C()]", false);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_typeArgumentsAfterConstructorName_v1Projection() async {
     var result = await resolveTestCode('''
 void f() {
@@ -309,7 +309,7 @@ class C<E> {
     expect(node?.parent, isA<InstanceCreationExpressionImpl>());
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1Projection() async {
     var result = await resolveTestCode('''
 var x = C<int>.named(0);
@@ -329,7 +329,7 @@ class C<T> {
     expect(v1.constructorName.name!.element, same(reference.element));
     expect(v1.staticType, same(v2.staticType));
 
-    expect(v1.parent, same(v2.parent2));
+    expect(v1.parent, same(result.findNodeV1.variableDeclaration('x =')));
     expect(v1.constructorName.parent, same(v1));
     expect(v1.argumentList, same(v2.argumentList));
     expect(v1.argumentList.parent, same(v1));
@@ -443,8 +443,8 @@ var x = a;
 import 'a.dart' as p;
 const x = p.a;
 ''');
-    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
-    var expression = declaration.initializer2!;
+    var declaration = unitResult.findNode.topLevelVariableByName('x');
+    var expression = declaration.initializer!;
     expect(expression.inConstantContext, isTrue);
     var result = expression.computeConstantValue();
     expect(result, isNotNull);
@@ -581,14 +581,14 @@ var x = throw 42;
     expect(result, isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_constantReference_importPrefixed() async {
     newFile('$testPackageLibPath/a.dart', 'const a = 42;');
     var unitResult = await resolveTestCode('''
 import 'a.dart' as p;
 const x = p.a;
 ''');
-    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
+    var declaration = unitResult.findNodeV1.topVariableDeclarationByName('x');
     var expression = declaration.initializer!;
     expect(expression.inConstantContext, isTrue);
     var result = expression.computeConstantValue();
@@ -597,7 +597,7 @@ const x = p.a;
     expect(result.value!.toIntValue(), 42);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_extensionOverride() async {
     var unitResult = await resolveTestCode('''
 extension E on int {
@@ -610,7 +610,7 @@ var x = E(0).foo;
     expect(node.computeConstantValue(), isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_prefixedIdentifier_assignmentTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
@@ -626,7 +626,7 @@ void f() {
     expect(node.computeConstantValue(), isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_simpleIdentifier_propertyName() async {
     var unitResult = await resolveTestCode('''
 class A {
@@ -640,7 +640,7 @@ var x = A.foo;
     expect(node.identifier.computeConstantValue(), isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_superExpression() async {
     var unitResult = await resolveTestCode('''
 class A {
@@ -654,7 +654,7 @@ class A {
   }
 
   AttemptedConstantEvaluationResult? _evaluateX(TestResolvedUnitResult result) {
-    var node = result.findNode.topVariableDeclarationByName('x').initializer2!;
+    var node = result.findNode.topLevelVariableByName('x').initializer!;
     return node.computeConstantValue();
   }
 }
@@ -699,7 +699,7 @@ var x = const C(0);
     expect(context?.$2?.lexeme, 'const');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_constantContext_constructorInvocation_v1Projection() {
     parse('''
 class C {
@@ -883,6 +883,30 @@ class C {
 ''');
     assertInContext("C() :", true);
     assertInContext("C()}", true);
+  }
+
+  test_inConstantContext_constructorInvocation_staticConstField_true() {
+    parse('''
+class C {
+  static const d = D();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", true);
+  }
+
+  test_inConstantContext_constructorInvocation_staticFinalField_false() {
+    parse('''
+class C {
+  static final d = D();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", false);
   }
 
   test_inConstantContext_constructorInvocation_switch_true() {
@@ -1270,7 +1294,7 @@ final x = const (0, (1, 2));
     assertInContext('(1, 2)', true);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_inConstantContext_topLevelGetter_v1Projection() {
     parse('''
 int get foo => 0;
@@ -1283,7 +1307,7 @@ int get foo => 0;
 
 @reflectiveTest
 class ForEachPartsImplTest extends PubPackageResolutionTest {
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_iterable_constructorInvocation_astViews() async {
     var result = await resolveTestCode('''
 class C {}
@@ -1854,7 +1878,7 @@ class C<S^, T> {}
     var node = await coveringNode('''
 void f^() {}
 ''');
-    node as FunctionDeclaration;
+    node as TopLevelFunctionDeclaration;
   }
 
   Future<void> test_between_identifierAndPeriod() async {
@@ -1895,7 +1919,7 @@ void f() async^{}
     var node = await coveringNode('''
 void f^() {}
 ''');
-    node as FunctionDeclaration;
+    node as TopLevelFunctionDeclaration;
   }
 
   Future<void> test_between_nameAndParameters_method() async {
@@ -1904,7 +1928,7 @@ class C {
   void m^() {}
 }
 ''');
-    node as MethodDeclaration;
+    node as MethodDeclaration2;
   }
 
   Future<void> test_between_periodAndIdentifier() async {
@@ -1968,7 +1992,7 @@ class A^B {}
     var node = await coveringNode('''
 void f^f() {}
 ''');
-    node as FunctionDeclaration;
+    node as TopLevelFunctionDeclaration;
   }
 
   Future<void> test_inName_method() async {
@@ -1977,7 +2001,7 @@ class C {
   void m^m() {}
 }
 ''');
-    node as MethodDeclaration;
+    node as MethodDeclaration2;
   }
 
   Future<void> test_inOperator_assignment() async {
@@ -2046,7 +2070,7 @@ class C { void call() {} }  Function f = C^();
 
 @reflectiveTest
 class ReceiverPropertyExtractionImplTest extends PubPackageResolutionTest {
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1Projection_recordReceiver_parent() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int,) r) {

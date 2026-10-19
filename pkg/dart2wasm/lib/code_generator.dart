@@ -13,13 +13,13 @@ import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'async.dart';
-import 'cfg/code_generator.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'functions.dart';
 import 'globals.dart';
 import 'intrinsics.dart';
 import 'param_info.dart';
+import 'prod/cfg/code_generator.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
 import 'sync_star.dart';

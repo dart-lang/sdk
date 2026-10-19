@@ -50,7 +50,7 @@ String supertypeToString(InterfaceType type) {
 }
 
 class _InheritanceDataComputer extends DataComputer<String> {
-  const _InheritanceDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -86,7 +86,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
 class _InheritanceDataExtractor extends AstDataExtractor<String> {
   final inheritance = InheritanceManager3();
 
-  _InheritanceDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   String? computeElementValue(Id id, Element element) {

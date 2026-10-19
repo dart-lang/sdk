@@ -47,16 +47,39 @@ Float64x2 zeroClamp() {
   return Float64x2.zero().clamp(negOne, -Float64x2.zero());
 }
 
+// compareTo orders -0.0 below 0.0, so it pins the sign of a zero result.
+void expectLanes(Float64x2 value, double expected) {
+  Expect.equals(0, value.x.compareTo(expected));
+  Expect.equals(0, value.y.compareTo(expected));
+}
+
+void expectLanesNaN(Float64x2 value) {
+  Expect.isTrue(value.x.isNaN);
+  Expect.isTrue(value.y.isNaN);
+}
+
 void testNegativeZeroClamp(Float64x2 unopt) {
   final res = negativeZeroClamp();
-  Expect.equals(res.x.compareTo(unopt.x), 0);
-  Expect.equals(res.y.compareTo(unopt.y), 0);
+  expectLanes(unopt, -0.0);
+  expectLanes(res, -0.0);
 }
 
 void testZeroClamp(Float64x2 unopt) {
   final res = zeroClamp();
-  Expect.equals(res.x.compareTo(unopt.x), 0);
-  Expect.equals(res.y.compareTo(unopt.y), 0);
+  expectLanes(unopt, -0.0);
+  expectLanes(res, -0.0);
+}
+
+// clamp is a min followed by a max, so a NaN in any operand reaches the
+// result. Which NaN it is is not specified, so only NaN-ness is checked.
+void testNaNClamp() {
+  final l = Float64x2(-1.0, -1.0);
+  final u = Float64x2(1.0, 1.0);
+  final z = Float64x2.zero();
+  final n = Float64x2.splat(double.nan);
+  expectLanesNaN(n.clamp(l, u));
+  expectLanesNaN(z.clamp(n, u));
+  expectLanesNaN(z.clamp(l, n));
 }
 
 main() {
@@ -68,5 +91,6 @@ main() {
     testNonZeroClamp();
     testNegativeZeroClamp(unoptNegZeroClamp);
     testZeroClamp(unoptZeroClamp);
+    testNaNClamp();
   }
 }

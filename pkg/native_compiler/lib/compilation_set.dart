@@ -34,7 +34,7 @@ class CompilationSet {
   late final StubFactory _stubFactory;
   late final AsmIntrinsics _asmIntrinsics;
 
-  CompilationSet(this.libraries, this.config)
+  CompilationSet(this.config, this.libraries, ast.Procedure? mainMethod)
     : _imageWriter = config.createImageWriter() {
     _snapshot = SnapshotSerializer(
       config.targetCPU,
@@ -44,6 +44,14 @@ class CompilationSet {
     );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
     _asmIntrinsics = config.createAsmIntrinsics(functionRegistry);
+
+    // Currently VM loads declarations of core libraries from core snapshot.
+    if (!config.compilePlatform) {
+      _snapshot.declareLibraries(libraries);
+      if (mainMethod != null) {
+        _snapshot.addMainMethod(mainMethod);
+      }
+    }
   }
 
   /// Add [function] to be compiled.

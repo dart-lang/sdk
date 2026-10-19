@@ -5,10 +5,15 @@
 import 'dart:math' show min, max;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
+
+import 'package:vm/modular/transformations/pragma.dart';
 
 import 'dbc.dart';
 import 'options.dart' show BytecodeOptions;
+
+typedef AwaiterLink = ({int depth, int index});
 
 class LocalVariables {
   final _scopes = new Map<TreeNode, Scope>();
@@ -129,6 +134,16 @@ class LocalVariables {
 
   bool get hasReceiver => _currentFrame.receiverVar != null;
 
+  AwaiterLink? get awaiterLink {
+    final Variable? awaiterLinkVar = _currentFrame.awaiterLinkVar;
+    if (awaiterLinkVar == null) return null;
+    assert(isCaptured(awaiterLinkVar));
+    return (
+      depth: getContextLevelOfVar(awaiterLinkVar),
+      index: getVarIndexInContext(awaiterLinkVar),
+    );
+  }
+
   Variable? capturedSavedContextVar(TreeNode node) =>
       _capturedSavedContextVars?[node];
   Variable? capturedExceptionVar(TreeNode node) =>
@@ -154,8 +169,13 @@ class LocalVariables {
   List<NamedParameter> get sortedNamedParameters =>
       _currentFrame.sortedNamedParameters;
 
-  LocalVariables(Member node, this.options, this.staticTypeContext) {
-    final scopeBuilder = new _ScopeBuilder(this);
+  LocalVariables(
+    Member node,
+    this.options,
+    this.staticTypeContext,
+    CoreTypes coreTypes,
+  ) {
+    final scopeBuilder = new _ScopeBuilder(this, coreTypes);
     node.accept(scopeBuilder);
 
     final allocator = new _Allocator(this);
@@ -191,11 +211,12 @@ class LocalVariables {
 class VarDesc {
   final Variable declaration;
   Scope scope;
+  final bool isAwaiterLink;
   bool isCaptured = false;
   int? index;
   int? originalParamSlotIndex;
 
-  VarDesc(this.declaration, this.scope) {
+  VarDesc(this.declaration, this.scope, {required this.isAwaiterLink}) {
     scope.vars.add(this);
   }
 
@@ -239,6 +260,7 @@ class Frame {
   Variable? scratchVar;
   Variable? returnVar;
   Variable? suspendStateVar;
+  Variable? awaiterLinkVar;
   Map<String, Variable>? syntheticVars;
   int frameSize = 0;
   List<int> temporaries = <int>[];
@@ -292,6 +314,7 @@ bool _hasReceiverParameter(TreeNode node) {
 
 class _ScopeBuilder extends RecursiveVisitor {
   final LocalVariables locals;
+  final CoreTypes _coreTypes;
 
   Scope? _currentScopeInternal;
   Scope get _currentScope => _currentScopeInternal!;
@@ -303,7 +326,7 @@ class _ScopeBuilder extends RecursiveVisitor {
   List<TreeNode> _enclosingTryCatches = const [];
   int _loopDepth = 0;
 
-  _ScopeBuilder(this.locals);
+  _ScopeBuilder(this.locals, this._coreTypes);
 
   List<NamedParameter> _sortNamedParameters(FunctionNode function) {
     final params = function.namedParameters.toList();
@@ -461,7 +484,11 @@ class _ScopeBuilder extends RecursiveVisitor {
     if (scope == null) {
       scope = _currentScope;
     }
-    final VarDesc v = new VarDesc(variable, scope);
+    final VarDesc v = new VarDesc(
+      variable,
+      scope,
+      isAwaiterLink: variable.isAwaiterLink(_coreTypes),
+    );
     assert(
       locals._vars[variable] == null,
       'Double declaring variable ${variable}!',
@@ -478,6 +505,10 @@ class _ScopeBuilder extends RecursiveVisitor {
       v.capture();
       if (!v.isFinalNotLate) {
         _currentFrame.capturesOnlyFinalNotLateVars = false;
+      }
+      if (v.isAwaiterLink) {
+        assert(_currentFrame.awaiterLinkVar == null);
+        _currentFrame.awaiterLinkVar = variable;
       }
     }
   }

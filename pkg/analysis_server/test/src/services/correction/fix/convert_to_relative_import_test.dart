@@ -53,7 +53,7 @@ D d;
 
 @reflectiveTest
 class ConvertToRelativeImportDifferentPackagesTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToRelativeImport;
 
@@ -77,7 +77,8 @@ import 'package:test1/foo.dart';
 }
 
 @reflectiveTest
-class ConvertToRelativeImportSrcTest extends FixProcessorLintTest {
+class ConvertToRelativeImportSrcTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToRelativeImport;
 
@@ -106,7 +107,7 @@ C? c;
 }
 
 @reflectiveTest
-class ConvertToRelativeImportTest extends FixProcessorLintTest {
+class ConvertToRelativeImportTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToRelativeImport;
 

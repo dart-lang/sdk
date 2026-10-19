@@ -44,6 +44,7 @@ class RefactorCommandResolver
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
+    int? docVersion,
   ) async {
     var producer = generator(context);
 

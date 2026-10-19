@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This test verifies that attempts to promote the type of `this` inside an
-// extension method have no effect.
+// This test verifies that prior to enabling the language feature
+// `this-promotion`, attempts to promote the type of `this` inside an extension
+// method had no effect.
+
+// @dart=3.14
 
 void f(dynamic d) {}
 
@@ -35,11 +38,11 @@ extension on C {
     if (this is D) {
       f(this.dProp);
       //     ^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'dProp' isn't defined for the type 'C'.
       f(dProp);
       //^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] The getter 'dProp' isn't defined for the type 'C'.
     }
   }

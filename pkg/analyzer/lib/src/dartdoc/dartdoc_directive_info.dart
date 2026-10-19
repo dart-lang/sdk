@@ -29,7 +29,7 @@ class DartdocDirectiveInfo {
   final Map<String, String> templateMap = {};
 
   /// Initialize a newly created set of information about Dartdoc directives.
-  DartdocDirectiveInfo();
+  new();
 
   void addTemplate(String name, String value) {
     templateMap[name] = value;
@@ -268,14 +268,14 @@ class DartdocDirectiveInfo {
       result.extractTemplate(rawText);
 
       var members = switch (declaration) {
-        ClassDeclaration() => declaration.body.members,
+        ClassDeclaration() => declaration.body.members2,
         EnumDeclaration() => [
           ...declaration.body.constants,
-          ...declaration.body.members,
+          ...declaration.body.members2,
         ],
-        MixinDeclaration() => declaration.body.members,
-        ExtensionDeclaration() => declaration.body.members,
-        ExtensionTypeDeclaration() => declaration.body.members,
+        MixinDeclaration() => declaration.body.members2,
+        ExtensionDeclaration() => declaration.body.members2,
+        ExtensionTypeDeclaration() => declaration.body.members2,
         _ => null,
       };
 
@@ -296,7 +296,7 @@ class DartdocDirectiveInfo {
 class Documentation {
   String full;
 
-  Documentation({required this.full});
+  new({required this.full});
 }
 
 /// A representation of the documentation for an element that includes a
@@ -304,5 +304,5 @@ class Documentation {
 class DocumentationWithSummary extends Documentation {
   final String summary;
 
-  DocumentationWithSummary({required super.full, required this.summary});
+  new({required super.full, required this.summary});
 }

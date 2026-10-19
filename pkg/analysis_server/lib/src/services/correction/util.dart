@@ -575,8 +575,7 @@ class _ParameterReferenceVisitor extends GeneralizingAstVisitor<void> {
 
 extension on DartPattern {
   DartPattern get unparenthesized {
-    var self = this;
-    if (self is! ParenthesizedPattern) return self;
-    return self.pattern.unParenthesized;
+    if (this is! ParenthesizedPattern) return this;
+    return pattern.unParenthesized;
   }
 }

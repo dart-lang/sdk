@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-@ToBeDeprecated('Used only for the V1 AST.')
+@V1Ast()
 Element? _readElement(AstNode node) {
   var parent = node.parent;
 
@@ -36,7 +36,7 @@ Element? _readElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-@ToBeDeprecated('Used only for the V1 AST.')
+@V1Ast()
 Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
@@ -60,7 +60,7 @@ Element? _writeElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-@ToBeDeprecated('Used only for the V1 AST.')
+@V1Ast()
 DartType? _writeType(AstNode node) {
   var parent = node.parent;
 
@@ -88,7 +88,7 @@ class _TokenRange extends SyntacticEntity {
   final Token _begin;
   final Token _end;
 
-  _TokenRange(this._begin, this._end);
+  new(this._begin, this._end);
 
   @override
   int get end => _end.end;
@@ -147,7 +147,7 @@ extension AnnotationExtension on Annotation {
 
 extension ArgumentListExtension on ArgumentList {
   /// Returns the named argument with the given [name], or `null` if none.
-  @ToBeDeprecated('Use byName2 instead.')
+  @V1Ast('The V2 counterpart is byName2.')
   NamedArgument? byName(String name) => arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((e) => e.name.lexeme == name);
@@ -158,7 +158,7 @@ extension ArgumentListExtension on ArgumentList {
       .firstWhereOrNull((e) => e.name.lexeme == name);
 
   /// Returns the argument with the given [index], or `null` if none.
-  @ToBeDeprecated('Use elementAtOrNull2 instead.')
+  @V1Ast('The V2 counterpart is elementAtOrNull2.')
   Argument? elementAtOrNull(int index) {
     if (index < arguments.length) {
       return arguments[index];
@@ -222,6 +222,16 @@ extension DartPatternExtension on DartPattern {
 }
 
 extension ExpressionExtension on Expression {
+  /// Whether this expression is a named read whose resolution failed, such as
+  /// an undefined name.
+  ///
+  /// Resolution reports every such read, at the name or at its root cause.
+  bool get isInvalidNamedRead {
+    var self = this;
+    return self is NameExpression &&
+        self.resolution is InvalidNamedReadResolution;
+  }
+
   /// Return the static type of this expression.
   ///
   /// This accessor should be used on expressions that are expected to
@@ -246,7 +256,7 @@ extension ExpressionImplExtension on ExpressionImpl {
 }
 
 extension FormalParameterExtension on FormalParameter {
-  @ToBeDeprecated('Use isOfLocalFunction2 instead.')
+  @V1Ast('The V2 counterpart is isOfLocalFunction2.')
   bool get isOfLocalFunction {
     return thisOrAncestorOfType<FunctionBody>() != null;
   }
@@ -255,7 +265,7 @@ extension FormalParameterExtension on FormalParameter {
     return thisOrAncestorOfType2<FunctionBody>() != null;
   }
 
-  @ToBeDeprecated('Use parentFormalParameterList2 instead.')
+  @V1Ast('The V2 counterpart is parentFormalParameterList2.')
   FormalParameterList get parentFormalParameterList {
     return switch (parent) {
       FormalParameterList parent => parent,
@@ -281,7 +291,7 @@ extension FormalParameterExtension on FormalParameter {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-@ToBeDeprecated('Use NameExpression or NamedAssignmentTarget instead.')
+@V1Ast('The V2 counterpart is NameExpression or NamedAssignmentTarget.')
 extension IdentifierExtension on Identifier {
   Element? get readElement {
     return _readElement(this);
@@ -301,7 +311,7 @@ extension IdentifierExtension on Identifier {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-@ToBeDeprecated('Use IndexExpression2 or IndexAssignmentTarget instead.')
+@V1Ast('The V2 counterpart is IndexExpression2 or IndexAssignmentTarget.')
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;

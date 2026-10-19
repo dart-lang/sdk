@@ -79,6 +79,17 @@ class C {
     );
   }
 
+  test_getter() async {
+    await assertRoots(
+      r'''
+class C {
+  int get f => 0;
+}
+''',
+      ['GetterDeclarationImpl'],
+    );
+  }
+
   test_method() async {
     // As for constructors, the formal parameters don't need a region of their
     // own.
@@ -88,7 +99,7 @@ class C {
   void f(int x) {}
 }
 ''',
-      ['MethodDeclarationImpl'],
+      ['MethodDeclaration2Impl'],
     );
   }
 
@@ -99,7 +110,18 @@ class C {
   void f([int x = 0]) {}
 }
 ''',
-      ['MethodDeclarationImpl'],
+      ['MethodDeclaration2Impl'],
+    );
+  }
+
+  test_operator() async {
+    await assertRoots(
+      r'''
+class C {
+  int operator +(int other) => 0;
+}
+''',
+      ['OperatorDeclarationImpl'],
     );
   }
 
@@ -117,12 +139,23 @@ class C([int x = 0]) {
     );
   }
 
+  test_setter() async {
+    await assertRoots(
+      r'''
+class C {
+  set f(int x) {}
+}
+''',
+      ['SetterDeclarationImpl'],
+    );
+  }
+
   test_topLevelFunction() async {
     await assertRoots(
       r'''
 void f([int x = 0]) {}
 ''',
-      ['FunctionDeclarationImpl'],
+      ['TopLevelFunctionDeclarationImpl'],
     );
   }
 }

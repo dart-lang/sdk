@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithIdentifierTest extends FixProcessorLintTest {
+class ReplaceWithIdentifierTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithIdentifier;
 

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
@@ -21,20 +21,20 @@ void main() {
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
     defineReflectiveTests(HideClauseImplTest);
     defineReflectiveTests(ImplementsClauseImplTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(NormalFormalParameterTest);
     defineReflectiveTests(OnClauseImplTest);
     defineReflectiveTests(PreviousTokenTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(ShowClauseImplTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
@@ -562,7 +562,7 @@ class C extends B {
     var parseResult = parseTestCodeWithDiagnostics(input);
     var class_ = parseResult.unit.declarations2[0] as ClassDeclaration;
     var body = class_.body as BlockClassBody;
-    var constructor = body.members[0] as ConstructorDeclaration;
+    var constructor = body.members2[0] as ConstructorDeclaration;
     var parameter = constructor.parameters.allFormalParameters[0];
     expect(parameter.isExplicitlyTyped, expected);
   }
@@ -596,7 +596,7 @@ class C {}
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 IndexExpression.')
+@V1Ast('Tests V1 IndexExpression.')
 class IndexExpressionTest extends ParserDiagnosticsTest {
   void test_inGetterContext_assignment_compound_left() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
@@ -1002,7 +1002,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('get foo');
+    var node = parseResult.findNode.getterDeclaration('get foo');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
@@ -1013,7 +1013,7 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('external operator');
+    var node = parseResult.findNode.operatorDeclaration('external operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.externalKeyword);
   }
 
@@ -1024,8 +1024,8 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('get foo');
-    expect(node.firstTokenAfterCommentAndMetadata, node.propertyKeyword);
+    var node = parseResult.findNode.getterDeclaration('get foo');
+    expect(node.firstTokenAfterCommentAndMetadata, node.getKeyword);
   }
 
   void test_firstTokenAfterCommentAndMetadata_operator() {
@@ -1035,13 +1035,13 @@ class A {
 }
 ''');
 
-    var node = parseResult.findNode.methodDeclaration('operator');
+    var node = parseResult.findNode.operatorDeclaration('operator');
     expect(node.firstTokenAfterCommentAndMetadata, node.operatorKeyword);
   }
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 MethodInvocation.')
+@V1Ast('Tests V1 MethodInvocation.')
 class MethodInvocationTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -1192,9 +1192,8 @@ class NormalFormalParameterTest extends ParserDiagnosticsTest {
     var result = parseTestCodeWithDiagnostics('''
 void f(int i) {}
 ''');
-    var function = result.unit.declarations2[0] as FunctionDeclaration;
-    var parameters = function.functionExpression.parameters;
-    var parameter = parameters!.allFormalParameters[0];
+    var function = result.unit.declarations2[0] as TopLevelFunctionDeclaration;
+    var parameter = function.formalParameters.allFormalParameters[0];
     expect(parameter.sortedCommentAndAnnotations, isEmpty);
   }
 }
@@ -1250,16 +1249,16 @@ E f() => g;
   void test_findPrevious_basic_method() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var body = clazz.body as BlockClassBody;
-    var method = body.members[0] as MethodDeclaration;
+    var method = body.members2[0] as MethodDeclaration2;
     expect(method.findPrevious(findToken('foo'))!.lexeme, 'B');
   }
 
   void test_findPrevious_basic_statement() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
-    Statement statement = body.block.statements[0];
+    Statement statement = body.block.statements2[0];
     expect(statement.findPrevious(findToken('bar'))!.lexeme, 'return');
     expect(statement.findPrevious(findToken(';'))!.lexeme, 'bar');
   }
@@ -1267,9 +1266,9 @@ E f() => g;
   void test_findPrevious_missing() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
-    Statement statement = body.block.statements[0];
+    Statement statement = body.block.statements2[0];
 
     var missing = parseTestCodeWithDiagnostics(r'''
 missing
@@ -1282,9 +1281,9 @@ missing
   void test_findPrevious_parent_expression() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ReturnStatement;
+    var statement = body.block.statements2[0] as ReturnStatement;
     var expression = statement.expression2!;
     expect(expression.findPrevious(findToken('return'))!.lexeme, '{');
   }
@@ -1292,16 +1291,16 @@ missing
   void test_findPrevious_parent_method() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     expect(method.findPrevious(findToken('B'))!.lexeme, '{');
   }
 
   void test_findPrevious_parent_statement() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[0] as MethodDeclaration;
+    var method = classBody.members2[0] as MethodDeclaration2;
     var body = method.body as BlockFunctionBody;
-    Statement statement = body.block.statements[0];
+    Statement statement = body.block.statements2[0];
     expect(statement.findPrevious(findToken('return'))!.lexeme, '{');
   }
 
@@ -1313,13 +1312,13 @@ missing
   void test_findPrevious_sibling_method() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
-    var method = classBody.members[1] as MethodDeclaration;
-    expect(method.findPrevious(findToken('D'))!.lexeme, '}');
+    var getter = classBody.members2[1] as GetterDeclaration;
+    expect(getter.findPrevious(findToken('D'))!.lexeme, '}');
   }
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 PropertyAccess.')
+@V1Ast('Tests V1 PropertyAccess.')
 class PropertyAccessTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -1376,7 +1375,7 @@ import 'dart:core' show int Function();
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 SimpleIdentifier.')
+@V1Ast('Tests V1 SimpleIdentifier.')
 class SimpleIdentifierTest extends ParserDiagnosticsTest {
   void test_inGetterContext() {
     for (_WrapperKind wrapper in _WrapperKind.values) {
@@ -1991,20 +1990,22 @@ class A {
 
 @reflectiveTest
 class VariableDeclarationTest extends ParserDiagnosticsTest {
+  @V1Ast('Tests the V1 projection.')
   void test_getDocumentationComment_onGrandParent() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /// text
 var a = 0;
 ''');
-    var node = parseResult.findNode.variableDeclaration('a =');
+    var node = parseResult.findNodeV1.variableDeclaration('a =');
     expect(node.documentationComment, isNotNull);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_sortedCommentAndAnnotations_noComment() {
     var parseResult = parseTestCodeWithDiagnostics('''
 var a = 0;
 ''');
-    var variable = parseResult.findNode.variableDeclaration('a =');
+    var variable = parseResult.findNodeV1.variableDeclaration('a =');
     expect(variable.sortedCommentAndAnnotations, isEmpty);
   }
 }
@@ -2070,7 +2071,7 @@ class _AssignmentKind {
 
   final int ordinal;
 
-  const _AssignmentKind(this.name, this.ordinal);
+  const new(this.name, this.ordinal);
 
   @override
   int get hashCode => ordinal;
@@ -2101,7 +2102,7 @@ class _WrapperKind {
 
   final int ordinal;
 
-  const _WrapperKind(this.name, this.ordinal);
+  const new(this.name, this.ordinal);
 
   @override
   int get hashCode => ordinal;

@@ -44,7 +44,7 @@ base class D extends S {}
 }
 
 @reflectiveTest
-class AddReopenTest extends FixProcessorLintTest {
+class AddReopenTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 

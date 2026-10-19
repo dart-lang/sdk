@@ -23,7 +23,7 @@ class JsInteropVerifier {
 
   final DiagnosticReporter _diagnosticReporter;
 
-  JsInteropVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   void verifyCompilationUnit(CompilationUnit node) {
     for (var declaration in node.declarations2) {
@@ -51,7 +51,7 @@ class JsInteropVerifier {
       return;
     }
 
-    for (var member in declaration.body.members) {
+    for (var member in declaration.body.members2) {
       if (member is ConstructorDeclaration) {
         // Precondition 2: `_isJSInteropMember` returns `false` for any member
         // that is not `external`, so the CFE never reports a non-external

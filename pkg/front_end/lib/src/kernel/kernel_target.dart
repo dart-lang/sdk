@@ -151,7 +151,14 @@ class KernelTarget {
   bool get errorOnUnevaluatedConstant =>
       context.options.errorOnUnevaluatedConstant;
 
-  final Map<Member, DelayedDefaultValueCloner> _delayedDefaultValueCloners = {};
+  /// Map from [Member] or [FunctionNode] to the [DelayedDefaultValueCloner]
+  /// responsible for cloning its parameter default values.
+  ///
+  /// This is used for synthesized functions and constructors with super
+  /// parameters where the parameter default values are copied from another
+  /// parameters.
+  final Map<TreeNode, DelayedDefaultValueCloner> _delayedDefaultValueCloners =
+      {};
 
   final UriTranslator uriTranslator;
 
@@ -557,12 +564,7 @@ class KernelTarget {
         benchmarker
         // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
-        List<DelayedDefaultValueCloner>?
-        typedefTearOffsDelayedDefaultValueCloners = loader
-            .installTypedefTearOffs();
-        typedefTearOffsDelayedDefaultValueCloners?.forEach(
-          registerDelayedDefaultValueCloner,
-        );
+        loader.installTypedefTearOffs();
 
         benchmarker
         // Coverage-ignore(suite): Not run.
@@ -1164,8 +1166,9 @@ class KernelTarget {
     ;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
         new DelayedDefaultValueCloner(
-          superConstructor,
-          constructor,
+          source: superConstructor,
+          target: constructor,
+          parameterMapping: const DirectParameterMapping(),
           libraryBuilder: libraryBuilder,
         );
 
@@ -1233,10 +1236,8 @@ class KernelTarget {
   }
 
   void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
-    // TODO(cstefantsova): Investigate the reason for the assumption breakage
-    // and uncomment the following line.
-    // assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized));
-    _delayedDefaultValueCloners[cloner.synthesized] ??= cloner;
+    assert(!_delayedDefaultValueCloners.containsKey(cloner.target));
+    _delayedDefaultValueCloners[cloner.target] = cloner;
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
@@ -1244,7 +1245,7 @@ class KernelTarget {
       DelayedDefaultValueCloner delayedDefaultValueCloner,
     ) {
       DelayedDefaultValueCloner? originalCloner =
-          _delayedDefaultValueCloners[delayedDefaultValueCloner.original];
+          _delayedDefaultValueCloners[delayedDefaultValueCloner.source];
       if (originalCloner != null) {
         cloneDefaultValues(originalCloner);
       }
@@ -1989,7 +1990,7 @@ class KernelTarget {
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        compilationUnit.registerAugmentation(
+        compilationUnit.registerPatch(
           loader.read(
             patch,
             -1,

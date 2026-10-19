@@ -578,14 +578,30 @@ class PluginManagerTest with ResourceProviderMixin {
   late File aotFile;
   late int aotFileModificationStampBefore;
   late File depfile;
+  final temporaryPaths = <String>[];
 
   String get aotFilePath =>
       resourceProvider.convertPath('/plugin/bin/plugin.aot');
 
+  /// A handler for [MockProcessRunner.runSyncHandler] that touches the final
+  /// AOT snapshot, whatever the command is.
+  ///
+  /// This makes the snapshot newer than everything else as soon as `pub upgrade`
+  /// has run, which is not how a real `dart compile` behaves.
+  RunSyncHandler get touchAotSnapshotHandler {
+    return simpleRunSyncHandler((_, arguments) {
+      resourceProvider.getFile(aotFilePath).writeAsStringSync('');
+    });
+  }
+
+  /// A handler for [MockProcessRunner.runSyncHandler] that writes the AOT
+  /// snapshot to wherever `dart compile aot-snapshot` was told to put it, and
+  /// ignores any other command, like `pub upgrade`.
   RunSyncHandler get writeAotSnapshotHandler {
     return simpleRunSyncHandler((_, arguments) {
-      // Touch the AOT snapshot file.
-      resourceProvider.getFile(aotFilePath).writeAsStringSync('');
+      if (!arguments.contains('compile')) return;
+      _recordTemporaryPaths(arguments);
+      resourceProvider.getFile(_outputPath(arguments)).writeAsStringSync('');
     });
   }
 
@@ -593,6 +609,14 @@ class PluginManagerTest with ResourceProviderMixin {
     aotFile.modificationStamp,
     greaterThan(aotFileModificationStampBefore),
   );
+
+  /// Expects that all of the temporary files, recorded by compiles, are gone.
+  void expectNoTemporaryFiles() {
+    expect(temporaryPaths, isNotEmpty);
+    for (var path in temporaryPaths) {
+      expect(resourceProvider.getFile(path).exists, isFalse, reason: path);
+    }
+  }
 
   void setUp() {
     processRunner = MockProcessRunner();
@@ -667,6 +691,151 @@ class PluginManagerTest with ResourceProviderMixin {
     expect(aotFileModificationStampBefore, aotFile.modificationStamp);
   }
 
+  void test_pathsFor_compile_deletesStaleTemporaryFiles() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    pluginScriptFile.writeAsStringSync('// newer');
+    // Files like these are left by compiles that were killed.
+    var staleSnapshot = newFile('/plugin/bin/plugin.aot.123.456.tmp', 'x');
+    var staleDepfile = newFile('/plugin/bin/depfile.txt.123.456.tmp', 'x');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expect(staleSnapshot.exists, isFalse);
+    expect(staleDepfile.exists, isFalse);
+  }
+
+  void test_pathsFor_compile_doesNotDeleteExistingSnapshot() {
+    // Another analysis server might have the existing snapshot mapped, so it
+    // must stay in place, complete, until it is atomically replaced.
+    late String contentDuringCompile;
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      if (!arguments.contains('compile')) return;
+      _recordTemporaryPaths(arguments);
+      contentDuringCompile = aotFile.exists ? aotFile.readAsStringSync() : '';
+      resourceProvider.getFile(_outputPath(arguments)).writeAsStringSync('new');
+    });
+
+    writeAllFiles();
+    aotFile.writeAsStringSync('old');
+    pluginScriptFile.writeAsStringSync('// newer');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expect(contentDuringCompile, 'old');
+    expect(aotFile.readAsStringSync(), 'new');
+  }
+
+  void test_pathsFor_compile_failure_keepsExistingSnapshot() {
+    processRunner.runSyncHandler =
+        (
+          executable,
+          arguments, {
+          environment,
+          workingDirectory,
+          stderrEncoding,
+          stdoutEncoding,
+        }) {
+          if (!arguments.contains('compile')) {
+            return io.ProcessResult(1, 0, '', '');
+          }
+          _recordTemporaryPaths(arguments);
+          // A partially written output.
+          resourceProvider
+              .getFile(_outputPath(arguments))
+              .writeAsStringSync('partial');
+          return io.ProcessResult(1, 1, '', 'boom');
+        };
+
+    writeAllFiles();
+    aotFile.writeAsStringSync('old');
+    pluginScriptFile.writeAsStringSync('// newer');
+
+    expect(
+      () => manager.filesFor(
+        pluginDirPath,
+        isLegacyPlugin: false,
+        builtAsAot: true,
+      ),
+      throwsA(isA<PluginException>()),
+    );
+    expect(aotFile.readAsStringSync(), 'old');
+    expectNoTemporaryFiles();
+  }
+
+  void test_pathsFor_compile_keepsOtherFiles() {
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
+
+    writeAllFiles();
+    pluginScriptFile.writeAsStringSync('// newer');
+    var other1 = newFile('/plugin/bin/plugin.aot.tmp', 'x');
+    var other2 = newFile('/plugin/bin/other.123.456.tmp', 'x');
+    var other3 = newFile('/plugin/bin/plugin.aot.123.456', 'x');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expect(other1.exists, isTrue);
+    expect(other2.exists, isTrue);
+    expect(other3.exists, isTrue);
+    expect(twoFile.exists, isTrue);
+  }
+
+  void test_pathsFor_compile_publishesDepfile() {
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      if (!arguments.contains('compile')) return;
+      _recordTemporaryPaths(arguments);
+      resourceProvider.getFile(_outputPath(arguments)).writeAsStringSync('');
+      resourceProvider
+          .getFile(_depfilePath(arguments))
+          .writeAsStringSync('target: ${pluginScriptFile.path}');
+    });
+
+    writeAllFiles();
+    depfile.writeAsStringSync('old: ${pluginScriptFile.path}');
+    pluginScriptFile.writeAsStringSync('// newer');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expect(depfile.readAsStringSync(), 'target: ${pluginScriptFile.path}');
+    expectNoTemporaryFiles();
+  }
+
+  void test_pathsFor_compile_replacesSnapshotByRename() {
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      if (!arguments.contains('compile')) return;
+      _recordTemporaryPaths(arguments);
+      resourceProvider.getFile(_outputPath(arguments)).writeAsStringSync('new');
+    });
+
+    writeAllFiles();
+    pluginScriptFile.writeAsStringSync('// newer');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+    expect(aotFile.readAsStringSync(), 'new');
+    // No temporary files are left behind.
+    expectNoTemporaryFiles();
+  }
+
+  void test_pathsFor_compile_writesToTemporaryFiles() {
+    late List<String> compileArguments;
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      if (!arguments.contains('compile')) return;
+      _recordTemporaryPaths(arguments);
+      compileArguments = arguments;
+      resourceProvider.getFile(_outputPath(arguments)).writeAsStringSync('');
+    });
+
+    writeAllFiles();
+    pluginScriptFile.writeAsStringSync('// newer');
+
+    manager.filesFor(pluginDirPath, isLegacyPlugin: false, builtAsAot: true);
+
+    var binFolder = convertPath('/plugin/bin');
+    // The compiler never writes straight to the files that other analysis
+    // servers read.
+    expect(_outputPath(compileArguments), isNot(aotFilePath));
+    expect(_outputPath(compileArguments), startsWith(binFolder));
+    expect(_depfilePath(compileArguments), isNot(depfile.path));
+    expect(_depfilePath(compileArguments), startsWith(binFolder));
+  }
+
   void test_pathsFor_dependencyIsNewer() {
     processRunner.runSyncHandler = writeAotSnapshotHandler;
 
@@ -721,7 +890,9 @@ class PluginManagerTest with ResourceProviderMixin {
   }
 
   void test_pathsFor_packageConfigIsNewer() {
-    processRunner.runSyncHandler = writeAotSnapshotHandler;
+    // The snapshot is rewritten by the `pub upgrade` step of this fake, not
+    // because the package config is a dependency of the snapshot.
+    processRunner.runSyncHandler = touchAotSnapshotHandler;
 
     writeAllFiles();
     packageConfigFile.writeAsStringSync('');
@@ -750,6 +921,28 @@ class PluginManagerTest with ResourceProviderMixin {
     expectAotSnapshotIsRewritten();
   }
 
+  void test_pluginStateFolder_differsBetweenDartVersions() {
+    var path = convertPath('/project');
+    var folder1 = _managerWithDartVersion('3.11.1').pluginStateFolderPath(path);
+    var folder2 = _managerWithDartVersion('3.11.3').pluginStateFolderPath(path);
+    expect(folder1, isNot(folder2));
+  }
+
+  void test_pluginStateFolder_differsBetweenPaths() {
+    var manager = _managerWithDartVersion('3.11.3');
+    expect(
+      manager.pluginStateFolderPath(convertPath('/project1')),
+      isNot(manager.pluginStateFolderPath(convertPath('/project2'))),
+    );
+  }
+
+  void test_pluginStateFolder_sameForSameDartVersion() {
+    var path = convertPath('/project');
+    var folder1 = _managerWithDartVersion('3.11.3').pluginStateFolderPath(path);
+    var folder2 = _managerWithDartVersion('3.11.3').pluginStateFolderPath(path);
+    expect(folder1, folder2);
+  }
+
   // Builds the minimal directory structure for a plugin package.
   void writeAllFiles() {
     pluginDirPath = newFolder('/plugin').path;
@@ -769,6 +962,37 @@ environment:
     packageConfigFile = newPackageConfigJsonFile('/plugin', '');
     aotFile = newFile('/plugin/bin/plugin.aot', '');
     aotFileModificationStampBefore = aotFile.modificationStamp;
+  }
+
+  /// The path passed to `dart compile aot-snapshot` with `--depfile`.
+  String _depfilePath(List<String> arguments) {
+    var index = arguments.indexOf('--depfile');
+    expect(index, isNonNegative, reason: 'expected --depfile in $arguments');
+    return arguments[index + 1];
+  }
+
+  PluginManager _managerWithDartVersion(String dartVersion) => PluginManager(
+    resourceProvider,
+    resourceProvider.convertPath('/byteStore'),
+    resourceProvider.convertPath('/sdk'),
+    TestNotificationManager(),
+    InstrumentationService.NULL_SERVICE,
+    SessionLogger(),
+    processRunner: processRunner,
+    dartVersion: dartVersion,
+  );
+
+  /// The path passed to `dart compile aot-snapshot` with `-o`.
+  String _outputPath(List<String> arguments) {
+    var index = arguments.indexOf('-o');
+    expect(index, isNonNegative, reason: 'expected -o in $arguments');
+    return arguments[index + 1];
+  }
+
+  /// Records the temporary files that a compile was told to write to.
+  void _recordTemporaryPaths(List<String> arguments) {
+    temporaryPaths.add(_outputPath(arguments));
+    temporaryPaths.add(_depfilePath(arguments));
   }
 }
 

@@ -69,7 +69,7 @@ class ElementTextConfiguration {
   bool withSyntheticDartCoreImport = false;
   bool withSyntheticGetters = true;
 
-  ElementTextConfiguration({this.filter = _filterTrue});
+  new({this.filter = _filterTrue});
 
   void forClassConstructors({Set<String> classNames = const {}}) {
     filter = (o) {
@@ -127,12 +127,11 @@ abstract class _AbstractElementWriter {
   final ElementPrinter _elementPrinter;
   final ElementTextConfiguration configuration;
 
-  _AbstractElementWriter({
-    required TreeStringSink sink,
-    required ElementPrinter elementPrinter,
+  new({
+    required this._sink,
+    required this._elementPrinter,
     required this.configuration,
-  }) : _sink = sink,
-       _elementPrinter = elementPrinter;
+  });
 
   IdMap get _idMap => _elementPrinter.idMap;
 
@@ -230,7 +229,7 @@ abstract class _AbstractElementWriter {
 
 /// Writes the canonical text presentation of elements.
 class _Element2Writer extends _AbstractElementWriter {
-  _Element2Writer({
+  new({
     required super.sink,
     required super.elementPrinter,
     required super.configuration,
@@ -337,11 +336,11 @@ class _Element2Writer extends _AbstractElementWriter {
       reason: 'Element constant initializers must be detached.',
     );
 
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     var v1 = V1Projection.toV1Expression(expression as ExpressionImpl);
     if (!identical(v1, expression)) {
       expect(
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         v1.thisOrAncestorOfType<CompilationUnit>(),
         isNull,
         reason: 'V1 projections of element initializers must be detached.',

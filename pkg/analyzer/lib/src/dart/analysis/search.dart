@@ -148,7 +148,7 @@ class Declaration {
   final String? mixinName;
   final String? parameters;
 
-  Declaration(
+  new(
     this.fileIndex,
     this.lineInfo,
     this.name,
@@ -198,7 +198,7 @@ class DirectSubtypeWithMembers {
   /// The names of instance members declared in the class.
   final List<String> members;
 
-  DirectSubtypeWithMembers({
+  new({
     required this.library,
     required this.id,
     required this.name,
@@ -224,7 +224,7 @@ class FindDeclarations {
   final OwnedFiles ownedFiles;
   final OperationPerformanceImpl performance;
 
-  FindDeclarations(
+  new(
     this.drivers,
     this.result,
     this.pattern,
@@ -272,10 +272,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
 
   late final Set<Element> importedElements;
 
-  ImportElementReferencesVisitor(
-    LibraryImport element,
-    this.enclosingLibraryFragment,
-  ) : import = element {
+  new(LibraryImport element, this.enclosingLibraryFragment) : import = element {
     importedElements = element.namespace.definedNames2.values.toSet();
   }
 
@@ -467,17 +464,14 @@ class LibraryFragmentSearchMatch {
   /// The source range of the URI.
   final SourceRange range;
 
-  LibraryFragmentSearchMatch({
-    required this.libraryFragment,
-    required this.range,
-  });
+  new({required this.libraryFragment, required this.range});
 }
 
 /// Search support for an [AnalysisDriver].
 class Search {
   final AnalysisDriver _driver;
 
-  Search(this._driver);
+  new(this._driver);
 
   /// Returns class or mixin members with the given [name].
   Future<List<Element>> classMembers(String name) async {
@@ -599,7 +593,7 @@ class Search {
             n is Block ||
             n is ForElement ||
             n is FunctionBody ||
-            n is TopLevelVariableDeclaration ||
+            n is TopLevelVariablesDeclaration ||
             n is SwitchExpression ||
             n.parent2 is CompilationUnit,
       );
@@ -1307,7 +1301,7 @@ class SearchResult {
   /// Whether the result is a resolved reference to the element.
   final bool isQualified;
 
-  SearchResult._(
+  new _(
     this.enclosingFragment,
     this.kind,
     this.offset,
@@ -1389,7 +1383,7 @@ class _FindDeclarations {
   final String? onlyForFile;
   final OperationPerformanceImpl performance;
 
-  _FindDeclarations(
+  new(
     this.fileEntries,
     this.result,
     this.pattern,
@@ -1482,7 +1476,7 @@ class _FindLibraryDeclarations {
   final FuzzyMatcher matcher;
   final void Function(Declaration) collect;
 
-  _FindLibraryDeclarations(
+  new(
     LibraryFragmentImpl unit,
     this.result,
     this.maxResults,
@@ -1692,7 +1686,7 @@ class _FindLibraryDeclarations {
 class _IndexRequest {
   final AnalysisDriverUnitIndex index;
 
-  _IndexRequest(this.index);
+  new(this.index);
 
   void addDirectSubtypesWithMembers(
     String superIdString,
@@ -1919,7 +1913,7 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   final Set<Element> elements;
   final LibraryFragmentImpl enclosingLibraryFragment;
 
-  _LocalReferencesVisitor(this.elements, this.enclosingLibraryFragment);
+  new(this.elements, this.enclosingLibraryFragment);
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
@@ -2143,5 +2137,5 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
 
 /// The marker class that is thrown to stop adding declarations.
 class _MaxNumberOfDeclarationsError {
-  const _MaxNumberOfDeclarationsError();
+  const new();
 }

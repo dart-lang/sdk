@@ -15,7 +15,7 @@ class DefaultValueResolver {
   final LibraryBuilder _libraryBuilder;
   final TypeSystemImpl _typeSystem;
 
-  DefaultValueResolver(this._linker, this._libraryBuilder)
+  new(this._linker, this._libraryBuilder)
     : _typeSystem = _libraryBuilder.element.typeSystem;
 
   void resolve() {

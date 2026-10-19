@@ -224,35 +224,10 @@ argument_type_not_assignable:
   status: hasFix
 assert_in_redirecting_constructor:
   status: hasFix
-assignment_to_const:
-  status: noFix
-  notes: |-
-    Making the field non-const doesn't seem to be a good choice, but it is a
-    possibility.
 assignment_to_primary_constructor_parameter:
   status: needsEvaluation
-assignment_to_final:
-  status: hasFix
 assignment_to_final_local:
   status: hasFix
-assignment_to_final_no_setter:
-  status: needsFix
-  notes: |-
-    The fix is to create the missing setter.
-assignment_to_function:
-  status: noFix
-  notes: |-
-    Theoretically we could replace the function with a function valued variable
-    if the value being assigned is a function with the same signature, but that
-    case is likely rare enough to not be worth supporting.
-assignment_to_method:
-  status: noFix
-  notes: |-
-    Theoretically we could replace the method with a function valued variable
-    if the value being assigned is a function with the same signature, but that
-    case is likely rare enough to not be worth supporting.
-assignment_to_type:
-  status: noFix
 async_for_in_wrong_context:
   status: hasFix
 augmentation_extends_clause_already_present:
@@ -627,10 +602,6 @@ disallowed_type_instantiation_expression:
   since: 2.15
 dot_shorthand_missing_context:
   status: needsEvaluation
-dot_shorthand_undefined_getter:
-  status: hasFix
-dot_shorthand_undefined_invocation:
-  status: hasFix
 duplicate_constructor_default:
   status: noFix
   notes: |-
@@ -1498,8 +1469,6 @@ private_named_parameter_duplicate_public_name:
   status: noFix
 private_named_parameter_without_public_name:
   status: noFix
-private_setter:
-  status: noFix
 read_potentially_unassigned_final:
   status: noFix
 record_literal_one_positional_no_trailing_comma_by_type:
@@ -1701,16 +1670,12 @@ undefined_constructor_in_initializer:
     for closely named constructors.
 undefined_constructor_in_initializer_default:
   status: hasFix
-undefined_enum_constant:
-  status: hasFix
 undefined_enum_constructor_named:
   status: hasFix
   since: 2.17
 undefined_enum_constructor_unnamed:
   status: hasFix
   since: 2.17
-undefined_extension_getter:
-  status: hasFix
 undefined_extension_member_read_not_found:
   status: hasFix
 undefined_extension_member_read_private:
@@ -1733,41 +1698,139 @@ undefined_extension_member_write_wrong_kind:
   status: noFix
   notes: |-
     A method can't be made assignable; the fix is to assign to something else.
-undefined_extension_method:
-  status: hasFix
 undefined_extension_operator:
-  status: hasFix
-undefined_extension_setter:
-  status: hasFix
-undefined_function:
-  status: hasFix
-undefined_getter:
-  status: hasFix
-undefined_getter_on_function_type:
-  status: needsFix
-  since: 2.15
-undefined_identifier:
   status: hasFix
 undefined_identifier_await:
   status: hasFix
-undefined_method:
+undefined_instance_member_read_not_found:
   status: hasFix
-undefined_method_on_function_type:
+undefined_instance_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_instance_member_read_setter_only:
+  status: hasFix
+undefined_instance_member_write_final:
+  status: hasFix
+undefined_instance_member_write_getter_only:
   status: needsFix
-  since: 2.15
-undefined_method_on_type_literal:
+  notes: |-
+    The fix is to create the missing setter.
+undefined_instance_member_write_not_found:
   status: hasFix
+undefined_instance_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_instance_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_named_parameter:
   status: hasFix
 undefined_operator:
   status: hasFix
-undefined_prefixed_name:
+undefined_prefixed_name_read_not_found:
   status: hasFix
-undefined_setter:
+undefined_prefixed_name_read_not_found_annotation:
   status: hasFix
-undefined_setter_on_function_type:
+undefined_prefixed_name_read_not_found_constant:
+  status: hasFix
+undefined_prefixed_name_read_private:
+  status: noFix
+  notes: |-
+    The declaration is in another library, which would have to make it
+    public.
+undefined_prefixed_name_read_setter_only:
   status: needsFix
-  since: 2.15
+  notes: |-
+    The fix is to create the getter in the imported library.
+undefined_prefixed_name_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_prefixed_name_write_final:
+  status: needsFix
+  notes: |-
+    The fix is to make the variable in the imported library non-final.
+undefined_prefixed_name_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter in the imported library.
+undefined_prefixed_name_write_not_found:
+  status: hasFix
+undefined_prefixed_name_write_private:
+  status: noFix
+  notes: |-
+    The declaration is in another library, which would have to make it
+    public.
+undefined_prefixed_name_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A function or a type can't be made assignable; the fix is to assign to
+    something else.
+undefined_static_member_read_no_static_members:
+  status: noFix
+  notes: |-
+    A function type has no static members; the correction suggests wrapping
+    the alias in parentheses, which changes the meaning.
+undefined_static_member_read_no_static_members_dot_shorthand:
+  status: noFix
+  notes: |-
+    The context type has no static members; the fix depends on which
+    declaration was meant.
+undefined_static_member_read_not_found:
+  status: hasFix
+undefined_static_member_read_not_found_annotation:
+  status: hasFix
+undefined_static_member_read_not_found_constant:
+  status: hasFix
+undefined_static_member_read_not_found_dot_shorthand:
+  status: hasFix
+undefined_static_member_read_not_found_dot_shorthand_constant:
+  status: hasFix
+undefined_static_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_static_member_read_private_dot_shorthand:
+  status: noFix
+  notes: |-
+    The context type is declared in another library, which would have to make
+    it public.
+undefined_static_member_read_setter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the static getter.
+undefined_static_member_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_static_member_write_final:
+  status: hasFix
+undefined_static_member_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the static setter.
+undefined_static_member_write_no_static_members:
+  status: noFix
+  notes: |-
+    A function type has no static members; the correction suggests wrapping
+    the alias in parentheses, which changes the meaning.
+undefined_static_member_write_not_found:
+  status: hasFix
+undefined_static_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_static_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_super_member_read_not_found:
   status: needsFix
   notes: |-
@@ -1809,6 +1872,33 @@ undefined_super_operator:
   status: needsFix
   notes: |-
     The fix is to create the operator, assuming the superclass is editable.
+undefined_unqualified_name_read_not_found:
+  status: hasFix
+undefined_unqualified_name_read_not_found_annotation:
+  status: hasFix
+undefined_unqualified_name_read_not_found_constant:
+  status: hasFix
+undefined_unqualified_name_read_setter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the getter.
+undefined_unqualified_name_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_unqualified_name_write_final:
+  status: hasFix
+undefined_unqualified_name_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter.
+undefined_unqualified_name_write_not_found:
+  status: hasFix
+undefined_unqualified_name_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A function, a method, or a type can't be made assignable; the fix is to
+    assign to something else.
 unqualified_reference_to_non_local_static_member:
   status: hasFix
 unqualified_reference_to_static_member_of_extended_type:
@@ -2059,7 +2149,7 @@ analyzer_public_api_exports_non_public_name:
   status: noFix
 analyzer_public_api_impl_in_public_api:
   status: noFix
-analyzer_to_be_deprecated_use:
+analyzer_v1_ast_use:
   status: noFix
 annotate_overrides:
   status: hasFix

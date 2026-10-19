@@ -27,11 +27,11 @@ class A<X extends A<X, X>?, Y extends A<Y, Y>?> {
     // Not `dynamic`, not `void`.
     zx?.whatever;
     //  ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'whatever' isn't defined for the type 'Object'.
     zy?.whatever;
     //  ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'whatever' isn't defined for the type 'Object'.
 
     if (zx == null || zy == null) throw 0;

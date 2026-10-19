@@ -409,8 +409,7 @@ class ProcessStarter {
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
     char* error_message = DartUtils::ScopedCString(kBufferSize);
-    Utils::StrError(errno, error_message, kBufferSize);
-    *os_error_message_ = error_message;
+    *os_error_message_ = Utils::StrError(errno, error_message, kBufferSize);
   }
 
   void ClosePipe(int* fds) {

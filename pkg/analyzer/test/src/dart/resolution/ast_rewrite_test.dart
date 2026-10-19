@@ -2218,7 +2218,7 @@ class C {}
 void f() {
   C.new = 1;
 //  ^^^
-// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'C' doesn't have a static setter named 'new'.
 }
 ''');
 

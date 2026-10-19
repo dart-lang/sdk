@@ -37,8 +37,8 @@ void main() {
   UnnamedConstructorTypeParameters Function() tearOff = .new<int>;
   //                                                    ^^^^
   // [analyzer] COMPILE_TIME_ERROR.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                     ^
+  //                                                     ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'new' isn't defined for the type 'UnnamedConstructorTypeParameters<dynamic> Function()'.
 
   C newTearoff = .new<int>;

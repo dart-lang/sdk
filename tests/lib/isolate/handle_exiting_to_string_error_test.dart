@@ -15,16 +15,16 @@ class ExitingToStringError {
   String toString() => Isolate.exit();
 }
 
-void isolateMain() {
+final isolateMain = (_) {
   throw ExitingToStringError();
-}
+};
 
 void main() async {
   asyncStart();
   final errorPort = ReceivePort();
   final exitPort = ReceivePort();
   Isolate.spawn(
-    (_) => isolateMain(),
+    isolateMain,
     null,
     onError: errorPort.sendPort,
     onExit: exitPort.sendPort,

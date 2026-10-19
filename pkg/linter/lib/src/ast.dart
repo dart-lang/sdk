@@ -292,10 +292,8 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
     (element is FieldDeclaration && getFieldName(element, name) != null);
 
 extension AstNodeExtension on AstNode {
-  bool get isToStringInvocationWithArguments {
-    var self = this;
-    return self is MethodInvocation &&
-        self.methodName.name == 'toString' &&
-        self.argumentList.arguments.isNotEmpty;
-  }
+  bool get isToStringInvocationWithArguments =>
+      this is MethodInvocation &&
+      methodName.name == 'toString' &&
+      argumentList.arguments.isNotEmpty;
 }

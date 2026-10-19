@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class ImportAddHideTest extends FixProcessorTest {
+class ImportAddHideTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryHide;
 
@@ -692,7 +692,7 @@ void f() {
 }
 
 @reflectiveTest
-class ImportRemoveShowTest extends FixProcessorTest {
+class ImportRemoveShowTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryRemoveShow;
 

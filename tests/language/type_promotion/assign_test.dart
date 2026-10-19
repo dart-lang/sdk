@@ -39,7 +39,7 @@ void main() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
   if (a is B) {
@@ -51,7 +51,7 @@ void main() {
     print(a.a);
     print(a.b);
     //      ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
 }

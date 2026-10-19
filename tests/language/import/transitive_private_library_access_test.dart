@@ -11,6 +11,6 @@ import 'package:expect/expect.dart';
 main() {
   ClassID.GetID(4);
   // [error column 3, length 7]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'ClassID'.
 }

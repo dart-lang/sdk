@@ -148,23 +148,33 @@ void x;
 
   Future<void> _assertConst(String code) async {
     var result = await resolveTestCode(code);
-    var type = result.findNode.variableDeclarationList('x;').type!;
+    var type = _xType(result);
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isTrue);
   }
 
   Future<void> _assertNeverConst(String code) async {
     var result = await resolveTestCode(code);
-    var type = result.findNode.variableDeclarationList('x;').type!;
+    var type = _xType(result);
     expect(isPotentiallyConstantTypeExpression(type), isFalse);
     expect(isConstantTypeExpression(type), isFalse);
   }
 
   Future<void> _assertPotentiallyConst(String code) async {
     var result = await resolveTestCode(code);
-    var type = result.findNode.variableDeclarationList('x;').type!;
+    var type = _xType(result);
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isFalse);
+  }
+
+  TypeAnnotation _xType(TestResolvedUnitResult result) {
+    return switch (result.findNode.any('x;')) {
+      LocalVariable(parent2: LocalVariablesDeclaration(:var type?)) => type,
+      TopLevelVariable2(parent2: TopLevelVariablesDeclaration(:var type?)) =>
+        type,
+      Field2(parent2: FieldsDeclaration(:var type?)) => type,
+      _ => throw StateError('No type of x'),
+    };
   }
 }
 
@@ -1460,7 +1470,7 @@ class const C(int a) {
   late final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer2!,
+      (result) => result.findNode.field('f =').initializer!,
       (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
@@ -1470,7 +1480,7 @@ class const C(int a) {
 class const C(int a) {
   final int f = a + 1;
 }
-''', (result) => result.findNode.variableDeclaration('f =').initializer2!);
+''', (result) => result.findNode.field('f =').initializer!);
   }
 
   test_simpleIdentifier_parameterOfConstPrimaryConstructor_inFieldInitializer_static() async {
@@ -1480,7 +1490,7 @@ class const C(int a) {
   static final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer2!,
+      (result) => result.findNode.field('f =').initializer!,
       (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
@@ -1546,7 +1556,7 @@ class C(int a) {
   final int f = a + 1;
 }
 ''',
-      (result) => result.findNode.variableDeclaration('f =').initializer2!,
+      (result) => result.findNode.field('f =').initializer!,
       (result) => [result.findNode.unqualifiedNameExpression('a +')],
     );
   }
@@ -1715,6 +1725,11 @@ class A<T> {
   }
 
   Expression _xInitializer(TestResolvedUnitResult result) {
-    return result.findNode.variableDeclaration('x = ').initializer2!;
+    return switch (result.findNode.any('x = ')) {
+      LocalVariable(:var initializer?) => initializer,
+      TopLevelVariable2(:var initializer?) => initializer,
+      VariableDeclaration(:var initializer2?) => initializer2,
+      _ => throw StateError('No initializer of x'),
+    };
   }
 }

@@ -155,13 +155,27 @@ void main([args = const []]) {
     expect(profile.connections, isNotEmpty);
 
     for (final connection in profile.connections) {
-      await validateConnection(isolateId, connection);
+      if (connection.id != 'from_package/1') {
+        await validateConnection(isolateId, connection);
+      }
     }
+
+    final packageConnection = profile.connections.firstWhere(
+      (connection) => connection.id == 'from_package/1',
+    );
+
+    expect(packageConnection, isA<WebSocketConnectionRef>());
 
     await service.clearWebSocketProfile(isolateId);
 
     final clearedProfile = await service.getWebSocketProfile(isolateId);
 
-    expect(clearedProfile.connections, isEmpty);
+    expect(
+      clearedProfile.connections,
+      everyElement(
+        isA<WebSocketConnectionRef>()
+            .having((connection) => connection.id, 'id', 'from_package/1'),
+      ),
+    );
   }).run(testeeMain: testee_lib.main);
 }

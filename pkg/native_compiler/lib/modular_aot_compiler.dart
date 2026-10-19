@@ -325,6 +325,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     compiledSources = results.compiledSources!;
   }
 
+  final mainMethod = component.mainMethod;
   final typeEnvironment = TypeEnvironment(coreTypes, classHierarchy);
   final coreLibraries = LibraryIndex.coreLibraries(component);
   final config = DevelopmentCompilerConfiguration(
@@ -343,7 +344,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     coreLibraries: coreLibraries,
   );
   await GlobalContext.withContext(context, () {
-    final compilationSet = CompilationSet(libraries, config);
+    final compilationSet = CompilationSet(config, libraries, mainMethod);
     compilationSet.compileAllFunctions();
     final sink = io.File(outputFileName).openWrite();
     compilationSet.writeSnapshot(sink);

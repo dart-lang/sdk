@@ -46,5 +46,5 @@ fn3() {
   return str[1.1];
   //         ^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
 }

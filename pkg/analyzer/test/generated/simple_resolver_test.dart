@@ -784,7 +784,7 @@ f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
 //          ^^^^
-// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -1078,7 +1078,7 @@ const A = null;
     var annotations = result.findElement.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var fDeclaration = result.findNode.functionDeclaration('f<A>');
+    var fDeclaration = result.findNode.topLevelFunctionDeclaration('f<A>');
     var node = fDeclaration.metadata[0];
     assertResolvedNodeText(node, r'''
 Annotation

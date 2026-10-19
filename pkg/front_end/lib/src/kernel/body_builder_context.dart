@@ -294,13 +294,6 @@ abstract class BodyBuilderContext {
     throw new UnsupportedError('${runtimeType}.registerInitializedField');
   }
 
-  /// Returns the [Variable] for the [index]th formal parameter
-  /// declared in the constructor, factory, or method tear-off currently being
-  /// built.
-  FunctionParameter? getTearOffParameter(int index) {
-    throw new UnsupportedError('${runtimeType}.getTearOffParameter');
-  }
-
   /// Returns the type context that should be used for return statement in body
   /// currently being built.
   DartType get returnTypeContext {

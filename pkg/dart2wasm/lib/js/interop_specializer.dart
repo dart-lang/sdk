@@ -100,7 +100,7 @@ abstract class _Specializer {
       final DartType parameterType = parameter.type;
       final interopFunctionParameterType =
           parameterType == _util.coreTypes.doubleNonNullableRawType
-          ? _util.coreTypes.doubleNonNullableRawType
+          ? _util.nonNullableWasmF64Type
           : _util.nullableWasmExternRefType;
       String parameterString = 'x$i';
       dartPositionalParameters.add(
@@ -124,7 +124,7 @@ abstract class _Specializer {
           dartPositionalParameters,
         ),
         returnType: function.returnType is VoidType
-            ? VoidType()
+            ? InterfaceType(_util.wasmVoidClass, Nullability.nonNullable)
             : _util.nullableWasmExternRefType,
       ),
       isExternal: true,

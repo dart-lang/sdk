@@ -313,7 +313,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
         constructorBuilder: constructorBuilder,
         typeParameterFactory: libraryBuilder.typeParameterFactory,
         encodingStrategy: encodingStrategy,
-        isImplementation: true,
       );
 
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
@@ -479,6 +478,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     Name toStringName = new Name(
       _enumToStringName,
@@ -600,7 +600,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {
     throw new UnsupportedError("$runtimeType.createEncoding");
   }
@@ -862,7 +861,6 @@ class _EnumValuesFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override

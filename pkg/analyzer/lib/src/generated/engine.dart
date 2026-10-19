@@ -75,7 +75,7 @@ class AnalysisEngine {
   InstrumentationService _instrumentationService =
       InstrumentationService.NULL_SERVICE;
 
-  AnalysisEngine._();
+  new _();
 
   /// Return the instrumentation service that is to be used by this analysis
   /// engine.

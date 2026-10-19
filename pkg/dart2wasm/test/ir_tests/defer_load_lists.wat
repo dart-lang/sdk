@@ -1,12 +1,14 @@
 (module $M
   (type $#Top <...>)
-  (type $Array<String> <...>)
   (type $Array<WasmArray<WasmI8>?> <...>)
   (type $Array<WasmI8> <...>)
-  (type $Array<int> <...>)
-  (type $ImmutableArray<WasmExternRef> <...>)
   (type $JSExternWrapper <...>)
   (type $Object <...>)
+  (rec
+    (type $ImmutableArray<WasmExternRef> <...>)
+    (type $Array<int> <...>)
+    (type $Array<String> <...>)
+  )
   (global $"\"1.0\"" (ref $JSExternWrapper) <...>)
   (global $BoxedDouble._cacheKeys (mut (ref $Array<int>)) <...>)
   (global $BoxedDouble._cacheValues (mut (ref $Array<String>)) <...>)
@@ -29,16 +31,15 @@
     global.set $_deletedDataMarker
     global.get $deferredLoadLists
     i32.const 1
-    i32.const 0
+    i32.const 1
     i32.const 2
-    array.new_data $Array<WasmI8>$data0
+    array.new $Array<WasmI8>
     array.set $Array<WasmArray<WasmI8>?>
     global.get $deferredLoadLists
     i32.const 4
+    i32.const 1
     i32.const 2
-    i32.const 2
-    array.new_data $Array<WasmI8>$data0
+    array.new_fixed $Array<WasmI8> 2
     array.set $Array<WasmArray<WasmI8>?>
   )
-  (data $data0 <... 4 bytes ...>)
 )

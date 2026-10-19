@@ -262,9 +262,9 @@ bool OS::SafeReadMemory(void* address,
   if (!ok || bytes_read != size_in_bytes) {
     DWORD err = GetLastError();
     char errbuf[1024];
-    Utils::StrError(static_cast<int>(err), errbuf, sizeof(errbuf));
-    *error = OS::SCreate(nullptr, "ReadProcessMemory failed (error %lu): %s",
-                         err, errbuf);
+    *error = OS::SCreate(
+        nullptr, "ReadProcessMemory failed (error %lu): %s", err,
+        Utils::StrError(static_cast<int>(err), errbuf, sizeof(errbuf)));
     return false;
   }
   return true;

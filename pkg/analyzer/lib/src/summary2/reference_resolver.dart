@@ -35,7 +35,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   final TypeSystemImpl typeSystem;
   final NodesToBuildType nodesToBuildType;
 
-  ReferenceResolver(
+  new(
     this.linker,
     this.nodesToBuildType,
     this.typeSystem,
@@ -55,13 +55,13 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    node.members.accept2(this);
+    node.members2.accept2(this);
   }
 
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
     node.constants.accept2(this);
-    node.members.accept2(this);
+    node.members2.accept2(this);
   }
 
   @override
@@ -119,7 +119,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
     for (var field in fragment.fields) {
       if (field.isEnumConstant || field.isOriginEnumValues) {
         var fieldNode = linker.getLinkingNode(field);
-        fieldNode as VariableDeclarationImpl;
+        fieldNode as Field2Impl;
         fieldNode.initializerScope = node.bodyScope;
       }
     }
@@ -153,13 +153,19 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    _scopeContext.visitFieldDeclaration(node, visitor: this);
+  void visitField2(covariant Field2Impl node) {
+    node.initializerScope = nameScope;
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(covariant FieldsDeclarationImpl node) {
+    _scopeContext.visitFieldsDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -172,14 +178,8 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    _scopeContext.visitFunctionDeclaration(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
-  }
-
-  @override
-  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    _scopeContext.visitFunctionTypeAlias(node, visitor: this);
+  void visitFunctionTypeAlias2(covariant FunctionTypeAlias2Impl node) {
+    _scopeContext.visitFunctionTypeAlias2(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
@@ -195,8 +195,14 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    _scopeContext.visitGenericTypeAlias(node, visitor: this);
+  void visitGenericTypeAlias2(covariant GenericTypeAlias2Impl node) {
+    _scopeContext.visitGenericTypeAlias2(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
@@ -206,7 +212,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
     _scopeContext.visitMethodDeclaration(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
@@ -283,6 +289,12 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitNativeFunctionBody(NativeFunctionBody node) {}
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     _scopeContext.visitPrimaryConstructorBody(
       node,
@@ -328,8 +340,22 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelFunctionDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -341,8 +367,22 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelSetterDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    node.initializerScope = nameScope;
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     node.visitChildren2(this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -366,19 +406,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.typeParameters.accept2(this);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    node.initializerScope = nameScope;
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    _scopeContext.visitVariableDeclarationList(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
   }
 
   @override

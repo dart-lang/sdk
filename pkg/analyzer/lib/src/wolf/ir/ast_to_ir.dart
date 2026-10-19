@@ -139,7 +139,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
   late final stackIndices2012 = ir.encodeStackIndices(const [2, 0, 1, 2]);
 
-  _AstToIRVisitor({
+  new({
     required this.typeProvider,
     required this.typeSystem,
     required this.inheritanceManager,
@@ -371,7 +371,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitBlock(Block node) {
     var previousLocalVariableCount = ir.localVariableCount;
-    for (var statement in node.statements) {
+    for (var statement in node.statements2) {
       dispatchNode(statement);
     }
     ir.releaseTo(previousLocalVariableCount);
@@ -517,7 +517,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     ir.block(0, 0);
     // Stack: BLOCK(0) LOOP(0) BLOCK(0)
     continueStack.add(ir.nestingLevel);
-    dispatchNode(node.body);
+    dispatchNode(node.body2);
     // Stack: BLOCK(0) LOOP(0) BLOCK(0)
     continueStack.removeLast();
     ir.end();
@@ -566,8 +566,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     switch (node.forLoopParts) {
       case ForParts(condition2: var condition, :var updaters2) && var forParts:
         switch (forParts) {
-          case ForPartsWithDeclarations(:var variables):
-            dispatchNode(variables);
+          case ForPartsWithDeclarations(:var variables2):
+            dispatchNode(variables2);
           case dynamic(:var runtimeType):
             throw UnimplementedError('TODO(paulberry): handle $runtimeType');
         }
@@ -588,7 +588,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         ir.block(0, 0);
         // Stack: BLOCK(0) LOOP(0) BLOCK(0)
         continueStack.add(ir.nestingLevel);
-        dispatchNode(node.body);
+        dispatchNode(node.body2);
         // Stack: BLOCK(0) LOOP(0) BLOCK(0)
         continueStack.removeLast();
         ir.end();
@@ -722,7 +722,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitIfStatement(IfStatement node) {
     if (node.caseClause != null) throw UnimplementedError('TODO(paulberry)');
-    var elseStatement = node.elseStatement;
+    var elseStatement = node.elseStatement2;
     if (elseStatement == null) {
       dispatchNode(node.expression2);
       // Stack: expression
@@ -732,7 +732,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       // Stack: BLOCK(0) !expression
       ir.brIf(0);
       // Stack: BLOCK(0)
-      dispatchNode(node.thenStatement);
+      dispatchNode(node.thenStatement2);
       ir.end();
       // Stack: (empty)
     } else {
@@ -746,7 +746,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       // Stack: BLOCK(0) BLOCK(0) !expression
       ir.brIf(0);
       // Stack: BLOCK(0) BLOCK(0)
-      dispatchNode(node.thenStatement);
+      dispatchNode(node.thenStatement2);
       ir.br(1);
       // Stack: BLOCK(0) BLOCK(0) indeterminate
       ir.end();
@@ -840,6 +840,41 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       ir.not();
       // Stack: (expression is! type)
     }
+  }
+
+  @override
+  Null visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    for (var variable in node.variables) {
+      var initializer = variable.initializer;
+      var declaredElement = variable.declaredFragment!.element;
+      assert(!locals.containsKey(declaredElement));
+      var localIndex = ir.localVariableCount;
+      locals[declaredElement] = localIndex;
+      ir.alloc(1);
+      if (initializer != null) {
+        dispatchNode(initializer);
+        // Stack: initializer
+        ir.writeLocal(localIndex);
+        // Stack: (empty)
+      } else if (typeSystem.isNullable(declaredElement.type)) {
+        ir.literal(null_);
+        // Stack: null
+        ir.writeLocal(localIndex);
+        // Stack: (empty)
+      }
+    }
+  }
+
+  @override
+  Null visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    if (node.declaration.lateKeyword != null) {
+      throw UnimplementedError(
+        'TODO(paulberry): handle late variable declarations',
+      );
+    }
+    dispatchNode(node.declaration);
   }
 
   @override
@@ -970,39 +1005,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   ) => _nameExpression(node.name, node.resolution);
 
   @override
-  Null visitVariableDeclarationList(VariableDeclarationList variables) {
-    for (var variable in variables.variables) {
-      var initializer = variable.initializer2;
-      var declaredElement = variable.declaredFragment!.element;
-      assert(!locals.containsKey(declaredElement));
-      var localIndex = ir.localVariableCount;
-      locals[declaredElement] = localIndex;
-      ir.alloc(1);
-      if (initializer != null) {
-        dispatchNode(initializer);
-        // Stack: initializer
-        ir.writeLocal(localIndex);
-        // Stack: (empty)
-      } else if (typeSystem.isNullable(declaredElement.type)) {
-        ir.literal(null_);
-        // Stack: null
-        ir.writeLocal(localIndex);
-        // Stack: (empty)
-      }
-    }
-  }
-
-  @override
-  Null visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    if (node.variables.isLate) {
-      throw UnimplementedError(
-        'TODO(paulberry): handle late variable declarations',
-      );
-    }
-    dispatchNode(node.variables);
-  }
-
-  @override
   Null visitWhileStatement(WhileStatement node) {
     ir.block(0, 0);
     // Stack: BLOCK(0)
@@ -1016,7 +1018,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     // Stack: BLOCK(0) LOOP(0) !condition
     ir.brIf(1);
     // Stack: BLOCK(0) LOOP(0)
-    dispatchNode(node.body);
+    dispatchNode(node.body2);
     // Stack: BLOCK(0) LOOP(0)
     continueStack.removeLast();
     ir.end();
@@ -1257,10 +1259,8 @@ class _IndexAssignmentTemplates extends _LValueTemplates {
   final MethodElement? readElement;
   final MethodElement? writeElement;
 
-  _IndexAssignmentTemplates({
-    required this.readElement,
-    required this.writeElement,
-  }) : super(subexpressionCount: 2);
+  new({required this.readElement, required this.writeElement})
+    : super(subexpressionCount: 2);
 
   @override
   void readForCompoundAssignment(_AstToIRVisitor visitor) {
@@ -1299,7 +1299,7 @@ class _IndexAssignmentTemplates extends _LValueTemplates {
 class _LocalTemplates extends _LValueTemplates {
   final int localIndex;
 
-  _LocalTemplates(this.localIndex) : super(subexpressionCount: 0);
+  new(this.localIndex) : super(subexpressionCount: 0);
 
   void read(_AstToIRVisitor visitor) {
     visitor.ir.readLocal(localIndex);
@@ -1349,7 +1349,7 @@ class _LocalTemplates extends _LValueTemplates {
 sealed class _LValueTemplates {
   final int subexpressionCount;
 
-  _LValueTemplates({required this.subexpressionCount});
+  new({required this.subexpressionCount});
 
   /// Outputs the IR instructions for reading from the L-value in a way that
   /// remains prepared for a compound assignment.
@@ -1400,11 +1400,8 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   ///
   /// Caller is responsible for ensuring that the target of the property access
   /// is pushed to the stack.
-  _PropertyAccessTemplates.direct({
-    required this.name,
-    this.readElement,
-    this.writeElement,
-  }) : super(subexpressionCount: 1);
+  new direct({required this.name, this.readElement, this.writeElement})
+    : super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target

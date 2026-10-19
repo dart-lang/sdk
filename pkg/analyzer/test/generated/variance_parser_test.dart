@@ -186,24 +186,32 @@ ClassDeclaration
       featureSet: _disabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: in
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: value
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: A
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: in
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: value
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: in
@@ -229,24 +237,32 @@ FunctionDeclaration
       featureSet: _enabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: in
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: value
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: A
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: in
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: value
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: in
@@ -270,9 +286,28 @@ FunctionDeclaration
       featureSet: _disabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: out
+        NamedType
+          name: String
+      rightBracket: >
+  variables
+    TopLevelVariable
+      name: stringList
+      equals: =
+      initializer: ListLiteral
+        leftBracket: [
+        rightBracket: ]
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   variables: VariableDeclarationList
     type: NamedType
       name: List
@@ -288,7 +323,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer2: ListLiteral
+        initializer: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;
@@ -303,9 +338,28 @@ TopLevelVariableDeclaration
       featureSet: _enabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: out
+        NamedType
+          name: String
+      rightBracket: >
+  variables
+    TopLevelVariable
+      name: stringList
+      equals: =
+      initializer: ListLiteral
+        leftBracket: [
+        rightBracket: ]
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   variables: VariableDeclarationList
     type: NamedType
       name: List
@@ -321,7 +375,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer2: ListLiteral
+        initializer: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;
@@ -419,7 +473,7 @@ MixinDeclaration
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''
-GenericTypeAlias
+GenericTypeAlias2
   typedefKeyword: typedef
   name: A
   typeParameters: TypeParameterList
@@ -442,7 +496,24 @@ GenericTypeAlias
           type: NamedType
             name: X
       rightParenthesis: )
-    parameters(v1): FormalParameterList
+  semicolon: ;
+V1: GenericTypeAlias
+  typedefKeyword: typedef
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: inout
+      TypeParameter
+        name: X
+    rightBracket: >
+  equals: =
+  type: GenericFunctionType
+    returnType: NamedType
+      name: X
+    functionKeyword: Function
+    parameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -462,7 +533,7 @@ GenericTypeAlias
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''
-GenericTypeAlias
+GenericTypeAlias2
   typedefKeyword: typedef
   name: A
   typeParameters: TypeParameterList
@@ -485,7 +556,24 @@ GenericTypeAlias
           type: NamedType
             name: X
       rightParenthesis: )
-    parameters(v1): FormalParameterList
+  semicolon: ;
+V1: GenericTypeAlias
+  typedefKeyword: typedef
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: inout
+      TypeParameter
+        name: X
+    rightBracket: >
+  equals: =
+  type: GenericFunctionType
+    returnType: NamedType
+      name: X
+    functionKeyword: Function
+    parameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

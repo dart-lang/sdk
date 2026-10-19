@@ -44,12 +44,10 @@ ClassDeclaration
     typeName: C
   body: BlockClassBody
     leftBracket: {
-    members
-      ConstructorDeclaration
-        typeName2: C
-        typeName(v1): SimpleIdentifier
-          token: C
-        parameters: FormalParameterList
+    members2
+      ConstructorDeclaration2
+        typeName: C
+        formalParameters: FormalParameterList
           leftParenthesis: (
           rightParenthesis: )
         separator: :
@@ -74,9 +72,9 @@ ClassDeclaration
           block: Block
             leftBracket: { <synthetic>
             rightBracket: } <synthetic>
-      ConstructorDeclaration
+      ConstructorDeclaration2
         newKeyword: new
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: ( <synthetic>
           rightParenthesis: ) <synthetic>
         separator: =
@@ -85,9 +83,40 @@ ClassDeclaration
             name: null
         body: EmptyFunctionBody
           semicolon: ;
+    members(v1)
+      ConstructorDeclaration
+        typeName: SimpleIdentifier
+          token: C
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        separator: :
+        initializers
+          ConstructorFieldInitializer
+            fieldName: SimpleIdentifier
+              token: <empty> <synthetic>
+            equals: = <synthetic>
+            expression: PropertyAccess
+              target: ThisExpression
+                thisKeyword: this
+              operator: .
+              propertyName: SimpleIdentifier
+                token: <empty> <synthetic>
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+      ConstructorDeclaration
+        newKeyword: new
+        parameters: FormalParameterList
+          leftParenthesis: ( <synthetic>
+          rightParenthesis: ) <synthetic>
+        separator: =
         redirectedConstructor: ConstructorName
           type: NamedType
             name: null
+        body: EmptyFunctionBody
+          semicolon: ;
     rightBracket: }
 ''');
   }
@@ -416,7 +445,7 @@ V1: InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -443,7 +472,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -484,7 +513,7 @@ V1: InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -518,7 +547,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -569,9 +598,17 @@ class C {
 ''');
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: C
+  period: .
+  name: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: C
   period: .
   name: new
@@ -592,14 +629,12 @@ class C {
 ''');
     var node = parseResult.findNode.constructor('C.new');
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
+  typeName: C
   period: .
   name: new
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -613,7 +648,19 @@ ConstructorDeclaration
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
-    expression(v1): MethodInvocation
+    semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
       target: SimpleIdentifier
         token: C
       operator: .
@@ -630,7 +677,7 @@ ConstructorDeclaration
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -650,7 +697,7 @@ V1: PrefixedIdentifier
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedTypeArguments
@@ -684,7 +731,7 @@ V1: PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -755,7 +802,7 @@ CommentReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -789,7 +836,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedNameAccess
@@ -816,7 +863,7 @@ V1: PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedTypeArguments
@@ -857,7 +904,7 @@ V1: PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -912,7 +959,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -965,9 +1012,17 @@ class C {
     );
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: C
+  period: .
+  name: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: C
   period: .
   name: new
@@ -987,12 +1042,10 @@ class C {
 ''');
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -1004,12 +1057,22 @@ ConstructorDeclaration
       name: new
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
         name: D
         period: .
       name: new
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -1021,12 +1084,10 @@ class C {
 ''');
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -1044,6 +1105,14 @@ ConstructorDeclaration
       name2: new
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: D
@@ -1056,6 +1125,8 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: new
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -1067,12 +1138,10 @@ class C {
 ''');
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -1087,6 +1156,14 @@ ConstructorDeclaration
       name2: new
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1096,6 +1173,8 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: new
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -1107,12 +1186,10 @@ class C {
 ''');
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -1133,6 +1210,14 @@ ConstructorDeclaration
       name2: new
   body: EmptyFunctionBody
     semicolon: ;
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1148,6 +1233,8 @@ ConstructorDeclaration
     period: .
     name: SimpleIdentifier
       token: new
+  body: EmptyFunctionBody
+    semicolon: ;
 ''');
   }
 
@@ -1159,11 +1246,9 @@ class C extends B {
 ''');
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: :
@@ -1176,9 +1261,24 @@ ConstructorDeclaration
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    SuperConstructorInvocation
+      superKeyword: super
       period: .
       constructorName: SimpleIdentifier
         token: new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
 ''');
@@ -1193,13 +1293,11 @@ class C {
 ''');
     var node = parseResult.findNode.constructor('named');
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
+ConstructorDeclaration2
+  typeName: C
   period: .
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: :
@@ -1212,9 +1310,26 @@ ConstructorDeclaration
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    RedirectingConstructorInvocation
+      thisKeyword: this
       period: .
       constructorName: SimpleIdentifier
         token: new
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
 ''');

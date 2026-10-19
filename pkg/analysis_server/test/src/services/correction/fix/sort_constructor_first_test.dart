@@ -101,7 +101,7 @@ class A {
 }
 
 @reflectiveTest
-class SortConstructorFirstTest extends FixProcessorLintTest {
+class SortConstructorFirstTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.sortConstructorFirst;
 

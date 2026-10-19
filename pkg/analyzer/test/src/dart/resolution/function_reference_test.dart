@@ -151,7 +151,7 @@ T Function<T>(T) makeFunction() => identity;
 var x = makeFunction()<int>.call(0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -689,7 +689,7 @@ V1: FunctionReference
 bar() {
   a.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -746,7 +746,7 @@ V1: FunctionReference
 bar() {
   a.b.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -1563,7 +1563,7 @@ extension on double {
 // [diag.unusedElement] The declaration 'bar' isn't referenced.
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'double'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -1934,7 +1934,7 @@ void foo<T>(T a) {}
 void bar() {
   foo.m<int>;
 //    ^
-// [diag.undefinedGetter] The getter 'm' isn't defined for the type 'void Function<T>(T)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'm' isn't defined for the type 'void Function<T>(T)'.
 }
 
 extension E on Function {
@@ -2448,7 +2448,7 @@ C get c => C();
 var x = c<int>.call(0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -4170,7 +4170,7 @@ import 'a.dart' as prefix;
 bar() {
   prefix.a.foo<int>;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 }
 ''');
 
@@ -4240,7 +4240,7 @@ V1: FunctionReference
 bar<T>() {
   T.foo<int>;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
 
@@ -5505,7 +5505,7 @@ class A {
   bar() {
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'A'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -7199,7 +7199,7 @@ extension E on int Function(int) {
 var x = p.identity<int>.transform<String>('s');
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -7303,7 +7303,7 @@ V1: MethodInvocation
 bar() {
   prefix.foo<int>;
 //^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'prefix'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'prefix'.
 }
 ''');
 
@@ -7475,7 +7475,7 @@ T identity<T>(T value) => value;
 var x = identity<int>.hashCode;
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
   receiver: FunctionInstantiation
@@ -7601,7 +7601,7 @@ import 'a.dart' as prefix;
 bar() {
   prefix.a.foo<int>;
 //       ^
-// [diag.undefinedPrefixedName] The name 'a' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'a' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 
@@ -7670,7 +7670,7 @@ typedef Cb = void Function();
 
 var a = Cb.foo<int>;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
@@ -7731,7 +7731,7 @@ typedef T<E> = E;
 
 var a = T.foo<int>;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
@@ -7851,7 +7851,7 @@ V1: FunctionReference
 void bar() {
   foo<int>;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -7896,7 +7896,7 @@ var x = missing<int>.call();
 // [diag.newWithNonType] The name 'missing' isn't a class.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -7955,7 +7955,7 @@ class B {
   bar(A a) {
     a.foo<int>;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
   }
 }
 ''');
@@ -8017,7 +8017,7 @@ import 'a.dart' as a;
 void bar() {
   a.foo<int>;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'a'.
 }
 ''');
 
@@ -8077,7 +8077,7 @@ var x = p.missing<int>.call();
 // [diag.newWithNonType] The name 'missing' isn't a class.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -8224,7 +8224,7 @@ var x = identity<int>.call(0);
 // [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation

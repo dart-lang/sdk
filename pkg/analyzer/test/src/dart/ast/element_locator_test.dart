@@ -16,7 +16,7 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(ElementLocatorV2Test);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -24,7 +24,7 @@ main() {
 }
 
 @reflectiveTest
-@ToBeDeprecated('Use ElementLocatorV2Test instead.')
+@V1Ast('The V2 counterpart is ElementLocatorV2Test.')
 class ElementLocatorTest extends PubPackageResolutionTest {
   test_locate_AssignedVariablePattern() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
@@ -275,8 +275,11 @@ void f() {
 // [diag.unusedElement] The declaration 'g' isn't referenced.
 }
 ''');
-    var node = result.findNode.functionDeclaration('g');
-    var element = ElementLocator.locate(node);
+    var function = result.unit.declarations.single as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements.single;
+    statement as FunctionDeclarationStatement;
+    var element = ElementLocator.locate(statement.functionDeclaration);
     _assertElement(element, r'''
 g@17
 ''');
@@ -286,7 +289,7 @@ g@17
     var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => 3;
 ''');
-    var node = result.findNode.functionDeclaration('f');
+    var node = result.unit.declarations.single;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -364,7 +367,7 @@ class A {
   var x;
 }
 ''');
-    var node = result.findNode.variableDeclaration('x;');
+    var node = result.findNodeV1.variableDeclaration('x;');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@field::x
@@ -562,7 +565,7 @@ class A {
   void foo() {}
 }
 ''');
-    var node = result.findNode.methodDeclaration('foo');
+    var node = result.findNodeV1.methodDeclaration('foo');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::foo
@@ -860,7 +863,7 @@ f() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNodeV1.variableDeclaration('x =');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 x@12
@@ -871,7 +874,7 @@ x@12
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 42;
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNodeV1.variableDeclaration('x =');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@topLevelVariable::x
@@ -956,7 +959,7 @@ class A {
 void f(A a) {
   a..foo;
 //   ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 }
 ''');
     var node = result.findNode.singleCascadePropertyExtraction;
@@ -972,7 +975,7 @@ class A {}
 void f(A a) {
   a..foo;
 //   ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 }
 ''');
     var node = result.findNode.singleCascadePropertyExtraction;
@@ -1256,7 +1259,7 @@ void foo() {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var node = result.findNode.directAssignment('foo = 0').target;
@@ -1413,37 +1416,11 @@ int get foo => 0;
 void f() {
   for (foo in <int>[]) {}
 //     ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
     var node = result.findNode.singleForEachPartsWithIdentifier.target;
     expect(ElementLocatorV2.locate(node), isNull);
-  }
-
-  test_locate_FunctionDeclaration_local() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-void f() {
-  int g() => 3;
-//    ^
-// [diag.unusedElement] The declaration 'g' isn't referenced.
-}
-''');
-    var node = result.findNode.functionDeclaration('g');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-g@17
-''');
-  }
-
-  test_locate_FunctionDeclaration_topLevel() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-int f() => 3;
-''');
-    var node = result.findNode.functionDeclaration('f');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@function::f
-''');
   }
 
   test_locate_Identifier_className() async {
@@ -1476,7 +1453,7 @@ class A {
   var x;
 }
 ''');
-    var node = result.findNode.variableDeclaration('x;');
+    var node = result.findNode.field('x;');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@field::x
@@ -1578,7 +1555,7 @@ import 'a.dart' as p;
 void f() {
   p.value;
 //  ^^^^^
-// [diag.undefinedPrefixedName] The name 'value' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadSetterOnly] There's a setter 'value' in the libraries imported with the prefix 'p', but no getter.
 }
 ''');
     var node = result.findNode.importPrefixedNameExpression('p.value');
@@ -1624,6 +1601,21 @@ library foo;
     var element = ElementLocatorV2.locate(result.unit);
     _assertElement(element, r'''
 <testLibrary>
+''');
+  }
+
+  test_locate_LocalFunctionDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  int g() => 3;
+//    ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
+}
+''');
+    var node = result.findNode.localFunctionDeclaration('g');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+g@17
 ''');
   }
 
@@ -1949,7 +1941,7 @@ class A {
 void f(A a) {
   (a).foo;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 }
 ''');
     var node = result.findNode.singleReceiverPropertyExtraction;
@@ -2011,6 +2003,17 @@ package:test/foo.dart
 ''');
   }
 
+  test_locate_TopLevelFunctionDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int f() => 3;
+''');
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f
+''');
+  }
+
   test_locate_TopLevelGetterDeclaration() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int get x => 0;
@@ -2022,6 +2025,17 @@ int get x => 0;
 ''');
   }
 
+  test_locate_TopLevelVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+var x = 42;
+''');
+    var node = result.findNode.topLevelVariable('x =');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@topLevelVariable::x
+''');
+  }
+
   test_locate_UnqualifiedNameExpression_recovery() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 set foo(int _) {}
@@ -2029,7 +2043,7 @@ set foo(int _) {}
 void f() {
   foo;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
 }
 ''');
     var node = result.findNode.singleUnqualifiedNameExpression;
@@ -2046,21 +2060,10 @@ f() {
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
 }
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNode.localVariable('x =');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 x@12
-''');
-  }
-
-  test_locate_VariableDeclaration_TopLevel() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-var x = 42;
-''');
-    var node = result.findNode.variableDeclaration('x =');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@topLevelVariable::x
 ''');
   }
 

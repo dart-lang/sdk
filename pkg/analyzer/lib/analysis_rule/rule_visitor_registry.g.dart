@@ -16,7 +16,7 @@ part of 'rule_visitor_registry.dart';
 /// [AbstractAnalysisRule.registerNodeProcessors] and calls `add*` for each of
 /// the node types it needs to visit with an [AstVisitor], which registers that
 /// visitor.
-@ToBeDeprecated('Use RuleVisitorRegistry2 instead')
+@V1Ast('The V2 counterpart is RuleVisitorRegistry2.')
 abstract class RuleVisitorRegistry {
   void addAdjacentStrings(AbstractAnalysisRule rule, AstVisitor visitor);
   void addAnnotation(AbstractAnalysisRule rule, AstVisitor visitor);
@@ -726,9 +726,13 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addFieldDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addField2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFieldFormalParameter(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addFieldsDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addForEachPartsWithDeclaration(
     AbstractAnalysisRule rule,
@@ -768,19 +772,13 @@ abstract class RuleVisitorRegistry2 {
 
   void addForStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addFunctionDeclarationStatement(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addFunctionInstantiation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addFunctionTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFunctionTypedFormalParameterSuffix(
     AbstractAnalysisRule rule,
@@ -789,7 +787,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addGenericFunctionType(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addGenericTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addGenericTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addGetterDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -901,6 +900,27 @@ abstract class RuleVisitorRegistry2 {
   void addListPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addLocalFunctionDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addLocalVariable(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addLocalVariablesDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addLocalVariablesDeclarationStatement(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addLogicalAnd(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addLogicalAndPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -918,8 +938,6 @@ abstract class RuleVisitorRegistry2 {
   void addMapPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addMapPatternEntry(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addMethodDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addMethodDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -996,12 +1014,6 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addParsedUnqualifiedName(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  @experimental
-  void addParsedUnqualifiedNameAssignmentTarget(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
 
   @experimental
   void addParsedValueArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -1162,12 +1174,28 @@ abstract class RuleVisitorRegistry2 {
   void addThrowExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addTopLevelFunctionDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addTopLevelGetterDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
 
-  void addTopLevelVariableDeclaration(
+  @experimental
+  void addTopLevelSetterDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addTopLevelVariable2(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addTopLevelVariablesDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -1202,18 +1230,6 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addUnqualifiedNameExpression(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addVariableDeclarationList(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addVariableDeclarationStatement(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

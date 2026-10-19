@@ -58,7 +58,7 @@ class IgnoreValidator {
   /// Initialize a newly created validator to report any issues with ignore
   /// comments in the file being analyzed. The diagnostics will be reported to
   /// the [_diagnosticReporter].
-  IgnoreValidator(
+  new(
     this._diagnosticReporter,
     this._reportedDiagnostics,
     this._ignoreInfo,

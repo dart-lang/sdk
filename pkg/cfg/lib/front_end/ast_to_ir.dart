@@ -1349,8 +1349,12 @@ class AstToIr extends ast.RecursiveVisitor {
 
     JoinBlock? done;
     if (builder.hasOpenBlock) {
-      done = builder.newJoinBlock();
-      builder.addGoto(done);
+      if (node.isExplicitlyExhaustive) {
+        builder.addUnreachable('Exhaustive switch not matched');
+      } else {
+        done = builder.newJoinBlock();
+        builder.addGoto(done);
+      }
     }
 
     for (var i = 0; i < node.cases.length; i++) {
@@ -1361,9 +1365,14 @@ class AstToIr extends ast.RecursiveVisitor {
       _translateNode(switchCase.body);
 
       if (builder.hasOpenBlock) {
-        assert(i == node.cases.length - 1);
-        if (done != null) {
-          builder.addGoto(done);
+        if (i == node.cases.length - 1) {
+          if (done != null) {
+            builder.addGoto(done);
+          }
+        } else {
+          // There is no implicit fall-through in Dart.
+          // However, CFE sometimes omit 'break' when code is unreachable due to exhaustiveness.
+          builder.addUnreachable('Fallthrough in switch case');
         }
       }
     }

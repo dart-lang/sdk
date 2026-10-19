@@ -1381,10 +1381,7 @@ extension on AstNode {
   /// `return`, `throw`, `break`, `continue`, and expressions of type `Never`
   /// all terminate control. Collection elements are conservatively considered
   /// to not terminate control.
-  bool get terminatesControl {
-    var self = this;
-    return self is StatementImpl && !self.mayCompleteNormally;
-  }
+  bool get terminatesControl => this is StatementImpl && !mayCompleteNormally;
 }
 
 extension on PrefixExpression {
@@ -1441,21 +1438,17 @@ extension ElementExtension on Element {
   /// The `mounted` getter which is associated with `this`, if this static
   /// element is `BuildContext` from Flutter.
   Element? get associatedMountedGetter {
-    var self = this;
-
-    if (self is PropertyAccessorElement) {
-      var enclosingElement = self.enclosingElement;
-      if (enclosingElement is InterfaceElement && enclosingElement.isState) {
-        // The BuildContext object is the field on Flutter's State class.
-        // This object can only be guarded by async gaps with a mounted
-        // check on the State.
-        return enclosingElement.mountedGetter;
-      }
+    if (this case PropertyAccessorElement(
+      enclosingElement: InterfaceElement(isState: true) && var enclosingElement,
+    )) {
+      // The BuildContext object is the field on Flutter's State class. This
+      // can only be guarded by async gaps with a mounted check on the State.
+      return enclosingElement.mountedGetter;
     }
 
-    var buildContextElement = switch (self) {
-      ExecutableElement() => self.returnType,
-      VariableElement() => self.type,
+    var buildContextElement = switch (this) {
+      ExecutableElement() => returnType,
+      VariableElement() => type,
       _ => null,
     }?.element;
     if (buildContextElement is InterfaceElement) {

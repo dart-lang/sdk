@@ -538,8 +538,7 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
     await pumpEventQueue();
 
     var cache = server.pubPackageService.readDiskCache()!;
-    var packages = cache.packages.values.toList();
 
-    expect(packages.map((p) => p.packageName), equals(['one', 'two', 'three']));
+    expect(cache.packageNames, equals(['one', 'two', 'three']));
   }
 }

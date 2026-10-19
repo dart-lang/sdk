@@ -116,7 +116,7 @@ List<NamespaceCombinator> buildNamespaceCombinators(
 }
 
 class DefiningLinkingUnit extends LinkingUnit {
-  DefiningLinkingUnit({
+  new({
     required super.node,
     required super.fragment,
     required super.informativeBytes,
@@ -126,12 +126,12 @@ class DefiningLinkingUnit extends LinkingUnit {
 class ImplicitEnumNodes {
   final EnumFragmentImpl fragment;
   final ast.NamedTypeImpl valuesTypeNode;
-  final ast.VariableDeclarationImpl valuesNode;
+  final ast.Field2Impl valuesNode;
   final FieldFragmentImpl valuesFragment;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
-  ImplicitEnumNodes({
+  new({
     required this.fragment,
     required this.valuesTypeNode,
     required this.valuesNode,
@@ -194,7 +194,7 @@ class LibraryBuilder {
   /// at the time when we create them, because of future augmentations.
   final Set<FieldFragmentImpl> finalInstanceFields = Set.identity();
 
-  LibraryBuilder._({
+  new _({
     required this.linker,
     required this.kind,
     required this.uri,
@@ -357,8 +357,8 @@ class LibraryBuilder {
         if (declaration is ast.MixinDeclarationImpl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
-          for (var executable in declaration.body.members) {
-            if (executable is ast.MethodDeclarationImpl) {
+          for (var executable in declaration.body.members2) {
+            if (executable is ast.MethodDeclarationV1OriginImpl) {
               executable.body.accept2(collector);
             }
           }
@@ -454,31 +454,6 @@ class LibraryBuilder {
         libraryFragment: linkingUnit.fragment,
       );
       linkingUnit.node.accept2(resolver);
-    }
-  }
-
-  void setDefaultSupertypes() {
-    var shouldResetClassHierarchies = false;
-    var objectType = element.typeProvider.objectType;
-
-    for (var classElement in element.classes) {
-      if (!classElement.isDartCoreObject) {
-        if (classElement.supertype == null) {
-          shouldResetClassHierarchies = true;
-          classElement.supertype = objectType;
-        }
-      }
-    }
-
-    for (var mixinElement in element.mixins) {
-      if (mixinElement.superclassConstraints.isEmpty) {
-        shouldResetClassHierarchies = true;
-        mixinElement.superclassConstraints = [objectType];
-      }
-    }
-
-    if (shouldResetClassHierarchies) {
-      element.session.classHierarchy.removeOfLibraries({uri});
     }
   }
 
@@ -645,10 +620,12 @@ class LibraryBuilder {
         var includedPart = state.includedPart;
         if (includedPart != null && _includedFiles.add(includedPart.file)) {
           var partFile = includedPart.file;
-          var partUnitNode = partFile.parse(
-            performance: OperationPerformanceImpl('<root>'),
-            scanComments: false,
-          );
+          var partUnitNode =
+              partFile.takeParsedUnitForLinking() ??
+              partFile.parse(
+                performance: OperationPerformanceImpl('<root>'),
+                scanComments: false,
+              );
           var libraryFragment = LibraryFragmentImpl(
             library: containerLibrary,
             source: partFile.source,
@@ -744,7 +721,8 @@ class LibraryBuilder {
     var libraryReference = rootReference.getOrCreateLibrary(libraryFile.uri);
 
     var libraryUnitNode = performance.run('libraryFile', (performance) {
-      return libraryFile.parse(performance: performance, scanComments: false);
+      return libraryFile.takeParsedUnitForLinking() ??
+          libraryFile.parse(performance: performance, scanComments: false);
     });
 
     var name = '';
@@ -820,7 +798,7 @@ class LinkingUnit {
   final LibraryFragmentImpl fragment;
   final Uint8List informativeBytes;
 
-  LinkingUnit({
+  new({
     required this.node,
     required this.fragment,
     required this.informativeBytes,
@@ -844,7 +822,7 @@ class _FieldPromotability
   /// Fields that might be promotable, if not marked unpromotable later.
   final List<FieldElementImpl> _potentiallyPromotableFields = [];
 
-  _FieldPromotability(this._libraryBuilder, {required this.enabled});
+  new(this._libraryBuilder, {required this.enabled});
 
   @override
   Iterable<InterfaceElementImpl> getSuperclasses(

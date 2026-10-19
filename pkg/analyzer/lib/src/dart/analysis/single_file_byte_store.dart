@@ -69,7 +69,7 @@ class FileStorage implements Storage {
   final RandomAccessFile _file;
   int _length;
 
-  FileStorage(this._file) : _length = _file.lengthSync();
+  new(this._file) : _length = _file.lengthSync();
 
   @override
   int get length => _length;
@@ -281,7 +281,7 @@ class SingleFileByteStore implements ByteStore {
   ///
   /// [maxPendingValueBytes] and [maxPendingEntryCount] bound the write queue.
   /// These runtime limits and the pool capacity are not stored in the header.
-  SingleFileByteStore(
+  new(
     Storage storage, {
     required int filePageCountLog2,
     required int tableSlotCountLog2,
@@ -338,7 +338,7 @@ class SingleFileByteStore implements ByteStore {
   ///
   /// Uses the same configuration and recovery rules as [SingleFileByteStore].
   /// The file is closed if initialization fails. The parent directory must exist.
-  factory SingleFileByteStore.file(
+  factory file(
     String path, {
     required int filePageCountLog2,
     required int tableSlotCountLog2,
@@ -1025,8 +1025,7 @@ class _BufferPage {
   final bool _writable;
   bool _released = false;
 
-  _BufferPage._(this._pool, this._frame, {required bool writable})
-    : _writable = writable;
+  new _(this._pool, this._frame, {required this._writable});
 
   /// The borrowed page buffer, modifiable only through a writable handle.
   /// This view and any views derived from it are valid only until [release] or
@@ -1124,7 +1123,7 @@ class _BufferPool {
   /// Used to enforce [capacity] when allocating new frames.
   int _allocatedFrameCount = 0;
 
-  _BufferPool(this._storage, {required this.capacityLog2}) {
+  new(this._storage, {required this.capacityLog2}) {
     RangeError.checkValueInInterval(
       capacityLog2,
       _minCapacityLog2,
@@ -1465,7 +1464,7 @@ class _Header {
   /// Persisted so restarts and cooperating processes continue the same sweep.
   final int dataReclamationClockHand;
 
-  _Header({
+  new({
     required this.filePageCountLog2,
     required this.tableSlotCountLog2,
     required this.pageSize,
@@ -1608,10 +1607,7 @@ class _OverflowMetadata {
   final _DataPageIndex? nextOverflowMetadataPageIndex;
   final List<_DataPageIndex> dataPages;
 
-  _OverflowMetadata({
-    required this.nextOverflowMetadataPageIndex,
-    required this.dataPages,
-  });
+  new({required this.nextOverflowMetadataPageIndex, required this.dataPages});
 
   void write(_BufferPage page) {
     var bytes = page.bytes;
@@ -1702,7 +1698,7 @@ class _Statistics {
   int _oversizedValueBytes = 0;
   int _oversizedValueCount = 0;
 
-  _Statistics._();
+  new _();
 
   /// Bucket rebuilds in committed transactions, including repeats per bucket.
   int get bucketRebuildCount => _bucketRebuildCount;
@@ -1792,7 +1788,7 @@ class _ValueHeader {
   /// Filled when the overflow chain is read, so replacement can free its pages.
   final List<_DataPageIndex> overflowMetadataPages = [];
 
-  _ValueHeader({
+  new({
     required this.firstDataPageIndex,
     required this.key,
     required this.valueLength,
@@ -2066,7 +2062,7 @@ class _WriteTransaction {
   /// allocated until commit, so subsequent allocations need not revisit them.
   _DataPageIndex _nextAllocationPageIndex = const _DataPageIndex(0);
 
-  _WriteTransaction(this._store, _Header header)
+  new(this._store, _Header header)
     : _selectorSlot = header.selectorSlot,
       _dataReclamationClockHand = header.dataReclamationClockHand,
       _freePageCount = header.freePageCount {

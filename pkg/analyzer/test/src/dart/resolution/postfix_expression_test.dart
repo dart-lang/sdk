@@ -322,8 +322,8 @@ void test10(Foo? foo, int? a, int b) => foo?[a]![b];
 ''');
 
     void assertTestType(int index, String expected) {
-      var function = result.findNode.functionDeclaration('test$index(');
-      var body = function.functionExpression.body as ExpressionFunctionBody;
+      var function = result.findNode.topLevelFunctionDeclaration('test$index(');
+      var body = function.body as ExpressionFunctionBody;
       assertType(body.expression2, expected);
     }
 
@@ -1047,7 +1047,7 @@ V1: PostfixExpression
 void f() {
   int++;
 //^^^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'int' can't be assigned to.
 }
 ''');
 
@@ -1086,7 +1086,7 @@ V1: PostfixExpression
 void f<T>() {
   T++;
 //^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The type parameter 'T' can't be assigned to.
 }
 ''');
 
@@ -2031,7 +2031,7 @@ V1: PostfixExpression
 void f() {
   x++;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 }
 ''');
 

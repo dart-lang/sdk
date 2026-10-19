@@ -26,32 +26,39 @@ f(Function(void)) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: Function
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                requiredPositionalFormalParameters
+                  RegularFormalParameter
+                    type: NamedType
+                      name: void
+                    name: <empty> <synthetic>
+                rightParenthesis: )
+              formalParameters(v1): FormalParameterList
+                leftParenthesis: (
+                parameter: RegularFormalParameter
+                  type: NamedType
+                    name: void
+                  name: <empty> <synthetic>
+                rightParenthesis: )
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: Function
-              functionTypedSuffix: FunctionTypedFormalParameterSuffix
-                formalParameters: FormalParameterList
-                  leftParenthesis: (
-                  requiredPositionalFormalParameters
-                    RegularFormalParameter
-                      type: NamedType
-                        name: void
-                      name: <empty> <synthetic>
-                  rightParenthesis: )
-                formalParameters(v1): FormalParameterList
-                  leftParenthesis: (
-                  parameter: RegularFormalParameter
-                    type: NamedType
-                      name: void
-                    name: <empty> <synthetic>
-                  rightParenthesis: )
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: Function
@@ -96,16 +103,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: C
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: E
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: C
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: C

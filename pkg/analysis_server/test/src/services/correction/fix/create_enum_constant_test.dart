@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateEnumConstantTest extends FixProcessorTest {
+class CreateEnumConstantTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createEnumConstant;
 
@@ -51,6 +51,19 @@ enum E { ONE, TWO }
 E e() {
   return .TWO;
 }
+''', fixMessageContains: "Create enum constant 'TWO'");
+  }
+
+  Future<void> test_add_dotShorthand_constant() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+const E e = .TWO;
+''');
+    await assertHasFix('''
+enum E { ONE, TWO }
+
+const E e = .TWO;
 ''', fixMessageContains: "Create enum constant 'TWO'");
   }
 
@@ -671,7 +684,7 @@ void f() {
 ''',
       filter: (e) {
         // Filter to ignore enum_without_constants
-        return e.diagnosticCode == diag.undefinedEnumConstant;
+        return e.diagnosticCode == diag.undefinedStaticMemberReadNotFound;
       },
     );
   }
@@ -694,7 +707,8 @@ E e() {
 ''',
       filter: (e) {
         // Filter to ignore enum_without_constants
-        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return e.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }
@@ -717,7 +731,7 @@ void f() {
 ''',
       filter: (e) {
         // Filter to ignore enum_without_constants
-        return e.diagnosticCode == diag.undefinedEnumConstant;
+        return e.diagnosticCode == diag.undefinedStaticMemberReadNotFound;
       },
     );
   }
@@ -734,7 +748,8 @@ enum E {
 enum F { c }
 ''');
     await assertNoFix(
-      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+      filter: (e) =>
+          e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -780,7 +795,8 @@ void f() {
 }
 ''');
     await assertNoFix(
-      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+      filter: (e) =>
+          e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -793,7 +809,8 @@ void f() {
 }
 ''');
     await assertNoFix(
-      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+      filter: (e) =>
+          e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 

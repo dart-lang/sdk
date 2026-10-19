@@ -17,6 +17,6 @@ main() {
   a.x = 37;
   a.setX(42);
   //^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'setX' isn't defined for the type 'A'.
 }

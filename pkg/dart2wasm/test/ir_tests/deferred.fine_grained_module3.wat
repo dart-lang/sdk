@@ -20,7 +20,7 @@
   (global $FooConst0 (import "M" "global5") (ref $Object))
   (global $fooGlobal0 (import "M" "global12") (ref null $#Top))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 45 funcref)
-  (table $M.dispatch0 (import "M" "dispatch0") 701 funcref)
+  (table $M.dispatch0 (import "M" "dispatch0") 691 funcref)
   (global $"\"0\"" (ref $JSExternWrapper) <...>)
   (global $"\"1\"" (ref $JSExternWrapper) <...>)
   (global $"\"2\"" (ref $JSExternWrapper) <...>)
@@ -65,7 +65,7 @@
   (global $1 (ref $BoxedInt) <...>)
   (global $5 (ref $BoxedInt) <...>)
   (global $FooConst5 (ref $Object)
-    (i32.const 117)
+    (i32.const 118)
     (i32.const 0)
     (struct.new $Object))
   (global $_InterfaceType (ref $_InterfaceType) <...>)
@@ -157,7 +157,6 @@
   (func $foo5Code (param $var0 (ref $#Top))
     (local $var1 (ref $WasmListBase))
     (local $var2 (ref $Object))
-    (local $var3 i64)
     global.get $FooConst5
     i32.const 18
     call_indirect $M.cross-module-funcs-0 (param (ref null $#Top))
@@ -281,11 +280,10 @@
     end $label5
     local.tee $var1
     struct.get $WasmListBase $_length
-    local.tee $var3
     i64.eqz
     if
       i64.const 0
-      local.get $var3
+      i64.const 0
       global.get $"\"[]\""
       i32.const 21
       call_indirect $M.cross-module-funcs-0 (param i64 i64 (ref null $JSExternWrapper))
@@ -300,7 +298,7 @@
     call $"fooGlobal5 implicit getter"
     local.get $var2
     struct.get $Object $#classId
-    i32.const 432
+    i32.const 435
     i32.add
     call_indirect $M.dispatch0 (param (ref $Object) (ref null $#Top))
   )

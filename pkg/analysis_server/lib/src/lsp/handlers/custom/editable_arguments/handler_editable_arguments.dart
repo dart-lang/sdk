@@ -252,10 +252,9 @@ class EditableArgumentsHandler
 
 extension on DartObject? {
   Object? toEnumStringValue(EnumElement element) {
-    var valueObject = this;
-    if (valueObject?.type case InterfaceType(element: EnumElement valueElement)
+    if (this?.type case InterfaceType(element: EnumElement valueElement)
         when element == valueElement) {
-      var index = valueObject?.getField('index')?.toIntValue();
+      var index = this?.getField('index')?.toIntValue();
       if (index != null) {
         var enumConstant = element.constants.elementAtOrNull(index);
         if (enumConstant != null) {

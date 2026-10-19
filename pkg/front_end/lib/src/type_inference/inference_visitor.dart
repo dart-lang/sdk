@@ -6327,6 +6327,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6395,6 +6396,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6415,6 +6417,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -6422,6 +6425,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     CachedExpression? valueCache;
     Expression? returnedValue;
     if (node.forEffect) {
+      // The value of the assignment isn't used, so there's no need to cache
+      // the value expression.
     } else if (extern.isPureExpression(value)) {
       returnedValue = extern.clonePureExpression(value);
     } else {
@@ -6433,7 +6438,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
+    // The inferred type is the inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
@@ -6479,9 +6484,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     ObjectAccessTarget indexSetTarget = thisType!.classNode.isMixinDeclaration
-        ?
-          // Coverage-ignore(suite): Not run.
-          new ObjectAccessTarget.interfaceMember(
+        ? new ObjectAccessTarget.interfaceMember(
             thisType!,
             node.setter,
             hasNonObjectMemberAccess: true,
@@ -6500,11 +6503,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
     CachedExpression? indexCache;
-    if (!extern.isPureExpression(index)) {
+    if (!node.forEffect && !extern.isPureExpression(index)) {
       indexCache = extern.createCachedExpression(
         expression: index,
         type: indexResult.inferredType,
@@ -6520,13 +6524,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
 
+    // The inferred type is the inferred type of the value expression and not
+    // the type of the value parameter.
+    DartType inferredType = valueResult.inferredType;
+
+    assert(
+      indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
+      'Unexpected index set target $indexSetTarget.',
+    );
+
     CachedExpression? valueCache;
-    Expression returnedValue;
-    if (extern.isPureExpression(value)) {
+    Expression? returnedValue;
+    if (node.forEffect) {
+      // The value of the assignment isn't used, so there's no need to cache
+      // the value expression.
+    } else if (extern.isPureExpression(value)) {
       returnedValue = extern.clonePureExpression(value);
     } else {
       valueCache = extern.createCachedExpression(
@@ -6537,21 +6554,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
-    // the type of the value parameter.
-    DartType inferredType = valueResult.inferredType;
-
-    assert(
-      indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
-      'Unexpected index set target $indexSetTarget.',
-    );
-    Expression assignment = new SuperMethodInvocation(
-      new ThisExpression(),
+    Expression assignment = extern.createSuperMethodInvocation(
+      // TODO(paulberry): use `_createThisExpression` in value context too.
+      // See https://github.com/dart-lang/sdk/issues/64593.
+      node.forEffect
+          ? _createThisExpression(node.fileOffset)
+          : new ThisExpression(),
       indexSetName,
+      indexSetTarget.classMember as Procedure,
       new Arguments(new ExpressionList(index, value))
         ..fileOffset = node.fileOffset,
-      indexSetTarget.classMember as Procedure,
-    )..fileOffset = node.fileOffset;
+      fileOffset: node.fileOffset,
+    );
+
+    if (node.forEffect) {
+      return new ExpressionInferenceResult(inferredType, assignment);
+    }
 
     CachedExpression assignmentCache = extern.createCachedExpression(
       expression: assignment,
@@ -6559,7 +6577,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Expression replacement = extern.createLet(
       cache: assignmentCache,
-      body: returnedValue,
+      body: returnedValue!,
     );
     if (valueCache != null) {
       replacement = extern.createLet(cache: valueCache, body: replacement);
@@ -6648,6 +6666,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6750,6 +6769,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     ).expression;
 
@@ -6761,6 +6781,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -6780,7 +6801,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
+    // The inferred type is the inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
@@ -6908,6 +6929,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       readIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -6932,6 +6954,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       writeIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -6943,6 +6966,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -7115,6 +7139,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7122,6 +7147,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7146,6 +7172,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -7372,6 +7399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7395,6 +7423,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -7406,6 +7435,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
@@ -8509,6 +8539,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       readIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8566,6 +8597,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       indexResult.inferredType,
       writeIndex,
       whyNotPromoted: whyNotPromotedIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8573,6 +8605,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -8714,6 +8747,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8766,6 +8800,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -8775,6 +8810,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -8969,6 +9005,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       readIndexType,
       indexResult.inferredType,
       readIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
 
@@ -9025,12 +9062,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeIndexType,
       indexResult.inferredType,
       writeIndex,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node.index,
     );
     binaryResult = ensureAssignableResult(
       valueType,
       binaryResult,
       fileOffset: node.fileOffset,
+      errorTemplate: diag.argumentTypeNotAssignable,
       assignedNode: node,
     );
     Expression binary = binaryResult.expression;
@@ -11411,7 +11450,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             new SharedTypeView(node.requiredType),
           );
         case InternalOrPattern():
-          // Coverage-ignore(suite): Not run.
           return analyzeLogicalOrPatternSchema(node.left, node.right);
         case InternalRecordPattern():
           return analyzeRecordPatternSchema(
@@ -12260,7 +12298,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
-      // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
         patternVariables: node.patternVariables,

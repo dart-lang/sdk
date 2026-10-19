@@ -1357,8 +1357,8 @@ FormalParameterList(v1)
 void f({a() = null}) {}
 ''');
 
-    var f = parseResult.findNode.singleFunctionDeclaration;
-    var node = f.functionExpression.parameters!;
+    var f = parseResult.findNode.singleTopLevelFunctionDeclaration;
+    var node = f.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -1400,11 +1400,8 @@ FormalParameterList(v1)
 void f({a()? : null}) {}
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclaration
-        .functionExpression
-        .parameters!;
+    var node =
+        parseResult.findNode.singleTopLevelFunctionDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -1449,11 +1446,8 @@ FormalParameterList(v1)
 void f({a<T>()? : null}) {}
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclaration
-        .functionExpression
-        .parameters!;
+    var node =
+        parseResult.findNode.singleTopLevelFunctionDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -2387,7 +2381,7 @@ class C {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration.parameters!;
+    var node = parseResult.findNode.singleMethodDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -2517,7 +2511,7 @@ class A {
     var node = parseResult
         .findNode
         .singleMethodDeclaration
-        .parameters!
+        .formalParameters
         .allFormalParameters
         .single;
     assertParsedNodeText(node, r'''
@@ -2745,10 +2739,9 @@ RegularFormalParameter
 void f(void g(a)) {}
 ''');
 
-    var f = parseResult.findNode.functionDeclaration('f');
+    var f = parseResult.findNode.topLevelFunctionDeclaration('f');
     var g =
-        f.functionExpression.parameters!.allFormalParameters.single
-            as RegularFormalParameter;
+        f.formalParameters.allFormalParameters.single as RegularFormalParameter;
     var node =
         g.functionTypedSuffix!.formalParameters.allFormalParameters.single;
     assertParsedNodeText(node, r'''
@@ -2938,11 +2931,8 @@ RegularFormalParameter
 void f(String Function(int) a) {}
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclaration
-        .functionExpression
-        .parameters!;
+    var node =
+        parseResult.findNode.singleTopLevelFunctionDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (

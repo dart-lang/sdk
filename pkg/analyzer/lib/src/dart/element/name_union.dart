@@ -17,10 +17,10 @@ class ElementNameUnion {
   /// this position. There are only 26 letters, so they fit into 30 bits.
   final Uint32List mask;
 
-  ElementNameUnion.empty() : mask = Uint32List(1 + _maxLength);
+  new empty() : mask = Uint32List(1 + _maxLength);
 
   /// Constructs the union during reading from summary.
-  ElementNameUnion.read(this.mask);
+  new read(this.mask);
 
   void add(String name) {
     // If already overflow, no reason adding anything.
@@ -115,7 +115,7 @@ class ElementNameUnion {
 class _ElementVisitor2 extends GeneralizingElementVisitor2<void> {
   final ElementNameUnion union;
 
-  _ElementVisitor2(this.union);
+  new(this.union);
 
   @override
   void visitElement(Element element) {

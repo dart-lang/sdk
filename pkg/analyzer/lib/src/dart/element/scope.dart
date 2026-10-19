@@ -10,10 +10,11 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
-  ConstructorInitializerScope(
+  new(
     super.parent,
     ConstructorElement element,
     List<FormalParameterFragmentImpl> formalParameterFragments,
@@ -53,38 +54,50 @@ class ConstructorInitializerScope extends EnclosedScope {
 /// it doc-imports without a prefix, and then the scope of the enclosing file.
 /// A part file can shadow the names doc-imported by its enclosing files, and
 /// extend their prefixes.
-class DocImportScope implements Scope {
+class DocImportScope with _FileImportsScope implements Scope {
+  @override
   final LibraryFragmentImpl _libraryFragment;
-  final DocImportScope? _parent;
+
+  @override
+  final DocImportScope? _enclosingScope;
+
   final List<LibraryImportImpl> _imports;
+
+  @override
   final Map<String, DocImportPrefixElementImpl> _prefixElements = {};
 
   /// The names imported without a prefix.
   ///
   /// Built lazily, because most documentation comments reference only names
-  /// that are found in their lexical scope.
+  /// that are found in their lexical scope. It is also built when a doc import
+  /// prefix of a part file searches past this file for a prefix to extend.
+  @override
   late final PrefixScope _noPrefixScope = PrefixScope(
     libraryFragment: _libraryFragment,
     parent: null,
+    parentSearchedScopes: const [],
     libraryImports: _imports,
     prefix: null,
   );
 
-  DocImportScope({
-    required LibraryFragmentImpl libraryFragment,
+  new({
+    required this._libraryFragment,
     required DocImportScope? parent,
     required List<LibraryImportImpl> imports,
-  }) : _libraryFragment = libraryFragment,
-       _parent = parent,
+  }) : _enclosingScope = parent,
        _imports = imports {
+    var prefixes = <DocImportPrefixElementImpl>{};
     for (var import in imports) {
       var prefix = import.prefix?.element;
       if (prefix is DocImportPrefixElementImpl) {
+        prefixes.add(prefix);
         if (prefix.name case var name?) {
           _prefixElements[name] = prefix;
         }
       }
     }
+
+    _buildPrefixScopes(imports: imports, prefixes: prefixes);
   }
 
   @override
@@ -100,21 +113,10 @@ class DocImportScope implements Scope {
       return result;
     }
 
-    if (_parent case var parent?) {
-      return parent.lookup(id);
+    if (_enclosingScope case var enclosingScope?) {
+      return enclosingScope.lookup(id);
     }
     return result;
-  }
-
-  /// Returns the doc import prefix with the [name], declared in the file of
-  /// this scope, or in an enclosing file.
-  DocImportPrefixElementImpl? lookupPrefix(String name) {
-    for (DocImportScope? scope = this; scope != null; scope = scope._parent) {
-      if (scope._prefixElements[name] case var prefix?) {
-        return prefix;
-      }
-    }
-    return null;
   }
 }
 
@@ -125,7 +127,7 @@ class DocumentationCommentScope implements Scope {
   final Scope _innerScope;
   final DocImportScope _docImportScope;
 
-  DocumentationCommentScope(this._innerScope, this._docImportScope);
+  new(this._innerScope, this._docImportScope);
 
   @override
   ScopeLookupResult lookup(String id) {
@@ -139,7 +141,7 @@ class DocumentationCommentScope implements Scope {
 class EnclosedScope with _GettersAndSetters implements Scope {
   final Scope _parent;
 
-  EnclosedScope(Scope parent) : _parent = parent;
+  new(Scope parent) : _parent = parent;
 
   Scope get parent => _parent;
 
@@ -157,7 +159,7 @@ class EnclosedScope with _GettersAndSetters implements Scope {
 
 /// The scope defined by an extension.
 class ExtensionScope extends EnclosedScope {
-  ExtensionScope(super.parent, ExtensionElement element) {
+  new(super.parent, ExtensionElement element) {
     element.getters.forEach(_addGetter);
     element.setters.forEach(_addSetter);
     element.methods.forEach(_addGetter);
@@ -165,7 +167,7 @@ class ExtensionScope extends EnclosedScope {
 }
 
 class FormalParameterScope extends EnclosedScope {
-  FormalParameterScope(
+  new(
     super.parent,
     List<FormalParameterFragmentImpl> fragments, {
     required FeatureSet featureSet,
@@ -194,17 +196,21 @@ class ImportsTracking {
   /// Tracking information for each import prefix.
   final Map<PrefixElementImpl?, ImportsTrackingOfPrefix> map;
 
-  ImportsTracking({required this.map});
+  new({required this.map});
 
   /// The elements that are used from [import].
   Set<Element> elementsOf(LibraryImportImpl import) {
     return trackerOf(import)?.importToUsedElements[import] ?? {};
   }
 
-  void notifyExtensionUsed(ExtensionElement element) {
+  /// Records that [element] is used, and returns whether any import of
+  /// this fragment provides it.
+  bool notifyExtensionUsed(ExtensionElement element) {
+    var isProvided = false;
     for (var tracking in map.values) {
-      tracking.notifyExtensionUsed(element);
+      isProvided |= tracking.notifyExtensionUsed(element);
     }
+    return isProvided;
   }
 
   ImportsTrackingOfPrefix? trackerOf(LibraryImportImpl import) {
@@ -240,7 +246,7 @@ class ImportsTrackingOfPrefix {
   /// We set it temporarily to `false` while resolving combinators.
   bool active = true;
 
-  ImportsTrackingOfPrefix({required this.scope}) {
+  new({required this.scope}) {
     _buildElementToImportsMap();
   }
 
@@ -305,19 +311,17 @@ class ImportsTrackingOfPrefix {
     }
   }
 
-  void notifyExtensionUsed(ExtensionElement element) {
+  /// Records that [element] is used, and returns whether any import of
+  /// this scope provides it.
+  bool notifyExtensionUsed(ExtensionElement element) {
     var imports = _elementImports[element];
-    if (imports != null) {
-      for (var import in imports) {
-        (importToUsedElements[import] ??= {}).add(element);
-      }
-    } else {
-      // We include into `accessibleExtensions` elements from parents.
-      // So, it is possible that the element is not from this scope.
-      // In this case we notify the parent tracker.
-      var parentTracking = scope.parent?._importsTracking;
-      parentTracking?.notifyExtensionUsed(element);
+    if (imports == null) {
+      return false;
     }
+    for (var import in imports) {
+      (importToUsedElements[import] ??= {}).add(element);
+    }
+    return true;
   }
 
   void notifyPrefixUsedWithoutName() {
@@ -341,7 +345,7 @@ class ImportsTrackingOfPrefix {
 
 /// The scope defined by an instance element.
 class InstanceScope extends EnclosedScope {
-  InstanceScope(super.parent, InstanceElement element) {
+  new(super.parent, InstanceElement element) {
     element.getters.forEach(_addGetter);
     element.setters.forEach(_addSetter);
     element.methods.forEach(_addGetter);
@@ -383,7 +387,7 @@ class InstanceScope extends EnclosedScope {
 class LibraryDeclarations with _GettersAndSetters {
   List<ExtensionElement> extensions = [];
 
-  LibraryDeclarations(LibraryElementImpl library) {
+  new(LibraryElementImpl library) {
     library.getters.forEach(_addGetter);
     library.enums.forEach(_addGetter);
     library.extensions.forEach(_addExtension);
@@ -416,11 +420,17 @@ class LibraryDeclarations with _GettersAndSetters {
   }
 }
 
-class LibraryFragmentScope implements Scope {
-  final LibraryFragmentScope? parent;
-  final LibraryFragmentImpl fragment;
-  final PrefixScope noPrefixScope;
+class LibraryFragmentScope with _FileImportsScope implements Scope {
+  @override
+  final LibraryFragmentImpl _libraryFragment;
 
+  @override
+  final LibraryFragmentScope? _enclosingScope;
+
+  @override
+  final PrefixScope _noPrefixScope;
+
+  @override
   final Map<String, PrefixElementImpl> _prefixElements = {};
 
   /// All libraries that contribute to [accessibleExtensions].
@@ -437,39 +447,29 @@ class LibraryFragmentScope implements Scope {
   /// when we are not resolving files of this library.
   ImportsTracking? _importsTracking;
 
-  factory LibraryFragmentScope(LibraryFragmentImpl fragment) {
-    var parent = fragment.enclosingFragment?.scope;
-    return LibraryFragmentScope._(
-      parent: parent,
-      fragment: fragment,
-      noPrefixScope: PrefixScope(
-        libraryFragment: fragment,
-        parent: parent?.noPrefixScope,
-        libraryImports: fragment.libraryImports,
+  new(LibraryFragmentImpl libraryFragment)
+    : _libraryFragment = libraryFragment,
+      _enclosingScope = libraryFragment.enclosingFragment?.scope,
+      _noPrefixScope = PrefixScope(
+        libraryFragment: libraryFragment,
+        parent: null,
+        parentSearchedScopes: const [],
+        libraryImports: libraryFragment.libraryImports,
         prefix: null,
-      ),
-    );
-  }
-
-  LibraryFragmentScope._({
-    required this.parent,
-    required this.fragment,
-    required this.noPrefixScope,
-  }) {
-    for (var prefix in fragment.prefixes) {
+      ) {
+    for (var prefix in libraryFragment.prefixes) {
       if (prefix.name case var name?) {
         _prefixElements[name] = prefix;
       }
-      prefix.scope = PrefixScope(
-        libraryFragment: fragment,
-        parent: _getParentPrefixScope(prefix),
-        libraryImports: fragment.libraryImports,
-        prefix: prefix,
-      );
     }
+
+    _buildPrefixScopes(
+      imports: libraryFragment.libraryImports,
+      prefixes: libraryFragment.prefixes,
+    );
   }
 
-  /// The extensions accessible within [fragment].
+  /// The extensions accessible within the file of this scope.
   List<ExtensionElement> get accessibleExtensions {
     if (_extensions case var extensions?) {
       return extensions;
@@ -480,19 +480,19 @@ class LibraryFragmentScope implements Scope {
     );
 
     return _extensions = {
-      ...fragment.library.libraryDeclarations.extensions,
-      ...noPrefixScope._extensions,
+      ..._libraryFragment.library.libraryDeclarations.extensions,
+      ..._noPrefixScope._extensions,
       for (var prefix in _prefixElements.values) ...prefix.scope._extensions,
-      ...?parent?.accessibleExtensions,
+      ...?_enclosingScope?.accessibleExtensions,
     }.toFixedList();
   }
 
   List<LibraryElementImpl> get importedLibrariesContributingExtensions {
     return _importedLibrariesContributingExtensions ??= {
-      ...noPrefixScope._importedLibraries,
+      ..._noPrefixScope._importedLibraries,
       for (var prefix in _prefixElements.values)
         ...prefix.scope._importedLibraries,
-      ...?parent?.importedLibrariesContributingExtensions,
+      ...?_enclosingScope?.importedLibrariesContributingExtensions,
     }.toFixedList();
   }
 
@@ -508,7 +508,7 @@ class LibraryFragmentScope implements Scope {
   }
 
   void importsTrackingDestroy() {
-    noPrefixScope.importsTrackingDestroy();
+    _noPrefixScope.importsTrackingDestroy();
     for (var prefixElement in _prefixElements.values) {
       prefixElement.scope.importsTrackingDestroy();
     }
@@ -518,7 +518,7 @@ class LibraryFragmentScope implements Scope {
   ImportsTracking importsTrackingInit() {
     return _importsTracking = ImportsTracking(
       map: {
-        null: noPrefixScope.importsTrackingInit(),
+        null: _noPrefixScope.importsTrackingInit(),
         for (var prefixElement in _prefixElements.values)
           prefixElement: prefixElement.scope.importsTrackingInit(),
       },
@@ -542,47 +542,40 @@ class LibraryFragmentScope implements Scope {
     return ScopeLookupResultImpl(getter: null, setter: null);
   }
 
+  /// Records that [element] is used.
+  ///
+  /// The [accessibleExtensions] include extensions from the enclosing
+  /// fragments, so we attribute the usage to the nearest fragment that
+  /// imports [element].
   void notifyExtensionUsed(ExtensionElement element) {
-    _importsTracking?.notifyExtensionUsed(element);
-  }
-
-  PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
-    var isDeferred = prefix.imports.any((import) {
-      return import.prefix?.isDeferred ?? false;
-    });
-    if (isDeferred) {
-      return null;
-    }
-
-    for (var scope = parent; scope != null; scope = scope.parent) {
-      var parentPrefix = scope._prefixElements[prefix.name];
-      if (parentPrefix != null) {
-        return parentPrefix.scope;
+    for (LibraryFragmentScope? scope = this; scope != null;) {
+      if (scope._importsTracking?.notifyExtensionUsed(element) ?? false) {
+        return;
       }
+      scope = scope._enclosingScope;
     }
-    return null;
   }
 
   ScopeLookupResult? _lookupCombined(String id) {
     // Try prefix elements.
-    if (fragment.isAllowedAsPrefixName(id)) {
+    if (_libraryFragment.isAllowedAsPrefixName(id)) {
       if (_prefixElements[id] case var prefixElement?) {
         return ScopeLookupResultImpl(getter: prefixElement, setter: null);
       }
     }
 
     // Try imports of the library fragment.
-    var noPrefixResult = noPrefixScope.lookup(id);
+    var noPrefixResult = _noPrefixScope.lookup(id);
     if (noPrefixResult.getter != null || noPrefixResult.setter != null) {
       return noPrefixResult;
     }
 
-    // Try the parent's combined import scope.
-    return parent?._lookupCombined(id);
+    // Try the combined import scope of the enclosing file.
+    return _enclosingScope?._lookupCombined(id);
   }
 
   ScopeLookupResult? _lookupLibrary(String id) {
-    var libraryDeclarations = fragment.library.libraryDeclarations;
+    var libraryDeclarations = _libraryFragment.library.libraryDeclarations;
     var libraryGetter = libraryDeclarations._getters[id];
     var librarySetter = libraryDeclarations._setters[id];
     if (libraryGetter != null || librarySetter != null) {
@@ -598,8 +591,7 @@ class LibraryFragmentScope implements Scope {
 class LocalScope extends EnclosedScope {
   final FeatureSet _featureSet;
 
-  LocalScope(super.parent, {required FeatureSet featureSet})
-    : _featureSet = featureSet;
+  new(super.parent, {required this._featureSet});
 
   void add(Element element) {
     assert(() {
@@ -627,13 +619,28 @@ class LocalScope extends EnclosedScope {
 class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
 
-  /// The scope of the enclosing file that this scope extends: for a prefix,
-  /// the scope of the prefix with the same name, and for the imports without
-  /// a prefix, the scope of such imports.
+  /// The prefix of this scope, `null` for the imports without a prefix.
+  final PrefixElement? _prefixElement;
+
+  /// The scope of the prefix with the same name in an enclosing file, whose
+  /// names are also accessible through this prefix.
   ///
-  /// It is `null` for a deferred prefix, which provides only the names of its
-  /// own library.
-  final PrefixScope? parent;
+  /// It is `null` if this prefix, or the nearest prefix with the same name in
+  /// an enclosing file, is deferred: a deferred prefix provides only the names
+  /// of its own library. It is also `null` if there is no such prefix, and for
+  /// the imports without a prefix.
+  ///
+  /// We search the enclosing files from the nearest one, and stop at the
+  /// first file that has a prefix with this name, or imports this name
+  /// without a prefix.
+  final PrefixScope? _parent;
+
+  /// The scopes of the imports without a prefix of the enclosing files that
+  /// we searched for the name of this prefix to choose [_parent].
+  ///
+  /// The choice depends on the names that these scopes import, so every time
+  /// [parent] is read, we record this requirement.
+  final List<PrefixScope> _parentSearchedScopes;
 
   final List<LibraryImportImpl> _importElements = [];
   final List<LibraryElementImpl> _importedLibraries = [];
@@ -650,12 +657,13 @@ class PrefixScope implements Scope {
   final PrefixScopeRequirementState _requirementState =
       PrefixScopeRequirementState();
 
-  PrefixScope({
+  new({
     required this.libraryFragment,
-    required this.parent,
+    required this._parent,
+    required this._parentSearchedScopes,
     required List<LibraryImportImpl> libraryImports,
     required PrefixElement? prefix,
-  }) {
+  }) : _prefixElement = prefix {
     var elementFactory = libraryElement.session.elementFactory;
     for (var import in libraryImports) {
       var importedUri = import.uri;
@@ -698,6 +706,48 @@ class PrefixScope implements Scope {
     return libraryFragment.element;
   }
 
+  /// Returns [_parent], and records that the result depends on its choice.
+  PrefixScope? get parent {
+    if (_prefixElement?.name case var name?) {
+      for (var scope in _parentSearchedScopes) {
+        scope._recordLookupRequirement(name);
+      }
+    }
+    return _parent;
+  }
+
+  /// Returns a top-level declaration named [name] of a library imported into
+  /// this scope or into [parent], if [name] is private, and that library is
+  /// another library than [libraryElement].
+  ///
+  /// This is for reporting a failed [lookup] of [name], which doesn't find
+  /// it, because private names aren't exported.
+  Element? getPrivateDeclarationOfImportedLibrary(String name) {
+    if (!name.isPrivateName) {
+      return null;
+    }
+
+    for (var library in libraries) {
+      if (library == libraryElement) {
+        continue;
+      }
+      var declaration =
+          library.getGetter(name) ??
+          library.getSetter(name) ??
+          library.getTopLevelFunction(name) ??
+          library.getClass(name) ??
+          library.getEnum(name) ??
+          library.getExtension(name) ??
+          library.getExtensionType(name) ??
+          library.getMixin(name) ??
+          library.getTypeAlias(name);
+      if (declaration != null) {
+        return declaration;
+      }
+    }
+    return null;
+  }
+
   void importsTrackingDestroy() {
     _importsTracking = null;
   }
@@ -717,13 +767,7 @@ class PrefixScope implements Scope {
       );
     }
 
-    if (globalResultRequirements case var resultRequirements?) {
-      resultRequirements.record_importPrefixScope_lookup(
-        state: _requirementState,
-        importedLibraries: _importedLibraries,
-        id: id,
-      );
-    }
+    _recordLookupRequirement(id);
 
     var getter = _getters[id];
     var setter = _setters[id];
@@ -811,6 +855,15 @@ class PrefixScope implements Scope {
     }
   }
 
+  /// Whether the imports of this scope (without [parent]) provide a getter
+  /// or setter named [id].
+  ///
+  /// Unlike [lookup], this is not a use of an import, so it is not tracked,
+  /// and does not record a requirement.
+  bool _importsName(String id) {
+    return _getters.containsKey(id) || _setters.containsKey(id);
+  }
+
   Element _merge(Element existing, Element other) {
     if (_isSdkElement(existing)) {
       if (!_isSdkElement(other)) {
@@ -831,6 +884,17 @@ class PrefixScope implements Scope {
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );
+  }
+
+  /// Records that [id] was looked up in the imports of this scope.
+  void _recordLookupRequirement(String id) {
+    if (globalResultRequirements case var resultRequirements?) {
+      resultRequirements.record_importPrefixScope_lookup(
+        state: _requirementState,
+        importedLibraries: _importedLibraries,
+        id: id,
+      );
+    }
   }
 
   bool _shouldAdd(LibraryElementImpl importedLibrary, Element element) {
@@ -874,7 +938,7 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
 
   final int _deprecatedBits;
 
-  PrefixScopeLookupResult({
+  new({
     required super.getter,
     required super.setter,
     required bool getterIsFromDeprecatedExport,
@@ -903,7 +967,7 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
 /// It includes every primary formal parameter which is not declaring, not
 /// initializing, and not a super parameter.
 class PrimaryParameterScope extends EnclosedScope {
-  PrimaryParameterScope(
+  new(
     super.parent,
     ConstructorElement element,
     List<FormalParameterFragmentImpl> formalParameterFragments,
@@ -938,11 +1002,11 @@ class ScopeLookupResultImpl extends ScopeLookupResult {
   @override
   final Element? setter;
 
-  ScopeLookupResultImpl({required this.getter, required this.setter});
+  new({required this.getter, required this.setter});
 }
 
 class TypeParameterScope extends EnclosedScope {
-  TypeParameterScope(
+  new(
     super.parent,
     List<TypeParameterElement> elements, {
     required FeatureSet featureSet,
@@ -956,6 +1020,76 @@ class TypeParameterScope extends EnclosedScope {
       }
       _addGetter(element);
     }
+  }
+}
+
+/// The scope of the imports, or of the doc imports, of a file.
+///
+/// Doc imports are scoped like imports, so the prefixes of both extend the
+/// prefixes of the enclosing files by the same rules, implemented once here.
+mixin _FileImportsScope {
+  /// The scope of the same kind of the enclosing file.
+  _FileImportsScope? get _enclosingScope;
+
+  /// The file of this scope.
+  LibraryFragmentImpl get _libraryFragment;
+
+  /// The scope of the names imported without a prefix.
+  PrefixScope get _noPrefixScope;
+
+  /// The prefixes declared in this file, by name.
+  Map<String, PrefixElementImpl> get _prefixElements;
+
+  /// Sets the scope of each of the [prefixes] declared in this file, built
+  /// from those of the [imports] that use it.
+  void _buildPrefixScopes({
+    required List<LibraryImportImpl> imports,
+    required Iterable<PrefixElementImpl> prefixes,
+  }) {
+    for (var prefix in prefixes) {
+      var (:parent, :searchedScopes) = _getParentPrefixScope(prefix);
+      prefix.scope = PrefixScope(
+        libraryFragment: _libraryFragment,
+        parent: parent,
+        parentSearchedScopes: searchedScopes,
+        libraryImports: imports,
+        prefix: prefix,
+      );
+    }
+  }
+
+  /// Returns the scope of the prefix of an enclosing file that [prefix]
+  /// extends, and the scopes that we searched to find it.
+  ///
+  /// A deferred prefix extends nothing. Otherwise we search the enclosing
+  /// files from the nearest one, and stop at the first file that has a prefix
+  /// with this name, or imports this name without a prefix. If that prefix is
+  /// deferred, [prefix] extends nothing either.
+  ({PrefixScope? parent, List<PrefixScope> searchedScopes})
+  _getParentPrefixScope(PrefixElementImpl prefix) {
+    var name = prefix.name;
+    if (name == null || prefix.isDeferred) {
+      return (parent: null, searchedScopes: const []);
+    }
+
+    var searchedScopes = <PrefixScope>[];
+    for (
+      var scope = _enclosingScope;
+      scope != null;
+      scope = scope._enclosingScope
+    ) {
+      if (scope._prefixElements[name] case var parentPrefix?) {
+        return (
+          parent: parentPrefix.isDeferred ? null : parentPrefix.scope,
+          searchedScopes: searchedScopes,
+        );
+      }
+      searchedScopes.add(scope._noPrefixScope);
+      if (scope._noPrefixScope._importsName(name)) {
+        break;
+      }
+    }
+    return (parent: null, searchedScopes: searchedScopes);
   }
 }
 

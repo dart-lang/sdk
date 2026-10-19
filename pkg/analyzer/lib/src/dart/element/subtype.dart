@@ -23,7 +23,7 @@ class SubtypeHelper {
   final InterfaceTypeImpl _objectNone;
   final InterfaceTypeImpl _objectQuestion;
 
-  SubtypeHelper(this._typeSystem)
+  new(this._typeSystem)
     : _typeProvider = _typeSystem.typeProvider,
       _nullNone = _typeSystem.nullNone,
       _objectNone = _typeSystem.objectNone,

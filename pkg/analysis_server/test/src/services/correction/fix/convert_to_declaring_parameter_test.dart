@@ -60,7 +60,8 @@ class C(var int x, int y) {
 }
 
 @reflectiveTest
-class ConvertToDeclaringParameterInClassTest extends FixProcessorLintTest {
+class ConvertToDeclaringParameterInClassTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToDeclaringParameter;
 
@@ -705,7 +706,8 @@ enum E(final int x, int y) {
 }
 
 @reflectiveTest
-class ConvertToDeclaringParameterInEnumTest extends FixProcessorLintTest {
+class ConvertToDeclaringParameterInEnumTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToDeclaringParameter;
 

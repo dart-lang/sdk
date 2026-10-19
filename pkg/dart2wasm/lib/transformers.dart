@@ -50,6 +50,7 @@ class _WasmTransformer extends Transformer {
   final Procedure _completerConstructor;
   final Procedure _completerSyncConstructor;
   final Procedure _completerGetFuture;
+  final Procedure _futureSyncValueFactory;
   final Procedure _streamControllerAdd;
   final Procedure _streamControllerAddError;
   final Procedure _streamControllerAddStream;
@@ -144,7 +145,7 @@ class _WasmTransformer extends Transformer {
         'StreamController',
       ),
       _wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
-      _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
+      _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', 'WasmBase'),
       _completerComplete = coreTypes.index.getProcedure(
         'dart:async',
         'Completer',
@@ -169,6 +170,11 @@ class _WasmTransformer extends Transformer {
         'dart:async',
         'Completer',
         'get:future',
+      ),
+      _futureSyncValueFactory = coreTypes.index.getProcedure(
+        'dart:async',
+        'Future',
+        'syncValue',
       ),
       _streamControllerAdd = coreTypes.index.getProcedure(
         'dart:async',
@@ -956,24 +962,27 @@ class _WasmTransformer extends Transformer {
   void _lowerAsync(FunctionNode functionNode) {
     /*
     Convert `async` functions with "simple" bodies to `sync` functions, using
-    `Future.value`.
+    `Future.syncValue`.
 
-    "Simple" means: constant or basic literal. In general, this transformation
-    can be done on any function body that doesn't `await` and doesn't throw.
+    "Simple" means: constant or basic literal (that is not a `Future`). In
+    general, this transformation can be done on any function body that doesn't
+    `await` and doesn't throw.
 
     Example:
 
     foo() async { return const ...; }
     ==>
-    foo() { return Future.value(const ...); }
+    foo() { return Future.syncValue(const ...); }
     */
     final functionBody = functionNode.body!;
     final simpleReturn = _getSimpleReturn(functionBody);
-    if (simpleReturn is BasicLiteral || simpleReturn is ConstantExpression) {
+    if (simpleReturn is BasicLiteral ||
+        (simpleReturn is ConstantExpression &&
+            _isNonFutureConstant(simpleReturn.constant))) {
       final futureValueType = functionNode.emittedValueType!;
       final newBody = ReturnStatement(
         StaticInvocation(
-          coreTypes.futureValueFactory,
+          _futureSyncValueFactory,
           Arguments(
             ExpressionList(simpleReturn!),
             types: DartTypeList(futureValueType),
@@ -985,6 +994,14 @@ class _WasmTransformer extends Transformer {
       functionNode.asyncMarker = AsyncMarker.Sync;
     }
   }
+
+  bool _isNonFutureConstant(Constant constant) =>
+      constant is! UnevaluatedConstant &&
+      (constant is! InstanceConstant ||
+          !env.hierarchy.isSubInterfaceOf(
+            constant.classNode,
+            coreTypes.futureClass,
+          ));
 
   @override
   TreeNode visitYieldStatement(YieldStatement yield) {

@@ -285,9 +285,29 @@ void late() {
 }
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: late
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: ParsedValueArguments
+            operand: ParsedUnqualifiedName
+              name: late
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          semicolon: ;
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: late
@@ -300,13 +320,7 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression2: ParsedValueArguments
-              operand: ParsedUnqualifiedName
-                name: late
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            expression(v1): MethodInvocation
+            expression: MethodInvocation
               methodName: SimpleIdentifier
                 token: late
               argumentList: ArgumentList

@@ -30,7 +30,7 @@ class SharedTypeAnalyzerErrors
         > {
   final DiagnosticReporter _diagnosticReporter;
 
-  SharedTypeAnalyzerErrors(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   @override
   void assertInErrorRecovery() {}

@@ -47,7 +47,7 @@ class Code {
   /// corresponding analyzer error in the [sharedAnalyzerCodes] table.
   final SharedCode? sharedCode;
 
-  const Code(
+  const new(
     this.name, {
     this.pseudoSharedCode,
     this.severity = CfeSeverity.error,
@@ -67,7 +67,7 @@ class Message {
 
   final Map<String, dynamic> arguments;
 
-  const Message(
+  const new(
     this.code, {
     this.correctionMessage,
     required this.problemMessage,
@@ -95,7 +95,7 @@ class MessageCode extends Code implements Message {
   @override
   final String? correctionMessage;
 
-  const MessageCode(
+  const new(
     super.name, {
     super.pseudoSharedCode,
     super.severity,
@@ -129,7 +129,7 @@ class Template<T extends Object> extends Code {
 
   final T withArguments;
 
-  const Template(
+  const new(
     super.name, {
     required this.withArguments,
     super.pseudoSharedCode,
@@ -150,12 +150,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
 
   final Message messageObject;
 
-  const LocatedMessage(
-    this.uri,
-    this.charOffset,
-    this.length,
-    this.messageObject,
-  );
+  const new(this.uri, this.charOffset, this.length, this.messageObject);
 
   Code get code => messageObject.code;
 
@@ -227,9 +222,9 @@ class PlainAndColorizedString {
     return 'PlainAndColorizedString:$plain';
   }
 
-  const PlainAndColorizedString(this.plain, this.colorized);
+  const new(this.plain, this.colorized);
 
-  const PlainAndColorizedString.plainOnly(this.plain) : this.colorized = plain;
+  const new plainOnly(this.plain) : this.colorized = plain;
 }
 
 class FormattedMessage implements CfeDiagnosticMessage {
@@ -251,7 +246,7 @@ class FormattedMessage implements CfeDiagnosticMessage {
   @override
   final List<Uri>? involvedFiles;
 
-  const FormattedMessage(
+  const new(
     this.locatedMessage,
     this.formattedPlain,
     this.formattedColorized,
@@ -359,7 +354,7 @@ class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
   @override
   final String codeName;
 
-  DiagnosticMessageFromJson({
+  new({
     required this.ansiFormatted,
     required this.plainTextFormatted,
     required this.severity,
@@ -369,7 +364,7 @@ class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
     required this.codeName,
   });
 
-  factory DiagnosticMessageFromJson.fromJson(String jsonString) {
+  factory fromJson(String jsonString) {
     Map<String, Object?> decoded = json.decode(jsonString);
     List<String> ansiFormatted = decoded["ansiFormatted"]._jsonListOfString();
     List<String> plainTextFormatted = decoded["plainTextFormatted"]

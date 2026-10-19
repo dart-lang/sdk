@@ -12,10 +12,7 @@ class Uri {
   @patch
   static Uri get base {
     final currentUri = EmbedderStringImpl.fromRefUnchecked(baseUri());
-    if (currentUri != null) {
-      return Uri.parse(currentUri);
-    }
-    throw UnsupportedError("'Uri.base' is not supported");
+    return Uri.parse(currentUri);
   }
 }
 

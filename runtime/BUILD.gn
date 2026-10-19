@@ -225,7 +225,7 @@ config("dart_config") {
   include_dirs = [ "include" ]
 
   if (dart_include_sampling_heap_profiler) {
-    defines += [ "FORCE_FORCE_INCLUDE_SAMPLING_HEAP_PROFILER" ]
+    defines += [ "FORCE_INCLUDE_SAMPLING_HEAP_PROFILER" ]
   }
 
   if (dart_support_perfetto) {

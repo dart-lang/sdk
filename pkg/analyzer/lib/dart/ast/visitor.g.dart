@@ -25,10 +25,10 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated()
+@V1Ast()
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const GeneralizingAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
@@ -788,10 +788,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 /// visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use RecursiveAstVisitor2 instead')
+@V1Ast('The V2 counterpart is RecursiveAstVisitor2.')
 class RecursiveAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const RecursiveAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) {
@@ -1920,7 +1920,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const RecursiveAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) {
@@ -2394,14 +2394,22 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) {
+  R? visitField2(Field2 node) {
     node.visitChildren2(this);
     return null;
   }
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2467,18 +2475,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitFunctionDeclaration(FunctionDeclaration node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) {
     node.visitChildren2(this);
     return null;
@@ -2491,8 +2487,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) {
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2511,8 +2508,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) {
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2727,6 +2725,36 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitLocalVariable(LocalVariable node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) {
     node.visitChildren2(this);
     return null;
@@ -2772,12 +2800,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitMapPatternEntry(MapPatternEntry node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2934,15 +2956,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @experimental
-  @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
     node.visitChildren2(this);
     return null;
   }
@@ -3262,13 +3275,35 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     node.visitChildren2(this);
     return null;
   }
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitTopLevelVariable2(TopLevelVariable2 node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3334,24 +3369,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitVariableDeclaration(VariableDeclaration node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitWhenClause(WhenClause node) {
     node.visitChildren2(this);
     return null;
@@ -3388,10 +3405,10 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 /// a whole structure) and that only need to visit a small number of node types.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use SimpleAstVisitor2 instead')
+@V1Ast('The V2 counterpart is SimpleAstVisitor2.')
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const SimpleAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => null;
@@ -3973,7 +3990,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const SimpleAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => null;
@@ -4227,11 +4244,16 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) => null;
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) => null;
+  R? visitField2(Field2 node) => null;
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) => null;
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) => null;
 
   @override
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) => null;
@@ -4265,21 +4287,15 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitForStatement(ForStatement node) => null;
 
   @override
-  R? visitFunctionDeclaration(FunctionDeclaration node) => null;
-
-  @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
-      null;
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) => null;
 
   @experimental
   @override
   R? visitFunctionInstantiation(FunctionInstantiation node) => null;
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) => null;
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) => null;
 
   @override
   R? visitFunctionTypedFormalParameterSuffix(
@@ -4289,8 +4305,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => null;
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) => null;
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) => null;
 
   @experimental
   @override
@@ -4414,6 +4431,24 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) => null;
+
+  @experimental
+  @override
+  R? visitLocalVariable(LocalVariable node) => null;
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) => null;
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) => null;
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) => null;
 
   @override
@@ -4438,9 +4473,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitMapPatternEntry(MapPatternEntry node) => null;
-
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) => null;
 
   @experimental
   @override
@@ -4526,12 +4558,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => null;
-
-  @experimental
-  @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) => null;
 
   @experimental
   @override
@@ -4704,10 +4730,24 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) => null;
+
+  @experimental
+  @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) => null;
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => null;
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) => null;
+
+  @experimental
+  @override
+  R? visitTopLevelVariable2(TopLevelVariable2 node) => null;
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) =>
+      null;
 
   @override
   R? visitTryStatement(TryStatement node) => null;
@@ -4744,16 +4784,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) => null;
 
   @override
-  R? visitVariableDeclaration(VariableDeclaration node) => null;
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) => null;
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
-      null;
-
-  @override
   R? visitWhenClause(WhenClause node) => null;
 
   @override
@@ -4776,10 +4806,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 /// want to catch when any other visit methods have been invoked.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use ThrowingAstVisitor2 instead')
+@V1Ast('The V2 counterpart is ThrowingAstVisitor2.')
 class ThrowingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const ThrowingAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => _throw(node);
@@ -5381,7 +5411,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const ThrowingAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => _throw(node);
@@ -5644,11 +5674,16 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
       _throw(node);
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) => _throw(node);
+  R? visitField2(Field2 node) => _throw(node);
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) => _throw(node);
 
   @override
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
@@ -5685,21 +5720,15 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitForStatement(ForStatement node) => _throw(node);
 
   @override
-  R? visitFunctionDeclaration(FunctionDeclaration node) => _throw(node);
-
-  @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
-      _throw(node);
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) => _throw(node);
 
   @experimental
   @override
   R? visitFunctionInstantiation(FunctionInstantiation node) => _throw(node);
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) => _throw(node);
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) => _throw(node);
 
   @override
   R? visitFunctionTypedFormalParameterSuffix(
@@ -5709,8 +5738,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => _throw(node);
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) => _throw(node);
 
   @experimental
   @override
@@ -5834,6 +5864,26 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitLocalVariable(LocalVariable node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) => _throw(node);
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) => _throw(node);
 
   @override
@@ -5858,9 +5908,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitMapPatternEntry(MapPatternEntry node) => _throw(node);
-
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) => _throw(node);
 
   @experimental
   @override
@@ -5946,12 +5993,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => _throw(node);
-
-  @experimental
-  @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) => _throw(node);
 
   @experimental
   @override
@@ -6128,11 +6169,26 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) =>
+      _throw(node);
+
+  @experimental
+  @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) =>
       _throw(node);
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) =>
+      _throw(node);
+
+  @experimental
+  @override
+  R? visitTopLevelVariable2(TopLevelVariable2 node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) =>
       _throw(node);
 
   @override
@@ -6171,16 +6227,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
       _throw(node);
 
   @override
-  R? visitVariableDeclaration(VariableDeclaration node) => _throw(node);
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) => _throw(node);
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
-      _throw(node);
-
-  @override
   R? visitWhenClause(WhenClause node) => _throw(node);
 
   @override
@@ -6207,7 +6253,7 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 /// An AST visitor that captures visit call timings.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@ToBeDeprecated('Use TimedAstVisitor2 instead')
+@V1Ast('The V2 counterpart is TimedAstVisitor2.')
 class TimedAstVisitor<T> implements AstVisitor<T> {
   /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
@@ -6217,8 +6263,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
-  TimedAstVisitor(this._baseVisitor, [Stopwatch? watch])
-    : stopwatch = watch ?? Stopwatch();
+  new(this._baseVisitor, [Stopwatch? watch]) : stopwatch = watch ?? Stopwatch();
 
   @override
   T? visitAdjacentStrings(AdjacentStrings node) {
@@ -7713,8 +7758,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
-  TimedAstVisitor2(this._baseVisitor, [Stopwatch? watch])
-    : stopwatch = watch ?? Stopwatch();
+  new(this._baseVisitor, [Stopwatch? watch]) : stopwatch = watch ?? Stopwatch();
 
   @override
   T? visitAdjacentStrings(AdjacentStrings node) {
@@ -8336,10 +8380,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitFieldDeclaration(FieldDeclaration node) {
+  T? visitField2(Field2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitFieldDeclaration(node);
+    T? result = _baseVisitor.visitField2(node);
     stopwatch.stop();
     return result;
   }
@@ -8348,6 +8393,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitFieldFormalParameter(FieldFormalParameter node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFieldFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitFieldsDeclaration(FieldsDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitFieldsDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -8433,22 +8487,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitFunctionDeclaration(FunctionDeclaration node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitFunctionDeclaration(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitFunctionDeclarationStatement(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitFunctionExpression(FunctionExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFunctionExpression(node);
@@ -8465,10 +8503,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitFunctionTypeAlias(FunctionTypeAlias node) {
+  T? visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitFunctionTypeAlias(node);
+    T? result = _baseVisitor.visitFunctionTypeAlias2(node);
     stopwatch.stop();
     return result;
   }
@@ -8491,10 +8530,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitGenericTypeAlias(GenericTypeAlias node) {
+  T? visitGenericTypeAlias2(GenericTypeAlias2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitGenericTypeAlias(node);
+    T? result = _baseVisitor.visitGenericTypeAlias2(node);
     stopwatch.stop();
     return result;
   }
@@ -8773,6 +8813,44 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalFunctionDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitLocalVariable(LocalVariable node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalVariable(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalVariablesDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalVariablesDeclarationStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitLogicalAnd(LogicalAnd node) {
     stopwatch.start();
     T? result = _baseVisitor.visitLogicalAnd(node);
@@ -8834,14 +8912,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitMapPatternEntry(MapPatternEntry node) {
     stopwatch.start();
     T? result = _baseVisitor.visitMapPatternEntry(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitMethodDeclaration(MethodDeclaration node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitMethodDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -9046,17 +9116,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedUnqualifiedName(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @experimental
-  @override
-  T? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitParsedUnqualifiedNameAssignmentTarget(node);
     stopwatch.stop();
     return result;
   }
@@ -9474,6 +9533,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitTopLevelFunctionDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitTopLevelGetterDeclaration(node);
@@ -9481,10 +9549,29 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  T? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitTopLevelVariableDeclaration(node);
+    T? result = _baseVisitor.visitTopLevelSetterDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitTopLevelVariable2(TopLevelVariable2 node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitTopLevelVariable2(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitTopLevelVariablesDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -9568,30 +9655,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitVariableDeclaration(VariableDeclaration node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariableDeclaration(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitVariableDeclarationList(VariableDeclarationList node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariableDeclarationList(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariableDeclarationStatement(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitWhenClause(WhenClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWhenClause(node);
@@ -9643,10 +9706,10 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 /// visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use UnifyingAstVisitor2 instead')
+@V1Ast('The V2 counterpart is UnifyingAstVisitor2.')
 class UnifyingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const UnifyingAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
@@ -10266,7 +10329,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const UnifyingAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
@@ -10537,11 +10600,16 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
       visitNode(node);
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
+  R? visitField2(Field2 node) => visitNode(node);
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) => visitNode(node);
 
   @override
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
@@ -10580,21 +10648,15 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitForStatement(ForStatement node) => visitNode(node);
 
   @override
-  R? visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);
-
-  @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
-      visitNode(node);
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) => visitNode(node);
 
   @experimental
   @override
   R? visitFunctionInstantiation(FunctionInstantiation node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) => visitNode(node);
 
   @override
   R? visitFunctionTypedFormalParameterSuffix(
@@ -10604,8 +10666,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) => visitNode(node);
 
   @experimental
   @override
@@ -10731,6 +10794,26 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitLocalVariable(LocalVariable node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclaration(LocalVariablesDeclaration node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitLocalVariablesDeclarationStatement(
+    LocalVariablesDeclarationStatement node,
+  ) => visitNode(node);
+
+  @experimental
+  @override
   R? visitLogicalAnd(LogicalAnd node) => visitNode(node);
 
   @override
@@ -10755,9 +10838,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitMapPatternEntry(MapPatternEntry node) => visitNode(node);
-
-  @override
-  R? visitMethodDeclaration(MethodDeclaration node) => visitNode(node);
 
   @experimental
   @override
@@ -10852,12 +10932,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => visitNode(node);
-
-  @experimental
-  @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) => visitNode(node);
 
   @experimental
   @override
@@ -11039,11 +11113,26 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) =>
+      visitNode(node);
+
+  @experimental
+  @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) =>
       visitNode(node);
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitTopLevelVariable2(TopLevelVariable2 node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) =>
       visitNode(node);
 
   @override
@@ -11080,17 +11169,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) =>
-      visitNode(node);
-
-  @override
-  R? visitVariableDeclaration(VariableDeclaration node) => visitNode(node);
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) =>
-      visitNode(node);
-
-  @override
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       visitNode(node);
 
   @override

@@ -9,7 +9,7 @@ import("//build/toolchain/rbe.gni")
 
 template("fuchsia_toolchain") {
   toolchain(target_name) {
-    if (use_rbe) {
+    if (use_rbe && !use_siso) {
       compiler_args =
           rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
       if (target_cpu == "x64") {

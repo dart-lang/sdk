@@ -10,51 +10,47 @@ import 'private_class_lib.dart';
 void main() {
   context(.new());
   //       ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'new'.
   contextAlias(.new());
   //            ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   context(.new.asC);
-  //      ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //       ^
+  //       ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'new'.
   contextAlias(.new.asC);
-  //           ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //            ^
+  //            ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'new'.
 
   context(.getter);
-  //      ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //       ^
+  //       ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'getter'.
   contextAlias(.getter);
-  //           ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //            ^
+  //            ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'getter'.
 
   context(.method());
   //       ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'method'.
   contextAlias(.method());
   //            ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'method'.
 
   context(.named());
   //       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'named'.
   contextAlias(.named());
   //            ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'named'.
 
   context(Public_C()); // But this is OK.

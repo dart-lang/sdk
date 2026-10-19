@@ -38,7 +38,7 @@ class AstResolver {
   final TypeAnalyzer _typeAnalyzer;
 
   /// Creates a resolver for a unit of a library being analyzed.
-  factory AstResolver.forLibraryAnalysis({
+  factory forLibraryAnalysis({
     required InheritanceManager3 inheritance,
     required LibraryFragmentImpl libraryFragment,
     required AnalysisOptions analysisOptions,
@@ -67,7 +67,7 @@ class AstResolver {
   /// Creates a resolver for AST nodes that the summary linker resolves.
   ///
   /// Diagnostics are not reported.
-  factory AstResolver.forLinking({
+  factory forLinking({
     required InheritanceManager3 inheritance,
     required LibraryFragmentImpl libraryFragment,
     required Scope nameScope,
@@ -94,23 +94,17 @@ class AstResolver {
     );
   }
 
-  AstResolver._({
-    required LibraryFragmentImpl libraryFragment,
-    required InterfaceElementImpl? enclosingClassElement,
-    required ExecutableElementImpl? enclosingExecutableElement,
-    required TestingData? testingData,
-    required ScopeAnalyzer scopeAnalyzer,
-    required FlowAnalysisHelper flowAnalysis,
-    required TypeAnalyzer typeAnalyzer,
-  }) : _libraryFragment = libraryFragment,
-       _enclosingClassElement = enclosingClassElement,
-       _enclosingExecutableElement = enclosingExecutableElement,
-       _testingData = testingData,
-       _scopeAnalyzer = scopeAnalyzer,
-       _flowAnalysis = flowAnalysis,
-       _typeAnalyzer = typeAnalyzer;
+  new _({
+    required this._libraryFragment,
+    required this._enclosingClassElement,
+    required this._enclosingExecutableElement,
+    required this._testingData,
+    required this._scopeAnalyzer,
+    required this._flowAnalysis,
+    required this._typeAnalyzer,
+  });
 
-  factory AstResolver._create({
+  factory _create({
     required InheritanceManager3 inheritance,
     required LibraryFragmentImpl libraryFragment,
     required Scope nameScope,
@@ -301,7 +295,7 @@ class AstResolver {
   /// If resolving the initializer of a non-late instance field, there
   /// might be [inScopePrimaryConstructorParameters].
   ExpressionImpl resolveVariableInitializer(
-    VariableDeclarationImpl node, {
+    VariableBindingImpl node, {
     required TypeImpl contextType,
     required List<FormalParameterElementImpl>?
     inScopePrimaryConstructorParameters,

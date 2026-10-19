@@ -59,9 +59,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -94,7 +94,7 @@ BlockFunctionBody
   keyword: async
   block: Block
     leftBracket: {
-    statements
+    statements2
       ForStatement
         awaitKeyword: await
         forKeyword: for
@@ -118,7 +118,7 @@ BlockFunctionBody
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: Stream<int>
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
           rightBracket: }
       ExpressionStatement
@@ -171,9 +171,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: num
@@ -241,7 +241,7 @@ ForStatement
       typeArgumentTypes
         Iterable<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -280,7 +280,7 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -320,9 +320,9 @@ ForStatement
       element: <null>
       staticType: InvalidType
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -374,9 +374,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Iterable<int>?
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -428,9 +428,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Object
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -481,7 +481,7 @@ ForStatement
       superKeyword: super
       staticType: A
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -521,9 +521,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -588,7 +588,7 @@ ForStatement
       typeArgumentTypes
         Iterable<Object?>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -626,9 +626,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Iterable<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -677,9 +677,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -711,7 +711,7 @@ void f(List<int> x, int i) {
 BlockFunctionBody
   block: Block
     leftBracket: {
-    statements
+    statements2
       ForStatement
         forKeyword: for
         leftParenthesis: (
@@ -734,7 +734,7 @@ BlockFunctionBody
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: List<int>
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
           rightBracket: }
       ExpressionStatement
@@ -789,17 +789,17 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+    statements2
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: i
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@61
                 element: hasImplicitType isPublic
@@ -813,6 +813,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: i
+          element: i@61
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: i
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic i@61
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: i
           element: i@61
           staticType: String
@@ -854,9 +874,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::i
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: i
@@ -906,9 +926,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: num
@@ -976,9 +996,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -1050,7 +1070,7 @@ ForStatement
       element: <testLibrary>::@class::C::@setter::x
       staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1109,7 +1129,7 @@ ForStatement
       element: <testLibrary>::@setter::x
       staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1151,9 +1171,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: v
@@ -1205,7 +1225,7 @@ ForStatement
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1226,7 +1246,7 @@ void f(dynamic v, List<int> values) {
 BlockFunctionBody
   block: Block
     leftBracket: {
-    statements
+    statements2
       ForStatement
         forKeyword: for
         leftParenthesis: (
@@ -1253,9 +1273,9 @@ BlockFunctionBody
             element: <testLibrary>::@function::f::@formalParameter::v
             staticType: dynamic
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: UnqualifiedNameExpression
                 name: v
@@ -1323,17 +1343,17 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+    statements2
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: v
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: isPublic v@68
@@ -1348,6 +1368,27 @@ ForStatement
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
+          token: v
+          element: v@68
+          staticType: int
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: v
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+                staticType: int
+              declaredFragment: isPublic v@68
+                element: hasImplicitType isPublic
+                  type: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: v
           element: v@68
           staticType: int
@@ -1391,7 +1432,7 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1459,9 +1500,9 @@ ForStatement
       typeArgumentTypes
         Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1532,9 +1573,9 @@ ForStatement
       typeArgumentTypes
         Stream<Object?>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1589,9 +1630,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1648,9 +1689,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1705,9 +1746,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1757,7 +1798,7 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1801,9 +1842,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1862,9 +1903,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1897,7 +1938,7 @@ BlockFunctionBody
   keyword: async
   block: Block
     leftBracket: {
-    statements
+    statements2
       ForStatement
         awaitKeyword: await
         forKeyword: for
@@ -1926,7 +1967,7 @@ BlockFunctionBody
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: Stream<int>
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
           rightBracket: }
       ExpressionStatement
@@ -1987,17 +2028,17 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+    statements2
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: a
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@67
@@ -2012,6 +2053,27 @@ ForStatement
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
+          token: a
+          element: a@67
+          staticType: int
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: a
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: isPublic a@67
+                element: hasImplicitType isPublic
+                  type: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: a
           element: a@67
           staticType: int
@@ -2059,9 +2121,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: x
@@ -2133,9 +2195,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -2207,9 +2269,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -2283,7 +2345,7 @@ ForStatement
       typeArgumentTypes
         Iterable<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2342,7 +2404,7 @@ ForStatement
       typeArgumentTypes
         Iterable<Object?>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2385,9 +2447,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -2441,9 +2503,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -2492,7 +2554,7 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2537,9 +2599,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -2594,7 +2656,7 @@ ForStatement
       superKeyword: super
       staticType: A
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2637,9 +2699,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -2697,9 +2759,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -2731,7 +2793,7 @@ void f(List<int> x, int a) {
 BlockFunctionBody
   block: Block
     leftBracket: {
-    statements
+    statements2
       ForStatement
         forKeyword: for
         leftParenthesis: (
@@ -2759,7 +2821,7 @@ BlockFunctionBody
             element: <testLibrary>::@function::f::@formalParameter::x
             staticType: List<int>
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
           rightBracket: }
       ExpressionStatement
@@ -2819,17 +2881,17 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+    statements2
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: a
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: isPublic a@53
@@ -2844,6 +2906,27 @@ ForStatement
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
+          token: a
+          element: a@53
+          staticType: int
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: a
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: isPublic a@53
+                element: hasImplicitType isPublic
+                  type: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: a
           element: a@53
           staticType: int
@@ -2890,9 +2973,9 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: x
@@ -2926,18 +3009,30 @@ void f(int i) {
 BlockFunctionBody
   block: Block
     leftBracket: {
-    statements
+    statements2
       ForStatement
         forKeyword: for
         leftParenthesis: (
         forLoopParts: ForPartsWithDeclarations
-          variables: VariableDeclarationList
+          variables2: LocalVariablesDeclaration
+            constFinalOrVarKeyword: var
+            variables
+              LocalVariable
+                name: i
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+                  staticType: int
+                declaredFragment: isPublic i@27
+                  element: hasImplicitType isPublic
+                    type: int
+          variables(v1): VariableDeclarationList
             keyword: var
             variables
               VariableDeclaration
                 name: i
                 equals: =
-                initializer2: IntegerLiteral
+                initializer: IntegerLiteral
                   literal: 0
                   staticType: int
                 declaredFragment: isPublic i@27
@@ -3003,7 +3098,7 @@ BlockFunctionBody
               element: dart:core::@class::num::@method::+
               staticType: int
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
           rightBracket: }
       ExpressionStatement
@@ -3038,13 +3133,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        LocalVariable
+          name: i
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+            staticType: int
+          declaredFragment: isPublic i@33
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
       keyword: var
       variables
         VariableDeclaration
           name: i
           equals: =
-          initializer2: IntegerLiteral
+          initializer: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@33
@@ -3110,17 +3217,17 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+    statements2
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: i
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@63
                 element: hasImplicitType isPublic
@@ -3134,6 +3241,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: i
+          element: i@63
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: i
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic i@63
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: i
           element: i@63
           staticType: String
@@ -3157,13 +3284,25 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        LocalVariable
+          name: i
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+            staticType: int
+          declaredFragment: isPublic i@22
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
       keyword: var
       variables
         VariableDeclaration
           name: i
           equals: =
-          initializer2: IntegerLiteral
+          initializer: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
@@ -3229,9 +3368,9 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: i
@@ -3265,19 +3404,28 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
-      keyword: var
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
       variables
-        VariableDeclaration
+        LocalVariable
           name: i
           equals: =
-          initializer2: UnqualifiedNameExpression
+          initializer: UnqualifiedNameExpression
             name: i
             resolution: VariableReadResolution
               element: i@27
               type: dynamic
             staticType: dynamic
-          initializer(v1): SimpleIdentifier
+          declaredFragment: isPublic i@27
+            element: hasImplicitType isPublic
+              type: dynamic
+    variables(v1): VariableDeclarationList
+      keyword: var
+      variables
+        VariableDeclaration
+          name: i
+          equals: =
+          initializer: SimpleIdentifier
             token: i
             element: i@27
             staticType: dynamic
@@ -3344,7 +3492,7 @@ ForStatement
         element: <null>
         staticType: dynamic
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -3363,19 +3511,28 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
-      keyword: var
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
       variables
-        VariableDeclaration
+        LocalVariable
           name: i2
           equals: =
-          initializer2: UnqualifiedNameExpression
+          initializer: UnqualifiedNameExpression
             name: i
             resolution: VariableReadResolution
               element: <testLibrary>::@function::f::@formalParameter::i
               type: int
             staticType: int
-          initializer(v1): SimpleIdentifier
+          declaredFragment: isPublic i2@27
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
+      keyword: var
+      variables
+        VariableDeclaration
+          name: i2
+          equals: =
+          initializer: SimpleIdentifier
             token: i
             element: <testLibrary>::@function::f::@formalParameter::i
             staticType: int
@@ -3442,7 +3599,7 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -3461,13 +3618,37 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForPartsWithDeclarations
-    variables: VariableDeclarationList
+    variables2: LocalVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        LocalVariable
+          name: i
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+            staticType: int
+          declaredFragment: isPublic i@22
+            element: hasImplicitType isPublic
+              type: int
+        LocalVariable
+          name: j
+          equals: =
+          initializer: UnqualifiedNameExpression
+            name: i
+            resolution: VariableReadResolution
+              element: i@22
+              type: int
+            staticType: int
+          declaredFragment: isPublic j@29
+            element: hasImplicitType isPublic
+              type: int
+    variables(v1): VariableDeclarationList
       keyword: var
       variables
         VariableDeclaration
           name: i
           equals: =
-          initializer2: IntegerLiteral
+          initializer: IntegerLiteral
             literal: 0
             staticType: int
           declaredFragment: isPublic i@22
@@ -3476,13 +3657,7 @@ ForStatement
         VariableDeclaration
           name: j
           equals: =
-          initializer2: UnqualifiedNameExpression
-            name: i
-            resolution: VariableReadResolution
-              element: i@22
-              type: int
-            staticType: int
-          initializer(v1): SimpleIdentifier
+          initializer: SimpleIdentifier
             token: i
             element: i@22
             staticType: int
@@ -3549,7 +3724,7 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -3600,7 +3775,7 @@ ForStatement
       staticType: bool
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -3640,9 +3815,9 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -3736,17 +3911,17 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+    statements2
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: i
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic i@56
                 element: hasImplicitType isPublic
@@ -3760,6 +3935,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: i
+          element: i@56
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: i
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic i@56
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: i
           element: i@56
           staticType: String
@@ -3797,7 +3992,7 @@ ForStatement
         superKeyword: super
         staticType: A
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -3918,9 +4113,9 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -4050,9 +4245,9 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -4082,7 +4277,7 @@ void f((int, bool) x, int a) {
 BlockFunctionBody
   block: Block
     leftBracket: {
-    statements
+    statements2
       ForStatement
         forKeyword: for
         leftParenthesis: (
@@ -4164,7 +4359,7 @@ BlockFunctionBody
               element: dart:core::@class::num::@method::-
               staticType: int
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
           rightBracket: }
       ExpressionStatement
@@ -4276,17 +4471,17 @@ ForStatement
         element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
-      VariableDeclarationStatement
-        variables: VariableDeclarationList
-          keyword: var
+    statements2
+      LocalVariablesDeclarationStatement
+        declaration: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
           variables
-            VariableDeclaration
+            LocalVariable
               name: a
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'a'
               declaredFragment: isPublic a@65
                 element: hasImplicitType isPublic
@@ -4300,6 +4495,26 @@ ForStatement
             type: String
           staticType: String
         expression(v1): SimpleIdentifier
+          token: a
+          element: a@65
+          staticType: String
+        semicolon: ;
+    statements(v1)
+      VariableDeclarationStatement
+        variables: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: a
+              equals: =
+              initializer: SimpleStringLiteral
+                literal: 'a'
+              declaredFragment: isPublic a@65
+                element: hasImplicitType isPublic
+                  type: String
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
           token: a
           element: a@65
           staticType: String
@@ -4400,9 +4615,9 @@ ForStatement
         element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: x
@@ -4512,9 +4727,9 @@ ForStatement
         element: dart:core::@class::num::@method::-
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -4634,7 +4849,7 @@ ForStatement
         element: <null>
         staticType: InvalidType
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -4735,9 +4950,9 @@ ForStatement
         element: dart:core::@class::num::@method::+
         staticType: int
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a

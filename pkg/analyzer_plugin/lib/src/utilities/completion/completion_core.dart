@@ -21,7 +21,7 @@ class CompletionCollectorImpl implements CompletionCollector {
   List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   /// Initialize a newly created completion collector.
-  CompletionCollectorImpl();
+  new();
 
   /// Return the length of the region of text that should be replaced by the
   /// selected completion suggestion, or `null` if the length has not been set.
@@ -74,7 +74,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
   bool _aborted = false;
 
   /// Initialize a newly created request.
-  DartCompletionRequestImpl(this.resourceProvider, this.offset, this.result);
+  new(this.resourceProvider, this.offset, this.result);
 
   /// Abort the current completion request.
   void abort() {

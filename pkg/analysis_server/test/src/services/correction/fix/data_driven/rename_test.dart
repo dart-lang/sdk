@@ -1785,6 +1785,44 @@ import '$importUri' as p;
 int f() => p.New;
 ''');
   }
+
+  Future<void> test_toTopLevel_withPrefix_removed_read() async {
+    setPackageContent('''
+int New = 1;
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+int f() => p.Old;
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+int f() => p.New;
+''');
+  }
+
+  Future<void> test_toTopLevel_withPrefix_removed_write() async {
+    setPackageContent('''
+int New = 1;
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.Old = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.New = 0;
+}
+''');
+  }
 }
 
 @reflectiveTest

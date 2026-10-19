@@ -144,7 +144,7 @@ ForStatement
       element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -219,7 +219,7 @@ f() {
   ''.stringExt2;
   _.a;
 //^
-// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 }
 ''');
   }

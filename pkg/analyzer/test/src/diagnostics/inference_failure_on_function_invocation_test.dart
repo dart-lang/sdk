@@ -242,6 +242,45 @@ void f(C c) {
 ''');
   }
 
+  test_topLevelFunction_ambiguousImport_noInference() async {
+    newFile('$testPackageLibPath/a1.dart', '''
+void f<T>() {}
+''');
+    newFile('$testPackageLibPath/a2.dart', '''
+void f<T>() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a1.dart';
+import 'a2.dart';
+void g() {
+  f();
+//^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'f' can't be inferred.
+// [diag.ambiguousImport] The name 'f' is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+}
+''');
+  }
+
+  test_topLevelFunction_ambiguousImport_optionalTypeArgs() async {
+    newFile('$testPackageLibPath/a1.dart', '''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+void f<T>() {}
+''');
+    newFile('$testPackageLibPath/a2.dart', '''
+void f<T>() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a1.dart';
+import 'a2.dart';
+void g() {
+  f();
+//^
+// [diag.ambiguousImport] The name 'f' is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+}
+''');
+  }
+
   test_topLevelFunction_noInference() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {}

@@ -36,9 +36,8 @@ void main() {
   // [cfe] No type was provided to find the dot shorthand 'regular'.
 
   UnnamedConstructor Function() ctorTearoff = .new;
-  //                                          ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                           ^
+  //                                           ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'new' isn't defined for the type 'UnnamedConstructor Function()'.
 
   Function abstractInstantiation = .new();

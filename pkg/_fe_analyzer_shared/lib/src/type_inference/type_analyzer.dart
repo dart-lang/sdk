@@ -26,10 +26,7 @@ class CaseDefaultInfo<
   @override
   final int endAlternativeOffset;
 
-  CaseDefaultInfo({
-    this.beginAlternativeOffset = 0,
-    this.endAlternativeOffset = 0,
-  });
+  new({this.beginAlternativeOffset = 0, this.endAlternativeOffset = 0});
 
   @override
   Null get guard => null;
@@ -70,7 +67,7 @@ class CaseHeadInfo<
   @override
   final int endAlternativeOffset;
 
-  CaseHeadInfo({
+  new({
     required this.pattern,
     required this.variables,
     this.guard,
@@ -130,7 +127,7 @@ enum JoinedPatternVariableInconsistency {
 
   final int _severity;
 
-  const JoinedPatternVariableInconsistency(this._severity);
+  new(this._severity);
 
   /// Returns the most serious inconsistency for `this` or [other].
   JoinedPatternVariableInconsistency maxWith(
@@ -164,7 +161,7 @@ class MapPatternEntry<Expression extends Object, Pattern extends Object> {
   final Expression key;
   final Pattern value;
 
-  MapPatternEntry({required this.key, required this.value});
+  new({required this.key, required this.value});
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeObjectPattern],
@@ -182,11 +179,7 @@ class RecordPatternField<Node extends Object, Pattern extends Object> {
   final String? name;
   final Pattern pattern;
 
-  RecordPatternField({
-    required this.node,
-    required this.name,
-    required this.pattern,
-  });
+  new({required this.node, required this.name, required this.pattern});
 }
 
 /// Kinds of relational pattern operators that shared analysis needs to
@@ -208,7 +201,7 @@ class RelationalOperatorResolution {
   final SharedTypeView parameterType;
   final SharedTypeView returnType;
 
-  RelationalOperatorResolution({
+  new({
     required this.kind,
     required this.parameterType,
     required this.returnType,
@@ -239,7 +232,7 @@ class SwitchExpressionMemberInfo<
   /// best choice.
   final int endAlternativeOffset;
 
-  SwitchExpressionMemberInfo({
+  new({
     required this.head,
     required this.expression,
     this.beginAlternativeOffset = 0,
@@ -286,7 +279,7 @@ class SwitchStatementMemberInfo<
   /// if there are no more branches).
   final int endOffset;
 
-  SwitchStatementMemberInfo({
+  new({
     required this.heads,
     required this.body,
     required this.variables,
@@ -3575,7 +3568,7 @@ class TypeAnalyzerOptions {
 
   final bool promotionChainIntersectionJoinEnabled;
 
-  TypeAnalyzerOptions({
+  new({
     required this.patternsEnabled,
     required this.inferenceUpdate3Enabled,
     required this.respectImplicitlyTypedVarInitializers,

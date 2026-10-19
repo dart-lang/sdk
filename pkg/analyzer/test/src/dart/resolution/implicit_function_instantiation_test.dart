@@ -375,19 +375,15 @@ ExpressionFunctionBody
 T id<T>(T value) => value;
 var f = id;
 ''');
-    assertResolvedNodeText(result.findNode.variableDeclaration('f ='), r'''
-VariableDeclaration
+    assertResolvedNodeText(result.findNode.topLevelVariable('f ='), r'''
+TopLevelVariable
   name: f
   equals: =
-  initializer2: UnqualifiedNameExpression
+  initializer: UnqualifiedNameExpression
     name: id
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@function::id
       type: T Function<T>(T)
-    staticType: T Function<T>(T)
-  initializer(v1): SimpleIdentifier
-    token: id
-    element: <testLibrary>::@function::id
     staticType: T Function<T>(T)
   declaredFragment: <testLibraryFragment> f@31
 ''');

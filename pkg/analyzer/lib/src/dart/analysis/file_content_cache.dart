@@ -16,22 +16,22 @@ class FileContent {
   final String content;
   final String contentHash;
 
-  FileContent._(this.path, this.exists, this.content, this.contentHash);
+  new _(this.path, this.exists, this.content, this.contentHash);
 }
 
 /// The cache of information about content of files.
 abstract class FileContentCache {
   final ResourceProvider _resourceProvider;
 
-  factory FileContentCache(ResourceProvider resourceProvider) {
+  factory(ResourceProvider resourceProvider) {
     return _FileContentCacheImpl(resourceProvider);
   }
 
-  factory FileContentCache.ephemeral(ResourceProvider resourceProvider) {
+  factory ephemeral(ResourceProvider resourceProvider) {
     return _FileContentCacheEphemeral(resourceProvider);
   }
 
-  FileContentCache._(this._resourceProvider);
+  new _(this._resourceProvider);
 
   /// Return the content of the file with the given [path].
   FileContent get(String path);
@@ -64,7 +64,7 @@ abstract class FileContentCache {
 
 /// [FileContentCache] that caches never.
 class _FileContentCacheEphemeral extends FileContentCache {
-  _FileContentCacheEphemeral(super.resourceProvider) : super._();
+  new(super.resourceProvider) : super._();
 
   @override
   FileContent get(String path) {
@@ -76,7 +76,7 @@ class _FileContentCacheEphemeral extends FileContentCache {
 class _FileContentCacheImpl extends FileContentCache {
   final Map<String, FileContent> _pathToFile = {};
 
-  _FileContentCacheImpl(super.resourceProvider) : super._();
+  new(super.resourceProvider) : super._();
 
   @override
   FileContent get(String path) {

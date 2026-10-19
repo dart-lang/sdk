@@ -140,7 +140,7 @@ mixin _ObjectFieldMixin on _BaseStaticType {
 }
 
 abstract class _BaseStaticType implements StaticType {
-  const _BaseStaticType();
+  const new();
 
   @override
   bool get isRecord => false;
@@ -243,7 +243,7 @@ abstract class _BaseStaticType implements StaticType {
 }
 
 class _NonNullableObject extends _BaseStaticType with _ObjectFieldMixin {
-  const _NonNullableObject();
+  const new();
 
   @override
   bool get isSealed => false;
@@ -282,7 +282,7 @@ class _NonNullableObject extends _BaseStaticType with _ObjectFieldMixin {
 }
 
 class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
-  const _NeverType();
+  const new();
 
   @override
   bool get isSealed => false;
@@ -321,7 +321,7 @@ class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
 }
 
 class _NullType extends NullableStaticType with _ObjectFieldMixin {
-  const _NullType(super.underlying);
+  const new(super.underlying);
 
   @override
   bool get isSealed {
@@ -350,7 +350,7 @@ class _NullType extends NullableStaticType with _ObjectFieldMixin {
 class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
   final StaticType underlying;
 
-  const NullableStaticType(this.underlying);
+  const new(this.underlying);
 
   @override
   bool get isSealed => true;
@@ -446,7 +446,7 @@ class WrappedStaticType extends _BaseStaticType {
   final StaticType wrappedType;
   final StaticType impliedType;
 
-  WrappedStaticType(this.wrappedType, this.impliedType);
+  new(this.wrappedType, this.impliedType);
 
   @override
   Map<Key, StaticType> get fields => wrappedType.fields;

@@ -28,6 +28,14 @@ class ClientSideValidators {
     : _clientSupportsEcmaScriptRegex =
           clientCapabilities?.ecmaScriptRegex ?? false;
 
+  /// Validators for class names.
+  ///
+  /// These are based approximately on the Dart version in
+  /// [validateClassName].
+  List<StringValidator> get className {
+    return _upperCamelCase('Class name');
+  }
+
   /// Validators for constructor names.
   ///
   /// These are based approximately on the Dart version in
@@ -44,10 +52,15 @@ class ClientSideValidators {
     return _lowerCamelCase('Import prefix');
   }
 
-  List<StringValidator> _lowerCamelCase(
-    String desc, {
-    bool allowBuiltIn = false,
-  }) {
+  /// Validators for method names.
+  ///
+  /// These are based approximately on the Dart version in
+  /// [validateMethodName].
+  List<StringValidator> get methodName {
+    return _lowerCamelCase('Method name', allowBuiltIn: true);
+  }
+
+  List<StringValidator> _identifier(String desc, {bool allowBuiltIn = false}) {
     // All of these validators are currently ECMAScript regexes.
     if (!_clientSupportsEcmaScriptRegex) return [];
 
@@ -90,9 +103,39 @@ class ClientSideValidators {
         matchIsValid: false,
         severity: allowBuiltIn ? .Warning : .Error,
       ),
+    ];
+  }
+
+  List<StringValidator> _lowerCamelCase(
+    String desc, {
+    bool allowBuiltIn = false,
+  }) {
+    // All of these validators are currently ECMAScript regexes.
+    if (!_clientSupportsEcmaScriptRegex) return [];
+
+    return [
+      ..._identifier(desc, allowBuiltIn: allowBuiltIn),
       RegexValidator(
         pattern: r'^[a-z_]',
         message: '$desc should begin with a lowercase letter or underscore.',
+        matchIsValid: true,
+        severity: .Warning,
+      ),
+    ];
+  }
+
+  List<StringValidator> _upperCamelCase(
+    String desc, {
+    bool allowBuiltIn = false,
+  }) {
+    // All of these validators are currently ECMAScript regexes.
+    if (!_clientSupportsEcmaScriptRegex) return [];
+
+    return [
+      ..._identifier(desc, allowBuiltIn: allowBuiltIn),
+      RegexValidator(
+        pattern: r'^[A-Z_]',
+        message: '$desc should begin with an uppercase letter or underscore.',
         matchIsValid: true,
         severity: .Warning,
       ),

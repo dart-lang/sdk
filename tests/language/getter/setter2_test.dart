@@ -79,7 +79,7 @@ main() {
   // Type 'A' has no method named 'b'
   instance1.field.b();
   //              ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'b' isn't defined for the type 'A'.
 
   instance3.field = new B();

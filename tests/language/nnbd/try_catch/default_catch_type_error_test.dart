@@ -6,7 +6,7 @@ void main() {
   try {} catch (error) {
     error.notAMethodOnObject();
     //    ^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'notAMethodOnObject' isn't defined for the type 'Object'.
     _takesObject(error);
   }

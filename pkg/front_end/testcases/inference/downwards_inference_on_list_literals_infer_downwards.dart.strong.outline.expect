@@ -1,8 +1,22 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:10:87: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+//     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42,
+//                                                                                       ^
+//
 import self as self;
 import "dart:core" as core;
 
-static method foo([has-declared-initializer core::List<core::String> list1, has-declared-initializer core::List<core::String> list2]) → void
+static method foo([core::List<core::String> list1 = const <core::String>[], core::List<core::String> list2 = const <core::String>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_list_literals_infer_downwards.dart:10:87: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
+    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ 42,
+                                                                                      ^" in 42 as{TypeError} core::String]]) → void
   ;
 static method test() → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///downwards_inference_on_list_literals_infer_downwards.dart:8:24 -> ListConstant(const <String>[])
+Extra constant evaluation: evaluated: 2, effectively constant: 1

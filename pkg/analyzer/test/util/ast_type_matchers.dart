@@ -155,7 +155,7 @@ const isLiteral = TypeMatcher<Literal>();
 
 const isMapLiteralEntry = TypeMatcher<MapLiteralEntry>();
 
-const isMethodDeclaration = TypeMatcher<MethodDeclaration>();
+const isMethodDeclaration2 = TypeMatcher<MethodDeclaration2>();
 
 const isMethodReferenceExpression = TypeMatcher<MethodReferenceExpression>();
 

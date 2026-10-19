@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateConstructorMixinTest extends FixProcessorTest {
+class CreateConstructorMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createConstructor;
 
@@ -33,7 +33,7 @@ void f() {
 }
 
 @reflectiveTest
-class CreateConstructorTest extends FixProcessorTest {
+class CreateConstructorTest extends FixProcessorForBuiltInDiagnosticTest {
   static final _text200 = 'x' * 200;
 
   @override

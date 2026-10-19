@@ -5,6 +5,8 @@
 // This test validates integration of "why not promoted" when the user tries to
 // promote `this`.
 
+// @dart=3.14
+
 // TODO(paulberry): once we support adding "why not promoted" information to
 // errors that aren't related to null safety, test references to `this` in
 // classes and mixins.

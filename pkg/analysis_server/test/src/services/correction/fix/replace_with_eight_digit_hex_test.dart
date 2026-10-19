@@ -45,7 +45,7 @@ class Color {
 }
 
 @reflectiveTest
-class ReplaceWithEightDigitHexTest extends FixProcessorLintTest {
+class ReplaceWithEightDigitHexTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithEightDigitHex;
 

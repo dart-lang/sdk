@@ -768,8 +768,7 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -803,8 +802,7 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -982,8 +980,7 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
@@ -1019,8 +1016,7 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
@@ -1042,8 +1038,8 @@ class C { }
 
 void main() {
   C Function() c = .member;
-//                 ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//                  ^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'C Function()' doesn't have static members or constructors.
   print(c);
 }
 ''');
@@ -1055,6 +1051,39 @@ DotShorthandNameExpression
   name: member
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: C Function()
+    lookupType: C Function()
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_context_invalid_futureOr() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class C {}
+
+FutureOr<C Function()> f() => .member;
+//                             ^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'FutureOr<C Function()>' doesn't have static members or constructors.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: member
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<C Function()>
+    lookupType: C Function()
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1083,8 +1112,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1105,7 +1133,7 @@ class C { }
 void main() {
   C c = .getter;
 //       ^^^^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'getter' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'getter'.
   print(c);
 }
 ''');
@@ -1140,7 +1168,7 @@ class C {
 void main() {
   C c = .new;
 //       ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'new' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'new'.
   print(c);
 }
 ''');
@@ -1175,7 +1203,7 @@ class C {
 void main() {
   C c = .value;
 //       ^^^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'value' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadSetterOnly] There's a static setter 'value' in the class 'C', but no getter.
   print(c);
 }
 ''');
@@ -1844,8 +1872,7 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        shorthandContext: InvalidDotShorthandContextResolution
-          contextType: null
+        shorthandContext: MissingDotShorthandContextResolution
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
         staticType: InvalidType
@@ -1918,8 +1945,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1957,8 +1983,7 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        shorthandContext: InvalidDotShorthandContextResolution
-          contextType: null
+        shorthandContext: MissingDotShorthandContextResolution
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
         staticType: InvalidType
@@ -2030,8 +2055,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2060,8 +2084,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2074,6 +2098,8 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -2085,6 +2111,46 @@ V1: DotShorthandPropertyAccess
     element: <null>
     staticType: InvalidType
   correspondingParameter: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_privateClass_otherLibrary_futureOr() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _Private {
+  static _Private get getter => _Private();
+}
+
+typedef Public = _Private;
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+import 'a.dart';
+
+FutureOr<Public> f() => .getter;
+//                       ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: getter
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<_Private>
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: getter
+    element: <null>
+    staticType: InvalidType
   staticType: InvalidType
 ''');
   }
@@ -2145,8 +2211,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .two;
-//    ^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2158,6 +2224,8 @@ DotShorthandNameExpression
   name: two
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2230,8 +2298,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2243,6 +2311,8 @@ DotShorthandNameExpression
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2318,8 +2388,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2331,6 +2401,8 @@ DotShorthandNameExpression
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2594,8 +2666,9 @@ class C {}
 
 C Function() f() => .new<int>;
 //                  ^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+//                   ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'C Function()' doesn't have static members or constructors.
 ''');
     var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
@@ -2605,6 +2678,7 @@ FunctionInstantiation
     name: new
     shorthandContext: InvalidDotShorthandContextResolution
       contextType: C Function()
+      lookupType: C Function()
     resolution: InvalidNamedReadResolution
       recoveryElement: <null>
     staticType: InvalidType
@@ -2707,7 +2781,7 @@ V1: FunctionReference
     var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => .foo;
 //          ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;
@@ -2735,7 +2809,7 @@ V1: DotShorthandPropertyAccess
     var result = await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == .foo;
 //                     ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;

@@ -29,6 +29,11 @@ platforms:
   - chrome
   - vm
 
+override_platforms:
+  chrome:
+    settings:
+      arguments: --no-sandbox
+
 compilers:
  - dart2wasm
  - kernel

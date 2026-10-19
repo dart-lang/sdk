@@ -483,6 +483,9 @@ InterfaceType interfaceTypeWithDefaultBounds(
   return InterfaceType(
     cls,
     nullability,
-    DartTypeList.mapped(cls.typeParameters, (p) => p.defaultType),
+    DartTypeList.mapped(
+      cls.typeParameters,
+      (p) => p.defaultType.extensionTypeErasure,
+    ),
   );
 }

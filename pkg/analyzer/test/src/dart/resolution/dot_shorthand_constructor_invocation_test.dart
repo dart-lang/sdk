@@ -1540,8 +1540,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1583,8 +1582,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1736,8 +1734,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1780,8 +1777,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2734,8 +2730,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2776,8 +2771,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2829,6 +2823,8 @@ DotShorthandConstructorInvocation2
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
   element: <null>
   correspondingParameter: <null>
   staticType: dynamic
@@ -2865,7 +2861,7 @@ void main() {
 //    ^^^^^^^^^^^^^^^^^^^^^
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //                 ^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unknown'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'unknown'.
   print(x);
 }
 ''');
@@ -2888,6 +2884,8 @@ DotShorthandConstructorInvocation2
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   element: <null>
   correspondingParameter: <null>
@@ -3143,8 +3141,7 @@ DotShorthandConstructorInvocation2
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   element: <null>
   staticType: dynamic
 V1: DotShorthandConstructorInvocation

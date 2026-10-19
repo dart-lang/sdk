@@ -4910,43 +4910,6 @@ DEFINE_EMIT(Simd32x4ToSimd32x4Conversion, (SameAsFirstInput, QRegister left)) {
   // code generation.
 }
 
-DEFINE_EMIT(
-    Float32x4Clamp,
-    (QRegister result, QRegister left, QRegister lower, QRegister upper)) {
-  __ vminqs(result, left, upper);
-  __ vmaxqs(result, result, lower);
-}
-
-DEFINE_EMIT(Float64x2Clamp,
-            (QRegisterView result,
-             QRegisterView left,
-             QRegisterView lower,
-             QRegisterView upper)) {
-  compiler::Label done0, done1;
-  // result = max(min(left, upper), lower) |
-  //          lower if (upper is NaN || left is NaN) |
-  //          upper if lower is NaN
-  __ vcmpd(left.d(0), upper.d(0));
-  __ vmstat();
-  __ vmovd(result.d(0), upper.d(0), GE);
-  __ vmovd(result.d(0), left.d(0), LT);  // less than or unordered(NaN)
-  __ b(&done0, VS);                      // at least one argument was NaN
-  __ vcmpd(result.d(0), lower.d(0));
-  __ vmstat();
-  __ vmovd(result.d(0), lower.d(0), LE);
-  __ Bind(&done0);
-
-  __ vcmpd(left.d(1), upper.d(1));
-  __ vmstat();
-  __ vmovd(result.d(1), upper.d(1), GE);
-  __ vmovd(result.d(1), left.d(1), LT);  // less than or unordered(NaN)
-  __ b(&done1, VS);                      // at least one argument was NaN
-  __ vcmpd(result.d(1), lower.d(1));
-  __ vmstat();
-  __ vmovd(result.d(1), lower.d(1), LE);
-  __ Bind(&done1);
-}
-
 // Low (< 7) Q registers are needed for the vmovs instruction.
 // TODO(dartbug.com/30953) support register range constraints in the regalloc.
 DEFINE_EMIT(Float32x4With,
@@ -5355,8 +5318,6 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Float32x4ToInt32x4)                                                     \
   CASE(Int32x4ToFloat32x4)                                                     \
   ____(Simd32x4ToSimd32x4Conversion)                                           \
-  SIMPLE(Float32x4Clamp)                                                       \
-  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \

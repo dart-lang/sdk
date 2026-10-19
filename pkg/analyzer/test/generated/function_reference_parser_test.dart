@@ -278,7 +278,7 @@ V1: FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedTypeArguments
@@ -316,7 +316,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -361,7 +361,7 @@ V1: InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.foo<c>();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedTypeArguments
@@ -419,7 +419,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f<a, b>.hashCode;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedTypeArguments
@@ -492,7 +492,7 @@ var x = f(a<b,c>&d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -550,7 +550,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > as);
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -601,7 +601,7 @@ var x = f(a<b,c>*d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -659,7 +659,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > ![d]);
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -720,7 +720,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > !(d));
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -781,7 +781,7 @@ var x = f(a<b,c>|d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -841,7 +841,7 @@ var x = f(a<b,c>^d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -901,7 +901,7 @@ var x = f(a<b,c> is int);
 //               ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -962,7 +962,7 @@ var x = f<a><b>;
 //             ^
 // [diag.expectedToken] Expected to find '['.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: BinaryOperatorInvocation
@@ -1007,7 +1007,7 @@ V1: BinaryExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > -d);
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1061,7 +1061,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > [d]);
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1120,7 +1120,7 @@ var x = f(a<b,c>[d]>e);
 //                 ^
 // [diag.equalityCannotBeEqualityOperand] A comparison expression can't be an operand of another comparison expression.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1186,7 +1186,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f(a < b, c > [d, e]);
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1249,7 +1249,7 @@ var x = f(a<b,c>%d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1379,7 +1379,7 @@ var x = f(a<b,c>+d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1439,7 +1439,7 @@ var x = f(a<b,c> ? null : null);
 //               ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1712,7 +1712,7 @@ var x = f(a<b,c>?.hashCode);
 //              ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1770,7 +1770,7 @@ var x = f(a<b,c> ?? d);
 //               ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1829,7 +1829,7 @@ var x = f(a<b,c>/d);
 //              ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1889,7 +1889,7 @@ var x = f(a<b,c>~/d);
 //              ^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedUnqualifiedName
@@ -1947,7 +1947,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
   operand: ReceiverIndexExpression
@@ -1988,7 +1988,7 @@ V1: FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]!<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
   operand: NullAssertionExpression
@@ -2033,7 +2033,7 @@ V1: FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x[0]()<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
   operand: CallInvocation
@@ -2082,7 +2082,7 @@ V1: FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = x?[0]<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
   operand: ReceiverIndexExpression
@@ -2125,7 +2125,7 @@ V1: FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = f().m<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
   operand: ParsedNameAccess
@@ -2174,7 +2174,7 @@ var x = f()..m<a, b>;
     var node = parseResult.findNode.singleCascadeExpression.sections[0].body;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
-  operand: ParsedCascadeName
+  operand: CascadePropertyExtraction
     name: m
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -2204,7 +2204,7 @@ V1: FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.f<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
   operand: ParsedNameAccess
@@ -2242,7 +2242,7 @@ V1: FunctionReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.ClassName.m<a, b>;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
   operand: ParsedNameAccess

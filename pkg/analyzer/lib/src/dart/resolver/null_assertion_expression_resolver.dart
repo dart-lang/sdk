@@ -15,7 +15,7 @@ import 'package:analyzer/src/error/listener.dart';
 class NullAssertionExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  NullAssertionExpressionResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 

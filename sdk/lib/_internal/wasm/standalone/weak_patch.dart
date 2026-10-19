@@ -3,18 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_embedder';
-import 'dart:_internal' show patch, unsafeCast, checkValidWeakTarget;
+import 'dart:_internal'
+    show patch, unsafeCast, checkValidWeakTarget, dummyExternRef;
 import 'dart:_wasm';
 import 'dart:async';
 
 @patch
 class Expando<T extends Object> {
-  WasmExternRef? _expando = WasmExternRef.nullRef;
+  final WasmExternRef _expando = expandoCreate();
 
   @patch
-  Expando([String? name]) : name = name {
-    _expando = expandoCreate();
-  }
+  Expando([String? name]) : name = name;
 
   @patch
   T? operator [](Object object) {
@@ -51,11 +50,10 @@ class WeakReference<T extends Object> {
 
 final class _EmbedderWeakReference<T extends Object>
     implements WeakReference<T> {
-  WasmExternRef? _ref = WasmExternRef.nullRef;
+  final WasmExternRef _ref;
 
-  _EmbedderWeakReference(T target) {
-    _ref = weakRefCreate(WasmAnyRef.fromObject(target));
-  }
+  _EmbedderWeakReference(T target)
+    : _ref = weakRefCreate(WasmAnyRef.fromObject(target));
 
   @override
   T? get target {
@@ -73,7 +71,7 @@ class Finalizer<T> {
 
 final class _EmbedderFinalizer<T> implements Finalizer<T> {
   final void Function(T) _callback;
-  WasmExternRef? _finalizer = WasmExternRef.nullRef;
+  WasmExternRef _finalizer = dummyExternRef;
 
   _EmbedderFinalizer(void Function(T) callback)
     : _callback = Zone.current.bindUnaryCallback(callback) {

@@ -72,7 +72,7 @@ E foo(E e) {
 }
 
 @reflectiveTest
-class AddTypeNameTest extends FixProcessorTest {
+class AddTypeNameTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addTypeName;
 
@@ -97,7 +97,7 @@ void foo(E e) => foo(E.a);
     await resolveTestCode('''
 // @dart = 3.9
 
-// ignore: dot_shorthand_undefined_member
+// ignore: undefined_static_member_read
 void f(int Function(int) g) => f(.m());
 ''');
     await assertNoFix();
@@ -107,7 +107,7 @@ void f(int Function(int) g) => f(.m());
     await resolveTestCode('''
 // @dart = 3.9
 
-// ignore: dot_shorthand_undefined_member
+// ignore: undefined_static_member_read
 void f((int,) g) => f(.m());
 ''');
     await assertNoFix();

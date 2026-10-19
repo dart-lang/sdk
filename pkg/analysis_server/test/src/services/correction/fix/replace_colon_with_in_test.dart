@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceColonWithInTest extends FixProcessorTest {
+class ReplaceColonWithInTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceColonWithIn;
 

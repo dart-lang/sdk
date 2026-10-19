@@ -108,7 +108,7 @@ class CallbackSpecializer {
     );
     final castClosure = PositionalParameter(
       parameterName: 'castClosure',
-      type: _util.nonNullableObjectType,
+      type: _util.nonNullableWasmExternRefType,
       isSynthesized: true,
     );
 
@@ -188,7 +188,18 @@ class CallbackSpecializer {
           ExpressionStatement(
             FunctionInvocation(
               FunctionAccessKind.FunctionType,
-              VariableGet(castClosure),
+              StaticInvocation(
+                _util.unsafeCastOpaqueTarget,
+                Arguments(
+                  ExpressionList(
+                    StaticInvocation(
+                      _util.wasmInternalizeNonNullable,
+                      Arguments(ExpressionList(VariableGet(castClosure))),
+                    ),
+                  ),
+                  types: DartTypeList(_util.nonNullableObjectType),
+                ),
+              ),
               Arguments(ExpressionList.from(castClosureArguments)),
               functionType: null,
             ),

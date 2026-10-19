@@ -90,7 +90,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   final NodeListImpl<StringLiteralImpl> strings = NodeListImpl._();
 
   @generated
-  AdjacentStringsImpl({required List<StringLiteralImpl> strings}) {
+  new({required List<StringLiteralImpl> strings}) {
     this.strings._initialize(this, strings);
   }
 
@@ -113,7 +113,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNodeList('strings', strings);
@@ -124,7 +124,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
       ChildEntities()..addNodeList('strings', strings);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAdjacentStrings(this);
 
@@ -160,7 +160,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     strings.accept(visitor);
@@ -200,7 +200,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (strings._elementContainingRange(rangeOffset, rangeEnd)
@@ -252,14 +252,14 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the node
   /// doesn't have the corresponding attribute.
-  AnnotatedNodeImpl({
+  new({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
   }) {
     _initializeCommentAndAnnotations(comment, metadata);
   }
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -269,25 +269,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     _visitCommentAndAnnotations2(visitor);
-  }
-
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
-        false) {
-      return _documentationComment;
-    }
-    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
-        false) {
-      return _documentationComment;
-    }
-    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -317,7 +298,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
 abstract final class Annotation implements AstNode {
   /// The arguments to the constructor being invoked, or `null` if this
   /// annotation isn't the invocation of a constructor.
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   ArgumentList? get arguments;
 
   /// The at sign (`@`) that introduces the annotation.
@@ -325,14 +306,14 @@ abstract final class Annotation implements AstNode {
 
   /// The name of the constructor being invoked, or `null` if this annotation
   /// isn't the invocation of a named constructor.
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   SimpleIdentifier? get constructorName;
 
   /// The element associated with this annotation.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
-  @ToBeDeprecated('Use elementAnnotation.element, or expression instead.')
+  @V1Ast('The V2 counterpart is elementAnnotation.element, or expression.')
   Element? get element;
 
   /// The element annotation representing this annotation in the element model,
@@ -365,11 +346,11 @@ abstract final class Annotation implements AstNode {
   ///
   /// If a named constructor is being referenced, then the name of the
   /// constructor is available using [constructorName].
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   Identifier get name;
 
   @override
-  @ToBeDeprecated('Use parent2 instead')
+  @V1Ast('The V2 counterpart is parent2.')
   AstNode get parent;
 
   @experimental
@@ -378,7 +359,7 @@ abstract final class Annotation implements AstNode {
 
   /// The period before the constructor name, or `null` if this annotation isn't
   /// the invocation of a named constructor.
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   Token? get period;
 
   /// The type arguments to the constructor being invoked, or `null` if either
@@ -387,7 +368,7 @@ abstract final class Annotation implements AstNode {
   ///
   /// Note that type arguments are only valid if [Feature.generic_metadata] is
   /// enabled.
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   TypeArgumentList? get typeArguments;
 }
 
@@ -412,18 +393,18 @@ final class AnnotationImpl extends AstNodeImpl
 
   /// The legacy V1 children, derived from the tokens of [expression] when
   /// they are first observed.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   _AnnotationV1Children? _v1Children;
 
   @DoNotGenerate(
     reason: 'Wires a V2-only child in a node shared by both AST views',
   )
-  AnnotationImpl({required this.atSign, required ExpressionImpl expression})
+  new({required this.atSign, required ExpressionImpl expression})
     : _expression = expression {
     _becomeParentOf2(expression);
   }
 
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   @override
   ArgumentListImpl? get arguments {
     return _becomeParentOf1(_v1.arguments);
@@ -435,11 +416,11 @@ final class AnnotationImpl extends AstNodeImpl
     return atSign;
   }
 
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   @override
   SimpleIdentifierImpl? get constructorName => _v1.constructorName;
 
-  @ToBeDeprecated('Use elementAnnotation.element, or expression instead.')
+  @V1Ast('The V2 counterpart is elementAnnotation.element, or expression.')
   @override
   Element? get element => elementAnnotation?.element;
 
@@ -460,30 +441,30 @@ final class AnnotationImpl extends AstNodeImpl
     _expression = _becomeParentOf2(expression);
   }
 
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   @override
   IdentifierImpl get name => _v1.name;
 
   @override
-  @ToBeDeprecated('Use parent2 instead')
+  @V1Ast('The V2 counterpart is parent2.')
   AstNodeImpl get parent => super.parent!;
 
   @experimental
   @override
   AstNodeImpl get parent2 => super.parent2!;
 
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   @override
   Token? get period => _v1.period;
 
-  @ToBeDeprecated('Use expression instead.')
+  @V1Ast('The V2 counterpart is expression.')
   @override
   TypeArgumentListImpl? get typeArguments {
     return _becomeParentOf1(_v1.typeArguments);
   }
 
   @DoNotGenerate(reason: 'V1 projections expose the legacy child topology')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('atSign', atSign)
@@ -501,7 +482,7 @@ final class AnnotationImpl extends AstNodeImpl
 
   /// The legacy V1 children, with the elements of their identifiers
   /// updated from the current resolution of [expression].
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   _AnnotationV1Children get _v1 {
     var children = _v1Children ??= _AnnotationV1Children._of(this);
     children._updateElements(expression);
@@ -509,7 +490,7 @@ final class AnnotationImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnnotation(this);
 
@@ -538,7 +519,7 @@ final class AnnotationImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'V1 traverses the legacy child topology')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
@@ -577,7 +558,7 @@ final class AnnotationImpl extends AstNodeImpl
   /// A shared node inside [expression], such as the argument list, is moved
   /// between canonical V2 parents during resolution, which clears its V1
   /// parent; observing the V1 topology links it again.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   void _attachV1Children() {
     name;
     typeArguments;
@@ -586,7 +567,7 @@ final class AnnotationImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'V1 searches the legacy child topology')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -642,7 +623,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   BodyInferenceContext? bodyContext;
 
   @generated
-  AnonymousBlockBodyImpl({required BlockImpl block}) : _block = block {
+  new({required BlockImpl block}) : _block = block {
     _becomeParentOf12(block);
   }
 
@@ -668,7 +649,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addNode('block', block);
 
@@ -677,7 +658,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   ChildEntities get _childEntities2 => ChildEntities()..addNode('block', block);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAnonymousBlockBody(this);
 
@@ -711,7 +692,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
       typeAnalyzer.visitAnonymousBlockBody(this, imposedType: imposedType);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     block.accept(visitor);
@@ -743,7 +724,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (block._containsOffset(rangeOffset, rangeEnd)) {
@@ -769,7 +750,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
 @experimental
 abstract final class AnonymousExpressionBody implements AnonymousMethodBody {
   /// The body expression.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -800,10 +781,8 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   ExpressionImpl _expression2;
 
   @generated
-  AnonymousExpressionBodyImpl({
-    required this.functionDefinition,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.functionDefinition, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -820,7 +799,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -837,7 +816,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('functionDefinition', functionDefinition)
@@ -850,7 +829,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAnonymousExpressionBody(this);
@@ -885,7 +864,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
       typeAnalyzer.visitAnonymousExpressionBody(this, imposedType: imposedType);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -917,7 +896,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -989,7 +968,7 @@ abstract final class AnonymousMethodInvocation
   /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
-  @ToBeDeprecated('Use realTarget2 instead.')
+  @V1Ast('The V2 counterpart is realTarget2.')
   Expression get realTarget;
 
   /// The expression used to compute the receiver of the invocation.
@@ -1005,7 +984,7 @@ abstract final class AnonymousMethodInvocation
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   Expression? get target;
 
   @experimental
@@ -1045,7 +1024,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   LocalFunctionFragmentImpl? declaredFragment;
 
   @generated
-  AnonymousMethodInvocationImpl({
+  new({
     required ExpressionImpl? target2,
     required this.operator,
     required FormalParameterListImpl? parameters,
@@ -1118,7 +1097,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
-  @ToBeDeprecated('Use realTarget2 instead.')
+  @V1Ast('The V2 counterpart is realTarget2.')
   @override
   ExpressionImpl get realTarget {
     return V1Projection.toV1Expression(realTarget2);
@@ -1134,7 +1113,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   @override
   ExpressionImpl? get target => _becomeParentOf1(switch (target2) {
     var node? => V1Projection.toV1Expression(node),
@@ -1165,7 +1144,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -1182,7 +1161,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAnonymousMethodInvocation(this);
@@ -1235,7 +1214,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -1287,7 +1266,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -1330,7 +1309,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Argument implements AstNode {
   /// The expression that computes the value for this argument.
-  @ToBeDeprecated('Use argumentExpression2 instead.')
+  @V1Ast('The V2 counterpart is argumentExpression2.')
   Expression get argumentExpression;
 
   @experimental
@@ -1342,7 +1321,7 @@ sealed class Argument implements AstNode {
 }
 
 base mixin ArgumentImpl on AstNodeImpl implements Argument {
-  @ToBeDeprecated('Use argumentExpression2 instead.')
+  @V1Ast('The V2 counterpart is argumentExpression2.')
   @override
   ExpressionImpl get argumentExpression;
 
@@ -1373,7 +1352,7 @@ abstract final class ArgumentList implements AstNode {
   /// Although the language requires that positional arguments appear before
   /// named arguments unless the [Feature.named_arguments_anywhere] is enabled,
   /// this class allows them to be intermixed.
-  @ToBeDeprecated('Use arguments2 instead.')
+  @V1Ast('The V2 counterpart is arguments2.')
   NodeList<Argument> get arguments;
 
   @experimental
@@ -1408,7 +1387,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   final NodeListImpl<ArgumentImpl> arguments2 = NodeListImpl._();
 
   @generated
-  @ToBeDeprecated('Use arguments2 instead.')
+  @V1Ast('The V2 counterpart is arguments2.')
   @override
   late final NodeListImpl<ArgumentImpl> arguments = _V1ProjectedNodeListImpl(
     arguments2,
@@ -1430,7 +1409,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   List<InternalFormalParameterElement?>? _correspondingStaticParameters;
 
   @generated
-  ArgumentListImpl({
+  new({
     required this.leftParenthesis,
     required List<ArgumentImpl> arguments2,
     required this.rightParenthesis,
@@ -1465,7 +1444,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -1480,7 +1459,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitArgumentList(this);
 
@@ -1510,7 +1489,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
@@ -1542,7 +1521,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (arguments._elementContainingRange(rangeOffset, rangeEnd)
@@ -1599,7 +1578,7 @@ abstract final class AsExpression implements Expression {
   Token get asOperator;
 
   /// The expression used to compute the value being cast.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -1632,7 +1611,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   TypeAnnotationImpl _type;
 
   @generated
-  AsExpressionImpl({
+  new({
     required ExpressionImpl expression2,
     required this.asOperator,
     required TypeAnnotationImpl type,
@@ -1655,7 +1634,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -1684,7 +1663,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -1699,7 +1678,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
     ..addNode('type', type);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAsExpression(this);
 
@@ -1741,7 +1720,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -1781,7 +1760,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -1857,7 +1836,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   final Token rightParenthesis;
 
   @generated
-  AssertInitializerImpl({
+  new({
     required this.assertKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
@@ -1877,7 +1856,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   @override
   ExpressionImpl get condition =>
       _becomeParentOf1(V1Projection.toV1Expression(condition2));
@@ -1900,7 +1879,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
-  @ToBeDeprecated('Use message2 instead.')
+  @V1Ast('The V2 counterpart is message2.')
   @override
   ExpressionImpl? get message => _becomeParentOf1(switch (message2) {
     var node? => V1Projection.toV1Expression(node),
@@ -1919,7 +1898,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('assertKeyword', assertKeyword)
@@ -1940,7 +1919,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertInitializer(this);
 
@@ -1977,7 +1956,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -2019,7 +1998,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -2059,7 +2038,7 @@ abstract final class Assertion implements AstNode {
   Token? get comma;
 
   /// The condition that is being asserted to be `true`.
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   Expression get condition;
 
   @experimental
@@ -2070,7 +2049,7 @@ abstract final class Assertion implements AstNode {
 
   /// The message to report if the assertion fails, or `null` if no message was
   /// supplied.
-  @ToBeDeprecated('Use message2 instead.')
+  @V1Ast('The V2 counterpart is message2.')
   Expression? get message;
 
   @experimental
@@ -2138,7 +2117,7 @@ final class AssertStatementImpl extends StatementImpl
   final Token semicolon;
 
   @generated
-  AssertStatementImpl({
+  new({
     required this.assertKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
@@ -2159,7 +2138,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   @override
   ExpressionImpl get condition =>
       _becomeParentOf1(V1Projection.toV1Expression(condition2));
@@ -2182,7 +2161,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use message2 instead.')
+  @V1Ast('The V2 counterpart is message2.')
   @override
   ExpressionImpl? get message => _becomeParentOf1(switch (message2) {
     var node? => V1Projection.toV1Expression(node),
@@ -2201,7 +2180,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('assertKeyword', assertKeyword)
@@ -2224,7 +2203,7 @@ final class AssertStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAssertStatement(this);
 
@@ -2261,7 +2240,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -2303,7 +2282,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -2356,7 +2335,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   Element? element;
 
   @generated
-  AssignedVariablePatternImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -2374,7 +2353,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
@@ -2383,7 +2362,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAssignedVariablePattern(this);
@@ -2417,7 +2396,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -2432,7 +2411,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -2449,12 +2428,12 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 ///
 ///     assignmentExpression ::=
 ///         [Expression] operator [Expression]
-@ToBeDeprecated('Use AssignmentExpression2 instead.')
+@V1Ast('The V2 counterpart is AssignmentExpression2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentExpression
     implements MethodReferenceExpression, CompoundAssignmentExpression {
   /// The expression used to compute the left hand side.
-  @ToBeDeprecated('Use leftHandSide2 instead.')
+  @V1Ast('The V2 counterpart is leftHandSide2.')
   Expression get leftHandSide;
 
   @experimental
@@ -2464,7 +2443,7 @@ abstract final class AssignmentExpression
   Token get operator;
 
   /// The expression used to compute the right-hand side.
-  @ToBeDeprecated('Use rightHandSide2 instead.')
+  @V1Ast('The V2 counterpart is rightHandSide2.')
   Expression get rightHandSide;
 
   @experimental
@@ -2503,7 +2482,7 @@ abstract base class AssignmentExpression2Impl extends ExpressionImpl
 
   ExpressionImpl _value;
 
-  AssignmentExpression2Impl({
+  new({
     required AssignmentTargetImpl target,
     required this.operator,
     required ExpressionImpl value,
@@ -2542,7 +2521,7 @@ abstract base class AssignmentExpression2Impl extends ExpressionImpl
     GenerateNodeProperty('rightHandSide'),
   ],
 )
-@ToBeDeprecated('Use AssignmentExpression2Impl instead.')
+@V1Ast('The V2 counterpart is AssignmentExpression2Impl.')
 final class AssignmentExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
@@ -2552,20 +2531,19 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   final AssignmentExpression2Impl _v1ProjectionOrigin;
 
-  AssignmentExpressionImpl.v1ProjectionFromCompound(
-    CompoundAssignmentImpl origin,
-  ) : operator = origin.operator,
-      _v1ProjectionOrigin = origin {
-    _attachV1Children();
-  }
-
-  AssignmentExpressionImpl.v1ProjectionFromDirect(DirectAssignmentImpl origin)
+  new v1ProjectionFromCompound(CompoundAssignmentImpl origin)
     : operator = origin.operator,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  AssignmentExpressionImpl.v1ProjectionFromIfNull(IfNullAssignmentImpl origin)
+  new v1ProjectionFromDirect(DirectAssignmentImpl origin)
+    : operator = origin.operator,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
+  new v1ProjectionFromIfNull(IfNullAssignmentImpl origin)
     : operator = origin.operator,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
@@ -2598,7 +2576,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   bool get inConstantContext => _v1ProjectionOrigin.inConstantContext;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  @ToBeDeprecated('Use leftHandSide2 instead.')
+  @V1Ast('The V2 counterpart is leftHandSide2.')
   @override
   ExpressionImpl get leftHandSide => V1Projection.toV1Expression(leftHandSide2);
 
@@ -2652,7 +2630,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  @ToBeDeprecated('Use rightHandSide2 instead.')
+  @V1Ast('The V2 counterpart is rightHandSide2.')
   @override
   ExpressionImpl get rightHandSide =>
       V1Projection.toV1Expression(rightHandSide2);
@@ -2704,7 +2682,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftHandSide', leftHandSide)
@@ -2718,7 +2696,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitAssignmentExpression(this);
@@ -2756,7 +2734,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftHandSide.accept(visitor);
@@ -2776,7 +2754,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
@@ -2945,7 +2923,7 @@ abstract final class AstNode implements SyntacticEntity {
   /// An iterator that can be used to iterate through all the entities (either
   /// AST nodes or tokens) that make up the contents of this node, including doc
   /// comments but excluding other comments.
-  @ToBeDeprecated('Use childEntities2 instead')
+  @V1Ast('The V2 counterpart is childEntities2.')
   Iterable<SyntacticEntity> get childEntities;
 
   /// An iterator that can be used to iterate through all the entities (either
@@ -2985,7 +2963,7 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Note that the relationship between an AST node and its parent node may
   /// change over the lifetime of a node.
-  @ToBeDeprecated('Use parent2 instead')
+  @V1Ast('The V2 counterpart is parent2.')
   AstNode? get parent;
 
   /// Returns this node's parent node, or `null` if this node is the root of an
@@ -3000,7 +2978,7 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Note that this method's performance is linear with respect to the depth
   /// of the node in the AST structure (O(depth)).
-  @ToBeDeprecated('Use root2 instead')
+  @V1Ast('The V2 counterpart is root2.')
   AstNode get root;
 
   /// The node at the root of this node's AST structure.
@@ -3014,7 +2992,7 @@ abstract final class AstNode implements SyntacticEntity {
   ///
   /// Returns the value returned by the visitor as a result of visiting this
   /// node.
-  @ToBeDeprecated('Use accept2 instead')
+  @V1Ast('The V2 counterpart is accept2.')
   E? accept<E>(AstVisitor<E> visitor);
 
   /// Use the given [visitor] to visit this node.
@@ -3029,7 +3007,7 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns either this node or the most immediate ancestor of this node for
   /// which the [predicate] returns `true`, or `null` if there's no such node.
-  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
+  @V1Ast('The V2 counterpart is thisOrAncestorMatching2.')
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
   );
@@ -3043,7 +3021,7 @@ abstract final class AstNode implements SyntacticEntity {
 
   /// Returns either this node or the most immediate ancestor of this node that
   /// has the given type, or `null` if there's no such node.
-  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
+  @V1Ast('The V2 counterpart is thisOrAncestorOfType2.')
   E? thisOrAncestorOfType<E extends AstNode>();
 
   /// Returns either this node or the most immediate ancestor of this node that
@@ -3075,7 +3053,7 @@ abstract final class AstNode implements SyntacticEntity {
   /// Use the given [visitor] to visit all of the children of this node.
   ///
   /// The children are visited in lexical order.
-  @ToBeDeprecated('Use visitChildren2 instead')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   void visitChildren(AstVisitor visitor);
 
   /// Use the given [visitor] to visit all of the children of this node.
@@ -3104,7 +3082,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   AstNodeApi get astNodeApi => _astNodeApi;
 
   @override
-  @ToBeDeprecated('Use childEntities2 instead')
+  @V1Ast('The V2 counterpart is childEntities2.')
   Iterable<SyntacticEntity> get childEntities =>
       _childEntities.syntacticEntities;
 
@@ -3125,7 +3103,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// The properties (tokens and nodes) of this node, with names, in the order
   /// in which these entities should normally appear, not necessarily in the
   /// order they really are (because of recovery).
-  @ToBeDeprecated('Use namedChildEntities2 instead')
+  @V1Ast('The V2 counterpart is namedChildEntities2.')
   Iterable<ChildEntity> get namedChildEntities => _childEntities.entities;
 
   /// The properties (tokens and nodes) of this node, with names, in the order
@@ -3138,7 +3116,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   int get offset => beginToken.offset;
 
   @override
-  @ToBeDeprecated('Use parent2 instead')
+  @V1Ast('The V2 counterpart is parent2.')
   AstNodeImpl? get parent {
     _checkV1View();
     return _parentInV1;
@@ -3152,12 +3130,12 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   AstNodeImpl? get parentInPrimaryView {
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     return _astNodeApi == AstNodeApi.v1 ? _parentInV1 : _parent2;
   }
 
   @override
-  @ToBeDeprecated('Use root2 instead')
+  @V1Ast('The V2 counterpart is root2.')
   AstNode get root {
     _checkV1View();
     AstNodeImpl root = this;
@@ -3184,7 +3162,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   AstNodeApi get _astNodeApi => AstNodeApi.shared;
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   ChildEntities get _childEntities => ChildEntities();
 
   ChildEntities get _childEntities2;
@@ -3192,7 +3170,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// V1 topology is materialized only when observed. A shared child can be
   /// reached through V2 before its compatibility parent exists, and that
   /// parent need not correspond one-to-one with its canonical parent.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   AstNodeImpl? get _parentInV1 {
     if (_parent case var parent?) {
       return parent;
@@ -3207,7 +3185,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   void detachFromParent() {
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     var projection = V1Projection._existingNode(this);
     if (projection != null && !identical(projection, this)) {
       // A flattened projection can itself be a shared canonical child, as
@@ -3269,7 +3247,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     parent.replaceChild(this, newNode);
   }
 
-  @ToBeDeprecated('Use thisOrAncestorMatching2 instead')
+  @V1Ast('The V2 counterpart is thisOrAncestorMatching2.')
   @override
   E? thisOrAncestorMatching<E extends AstNode>(
     bool Function(AstNode) predicate,
@@ -3296,7 +3274,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   @override
-  @ToBeDeprecated('Use thisOrAncestorOfType2 instead')
+  @V1Ast('The V2 counterpart is thisOrAncestorOfType2.')
   E? thisOrAncestorOfType<E extends AstNode>() {
     _checkV1View();
     AstNode? node = this;
@@ -3319,6 +3297,13 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   @override
   String toSource() {
+    // A V1 projection without a V2 view prints its canonical source node.
+    if (_astNodeApi == AstNodeApi.v1) {
+      // ignore: analyzer_v1_ast_use
+      if (V1Projection._sourceOf(this) case var source?) {
+        return source.toSource();
+      }
+    }
     StringBuffer buffer = StringBuffer();
     accept2(ToSourceVisitor(buffer));
     return buffer.toString();
@@ -3329,7 +3314,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   /// Returns the [child] node after making this node the parent of the [child]
   /// node in the V1 tree view.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   T _becomeParentOf1<T extends AstNodeImpl?>(T child) {
     child?._parent = this;
     return child;
@@ -3359,11 +3344,11 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     if (child != null) {
       // A shared child already is its V1 representation. Avoid dispatching
       // through the projection kinds on this common parser path.
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       _becomeParentOf1(
         child._astNodeApi == AstNodeApi.shared
             ? child
-            // ignore: analyzer_to_be_deprecated_use
+            // ignore: analyzer_v1_ast_use
             : V1Projection._existingNode(child),
       );
     }
@@ -3374,7 +3359,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
     switch (_astNodeApi) {
       case AstNodeApi.v1:
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         return _becomeParentOf1<T>(child);
       case AstNodeApi.v2:
         return _becomeParentOf2<T>(child);
@@ -3401,7 +3386,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   ///
   /// Returns `null` if none of the children contain the range (which means that
   /// this node is the covering node).
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd);
 
   /// Returns the child of this node that completely contains the range.
@@ -3490,7 +3475,7 @@ final class AttemptedConstantEvaluationResult {
   /// The diagnostics reported during the evaluation.
   final List<Diagnostic> diagnostics;
 
-  AttemptedConstantEvaluationResult._(this.value, this.diagnostics);
+  new _(this.value, this.diagnostics);
 }
 
 /// An await expression.
@@ -3503,7 +3488,7 @@ abstract final class AwaitExpression implements Expression {
   Token get awaitKeyword;
 
   /// The expression whose value is being waited on.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -3530,10 +3515,8 @@ final class AwaitExpressionImpl extends ExpressionImpl
   ExpressionImpl _expression2;
 
   @generated
-  AwaitExpressionImpl({
-    required this.awaitKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.awaitKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -3550,7 +3533,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -3570,7 +3553,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('awaitKeyword', awaitKeyword)
@@ -3583,7 +3566,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitAwaitExpression(this);
 
@@ -3618,7 +3601,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -3650,7 +3633,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -3673,14 +3656,14 @@ final class AwaitExpressionImpl extends ExpressionImpl
 ///
 ///     binaryExpression ::=
 ///         [Expression] [Token] [Expression]
-@ToBeDeprecated(
-  'Use BinaryOperatorInvocation, LogicalAnd, LogicalOr, or IfNull instead.',
+@V1Ast(
+  'The V2 counterpart is BinaryOperatorInvocation, LogicalAnd, LogicalOr, or IfNull.',
 )
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BinaryExpression
     implements Expression, MethodReferenceExpression {
   /// The expression used to compute the left operand.
-  @ToBeDeprecated('Use leftOperand2 instead.')
+  @V1Ast('The V2 counterpart is leftOperand2.')
   Expression get leftOperand;
 
   @experimental
@@ -3690,7 +3673,7 @@ abstract final class BinaryExpression
   Token get operator;
 
   /// The expression used to compute the right operand.
-  @ToBeDeprecated('Use rightOperand2 instead.')
+  @V1Ast('The V2 counterpart is rightOperand2.')
   Expression get rightOperand;
 
   @experimental
@@ -3711,7 +3694,7 @@ abstract final class BinaryExpression
     GenerateNodeProperty('rightOperand'),
   ],
 )
-@ToBeDeprecated(
+@V1Ast(
   'Use BinaryOperatorInvocationImpl, LogicalAndImpl, LogicalOrImpl, or '
   'IfNullImpl instead.',
 )
@@ -3719,20 +3702,19 @@ final class BinaryExpressionImpl extends ExpressionImpl
     implements BinaryExpression {
   final ExpressionImpl _origin;
 
-  BinaryExpressionImpl._and(LogicalAndImpl origin) : _origin = origin {
+  new _and(LogicalAndImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionImpl._ifNull(IfNullImpl origin) : _origin = origin {
+  new _ifNull(IfNullImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionImpl._operator(BinaryOperatorInvocationImpl origin)
-    : _origin = origin {
+  new _operator(BinaryOperatorInvocationImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionImpl._or(LogicalOrImpl origin) : _origin = origin {
+  new _or(LogicalOrImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
@@ -3813,7 +3795,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftOperand', leftOperand)
@@ -3827,7 +3809,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryExpression(this);
 
@@ -3864,7 +3846,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   String toSource() => _origin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
@@ -3884,7 +3866,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
@@ -3977,11 +3959,11 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InternalMethodElement? element;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  BinaryOperatorInvocationImpl({
+  new({
     required InstanceReceiverImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -3998,7 +3980,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._operator(this);
 
@@ -4061,7 +4043,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
@@ -4075,7 +4057,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
     ..addNode('rightOperand', rightOperand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
@@ -4120,7 +4102,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
@@ -4159,7 +4141,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
@@ -4191,7 +4173,11 @@ abstract final class Block implements Statement {
   Token get rightBracket;
 
   /// The statements contained in the block.
+  @V1Ast('The V2 counterpart is statements2.')
   NodeList<Statement> get statements;
+
+  @experimental
+  NodeList<Statement> get statements2;
 }
 
 /// The class body with members.
@@ -4207,7 +4193,12 @@ sealed class BlockClassBody implements ClassBody {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('members'),
+    GenerateNodeProperty(
+      'members2',
+      v1Name: 'members',
+      v1Projection: V1Projection.classMember,
+      type: NodeList<ClassMemberV1OrV2Impl>,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -4217,20 +4208,29 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   final Token leftBracket;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._();
+
+  @generated
+  @V1Ast('The V2 counterpart is members2.')
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = _V1ProjectedNodeListImpl(
+    members2,
+    V1Projection.toV1ClassMember,
+  );
 
   @generated
   @override
   final Token rightBracket;
 
   @generated
-  BlockClassBodyImpl({
+  new({
     required this.leftBracket,
-    required List<ClassMemberImpl> members,
+    required List<ClassMemberV1OrV2Impl> members2,
     required this.rightBracket,
   }) {
-    this.members._initialize(this, members);
+    this.members2._initializeProjected(this, members2);
   }
 
   @generated
@@ -4246,7 +4246,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -4257,11 +4257,11 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
+    ..addNodeList('members2', members2)
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockClassBody(this);
 
@@ -4273,9 +4273,9 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (members.containsChild(oldNode)) {
+    if (members2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'members' because NodeList cannot be resized.",
+        "Cannot remove child 'members2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -4284,14 +4284,14 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (members.replaceChild(oldNode, newNode)) {
+    if (members2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     members.accept(visitor);
@@ -4301,7 +4301,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    members.accept2(visitor);
+    members2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -4313,17 +4313,17 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
+    void Function(NodeListImpl<ClassMemberV1OrV2Impl>)? visitMembers2,
   }) {
-    if (visitMembers != null) {
-      visitMembers(members);
+    if (visitMembers2 != null) {
+      visitMembers2(members2);
     } else {
-      members.accept2(visitor);
+      members2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (members._elementContainingRange(rangeOffset, rangeEnd)
@@ -4336,7 +4336,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
+    if (members2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -4362,7 +4362,12 @@ abstract final class BlockEnumBody implements EnumBody {
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('constants'),
     GenerateNodeProperty('semicolon'),
-    GenerateNodeProperty('members'),
+    GenerateNodeProperty(
+      'members2',
+      v1Name: 'members',
+      v1Projection: V1Projection.classMember,
+      type: NodeList<ClassMemberV1OrV2Impl>,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -4380,23 +4385,32 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   final Token? semicolon;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._();
+
+  @generated
+  @V1Ast('The V2 counterpart is members2.')
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = _V1ProjectedNodeListImpl(
+    members2,
+    V1Projection.toV1ClassMember,
+  );
 
   @generated
   @override
   final Token rightBracket;
 
   @generated
-  BlockEnumBodyImpl({
+  new({
     required this.leftBracket,
     required List<EnumConstantDeclarationImpl> constants,
     required this.semicolon,
-    required List<ClassMemberImpl> members,
+    required List<ClassMemberV1OrV2Impl> members2,
     required this.rightBracket,
   }) {
     this.constants._initialize(this, constants);
-    this.members._initialize(this, members);
+    this.members2._initializeProjected(this, members2);
   }
 
   @generated
@@ -4412,7 +4426,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -4427,11 +4441,11 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
     ..addToken('leftBracket', leftBracket)
     ..addNodeList('constants', constants)
     ..addToken('semicolon', semicolon)
-    ..addNodeList('members', members)
+    ..addNodeList('members2', members2)
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockEnumBody(this);
 
@@ -4448,9 +4462,9 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
         "Cannot remove child 'constants' because NodeList cannot be resized.",
       );
     }
-    if (members.containsChild(oldNode)) {
+    if (members2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'members' because NodeList cannot be resized.",
+        "Cannot remove child 'members2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -4462,14 +4476,14 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
     if (constants.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (members.replaceChild(oldNode, newNode)) {
+    if (members2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     constants.accept(visitor);
@@ -4481,7 +4495,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @override
   void visitChildren2(AstVisitor2 visitor) {
     constants.accept2(visitor);
-    members.accept2(visitor);
+    members2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -4494,22 +4508,22 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NodeListImpl<EnumConstantDeclarationImpl>)? visitConstants,
-    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
+    void Function(NodeListImpl<ClassMemberV1OrV2Impl>)? visitMembers2,
   }) {
     if (visitConstants != null) {
       visitConstants(constants);
     } else {
       constants.accept2(visitor);
     }
-    if (visitMembers != null) {
-      visitMembers(members);
+    if (visitMembers2 != null) {
+      visitMembers2(members2);
     } else {
-      members.accept2(visitor);
+      members2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constants._elementContainingRange(rangeOffset, rangeEnd)
@@ -4530,7 +4544,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
         case var result?) {
       return result;
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
+    if (members2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -4569,11 +4583,8 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   BlockImpl _block;
 
   @generated
-  BlockFunctionBodyImpl({
-    required this.keyword,
-    required this.star,
-    required BlockImpl block,
-  }) : _block = block {
+  new({required this.keyword, required this.star, required BlockImpl block})
+    : _block = block {
     _becomeParentOf12(block);
   }
 
@@ -4614,7 +4625,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -4629,7 +4640,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
     ..addNode('block', block);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockFunctionBody(this);
 
@@ -4662,7 +4673,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
       typeAnalyzer.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     block.accept(visitor);
@@ -4694,7 +4705,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (block._containsOffset(rangeOffset, rangeEnd)) {
@@ -4716,7 +4727,11 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('statements'),
+    GenerateNodeProperty(
+      'statements2',
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -4728,20 +4743,29 @@ final class BlockImpl extends StatementImpl
   final Token leftBracket;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<StatementImpl> statements = NodeListImpl._();
+  final NodeListImpl<StatementImpl> statements2 = NodeListImpl._();
+
+  @generated
+  @V1Ast('The V2 counterpart is statements2.')
+  @override
+  late final NodeListImpl<StatementImpl> statements = _V1ProjectedNodeListImpl(
+    statements2,
+    V1Projection.toV1Statement,
+  );
 
   @generated
   @override
   final Token rightBracket;
 
   @generated
-  BlockImpl({
+  new({
     required this.leftBracket,
-    required List<StatementImpl> statements,
+    required List<StatementImpl> statements2,
     required this.rightBracket,
   }) {
-    this.statements._initialize(this, statements);
+    this.statements2._initializeProjected(this, statements2);
   }
 
   @generated
@@ -4757,7 +4781,7 @@ final class BlockImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -4768,11 +4792,11 @@ final class BlockImpl extends StatementImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('leftBracket', leftBracket)
-    ..addNodeList('statements', statements)
+    ..addNodeList('statements2', statements2)
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlock(this);
 
@@ -4784,9 +4808,9 @@ final class BlockImpl extends StatementImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -4795,14 +4819,14 @@ final class BlockImpl extends StatementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     statements.accept(visitor);
@@ -4812,7 +4836,7 @@ final class BlockImpl extends StatementImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -4824,17 +4848,17 @@ final class BlockImpl extends StatementImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (statements._elementContainingRange(rangeOffset, rangeEnd)
@@ -4847,7 +4871,7 @@ final class BlockImpl extends StatementImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -4884,7 +4908,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   final bool value;
 
   @generated
-  BooleanLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -4902,7 +4926,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   bool get isSynthetic => literal.isSynthetic;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -4913,7 +4937,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
       ChildEntities()..addToken('literal', literal);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBooleanLiteral(this);
 
@@ -4929,7 +4953,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -4944,7 +4968,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -5009,7 +5033,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   AstNode? target;
 
   @generated
-  BreakStatementImpl({
+  new({
     required this.breakKeyword,
     required LabelReferenceImpl? label,
     required this.semicolon,
@@ -5039,7 +5063,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('breakKeyword', breakKeyword)
@@ -5054,7 +5078,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitBreakStatement(this);
 
@@ -5084,7 +5108,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
@@ -5118,7 +5142,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (label case var label?) {
@@ -5163,7 +5187,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   InstanceReceiverImpl _receiver;
 
   @generated
-  CallInvocationImpl({
+  new({
     required InstanceReceiverImpl receiver,
     required super.typeArguments,
     required super.argumentList,
@@ -5197,7 +5221,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CallInvocation is not in the V1 AST view.');
@@ -5211,7 +5235,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CallInvocation is not in the V1 AST view.');
@@ -5263,7 +5287,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CallInvocation is not in the V1 AST view.');
@@ -5311,7 +5335,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CallInvocation is not in the V1 AST view.');
@@ -5354,7 +5378,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CascadeExpression implements Expression {
   /// The cascade sections sharing the common target.
-  @ToBeDeprecated('Use sections instead.')
+  @V1Ast('The V2 counterpart is sections.')
   NodeList<Expression> get cascadeSections;
 
   /// Whether this cascade is null aware (as opposed to non-null).
@@ -5365,7 +5389,7 @@ abstract final class CascadeExpression implements Expression {
   NodeList<CascadeSection> get sections;
 
   /// The target of the cascade sections.
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   Expression get target;
 
   @experimental
@@ -5391,7 +5415,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @override
   final NodeListImpl<CascadeSectionImpl> sections = NodeListImpl._();
 
-  @ToBeDeprecated('Use sections instead.')
+  @V1Ast('The V2 counterpart is sections.')
   @override
   late final NodeListImpl<ExpressionImpl> cascadeSections =
       _V1ProjectedNodeListImpl(
@@ -5400,7 +5424,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
       );
 
   @DoNotGenerate(reason: 'Projects section bodies into the V1 view')
-  CascadeExpressionImpl({
+  new({
     required ExpressionImpl target2,
     required List<CascadeSectionImpl> sections,
   }) : _target2 = target2 {
@@ -5432,7 +5456,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.cascade;
 
   @generated
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   @override
   ExpressionImpl get target =>
       _becomeParentOf1(V1Projection.toV1Expression(target2));
@@ -5449,7 +5473,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 cascade-section topology')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -5462,7 +5486,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
     ..addNodeList('sections', sections);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCascadeExpression(this);
 
@@ -5505,7 +5529,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 cascade-section topology')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     target.accept(visitor);
@@ -5545,7 +5569,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 cascade-section topology')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target._containsOffset(rangeOffset, rangeEnd)) {
@@ -5589,7 +5613,7 @@ abstract final class CascadeIndexAssignmentTarget
 final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
     implements CascadeIndexAssignmentTarget {
   @generated
-  CascadeIndexAssignmentTargetImpl({
+  new({
     required super.leftBracket,
     required super.index,
     required super.rightBracket,
@@ -5612,7 +5636,7 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeIndexAssignmentTarget is not in the V1 AST view.');
@@ -5626,7 +5650,7 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CascadeIndexAssignmentTarget is not in the V1 AST view.');
@@ -5658,7 +5682,7 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CascadeIndexAssignmentTarget is not in the V1 AST view.');
@@ -5690,7 +5714,7 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeIndexAssignmentTarget is not in the V1 AST view.');
@@ -5722,7 +5746,7 @@ abstract final class CascadeIndexExpression implements IndexExpression2 {}
 final class CascadeIndexExpressionImpl extends IndexExpression2Impl
     implements CascadeIndexExpression {
   @generated
-  CascadeIndexExpressionImpl({
+  new({
     required super.leftBracket,
     required super.index,
     required super.rightBracket,
@@ -5745,7 +5769,7 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeIndexExpression is not in the V1 AST view.');
@@ -5759,7 +5783,7 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CascadeIndexExpression is not in the V1 AST view.');
@@ -5797,7 +5821,7 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CascadeIndexExpression is not in the V1 AST view.');
@@ -5829,7 +5853,7 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeIndexExpression is not in the V1 AST view.');
@@ -5864,11 +5888,11 @@ abstract final class CascadeMethodInvocation
 )
 final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
     implements CascadeMethodInvocation {
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  CascadeMethodInvocationImpl({
+  new({
     required super.name,
     required super.typeArguments,
     required super.argumentList,
@@ -5887,7 +5911,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -5896,7 +5920,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
@@ -5910,7 +5934,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
@@ -5956,7 +5980,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
@@ -5997,7 +6021,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
@@ -6035,11 +6059,11 @@ abstract final class CascadePropertyAssignmentTarget
 final class CascadePropertyAssignmentTargetImpl
     extends PropertyAssignmentTargetImpl
     implements CascadePropertyAssignmentTarget {
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyAssignmentTargetImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -6054,7 +6078,7 @@ final class CascadePropertyAssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
       PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(this);
 
@@ -6063,7 +6087,7 @@ final class CascadePropertyAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -6080,7 +6104,7 @@ final class CascadePropertyAssignmentTargetImpl
   Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -6095,7 +6119,7 @@ final class CascadePropertyAssignmentTargetImpl
       visitor.visitCascadePropertyAssignmentTarget(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -6114,7 +6138,7 @@ final class CascadePropertyAssignmentTargetImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -6143,11 +6167,11 @@ abstract final class CascadePropertyExtraction implements PropertyExtraction {}
 )
 final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
     implements CascadePropertyExtraction {
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyExtractionImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -6162,7 +6186,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
       PropertyAccessImpl.v1ProjectionFromCascadeExtraction(this);
 
@@ -6171,7 +6195,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadePropertyExtraction is not in the V1 AST view.');
@@ -6182,7 +6206,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CascadePropertyExtraction is not in the V1 AST view.');
@@ -6201,7 +6225,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CascadePropertyExtraction is not in the V1 AST view.');
@@ -6218,7 +6242,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadePropertyExtraction is not in the V1 AST view.');
@@ -6264,8 +6288,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   ExpressionImpl _body;
 
   @generated
-  CascadeSectionImpl({required this.operator, required ExpressionImpl body})
-    : _body = body {
+  new({required this.operator, required ExpressionImpl body}) : _body = body {
     _becomeParentOf2(body);
   }
 
@@ -6283,7 +6306,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   set body(ExpressionImpl body) {
     _body = _becomeParentOf2(body);
     if (parent2 case CascadeExpressionImpl cascade) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       cascade._becomeParentOf1(V1Projection._existingNode(body));
     }
   }
@@ -6306,7 +6329,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   bool get _bodyIncludesOperator => identical(body.beginToken, operator);
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeSection is not in the V1 AST view.');
@@ -6323,7 +6346,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CascadeSection is not in the V1 AST view.');
@@ -6354,7 +6377,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CascadeSection is not in the V1 AST view.');
@@ -6386,7 +6409,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeSection is not in the V1 AST view.');
@@ -6432,10 +6455,8 @@ final class CaseClauseImpl extends AstNodeImpl
   GuardedPatternImpl _guardedPattern;
 
   @generated
-  CaseClauseImpl({
-    required this.caseKeyword,
-    required GuardedPatternImpl guardedPattern,
-  }) : _guardedPattern = guardedPattern {
+  new({required this.caseKeyword, required GuardedPatternImpl guardedPattern})
+    : _guardedPattern = guardedPattern {
     _becomeParentOf12(guardedPattern);
   }
 
@@ -6461,7 +6482,7 @@ final class CaseClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('caseKeyword', caseKeyword)
@@ -6474,7 +6495,7 @@ final class CaseClauseImpl extends AstNodeImpl
     ..addNode('guardedPattern', guardedPattern);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCaseClause(this);
 
@@ -6503,7 +6524,7 @@ final class CaseClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
@@ -6535,7 +6556,7 @@ final class CaseClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -6593,7 +6614,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   TypeAnnotationImpl _type;
 
   @generated
-  CastPatternImpl({
+  new({
     required DartPatternImpl pattern,
     required this.asToken,
     required TypeAnnotationImpl type,
@@ -6640,7 +6661,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -6655,7 +6676,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
     ..addNode('type', type);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCastPattern(this);
 
@@ -6723,7 +6744,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -6763,7 +6784,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -6879,7 +6900,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   BlockImpl _body;
 
   @generated
-  CatchClauseImpl({
+  new({
     required this.onKeyword,
     required TypeAnnotationImpl? exceptionType,
     required this.catchKeyword,
@@ -6972,7 +6993,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('onKeyword', onKeyword)
@@ -6999,7 +7020,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCatchClause(this);
 
@@ -7052,7 +7073,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     exceptionType?.accept(visitor);
@@ -7114,7 +7135,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (exceptionType case var exceptionType?) {
@@ -7188,7 +7209,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   LocalVariableFragmentImpl? declaredFragment;
 
   @generated
-  CatchClauseParameterImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -7203,7 +7224,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
@@ -7212,7 +7233,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitCatchClauseParameter(this);
@@ -7224,7 +7245,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
       visitor.visitCatchClauseParameter(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -7239,7 +7260,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -7319,19 +7340,34 @@ class ChildEntity {
   final String name;
   final Object value;
 
-  ChildEntity(this.name, this.value);
+  new(this.name, this.value);
 }
 
 /// The body of a class declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {
-  /// The members declared in the body.
+  /// The members declared in the body in the V1 AST view.
+  ///
+  /// Analyzer implementations should traverse [members2] instead.
+  @V1Ast('The V2 counterpart is members2.')
   NodeList<ClassMember> get members;
+
+  /// The members declared in the body in the V2 AST view.
+  ///
+  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
+  /// is in progress. Each entry is either a V2 [MemberDeclaration] or a V1
+  /// [ClassMember] whose V2 representation is not yet available.
+  @experimental
+  NodeList<AnnotatedNode> get members2;
 }
 
 sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
+  @V1Ast('The V2 counterpart is members2.')
   @override
   NodeListImpl<ClassMemberImpl> get members;
+
+  @override
+  NodeListImpl<ClassMemberV1OrV2Impl> get members2;
 }
 
 /// The declaration of a class.
@@ -7474,7 +7510,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  ClassDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -7593,7 +7629,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -7630,7 +7666,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
 
@@ -7698,7 +7734,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -7781,7 +7817,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -7862,11 +7898,18 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
-  ClassMemberImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 }
+
+/// A temporary marker interface for members in [ClassBodyImpl.members2] and
+/// [EnumBodyImpl.members2].
+///
+/// This unifies V1 class members that have not yet been migrated with V2
+/// [MemberDeclaration]s.
+sealed class ClassMemberV1OrV2Impl implements AnnotatedNodeImpl {}
 
 /// The name of a class, enum, or extension type declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -7956,7 +7999,8 @@ abstract final class ClassTypeAlias implements TypeAlias {
     GenerateNodeProperty('semicolon', isSuper: true),
   ],
 )
-final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
+final class ClassTypeAliasImpl extends TypeAliasImpl
+    implements TopLevelDeclarationV1OrV2Impl, ClassTypeAlias {
   @generated
   @override
   final Token? abstractKeyword;
@@ -8003,7 +8047,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   Scope? typeParameterScope;
 
   @generated
-  ClassTypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.augmentKeyword,
@@ -8101,7 +8145,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -8140,7 +8184,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassTypeAlias(this);
 
@@ -8192,7 +8236,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -8255,7 +8299,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -8339,7 +8383,7 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
   final Token keyword;
 
   /// Initializes a newly created combinator.
-  CombinatorImpl({required this.keyword});
+  new({required this.keyword});
 
   @override
   Token get beginToken => keyword;
@@ -8378,11 +8422,11 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
 
   Element? _setterElement;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _v1Projection;
 
   @generated
-  CombinatorNameImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -8410,7 +8454,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
     _setterElement = value;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl get v1Projection {
     var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -8429,7 +8473,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CombinatorName is not in the V1 AST view.');
@@ -8440,7 +8484,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CombinatorName is not in the V1 AST view.');
@@ -8452,7 +8496,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCombinatorName(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CombinatorName is not in the V1 AST view.');
@@ -8469,7 +8513,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CombinatorName is not in the V1 AST view.');
@@ -8547,7 +8591,7 @@ final class CommentImpl extends AstNodeImpl
   ///
   /// The list of [references] can be empty if the comment doesn't contain any
   /// embedded references.
-  CommentImpl({
+  new({
     required this.tokens,
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
@@ -8567,7 +8611,7 @@ final class CommentImpl extends AstNodeImpl
   @override
   NodeListImpl<CommentReferenceImpl> get references => _references;
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('references', references)
@@ -8578,7 +8622,7 @@ final class CommentImpl extends AstNodeImpl
     ..addNodeList('references', references)
     ..addTokenList('tokens', tokens);
 
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
 
@@ -8604,7 +8648,7 @@ final class CommentImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _references.accept(visitor);
@@ -8616,7 +8660,7 @@ final class CommentImpl extends AstNodeImpl
     _references.accept2(visitor);
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return _references._elementContainingRange(rangeOffset, rangeEnd);
@@ -8645,11 +8689,11 @@ final class CommentImpl extends AstNodeImpl
 /// This interface should align closely with dartdoc's notion of
 /// comment-referable expressions at:
 /// https://github.com/dart-lang/dartdoc/blob/master/lib/src/comment_references/parser.dart
-@ToBeDeprecated('Use CommentReference.components instead.')
+@V1Ast('The V2 counterpart is CommentReference.components.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReferableExpression implements Expression {}
 
-@ToBeDeprecated('Part of the V1 AST.')
+@V1Ast()
 sealed class CommentReferableExpressionImpl extends ExpressionImpl
     implements CommentReferableExpression {}
 
@@ -8669,7 +8713,7 @@ abstract final class CommentReference implements AstNode {
   Element? get element;
 
   /// The comment-referable expression being referenced.
-  @ToBeDeprecated('Use components instead.')
+  @V1Ast('The V2 counterpart is components.')
   CommentReferableExpression get expression;
 
   /// Always `null`.
@@ -8726,11 +8770,11 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
 
   ScopeLookupResult? scopeLookupResult;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _v1Projection;
 
   @generated
-  CommentReferenceComponentImpl({
+  new({
     required this.period,
     required this.operatorKeyword,
     required this.name,
@@ -8764,7 +8808,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
   @override
   bool get isSynthetic => name.isSynthetic;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl get v1Projection {
     var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -8778,7 +8822,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CommentReferenceComponent is not in the V1 AST view.');
@@ -8792,7 +8836,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CommentReferenceComponent is not in the V1 AST view.');
@@ -8805,7 +8849,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
       visitor.visitCommentReferenceComponent(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CommentReferenceComponent is not in the V1 AST view.');
@@ -8822,7 +8866,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CommentReferenceComponent is not in the V1 AST view.');
@@ -8852,11 +8896,11 @@ final class CommentReferenceImpl extends AstNodeImpl
   @override
   final bool isSynthetic;
 
-  @ToBeDeprecated('Part of the V1 AST.')
+  @V1Ast()
   CommentReferableExpressionImpl? _expression;
 
   @generated
-  CommentReferenceImpl({
+  new({
     required List<CommentReferenceComponentImpl> components,
     required this.isSynthetic,
   }) {
@@ -8884,7 +8928,7 @@ final class CommentReferenceImpl extends AstNodeImpl
     throw StateError('Expected at least one non-null');
   }
 
-  @ToBeDeprecated('Use components instead.')
+  @V1Ast('The V2 counterpart is components.')
   @override
   CommentReferableExpressionImpl get expression {
     if (_expression case var expression?) {
@@ -8914,7 +8958,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   Token? get newKeyword => null;
 
   @DoNotGenerate(reason: 'V1 traverses the projected expression')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNode('expression', expression);
@@ -8925,7 +8969,7 @@ final class CommentReferenceImpl extends AstNodeImpl
       ChildEntities()..addNodeList('components', components);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCommentReference(this);
 
@@ -8955,7 +8999,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'V1 traverses the projected expression')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -8987,7 +9031,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'V1 searches the projected expression')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -9038,7 +9082,7 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
   /// The declarations contained in this compilation unit in the V1 AST view.
   ///
   /// Analyzer implementations should traverse [declarations2] instead.
-  @ToBeDeprecated('Use declarations2 instead.')
+  @V1Ast('The V2 counterpart is declarations2.')
   NodeList<CompilationUnitMember> get declarations;
 
   /// The top-level declarations exposed by the V2 AST view.
@@ -9088,7 +9132,7 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
 
   /// A list containing all of the directives and declarations in this
   /// compilation unit, sorted in lexical order.
-  @ToBeDeprecated('Part of the V1 AST.')
+  @V1Ast()
   List<AstNode> get sortedDirectivesAndDeclarations;
 
   /// Queries the type of `this` at the given [offset].
@@ -9114,7 +9158,7 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
   ///
   /// The minimal covering node is the node, rooted at the receiver, with the
   /// shortest length whose range completely includes the given range.
-  @ToBeDeprecated('Use nodeCovering2 instead')
+  @V1Ast('The V2 counterpart is nodeCovering2.')
   AstNode? nodeCovering({required int offset, int length = 0});
 
   /// Returns the minimal covering node for the range of characters beginning at
@@ -9141,7 +9185,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   final NodeListImpl<TopLevelDeclarationV1OrV2Impl> _declarations2 =
       NodeListImpl._();
 
-  @ToBeDeprecated('Use declarations2 instead.')
+  @V1Ast('The V2 counterpart is declarations2.')
   late final NodeListImpl<CompilationUnitMemberImpl> _declarations =
       _V1ProjectedNodeListImpl(
         _declarations2,
@@ -9173,7 +9217,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   /// Initializes a newly created compilation unit to have the given directives
   /// and declarations.
   ///
-  /// The [scriptTag] can be `null` if there's no script tag in the compilation
+  /// The [_scriptTag] can be `null` if there's no script tag in the compilation
   /// unit.
   ///
   /// The list of [directives] can be `null` if there are no directives in the
@@ -9181,9 +9225,9 @@ final class CompilationUnitImpl extends AstNodeImpl
   ///
   /// The list of [declarations2] can be `null` if there are no declarations in
   /// the compilation unit.
-  CompilationUnitImpl({
+  new({
     required this.beginToken,
-    required ScriptTagImpl? scriptTag,
+    required this._scriptTag,
     required List<DirectiveImpl>? directives,
     required List<TopLevelDeclarationV1OrV2Impl>? declarations2,
     required this.endToken,
@@ -9191,13 +9235,13 @@ final class CompilationUnitImpl extends AstNodeImpl
     required this.lineInfo,
     required this.invalidNodes,
     required this.languageVersion,
-  }) : _scriptTag = scriptTag {
+  }) {
     _becomeParentOf12(_scriptTag);
     _directives._initialize(this, directives);
     _declarations2._initializeProjected(this, declarations2);
   }
 
-  @ToBeDeprecated('Use declarations2 instead.')
+  @V1Ast('The V2 counterpart is declarations2.')
   @override
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
 
@@ -9241,14 +9285,14 @@ final class CompilationUnitImpl extends AstNodeImpl
     _scriptTag = _becomeParentOf12(scriptTag);
   }
 
-  @ToBeDeprecated('Part of the V1 AST.')
+  @V1Ast()
   @override
   List<AstNode> get sortedDirectivesAndDeclarations {
     return <AstNode>[..._directives, ..._declarations]
       ..sort(AstNode.LEXICAL_ORDER);
   }
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     return ChildEntities()
@@ -9280,7 +9324,7 @@ final class CompilationUnitImpl extends AstNodeImpl
       ..sort(AstNode.LEXICAL_ORDER);
   }
 
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitCompilationUnit(this);
 
@@ -9303,8 +9347,8 @@ final class CompilationUnitImpl extends AstNodeImpl
     // nested inside the method declaration.
     //
     // Nodes whose type mixes in `FlowAnalysisRootImpl` but that didn't actually
-    // act as a flow analysis root (e.g. a local variable declaration, or a
-    // local function declaration) have a null log, so they are skipped.
+    // act as a flow analysis root (e.g. a local variable declaration) have a
+    // null log, so they are skipped.
     AstNode? node = nodeCovering2(offset: offset);
     while (node != null) {
       if (node is FlowAnalysisRootImpl) {
@@ -9317,7 +9361,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     return null;
   }
 
-  @ToBeDeprecated('Use nodeCovering2 instead')
+  @V1Ast('The V2 counterpart is nodeCovering2.')
   @override
   AstNode? nodeCovering({required int offset, int length = 0}) {
     var end = offset + length;
@@ -9385,7 +9429,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _scriptTag?.accept(visitor);
@@ -9419,7 +9463,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     }
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (_scriptTag?._containsOffset(rangeOffset, rangeEnd) ?? false) {
@@ -9459,7 +9503,7 @@ sealed class CompilationUnitMemberImpl extends DeclarationImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
-  CompilationUnitMemberImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 }
 
 /// A compound assignment using an overloadable binary operator.
@@ -9558,7 +9602,7 @@ base mixin CompoundAssignmentExpressionImpl
 )
 final class CompoundAssignmentImpl extends AssignmentExpression2Impl
     implements CompoundAssignment {
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   AssignmentExpressionImpl? _assignmentExpression;
 
   @override
@@ -9568,14 +9612,10 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   TypeImpl? operatorResultType;
 
   @generated
-  CompoundAssignmentImpl({
-    required super.target,
-    required super.operator,
-    required super.value,
-  });
+  new({required super.target, required super.operator, required super.value});
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
       AssignmentExpressionImpl.v1ProjectionFromCompound(this);
 
@@ -9617,7 +9657,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CompoundAssignment is not in the V1 AST view.');
@@ -9640,7 +9680,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('CompoundAssignment is not in the V1 AST view.');
@@ -9687,7 +9727,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('CompoundAssignment is not in the V1 AST view.');
@@ -9726,7 +9766,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CompoundAssignment is not in the V1 AST view.');
@@ -9755,14 +9795,14 @@ abstract final class ConditionalExpression implements Expression {
   Token get colon;
 
   /// The condition used to determine which of the expressions is executed next.
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   Expression get condition;
 
   @experimental
   Expression get condition2;
 
   /// The expression that is executed if the condition evaluates to `false`.
-  @ToBeDeprecated('Use elseExpression2 instead.')
+  @V1Ast('The V2 counterpart is elseExpression2.')
   Expression get elseExpression;
 
   @experimental
@@ -9772,7 +9812,7 @@ abstract final class ConditionalExpression implements Expression {
   Token get question;
 
   /// The expression that is executed if the condition evaluates to `true`.
-  @ToBeDeprecated('Use thenExpression2 instead.')
+  @V1Ast('The V2 counterpart is thenExpression2.')
   Expression get thenExpression;
 
   @experimental
@@ -9820,7 +9860,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   ExpressionImpl _elseExpression2;
 
   @generated
-  ConditionalExpressionImpl({
+  new({
     required ExpressionImpl condition2,
     required this.question,
     required ExpressionImpl thenExpression2,
@@ -9841,7 +9881,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   @override
   ExpressionImpl get condition =>
       _becomeParentOf1(V1Projection.toV1Expression(condition2));
@@ -9858,7 +9898,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use elseExpression2 instead.')
+  @V1Ast('The V2 counterpart is elseExpression2.')
   @override
   ExpressionImpl get elseExpression =>
       _becomeParentOf1(V1Projection.toV1Expression(elseExpression2));
@@ -9884,7 +9924,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.conditional;
 
   @generated
-  @ToBeDeprecated('Use thenExpression2 instead.')
+  @V1Ast('The V2 counterpart is thenExpression2.')
   @override
   ExpressionImpl get thenExpression =>
       _becomeParentOf1(V1Projection.toV1Expression(thenExpression2));
@@ -9901,7 +9941,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('condition', condition)
@@ -9920,7 +9960,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
     ..addNode('elseExpression2', elseExpression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConditionalExpression(this);
@@ -9971,7 +10011,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -10019,7 +10059,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -10132,7 +10172,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   DirectiveUri? resolvedUri;
 
   @generated
-  ConfigurationImpl({
+  new({
     required this.ifKeyword,
     required this.leftParenthesis,
     required DottedNameImpl name,
@@ -10188,7 +10228,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
@@ -10211,7 +10251,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
     ..addNode('uri', uri);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConfiguration(this);
 
@@ -10255,7 +10295,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
@@ -10305,7 +10345,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -10344,7 +10384,7 @@ final class ConstantContextForExpressionImpl extends AstNodeImpl {
   final Fragment variable;
   final ExpressionImpl expression;
 
-  ConstantContextForExpressionImpl(this.variable, this.expression) {
+  new(this.variable, this.expression) {
     _becomeParentOf12(expression);
   }
 
@@ -10380,7 +10420,7 @@ abstract final class ConstantPattern implements DartPattern {
   Token? get constKeyword;
 
   /// The constant expression being used as a pattern.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -10407,10 +10447,8 @@ final class ConstantPatternImpl extends DartPatternImpl
   ExpressionImpl _expression2;
 
   @generated
-  ConstantPatternImpl({
-    required this.constKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.constKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -10430,7 +10468,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -10450,7 +10488,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -10463,7 +10501,7 @@ final class ConstantPatternImpl extends DartPatternImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstantPattern(this);
 
@@ -10513,7 +10551,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -10545,7 +10583,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -10646,7 +10684,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// The name of the constructor to which this constructor is redirected.
   ///
   /// Returns `null` if this isn't a redirecting factory constructor.
-  @ToBeDeprecated('Use factoryRedirectionTarget instead.')
+  @V1Ast('The V2 counterpart is factoryRedirectionTarget.')
   ConstructorName? get redirectedConstructor;
 
   /// The token for the separator (colon or equals) before the initializer list
@@ -10657,7 +10695,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
   ///
   /// Or `null` if uses new syntax with [newKeyword] or [factoryKeyword].
-  @ToBeDeprecated('Use typeName2 instead.')
+  @V1Ast('The V2 counterpart is typeName2.')
   SimpleIdentifier? get typeName;
 
   /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
@@ -10686,7 +10724,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
 )
 final class ConstructorDeclarationImpl extends ClassMemberImpl
     with FlowAnalysisRootImpl
-    implements ConstructorDeclaration {
+    implements ClassMemberV1OrV2Impl, ConstructorDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -10737,7 +10775,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   FunctionBodyImpl _body;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   late final SimpleIdentifierImpl? _typeName = switch (typeName2) {
     var typeName? => _becomeParentOf1(
       SimpleIdentifierImpl.v1Projection(token: typeName),
@@ -10756,7 +10794,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(
     reason: 'Wires a V2-only child in a node shared by both AST views',
   )
-  ConstructorDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -10883,12 +10921,12 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 constructor reference')
   @Deprecated('Use factoryRedirectionTarget instead.')
   @override
-  @ToBeDeprecated('Use factoryRedirectionTarget instead.')
+  @V1Ast('The V2 counterpart is factoryRedirectionTarget.')
   ConstructorNameImpl? get redirectedConstructor =>
       _becomeParentOf1(factoryRedirectionTarget?.constructorName);
 
   @override
-  @ToBeDeprecated('Use typeName2 instead.')
+  @V1Ast('The V2 counterpart is typeName2.')
   SimpleIdentifierImpl? get typeName {
     var result = _typeName;
     var fragment = declaredFragment;
@@ -10900,7 +10938,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
   @Deprecated('Use _childEntities2 instead.')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -10935,7 +10973,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorDeclaration(this);
@@ -10991,7 +11029,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'Visits the legacy ConstructorName projection')
   @Deprecated('Use visitChildren2 instead.')
   @override
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
     typeName?.accept(visitor);
@@ -11053,7 +11091,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
   @Deprecated('Use _childContainingRange2 instead.')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -11118,7 +11156,7 @@ abstract final class ConstructorFieldInitializer
   Token get equals;
 
   /// The expression computing the value to which the field is initialized.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -11130,7 +11168,7 @@ abstract final class ConstructorFieldInitializer
   FieldElement? get fieldElement;
 
   /// The name of the field being initialized.
-  @ToBeDeprecated('Use fieldName2 instead.')
+  @V1Ast('The V2 counterpart is fieldName2.')
   SimpleIdentifier get fieldName;
 
   /// The name of the field being initialized.
@@ -11181,11 +11219,11 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   InternalFieldElement? _fieldElement;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _fieldName;
 
   @generated
-  ConstructorFieldInitializerImpl({
+  new({
     required this.thisKeyword,
     required this.period,
     required this.fieldName2,
@@ -11214,7 +11252,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -11238,7 +11276,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @override
-  @ToBeDeprecated('Use fieldName2 instead.')
+  @V1Ast('The V2 counterpart is fieldName2.')
   SimpleIdentifierImpl get fieldName =>
       _fieldName ??= _becomeParentOf1<SimpleIdentifierImpl>(
         SimpleIdentifierImpl.v1Projection(token: fieldName2)
@@ -11246,7 +11284,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
       );
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -11265,7 +11303,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorFieldInitializer(this);
@@ -11296,7 +11334,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     fieldName.accept(visitor);
@@ -11329,7 +11367,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fieldName._containsOffset(rangeOffset, rangeEnd)) {
@@ -11413,11 +11451,11 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   @generated
   ArgumentListImpl _argumentList;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   InstanceCreationExpressionImpl? _instanceCreationExpression;
 
   @generated
-  ConstructorInvocationImpl({
+  new({
     required this.keyword,
     required ConstructorReference2Impl constructorReference,
     required TypeArgumentListImpl? typeArguments,
@@ -11480,7 +11518,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   InstanceCreationExpressionImpl get instanceCreationExpression =>
       _instanceCreationExpression ??= InstanceCreationExpressionImpl._(this);
 
@@ -11512,7 +11550,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorInvocation is not in the V1 AST view.');
@@ -11527,7 +11565,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ConstructorInvocation is not in the V1 AST view.');
@@ -11584,7 +11622,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ConstructorInvocation is not in the V1 AST view.');
@@ -11632,7 +11670,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorInvocation is not in the V1 AST view.');
@@ -11660,7 +11698,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
 ///
 ///     constructorName ::=
 ///         type ('.' identifier)?
-@ToBeDeprecated('Use ConstructorReference2 or ConstructorTearOff instead.')
+@V1Ast('The V2 counterpart is ConstructorReference2 or ConstructorTearOff.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorName
     implements AstNode, ConstructorReferenceNode {
@@ -11685,8 +11723,8 @@ abstract final class ConstructorName
     GenerateNodeProperty('name'),
   ],
 )
-@ToBeDeprecated(
-  'Use ConstructorReference2Impl or ConstructorTearOffImpl instead.',
+@V1Ast(
+  'The V2 counterpart is ConstructorReference2Impl or ConstructorTearOffImpl.',
 )
 final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   final _ConstructorReferenceV2Origin? _origin;
@@ -11697,7 +11735,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   final SimpleIdentifierImpl? _parsedName;
 
-  ConstructorNameImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required NamedTypeImpl type,
     required Token period,
     required Token name,
@@ -11709,7 +11747,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _becomeParentOf1(_parsedName);
   }
 
-  ConstructorNameImpl._(this._origin)
+  new _(this._origin)
     : _parsedType = null,
       _parsedPeriod = null,
       _parsedName = null {
@@ -11797,7 +11835,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('type', type)
@@ -11810,7 +11848,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
       throw StateError('ConstructorName is not in the V2 AST view.');
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorName(this);
 
@@ -11837,7 +11875,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
       _origin?.toSource() ?? '${type.toSource()}.${name!.name}';
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
@@ -11864,7 +11902,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }) => throw StateError('ConstructorName is not in the V2 AST view.');
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -11891,7 +11929,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an identifier refers to a type); they are
 /// produced at resolution time.
-@ToBeDeprecated('Use ConstructorTearOff instead')
+@V1Ast('The V2 counterpart is ConstructorTearOff.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReference
     implements Expression, CommentReferableExpression {
@@ -11943,11 +11981,11 @@ final class ConstructorReference2Impl extends AstNodeImpl
   InternalConstructorElement? _element;
 
   /// The cached V1 compatibility projection for this reference.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   @generated
-  ConstructorReference2Impl({
+  new({
     required ConstructorTypeReferenceImpl typeReference,
     required ConstructorSelectorImpl? selector,
   }) : _typeReference = typeReference,
@@ -12003,7 +12041,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorReference2 is not in the V1 AST view.');
@@ -12016,7 +12054,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
     ..addNode('selector', selector);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ConstructorReference2 is not in the V1 AST view.');
@@ -12056,7 +12094,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ConstructorReference2 is not in the V1 AST view.');
@@ -12097,7 +12135,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorReference2 is not in the V1 AST view.');
@@ -12123,13 +12161,13 @@ final class ConstructorReference2Impl extends AstNodeImpl
   childEntitiesOrder: [GenerateNodeProperty('constructorName')],
   generateConstructor: false,
 )
-@ToBeDeprecated('Use ConstructorTearOffImpl instead')
+@V1Ast('The V2 counterpart is ConstructorTearOffImpl.')
 final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
   final ConstructorTearOffImpl _origin;
 
   @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
-  ConstructorReferenceImpl._(this._origin) {
+  new _(this._origin) {
     _attachV1Children();
   }
 
@@ -12163,7 +12201,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNode('constructorName', constructorName);
@@ -12180,7 +12218,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitConstructorReference(this);
@@ -12219,7 +12257,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   String toSource() => _origin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
@@ -12237,7 +12275,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
@@ -12254,7 +12292,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 }
 
 /// An AST node that makes reference to a constructor.
-@ToBeDeprecated('Use element on the concrete node instead')
+@V1Ast('The V2 counterpart is the element getter of the concrete node.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorReferenceNode implements AstNode {
   /// The element associated with the referenced constructor based on static
@@ -12276,7 +12314,7 @@ abstract final class ConstructorReferenceNode implements AstNode {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorSelector implements AstNode {
   /// The constructor name.
-  @ToBeDeprecated('Use name2 instead.')
+  @V1Ast('The V2 counterpart is name2.')
   SimpleIdentifier get name;
 
   /// The constructor name.
@@ -12305,15 +12343,15 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   AstNodeApi? _astNodeApiOverride;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _name;
 
   InternalConstructorElement? _element;
 
   @generated
-  ConstructorSelectorImpl({required this.period, required this.name2});
+  new({required this.period, required this.name2});
 
-  ConstructorSelectorImpl.v2({required this.period, required this.name2})
+  new v2({required this.period, required this.name2})
     : _astNodeApiOverride = AstNodeApi.v2;
 
   @generated
@@ -12333,7 +12371,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   }
 
   @override
-  @ToBeDeprecated('Use name2 instead.')
+  @V1Ast('The V2 counterpart is name2.')
   SimpleIdentifierImpl get name =>
       _name ??= _becomeParentOf1<SimpleIdentifierImpl>(
         SimpleIdentifierImpl.v1Projection(token: name2)..element = _element,
@@ -12344,7 +12382,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -12357,7 +12395,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
     ..addToken('name2', name2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitConstructorSelector(this);
 
@@ -12368,7 +12406,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
       visitor.visitConstructorSelector(this);
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     name.accept(visitor);
@@ -12385,7 +12423,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -12412,7 +12450,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 abstract final class ConstructorTearOff
     implements
         Expression,
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         CommentReferableExpression {
   /// The element associated with the referenced constructor based on static
   /// type information.
@@ -12449,14 +12487,14 @@ final class ConstructorTearOffImpl extends ExpressionImpl
 
   InternalConstructorElement? _element;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ConstructorReferenceImpl? _constructorReference;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   @generated
-  ConstructorTearOffImpl({
+  new({
     required ConstructorTypeReferenceImpl typeReference,
     required ConstructorSelectorImpl selector,
   }) : _typeReference = typeReference,
@@ -12471,7 +12509,7 @@ final class ConstructorTearOffImpl extends ExpressionImpl
     return typeReference.beginToken;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ConstructorReferenceImpl get constructorReference {
     return _constructorReference ??= ConstructorReferenceImpl._(this);
   }
@@ -12517,7 +12555,7 @@ final class ConstructorTearOffImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorTearOff is not in the V1 AST view.');
@@ -12530,7 +12568,7 @@ final class ConstructorTearOffImpl extends ExpressionImpl
     ..addNode('selector', selector);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ConstructorTearOff is not in the V1 AST view.');
@@ -12577,7 +12615,7 @@ final class ConstructorTearOffImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ConstructorTearOff is not in the V1 AST view.');
@@ -12616,7 +12654,7 @@ final class ConstructorTearOffImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorTearOff is not in the V1 AST view.');
@@ -12697,11 +12735,11 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   TypeImpl? type;
 
   /// The cached V1 compatibility projection for this type reference.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   late final NamedTypeImpl namedType = NamedTypeImpl.v1Projection(this);
 
   @generated
-  ConstructorTypeReferenceImpl({
+  new({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
@@ -12752,7 +12790,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorTypeReference is not in the V1 AST view.');
@@ -12766,7 +12804,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
     ..addNode('typeArguments', typeArguments);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ConstructorTypeReference is not in the V1 AST view.');
@@ -12807,7 +12845,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ConstructorTypeReference is not in the V1 AST view.');
@@ -12850,7 +12888,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorTypeReference is not in the V1 AST view.');
@@ -12924,7 +12962,7 @@ final class ContinueStatementImpl extends StatementImpl
   AstNode? target;
 
   @generated
-  ContinueStatementImpl({
+  new({
     required this.continueKeyword,
     required LabelReferenceImpl? label,
     required this.semicolon,
@@ -12954,7 +12992,7 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('continueKeyword', continueKeyword)
@@ -12969,7 +13007,7 @@ final class ContinueStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitContinueStatement(this);
 
@@ -12999,7 +13037,7 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     label?.accept(visitor);
@@ -13033,7 +13071,7 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (label case var label?) {
@@ -13172,7 +13210,7 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// declaration doesn't have the corresponding attribute.
-  DeclarationImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 
   @override
   FragmentImpl? get declaredFragment;
@@ -13232,7 +13270,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   LocalVariableFragmentImpl? declaredFragment;
 
   @generated
-  DeclaredIdentifierImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.keyword,
@@ -13276,7 +13314,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
@@ -13291,7 +13329,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDeclaredIdentifier(this);
 
@@ -13322,7 +13360,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -13359,7 +13397,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -13429,7 +13467,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   BindPatternVariableFragmentImpl? declaredFragment;
 
   @generated
-  DeclaredVariablePatternImpl({
+  new({
     required this.keyword,
     required TypeAnnotationImpl? type,
     required super.name,
@@ -13477,7 +13515,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -13492,7 +13530,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDeclaredVariablePattern(this);
@@ -13560,7 +13598,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
@@ -13594,7 +13632,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type case var type?) {
@@ -13659,7 +13697,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   final Token rightDelimiter;
 
   @generated
-  DelimitedFormalParametersImpl({
+  new({
     required this.leftDelimiter,
     required List<FormalParameterImpl> formalParameters,
     required this.rightDelimiter,
@@ -13687,7 +13725,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
@@ -13701,7 +13739,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
     ..addToken('rightDelimiter', rightDelimiter);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
@@ -13734,7 +13772,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
@@ -13769,14 +13807,14 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
     _becomeParentOf2(child);
     if (_parent2 case FormalParameterListImpl formalParameterList) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       formalParameterList._becomeParentOf1(child);
     }
     return child;
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
@@ -13814,18 +13852,14 @@ abstract final class DirectAssignment implements AssignmentExpression2 {}
 )
 final class DirectAssignmentImpl extends AssignmentExpression2Impl
     implements DirectAssignment {
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
-  DirectAssignmentImpl({
-    required super.target,
-    required super.operator,
-    required super.value,
-  });
+  new({required super.target, required super.operator, required super.value});
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
       AssignmentExpressionImpl.v1ProjectionFromDirect(this);
 
@@ -13846,7 +13880,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DirectAssignment is not in the V1 AST view.');
@@ -13872,7 +13906,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('DirectAssignment is not in the V1 AST view.');
@@ -13918,7 +13952,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('DirectAssignment is not in the V1 AST view.');
@@ -13957,7 +13991,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DirectAssignment is not in the V1 AST view.');
@@ -13992,7 +14026,7 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// directive doesn't have the corresponding attribute.
-  DirectiveImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 }
 
 /// Works together with [GenerateNodeImpl], annotated constructors and methods
@@ -14000,7 +14034,7 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
 class DoNotGenerate {
   final String reason;
 
-  const DoNotGenerate({required this.reason});
+  const new({required this.reason});
 }
 
 /// A do statement.
@@ -14010,10 +14044,14 @@ class DoNotGenerate {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DoStatement implements Statement {
   /// The body of the loop.
+  @V1Ast('The V2 counterpart is body2.')
   Statement get body;
 
+  @experimental
+  Statement get body2;
+
   /// The condition that determines when the loop terminates.
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   Expression get condition;
 
   @experimental
@@ -14038,7 +14076,11 @@ abstract final class DoStatement implements Statement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('doKeyword'),
-    GenerateNodeProperty('body'),
+    GenerateNodeProperty(
+      'body2',
+      v1Name: 'body',
+      v1Projection: V1Projection.statement,
+    ),
     GenerateNodeProperty('whileKeyword'),
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty(
@@ -14056,7 +14098,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   final Token doKeyword;
 
   @generated
-  StatementImpl _body;
+  StatementImpl _body2;
 
   @generated
   @override
@@ -14078,17 +14120,17 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   final Token semicolon;
 
   @generated
-  DoStatementImpl({
+  new({
     required this.doKeyword,
-    required StatementImpl body,
+    required StatementImpl body2,
     required this.whileKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
     required this.rightParenthesis,
     required this.semicolon,
-  }) : _body = body,
+  }) : _body2 = body2,
        _condition2 = condition2 {
-    _becomeParentOf12(body);
+    _becomeParentOf2AndExisting1(body2);
     _becomeParentOf2AndExisting1(condition2);
   }
 
@@ -14099,16 +14141,23 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
+  @V1Ast('The V2 counterpart is body2.')
   @override
-  StatementImpl get body => _body;
+  StatementImpl get body => _becomeParentOf1(V1Projection.toV1Statement(body2));
 
   @generated
-  set body(StatementImpl body) {
-    _body = _becomeParentOf12(body);
+  @experimental
+  @override
+  StatementImpl get body2 => _body2;
+
+  @generated
+  @experimental
+  set body2(StatementImpl body2) {
+    _body2 = _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   @override
   ExpressionImpl get condition =>
       _becomeParentOf1(V1Projection.toV1Expression(condition2));
@@ -14131,7 +14180,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('doKeyword', doKeyword)
@@ -14146,7 +14195,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('doKeyword', doKeyword)
-    ..addNode('body', body)
+    ..addNode('body2', body2)
     ..addToken('whileKeyword', whileKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('condition2', condition2)
@@ -14154,7 +14203,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoStatement(this);
 
@@ -14166,8 +14215,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
+    if (identical(body2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body2'.");
     }
     if (identical(condition2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'condition2'.");
@@ -14178,8 +14227,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(body, oldNode)) {
-      body = newNode as StatementImpl;
+    if (identical(body2, oldNode)) {
+      body2 = newNode as StatementImpl;
       return;
     }
     if (identical(condition2, oldNode)) {
@@ -14190,7 +14239,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
@@ -14201,7 +14250,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    body.accept2(visitor);
+    body2.accept2(visitor);
     condition2.accept2(visitor);
   }
 
@@ -14214,13 +14263,13 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(StatementImpl)? visitBody,
+    void Function(StatementImpl)? visitBody2,
     void Function(ExpressionImpl)? visitCondition2,
   }) {
-    if (visitBody != null) {
-      visitBody(body);
+    if (visitBody2 != null) {
+      visitBody2(body2);
     } else {
-      body.accept2(visitor);
+      body2.accept2(visitor);
     }
     if (visitCondition2 != null) {
       visitCondition2(condition2);
@@ -14230,7 +14279,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (body._containsOffset(rangeOffset, rangeEnd)) {
@@ -14245,8 +14294,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
+    if (body2._containsOffset(rangeOffset, rangeEnd)) {
+      return body2;
     }
     if (condition2._containsOffset(rangeOffset, rangeEnd)) {
       return condition2;
@@ -14261,7 +14310,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 ///
 ///     dotShorthandHead ::=
 ///         '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
-@ToBeDeprecated('Use DotShorthandConstructorInvocation2 instead.')
+@V1Ast('The V2 counterpart is DotShorthandConstructorInvocation2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandConstructorInvocation
     extends InvocationExpression
@@ -14353,11 +14402,11 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   @override
   InternalConstructorElement? element;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   DotShorthandConstructorInvocationImpl? _dotShorthandConstructorInvocation;
 
   @generated
-  DotShorthandConstructorInvocation2Impl({
+  new({
     required this.constKeyword,
     required this.period,
     required this.name,
@@ -14404,7 +14453,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   DotShorthandConstructorInvocationImpl
   get dotShorthandConstructorInvocation => _dotShorthandConstructorInvocation ??=
       DotShorthandConstructorInvocationImpl.v1ProjectionFromConstructorInvocation(
@@ -14438,7 +14487,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -14456,7 +14505,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -14507,7 +14556,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -14550,7 +14599,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -14584,7 +14633,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
     GenerateNodeProperty('argumentList', isSuper: true),
   ],
 )
-@ToBeDeprecated('Use DotShorthandConstructorInvocation2Impl instead.')
+@V1Ast('The V2 counterpart is DotShorthandConstructorInvocation2Impl.')
 final class DotShorthandConstructorInvocationImpl
     extends InvocationExpressionImpl
     implements DotShorthandConstructorInvocation {
@@ -14597,7 +14646,7 @@ final class DotShorthandConstructorInvocationImpl
 
   final DotShorthandConstructorInvocation2Impl _v1ProjectionOrigin;
 
-  DotShorthandConstructorInvocationImpl.v1ProjectionFromConstructorInvocation(
+  new v1ProjectionFromConstructorInvocation(
     DotShorthandConstructorInvocation2Impl origin,
   ) : period = origin.period,
       _constructorName = SimpleIdentifierImpl.v1Projection(token: origin.name),
@@ -14699,7 +14748,7 @@ final class DotShorthandConstructorInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -14717,7 +14766,7 @@ final class DotShorthandConstructorInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandConstructorInvocation(this);
@@ -14757,7 +14806,7 @@ final class DotShorthandConstructorInvocationImpl
   String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
@@ -14781,7 +14830,7 @@ final class DotShorthandConstructorInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
@@ -14817,7 +14866,9 @@ final class DotShorthandConstructorInvocationImpl
 abstract final class DotShorthandContextResolution {}
 
 sealed class DotShorthandContextResolutionImpl
-    implements DotShorthandContextResolution {}
+    implements DotShorthandContextResolution {
+  const new();
+}
 
 /// A value-producing dot-shorthand head.
 ///
@@ -14844,7 +14895,7 @@ abstract final class DotShorthandExpression implements Expression {
 ///
 ///     dotShorthandHead ::=
 ///         '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
-@ToBeDeprecated('Use DotShorthandMethodInvocation instead.')
+@V1Ast('The V2 counterpart is DotShorthandMethodInvocation.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandInvocation extends InvocationExpression {
   /// The name of the constructor or static method invocation.
@@ -14864,7 +14915,7 @@ abstract final class DotShorthandInvocation extends InvocationExpression {
     GenerateNodeProperty('argumentList', isSuper: true),
   ],
 )
-@ToBeDeprecated('Use DotShorthandMethodInvocationImpl instead.')
+@V1Ast('The V2 counterpart is DotShorthandMethodInvocationImpl.')
 final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     implements DotShorthandInvocation {
   @generated
@@ -14878,9 +14929,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   final ParsedExpressionImpl? _parsedExpressionOrigin;
 
-  DotShorthandInvocationImpl.v1ProjectionFromMethodInvocation(
-    DotShorthandMethodInvocationImpl origin,
-  ) : period = origin.period,
+  new v1ProjectionFromMethodInvocation(DotShorthandMethodInvocationImpl origin)
+    : period = origin.period,
       _memberName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin,
       _parsedExpressionOrigin = null,
@@ -14891,7 +14941,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     _attachV1Children();
   }
 
-  DotShorthandInvocationImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required ParsedExpressionImpl origin,
     required this.period,
     required Token name,
@@ -15010,7 +15060,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -15025,7 +15075,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandInvocation(this);
@@ -15068,7 +15118,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
       _parsedExpressionOrigin!._toSourceThrough(endToken);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     memberName.accept(visitor);
@@ -15090,7 +15140,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (memberName._containsOffset(rangeOffset, rangeEnd)) {
@@ -15142,11 +15192,11 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   DotShorthandContextResolutionImpl? shorthandContext;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   DotShorthandInvocationImpl? _dotShorthandInvocation;
 
   @generated
-  DotShorthandMethodInvocationImpl({
+  new({
     required this.period,
     required super.name,
     required super.typeArguments,
@@ -15160,7 +15210,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   DotShorthandInvocationImpl get dotShorthandInvocation =>
       _dotShorthandInvocation ??=
           DotShorthandInvocationImpl.v1ProjectionFromMethodInvocation(this);
@@ -15176,7 +15226,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
@@ -15191,7 +15241,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
@@ -15240,7 +15290,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
@@ -15281,7 +15331,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
@@ -15337,11 +15387,11 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   @override
   NamedReadResolutionImpl? resolution;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   DotShorthandPropertyAccessImpl? _dotShorthandPropertyAccess;
 
   @generated
-  DotShorthandNameExpressionImpl({required this.period, required this.name});
+  new({required this.period, required this.name});
 
   @generated
   @override
@@ -15350,7 +15400,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   DotShorthandPropertyAccessImpl get dotShorthandPropertyAccess =>
       _dotShorthandPropertyAccess ??=
           DotShorthandPropertyAccessImpl.v1ProjectionFromNameExpression(this);
@@ -15369,7 +15419,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
@@ -15384,7 +15434,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   Element? get _legacyReadElement => resolution?.elementOrRecovery;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
@@ -15406,7 +15456,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
@@ -15423,7 +15473,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
@@ -15442,7 +15492,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
 /// also select a static method or constructor tear-off.
 ///
 ///     dotShorthandHead ::= '.' [SimpleIdentifier]
-@ToBeDeprecated('Use DotShorthandNameExpression instead.')
+@V1Ast('The V2 counterpart is DotShorthandNameExpression.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandPropertyAccess extends Expression {
   /// The token representing the period.
@@ -15460,7 +15510,7 @@ abstract final class DotShorthandPropertyAccess extends Expression {
     GenerateNodeProperty('propertyName'),
   ],
 )
-@ToBeDeprecated('Use DotShorthandNameExpressionImpl instead.')
+@V1Ast('The V2 counterpart is DotShorthandNameExpressionImpl.')
 final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     implements DotShorthandPropertyAccess {
   @generated
@@ -15474,18 +15524,16 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   final ParsedDotShorthandNameImpl? _parsedExpressionOrigin;
 
-  DotShorthandPropertyAccessImpl.v1ProjectionFromNameExpression(
-    DotShorthandNameExpressionImpl origin,
-  ) : period = origin.period,
+  new v1ProjectionFromNameExpression(DotShorthandNameExpressionImpl origin)
+    : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _parsedExpressionOrigin = null,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  DotShorthandPropertyAccessImpl.v1ProjectionFromParsedExpression(
-    ParsedDotShorthandNameImpl origin,
-  ) : period = origin.period,
+  new v1ProjectionFromParsedExpression(ParsedDotShorthandNameImpl origin)
+    : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = null,
       _parsedExpressionOrigin = origin {
@@ -15547,7 +15595,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -15560,7 +15608,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitDotShorthandPropertyAccess(this);
@@ -15602,7 +15650,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
       _v1ProjectionOrigin?.toSource() ?? _parsedExpressionOrigin!.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     propertyName.accept(visitor);
@@ -15620,7 +15668,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
@@ -15653,7 +15701,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   final List<Token> tokens;
 
   @generated
-  DottedNameImpl({required this.tokens});
+  new({required this.tokens});
 
   @generated
   @override
@@ -15668,7 +15716,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addTokenList('tokens', tokens);
@@ -15679,7 +15727,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
       ChildEntities()..addTokenList('tokens', tokens);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDottedName(this);
 
@@ -15689,7 +15737,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDottedName(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -15704,7 +15752,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -15750,7 +15798,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   final double value;
 
   @generated
-  DoubleLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -15765,7 +15813,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -15776,7 +15824,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
       ChildEntities()..addToken('literal', literal);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitDoubleLiteral(this);
 
@@ -15792,7 +15840,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -15807,7 +15855,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -15828,7 +15876,7 @@ abstract final class DynamicIndexReadResolution
 
 final class DynamicIndexReadResolutionImpl extends IndexReadResolutionImpl
     implements DynamicIndexReadResolution {
-  const DynamicIndexReadResolutionImpl();
+  const new();
 
   @override
   TypeImpl get indexContextType => UnknownInferredType.instance;
@@ -15845,7 +15893,7 @@ abstract final class DynamicIndexWriteResolution
 
 final class DynamicIndexWriteResolutionImpl extends IndexWriteResolutionImpl
     implements DynamicIndexWriteResolution {
-  const DynamicIndexWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType => DynamicTypeImpl.instance;
@@ -15869,7 +15917,7 @@ final class DynamicInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  DynamicInvocationResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// A property read whose getter is selected dynamically at runtime.
@@ -15880,7 +15928,7 @@ abstract final class DynamicPropertyReadResolution
 
 final class DynamicPropertyReadResolutionImpl extends NamedReadResolutionImpl
     implements DynamicPropertyReadResolution {
-  DynamicPropertyReadResolutionImpl();
+  new();
 
   @override
   TypeImpl get type => DynamicTypeImpl.instance;
@@ -15894,7 +15942,7 @@ abstract final class DynamicPropertyWriteResolution
 
 final class DynamicPropertyWriteResolutionImpl extends NamedWriteResolutionImpl
     implements DynamicPropertyWriteResolution {
-  const DynamicPropertyWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType => DynamicTypeImpl.instance;
@@ -15913,12 +15961,17 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @override
   final Token semicolon;
 
+  @V1Ast('The V2 counterpart is members2.')
   @override
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
+  @override
+  late final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._()
+    .._initialize(this, null);
+
   @generated
-  EmptyClassBodyImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -15933,7 +15986,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -15944,7 +15997,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyClassBody(this);
 
@@ -15954,7 +16007,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyClassBody(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -15969,7 +16022,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -15999,12 +16052,17 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   late final NodeListImpl<EnumConstantDeclarationImpl> constants =
       NodeListImpl._().._initialize(this, null);
 
+  @V1Ast('The V2 counterpart is members2.')
   @override
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
+  @override
+  late final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._()
+    .._initialize(this, null);
+
   @generated
-  EmptyEnumBodyImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -16019,7 +16077,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -16030,7 +16088,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyEnumBody(this);
 
@@ -16040,7 +16098,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyEnumBody(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -16055,7 +16113,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16089,7 +16147,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   final Token semicolon;
 
   @generated
-  EmptyFunctionBodyImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -16104,7 +16162,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -16115,7 +16173,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
@@ -16129,7 +16187,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
       typeAnalyzer.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -16144,7 +16202,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16174,7 +16232,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   final Token semicolon;
 
   @generated
-  EmptyStatementImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -16192,7 +16250,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   bool get isSynthetic => semicolon.isSynthetic;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -16203,7 +16261,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
       ChildEntities()..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyStatement(this);
 
@@ -16213,7 +16271,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyStatement(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -16228,7 +16286,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16247,16 +16305,31 @@ sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
-  /// The members declared in the body.
+  /// The members declared in the body in the V1 AST view.
+  ///
+  /// Analyzer implementations should traverse [members2] instead.
+  @V1Ast('The V2 counterpart is members2.')
   NodeList<ClassMember> get members;
+
+  /// The members declared in the body in the V2 AST view.
+  ///
+  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
+  /// is in progress. Each entry is either a V2 [MemberDeclaration] or a V1
+  /// [ClassMember] whose V2 representation is not yet available.
+  @experimental
+  NodeList<AnnotatedNode> get members2;
 }
 
 sealed class EnumBodyImpl extends AstNodeImpl implements EnumBody {
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants;
 
+  @V1Ast('The V2 counterpart is members2.')
   @override
   NodeListImpl<ClassMemberImpl> get members;
+
+  @override
+  NodeListImpl<ClassMemberV1OrV2Impl> get members2;
 }
 
 /// The arguments part of an enum constant.
@@ -16297,7 +16370,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   ArgumentListImpl _argumentList;
 
   @generated
-  EnumConstantArgumentsImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
@@ -16355,7 +16428,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeArguments', typeArguments)
@@ -16370,7 +16443,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitEnumConstantArguments(this);
@@ -16417,7 +16490,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -16469,7 +16542,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -16560,7 +16633,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   InternalConstructorElement? constructorElement;
 
   @generated
-  EnumConstantDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -16598,7 +16671,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -16613,7 +16686,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     ..addNode('arguments', arguments);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitEnumConstantDeclaration(this);
@@ -16645,7 +16718,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -16682,7 +16755,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -16783,7 +16856,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  EnumDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -16854,7 +16927,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -16875,7 +16948,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
 
@@ -16927,7 +17000,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -16990,7 +17063,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -17068,11 +17141,7 @@ final class ExecutableInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  ExecutableInvocationResolutionImpl({
-    required this.element,
-    required this.invokeType,
-    required this.type,
-  });
+  new({required this.element, required this.invokeType, required this.type});
 }
 
 /// A read that produces the tear-off of an executable declaration.
@@ -17097,7 +17166,7 @@ final class ExecutableTearOffResolutionImpl
   @override
   final InternalExecutableElement element;
 
-  ExecutableTearOffResolutionImpl({required this.element});
+  new({required this.element});
 
   @override
   TypeImpl get type => element.type;
@@ -17137,7 +17206,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   LibraryExportImpl? libraryExport;
 
   @generated
-  ExportDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.exportKeyword,
@@ -17160,7 +17229,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('exportKeyword', exportKeyword)
@@ -17179,7 +17248,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExportDirective(this);
 
@@ -17224,7 +17293,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -17275,7 +17344,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -17393,7 +17462,7 @@ abstract final class Expression
   /// If this expression is a parenthesized expression, returns the result of
   /// unwrapping the expression inside the parentheses. Otherwise, returns this
   /// expression.
-  @ToBeDeprecated('Use unParenthesized2 instead.')
+  @V1Ast('The V2 counterpart is unParenthesized2.')
   Expression get unParenthesized;
 
   /// If this expression is a parenthesized expression, returns the result of
@@ -17418,7 +17487,7 @@ abstract final class Expression
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExpressionFunctionBody implements FunctionBody {
   /// The expression representing the body of the function.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -17480,7 +17549,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   final Token? semicolon;
 
   @generated
-  ExpressionFunctionBodyImpl({
+  new({
     required this.keyword,
     required this.star,
     required this.functionDefinition,
@@ -17512,7 +17581,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -17538,7 +17607,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -17557,7 +17626,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
@@ -17592,7 +17661,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
       typeAnalyzer.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -17624,7 +17693,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -17648,7 +17717,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     implements Expression {
   TypeImpl? _staticType;
 
-  @ToBeDeprecated('Use argumentExpression2 instead.')
+  @V1Ast('The V2 counterpart is argumentExpression2.')
   @override
   ExpressionImpl get argumentExpression => this;
 
@@ -17695,7 +17764,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     return null;
   }
 
-  @ToBeDeprecated('Use fieldExpression2 instead.')
+  @V1Ast('The V2 counterpart is fieldExpression2.')
   @override
   ExpressionImpl get fieldExpression => this;
 
@@ -17711,7 +17780,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   @override
   TypeImpl? get staticType => _staticType;
 
-  @ToBeDeprecated('Use unParenthesized2 instead.')
+  @V1Ast('The V2 counterpart is unParenthesized2.')
   @override
   ExpressionImpl get unParenthesized {
     _checkV1View();
@@ -17855,7 +17924,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   /// if the constness is implicit.
   ///
   /// Returns `null` if node is not in the constant context.
-  @ToBeDeprecated('Use constantContext2 instead.')
+  @V1Ast('The V2 counterpart is constantContext2.')
   (AstNode, Token?)? constantContext({required bool includeSelf}) {
     AstNode? current = this;
     if (!includeSelf) {
@@ -17962,6 +18031,21 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
           if (current.constKeyword case var constKeyword?) {
             return (current, constKeyword);
           }
+        case LocalVariablesDeclaration():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
+        case FieldsDeclaration():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
+        case TopLevelVariablesDeclaration():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
+          return null;
         case VariableDeclarationList():
           var keyword = current.keyword;
           if (keyword != null && keyword.keyword == Keyword.CONST) {
@@ -17970,6 +18054,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
           return null;
         case ArgumentList():
         case Expression():
+        case Field2():
         case ForElement():
         case IfElement():
         case InterpolationExpression():
@@ -17978,7 +18063,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
         case RecordLiteralNamedField():
         case NullAwareElement():
         case SpreadElement():
-        case VariableDeclaration():
+        case VariableBindingImpl():
           break;
         default:
           return null;
@@ -18050,7 +18135,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExpressionStatement implements Statement {
   /// The expression that comprises the statement.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -18081,10 +18166,8 @@ final class ExpressionStatementImpl extends StatementImpl
   final Token? semicolon;
 
   @generated
-  ExpressionStatementImpl({
-    required ExpressionImpl expression2,
-    required this.semicolon,
-  }) : _expression2 = expression2 {
+  new({required ExpressionImpl expression2, required this.semicolon})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -18104,7 +18187,7 @@ final class ExpressionStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -18125,7 +18208,7 @@ final class ExpressionStatementImpl extends StatementImpl
       _expression2.isSynthetic && (semicolon == null || semicolon!.isSynthetic);
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -18138,7 +18221,7 @@ final class ExpressionStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExpressionStatement(this);
 
@@ -18168,7 +18251,7 @@ final class ExpressionStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -18200,7 +18283,7 @@ final class ExpressionStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -18247,10 +18330,8 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   NamedTypeImpl _superclass;
 
   @generated
-  ExtendsClauseImpl({
-    required this.extendsKeyword,
-    required NamedTypeImpl superclass,
-  }) : _superclass = superclass {
+  new({required this.extendsKeyword, required NamedTypeImpl superclass})
+    : _superclass = superclass {
     _becomeParentOf12(superclass);
   }
 
@@ -18276,7 +18357,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('extendsKeyword', extendsKeyword)
@@ -18289,7 +18370,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
     ..addNode('superclass', superclass);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtendsClause(this);
 
@@ -18318,7 +18399,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     superclass.accept(visitor);
@@ -18350,7 +18431,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (superclass._containsOffset(rangeOffset, rangeEnd)) {
@@ -18448,7 +18529,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  ExtensionDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -18509,7 +18590,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -18532,7 +18613,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExtensionDeclaration(this);
@@ -18579,7 +18660,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -18634,7 +18715,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -18707,10 +18788,8 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   TypeAnnotationImpl _extendedType;
 
   @generated
-  ExtensionOnClauseImpl({
-    required this.onKeyword,
-    required TypeAnnotationImpl extendedType,
-  }) : _extendedType = extendedType {
+  new({required this.onKeyword, required TypeAnnotationImpl extendedType})
+    : _extendedType = extendedType {
     _becomeParentOf12(extendedType);
   }
 
@@ -18736,7 +18815,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('onKeyword', onKeyword)
@@ -18749,7 +18828,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
     ..addNode('extendedType', extendedType);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOnClause(this);
 
@@ -18778,7 +18857,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     extendedType.accept(visitor);
@@ -18810,7 +18889,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (extendedType._containsOffset(rangeOffset, rangeEnd)) {
@@ -18834,7 +18913,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 ///
 ///     extensionOverride ::=
 ///         [Identifier] [TypeArgumentList]? [ArgumentList]
-@ToBeDeprecated('Use ExtensionOverride2 instead.')
+@V1Ast('The V2 counterpart is ExtensionOverride2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionOverride implements Expression {
   /// The list of arguments to the override.
@@ -18944,7 +19023,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   @override
   final ExtensionElementImpl element;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExtensionOverrideImpl? _v1Projection;
 
   /// Compatibility data for the V1 expression view, not a receiver value type.
@@ -18957,7 +19036,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   TypeImpl? extendedType;
 
   @generated
-  ExtensionOverride2Impl({
+  new({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
@@ -19020,7 +19099,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
     _typeArguments = _becomeParentOf2(typeArguments);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExtensionOverrideImpl get v1Projection {
     var result = _v1Projection ??= ExtensionOverrideImpl.v1Projection(this);
     if (legacyStaticType case var type?) {
@@ -19034,7 +19113,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ExtensionOverride2 is not in the V1 AST view.');
@@ -19049,7 +19128,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ExtensionOverride2 is not in the V1 AST view.');
@@ -19097,7 +19176,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ExtensionOverride2 is not in the V1 AST view.');
@@ -19147,7 +19226,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ExtensionOverride2 is not in the V1 AST view.');
@@ -19183,12 +19262,12 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
     GenerateNodeProperty('argumentList'),
   ],
 )
-@ToBeDeprecated('Use ExtensionOverride2Impl instead.')
+@V1Ast('The V2 counterpart is ExtensionOverride2Impl.')
 final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
   final ExtensionOverride2Impl _origin;
 
-  ExtensionOverrideImpl.v1Projection(this._origin);
+  new v1Projection(this._origin);
 
   @DoNotGenerate(reason: 'Preserves V1 parent links')
   @override
@@ -19244,7 +19323,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('importPrefix', importPrefix)
@@ -19259,7 +19338,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitExtensionOverride(this);
 
@@ -19298,7 +19377,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   String toSource() => _origin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
@@ -19314,7 +19393,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (importPrefix case var importPrefix?) {
@@ -19422,7 +19501,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  ExtensionTypeDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -19500,7 +19579,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -19521,7 +19600,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitExtensionTypeDeclaration(this);
@@ -19567,7 +19646,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -19620,7 +19699,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -19656,6 +19735,207 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     }
     if (body._containsOffset(rangeOffset, rangeEnd)) {
       return body;
+    }
+    return null;
+  }
+}
+
+/// A single field in a [FieldsDeclaration].
+///
+///     initializedIdentifier ::=
+///         name ('=' [Expression])?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class Field2 implements FragmentDeclaringNode {
+  @override
+  FieldFragment? get declaredFragment;
+
+  /// The equal sign separating the name from the initializer, or `null` if
+  /// there is no initializer.
+  Token? get equals;
+
+  /// The expression used to compute the initial value of the field, or `null`
+  /// if there is no initializer.
+  Expression? get initializer;
+
+  /// The name of the field.
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('equals'),
+    GenerateNodeProperty('initializer'),
+  ],
+)
+final class Field2Impl extends AstNodeImpl
+    with FlowAnalysisRootImpl
+    implements VariableDeclarationV1OriginImpl, Field2 {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  @override
+  final Token? equals;
+
+  @generated
+  ExpressionImpl? _initializer;
+
+  @override
+  FieldFragmentImpl? declaredFragment;
+
+  @override
+  Scope? initializerScope;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl? _v1Projection;
+
+  @generated
+  new({
+    required this.name,
+    required this.equals,
+    required ExpressionImpl? initializer,
+  }) : _initializer = initializer {
+    _becomeParentOf2(initializer);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (initializer case var initializer?) {
+      return initializer.endToken;
+    }
+    if (equals case var equals?) {
+      return equals;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  ExpressionImpl? get initializer => _initializer;
+
+  @generated
+  set initializer(ExpressionImpl? initializer) {
+    _initializer = _becomeParentOf2(initializer);
+  }
+
+  @override
+  ExpressionImpl? get initializer2 => initializer;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl get v1Projection =>
+      _v1Projection ??= VariableDeclarationImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('Field2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('equals', equals)
+    ..addNode('initializer', initializer);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('Field2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitField2(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = newNode as ExpressionImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('Field2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    initializer?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitInitializer,
+  }) {
+    if (initializer case var initializer?) {
+      if (visitInitializer != null) {
+        visitInitializer(initializer);
+      } else {
+        initializer.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('Field2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (initializer case var initializer?) {
+      if (initializer._containsOffset(rangeOffset, rangeEnd)) {
+        return initializer;
+      }
     }
     return null;
   }
@@ -19708,6 +19988,8 @@ abstract final class FieldDeclaration implements ClassMember {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword', tokenGroupId: 0),
     GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
@@ -19718,6 +20000,7 @@ abstract final class FieldDeclaration implements ClassMember {
     GenerateNodeProperty('semicolon'),
   ],
 )
+@V1Ast('The V2 counterpart is FieldsDeclaration.')
 final class FieldDeclarationImpl extends ClassMemberImpl
     implements FieldDeclaration {
   @generated
@@ -19747,19 +20030,22 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @override
   final Token semicolon;
 
-  @generated
-  FieldDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required this.externalKeyword,
-    required this.staticKeyword,
-    required this.abstractKeyword,
-    required this.covariantKeyword,
-    required VariableDeclarationListImpl fields,
-    required this.semicolon,
-  }) : _fields = fields {
-    _becomeParentOf12(fields);
+  final FieldsDeclarationImpl _v1ProjectionOrigin;
+
+  new v1Projection(FieldsDeclarationImpl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      externalKeyword = origin.externalKeyword,
+      staticKeyword = origin.staticKeyword,
+      abstractKeyword = origin.abstractKeyword,
+      covariantKeyword = origin.covariantKeyword,
+      _fields = origin.v1VariableList,
+      semicolon = origin.semicolon,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(_fields);
   }
 
   @override
@@ -19777,7 +20063,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @generated
   set fields(VariableDeclarationListImpl fields) {
-    _fields = _becomeParentOf12(fields);
+    _fields = _becomeParentOf1(fields);
   }
 
   @generated
@@ -19800,7 +20086,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   bool get isStatic => staticKeyword != null;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -19811,53 +20101,36 @@ final class FieldDeclarationImpl extends ClassMemberImpl
     ..addNode('fields', fields)
     ..addToken('semicolon', semicolon);
 
-  @generated
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 => super._childEntities2
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addToken('staticKeyword', staticKeyword)
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('covariantKeyword', covariantKeyword)
-    ..addNode('fields', fields)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFieldDeclaration(this);
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFieldDeclaration(this);
-
-  bool isAbstractWhenAugmentationsEnabled(FeatureSet featureSet) {
-    return abstractKeyword != null &&
-        featureSet.isEnabled(Feature.augmentations);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('FieldDeclaration is not in the V2 AST view.');
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(fields, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'fields'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(fields, oldNode)) {
-      fields = newNode as VariableDeclarationListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -19868,31 +20141,11 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    _visitCommentAndAnnotations2(visitor);
-    fields.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(VariableDeclarationListImpl)? visitFields,
-  }) {
-    _visitCommentAndAnnotations2(visitor);
-    if (visitFields != null) {
-      visitFields(fields);
-    } else {
-      fields.accept2(visitor);
-    }
+    throw StateError('FieldDeclaration is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -19907,13 +20160,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (fields._containsOffset(rangeOffset, rangeEnd)) {
-      return fields;
-    }
-    return null;
+    throw StateError('FieldDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -19968,7 +20215,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   final Token period;
 
   @generated
-  FieldFormalParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.kind,
@@ -20022,7 +20269,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   Token get name => super.name!;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('requiredKeyword', requiredKeyword)
@@ -20049,7 +20296,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
     ..addNode('defaultClause', defaultClause);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFieldFormalParameter(this);
@@ -20097,7 +20344,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -20155,7 +20402,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -20204,6 +20451,360 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   }
 }
 
+/// The declaration of one or more fields of the same type.
+///
+///     fieldsDeclaration ::=
+///         'static' 'const' <type>? <staticFinalDeclarationList>
+///       | 'static' 'final' <type>? <staticFinalDeclarationList>
+///       | 'static' 'late' 'final' <type>? <initializedIdentifierList>
+///       | 'static' 'late'? <varOrType> <initializedIdentifierList>
+///       | 'covariant' 'late'? <varOrType> <initializedIdentifierList>
+///       | 'late'? 'final' <type>? <initializedIdentifierList>
+///       | 'late'? <varOrType> <initializedIdentifierList>
+///       | 'external' ('static'? <finalVarOrType> | 'covariant' <varOrType>)
+///             <identifierList>
+///       | 'abstract' (<finalVarOrType> | 'covariant' <varOrType>)
+///             <identifierList>
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FieldsDeclaration implements MemberDeclaration {
+  /// The `abstract` keyword, or `null` if the keyword isn't used.
+  Token? get abstractKeyword;
+
+  /// The `augment` keyword, or `null` if the keyword isn't used.
+  Token? get augmentKeyword;
+
+  /// The `const`, `final`, or `var` keyword, or `null` if none was used.
+  Token? get constFinalOrVarKeyword;
+
+  /// If [constFinalOrVarKeyword] is `const`, returns it.
+  Token? get constKeyword;
+
+  /// The `covariant` keyword, or `null` if the keyword isn't used.
+  Token? get covariantKeyword;
+
+  /// The `external` keyword, or `null` if the keyword isn't used.
+  Token? get externalKeyword;
+
+  /// The fields being declared.
+  NodeList<Field2> get fields;
+
+  /// If [constFinalOrVarKeyword] is `final`, returns it.
+  Token? get finalKeyword;
+
+  /// The `late` keyword, or `null` if the keyword isn't used.
+  Token? get lateKeyword;
+
+  /// The semicolon terminating the declaration.
+  Token get semicolon;
+
+  /// The `static` keyword, or `null` if the keyword isn't used.
+  Token? get staticKeyword;
+
+  /// The type of the fields, or `null` if no type was declared.
+  TypeAnnotation? get type;
+
+  /// If [constFinalOrVarKeyword] is `var`, returns it.
+  Token? get varKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('staticKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('abstractKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('covariantKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('lateKeyword'),
+    GenerateNodeProperty('constFinalOrVarKeyword'),
+    GenerateNodeProperty('type'),
+    GenerateNodeProperty('fields'),
+    GenerateNodeProperty('semicolon'),
+  ],
+)
+final class FieldsDeclarationImpl extends MemberDeclarationImpl
+    implements VariableDeclarationListV1OriginImpl, FieldsDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  @override
+  final Token? staticKeyword;
+
+  @generated
+  @override
+  final Token? abstractKeyword;
+
+  @generated
+  @override
+  final Token? covariantKeyword;
+
+  @generated
+  @override
+  final Token? lateKeyword;
+
+  @generated
+  @override
+  final Token? constFinalOrVarKeyword;
+
+  @generated
+  TypeAnnotationImpl? _type;
+
+  @generated
+  @override
+  final NodeListImpl<Field2Impl> fields = NodeListImpl._();
+
+  @generated
+  @override
+  final Token semicolon;
+
+  @V1Ast()
+  FieldDeclarationImpl? _v1Projection;
+
+  @V1Ast()
+  VariableDeclarationListImpl? _v1VariableList;
+
+  @generated
+  new({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required this.staticKeyword,
+    required this.abstractKeyword,
+    required this.covariantKeyword,
+    required this.lateKeyword,
+    required this.constFinalOrVarKeyword,
+    required TypeAnnotationImpl? type,
+    required List<Field2Impl> fields,
+    required this.semicolon,
+  }) : _type = type {
+    _becomeParentOf2(type);
+    this.fields._initialize(this, fields);
+  }
+
+  @override
+  Token? get constKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.CONST) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @override
+  Token? get finalKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.FINAL) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (Token.lexicallyFirst(
+          augmentKeyword,
+          externalKeyword,
+          staticKeyword,
+          abstractKeyword,
+          covariantKeyword,
+        )
+        case var result?) {
+      return result;
+    }
+    if (lateKeyword case var lateKeyword?) {
+      return lateKeyword;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (type case var type?) {
+      return type.beginToken;
+    }
+    if (fields.beginToken case var result?) {
+      return result;
+    }
+    return semicolon;
+  }
+
+  @generated
+  @override
+  TypeAnnotationImpl? get type => _type;
+
+  @generated
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf2(type);
+  }
+
+  @V1Ast()
+  FieldDeclarationImpl get v1Projection =>
+      _v1Projection ??= FieldDeclarationImpl.v1Projection(this);
+
+  @V1Ast()
+  @override
+  VariableDeclarationListImpl get v1VariableList =>
+      _v1VariableList ??= VariableDeclarationListImpl.v1Projection(this);
+
+  @override
+  NodeListImpl<Field2Impl> get variables => fields;
+
+  @override
+  Token? get varKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.VAR) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('staticKeyword', staticKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('lateKeyword', lateKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addNodeList('fields', fields)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('FieldsDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFieldsDeclaration(this);
+
+  bool isAbstractWhenAugmentationsEnabled(FeatureSet featureSet) {
+    return abstractKeyword != null &&
+        featureSet.isEnabled(Feature.augmentations);
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(type, oldNode)) {
+      type = null;
+      return;
+    }
+    if (fields.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'fields' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(type, oldNode)) {
+      type = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (fields.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('FieldsDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    fields.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(NodeListImpl<Field2Impl>)? visitFields,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept2(visitor);
+      }
+    }
+    if (visitFields != null) {
+      visitFields(fields);
+    } else {
+      fields.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('FieldsDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (fields._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+}
+
 /// Mixin for AST node implementations that are capable of acting as a *flow
 /// analysis root*.
 ///
@@ -20216,10 +20817,8 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
 /// (whose region covers the initializer), and annotations.
 ///
 /// Note that a node whose type mixes in [FlowAnalysisRootImpl] doesn't
-/// necessarily act as a flow analysis root; for example a [FunctionDeclaration]
-/// is a flow analysis root only if it's not a local function, and a
-/// [VariableDeclaration] is a flow analysis root only if it declares a top
-/// level variable or a field. [flowAnalysisLog] is `null` in the cases where
+/// necessarily act as a flow analysis root; for example a [VariableDeclaration]
+/// is a flow analysis root only if it declares a top level variable or a field. [flowAnalysisLog] is `null` in the cases where
 /// the node isn't a flow analysis root.
 ///
 /// Note also that flow analysis roots may nest: for example the metadata of a
@@ -20250,7 +20849,7 @@ sealed class ForEachParts implements ForLoopParts {
   Token get inKeyword;
 
   /// The expression evaluated to produce the iterator.
-  @ToBeDeprecated('Use iterable2 instead.')
+  @V1Ast('The V2 counterpart is iterable2.')
   Expression get iterable;
 
   /// The expression evaluated to produce the iterator.
@@ -20266,7 +20865,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
 
   /// Initializes a newly created for-each statement whose loop control variable
   /// is declared internally (in the for-loop part).
-  ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable2})
+  new({required this.inKeyword, required ExpressionImpl iterable2})
     : _iterable2 = iterable2 {
     _becomeParentOf2AndExisting1(iterable2);
   }
@@ -20277,7 +20876,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   @override
   Token get endToken => iterable2.endToken;
 
-  @ToBeDeprecated('Use iterable2 instead.')
+  @V1Ast('The V2 counterpart is iterable2.')
   @override
   ExpressionImpl get iterable => V1Projection.toV1Expression(iterable2);
 
@@ -20290,7 +20889,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
     _iterable2 = _becomeParentOf2AndExisting1(iterable2);
   }
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('inKeyword', inKeyword)
@@ -20301,13 +20900,13 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
     ..addToken('inKeyword', inKeyword)
     ..addNode('iterable2', iterable2);
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     iterable.accept(visitor);
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
@@ -20346,7 +20945,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   DeclaredIdentifierImpl _loopVariable;
 
   @generated
-  ForEachPartsWithDeclarationImpl({
+  new({
     required DeclaredIdentifierImpl loopVariable,
     required super.inKeyword,
     required super.iterable2,
@@ -20376,7 +20975,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('loopVariable', loopVariable)
@@ -20391,7 +20990,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     ..addNode('iterable2', iterable2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForEachPartsWithDeclaration(this);
@@ -20429,7 +21028,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     loopVariable.accept(visitor);
@@ -20469,7 +21068,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (loopVariable._containsOffset(rangeOffset, rangeEnd)) {
@@ -20502,7 +21101,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForEachPartsWithIdentifier implements ForEachParts {
   /// The loop variable.
-  @ToBeDeprecated('Use target instead.')
+  @V1Ast('The V2 counterpart is target.')
   SimpleIdentifier get identifier;
 
   /// The loop variable, written with each element of the iterable.
@@ -20527,7 +21126,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   UnqualifiedNameAssignmentTargetImpl _target;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _identifier;
 
   /// The static type exposed by the V1 [identifier].
@@ -20536,7 +21135,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @DoNotGenerate(
     reason: 'Wires a V2-only child in a node shared by both AST views',
   )
-  ForEachPartsWithIdentifierImpl({
+  new({
     required UnqualifiedNameAssignmentTargetImpl target,
     required super.inKeyword,
     required super.iterable2,
@@ -20561,7 +21160,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   /// Unlike the V1 left-hand side of an assignment, it exposes any written
   /// element, including setters, and has a static type.
   @override
-  @ToBeDeprecated('Use target instead.')
+  @V1Ast('The V2 counterpart is target.')
   SimpleIdentifierImpl get identifier =>
       _identifier ??= _becomeParentOf1<SimpleIdentifierImpl>(
         SimpleIdentifierImpl.v1Projection(token: target.name)
@@ -20581,7 +21180,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('identifier', identifier)
@@ -20596,7 +21195,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     ..addNode('iterable2', iterable2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForEachPartsWithIdentifier(this);
@@ -20638,7 +21237,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     identifier.accept(visitor);
@@ -20678,7 +21277,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (identifier._containsOffset(rangeOffset, rangeEnd)) {
@@ -20750,7 +21349,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   late final List<BindPatternVariableElementImpl> variables;
 
   @generated
-  ForEachPartsWithPatternImpl({
+  new({
     required List<AnnotationImpl> metadata,
     required this.keyword,
     required DartPatternImpl pattern,
@@ -20794,7 +21393,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
@@ -20813,7 +21412,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     ..addNode('iterable2', iterable2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForEachPartsWithPattern(this);
@@ -20859,7 +21458,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -20907,7 +21506,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
@@ -20944,7 +21543,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForElement
     implements CollectionElement, ForLoop<CollectionElement> {
-  @ToBeDeprecated('Use body2 instead.')
+  @V1Ast('The V2 counterpart is body2.')
   @override
   CollectionElement get body;
 
@@ -20994,7 +21593,7 @@ final class ForElementImpl extends AstNodeImpl
   CollectionElementImpl _body2;
 
   @generated
-  ForElementImpl({
+  new({
     required this.awaitKeyword,
     required this.forKeyword,
     required this.leftParenthesis,
@@ -21017,7 +21616,7 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use body2 instead.')
+  @V1Ast('The V2 counterpart is body2.')
   @override
   CollectionElementImpl get body =>
       _becomeParentOf1(V1Projection.toV1CollectionElement(body2));
@@ -21049,7 +21648,7 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('awaitKeyword', awaitKeyword)
@@ -21070,7 +21669,7 @@ final class ForElementImpl extends AstNodeImpl
     ..addNode('body2', body2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForElement(this);
 
@@ -21115,7 +21714,7 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
@@ -21155,7 +21754,7 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
@@ -21222,7 +21821,7 @@ sealed class ForLoopImpl<Body extends AstNode, BodyImpl extends Body>
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ForLoopParts implements AstNode {
   @override
-  @ToBeDeprecated('Use parent2 instead')
+  @V1Ast('The V2 counterpart is parent2.')
   ForLoop get parent;
 
   @experimental
@@ -21232,7 +21831,7 @@ sealed class ForLoopParts implements AstNode {
 
 sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {
   @override
-  @ToBeDeprecated('Use parent2 instead')
+  @V1Ast('The V2 counterpart is parent2.')
   ForLoopImpl get parent => super.parent as ForLoopImpl;
 
   @experimental
@@ -21354,7 +21953,7 @@ abstract final class FormalParameterDefaultClause implements AstNode {
   Token get separator;
 
   /// The default value expression.
-  @ToBeDeprecated('Use value2 instead.')
+  @V1Ast('The V2 counterpart is value2.')
   Expression get value;
 
   @experimental
@@ -21382,10 +21981,8 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   ExpressionImpl _value2;
 
   @generated
-  FormalParameterDefaultClauseImpl({
-    required this.separator,
-    required ExpressionImpl value2,
-  }) : _value2 = value2 {
+  new({required this.separator, required ExpressionImpl value2})
+    : _value2 = value2 {
     _becomeParentOf2AndExisting1(value2);
   }
 
@@ -21402,7 +21999,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use value2 instead.')
+  @V1Ast('The V2 counterpart is value2.')
   @override
   ExpressionImpl get value =>
       _becomeParentOf1(V1Projection.toV1Expression(value2));
@@ -21419,7 +22016,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('separator', separator)
@@ -21432,7 +22029,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
     ..addNode('value2', value2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFormalParameterDefaultClause(this);
@@ -21463,7 +22060,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     value.accept(visitor);
@@ -21495,7 +22092,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (value._containsOffset(rangeOffset, rangeEnd)) {
@@ -21552,7 +22149,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
   /// parameter has an implicit type.
   TypeImpl? explicitFragmentType;
 
-  FormalParameterImpl({
+  new({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
     required this.kind,
@@ -21727,7 +22324,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -21745,7 +22342,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
     defaultClause?.accept2(visitor);
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   @mustCallSuper
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
@@ -21833,7 +22430,7 @@ abstract final class FormalParameterList implements AstNode {
   /// The left square bracket ('[') or left curly brace ('{') introducing the
   /// optional or named parameters, or `null` if there are neither optional nor
   /// named parameters.
-  @ToBeDeprecated('Use delimitedFormalParameters instead')
+  @V1Ast('The V2 counterpart is delimitedFormalParameters.')
   Token? get leftDelimiter;
 
   /// The left parenthesis.
@@ -21846,7 +22443,7 @@ abstract final class FormalParameterList implements AstNode {
   List<FormalParameterFragment?> get parameterFragments;
 
   /// The parameters associated with the method.
-  @ToBeDeprecated('Use allFormalParameters instead.')
+  @V1Ast('The V2 counterpart is allFormalParameters.')
   NodeList<FormalParameter> get parameters;
 
   /// The required positional formal parameters at the start of this list.
@@ -21856,7 +22453,7 @@ abstract final class FormalParameterList implements AstNode {
   /// The right square bracket (']') or right curly brace ('}') terminating the
   /// optional or named parameters, or `null` if there are neither optional nor
   /// named parameters.
-  @ToBeDeprecated('Use delimitedFormalParameters instead')
+  @V1Ast('The V2 counterpart is delimitedFormalParameters.')
   Token? get rightDelimiter;
 
   /// The right parenthesis.
@@ -21902,7 +22499,7 @@ final class FormalParameterListImpl extends AstNodeImpl
       _FormalParameterListView(this);
 
   @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
-  FormalParameterListImpl({
+  new({
     required this.leftParenthesis,
     required List<FormalParameterImpl> requiredPositionalFormalParameters,
     required DelimitedFormalParametersImpl? delimitedFormalParameters,
@@ -21915,7 +22512,7 @@ final class FormalParameterListImpl extends AstNodeImpl
     _becomeParentOf2(delimitedFormalParameters);
     if (delimitedFormalParameters case var delimitedFormalParameters?) {
       for (var parameter in delimitedFormalParameters.formalParameters) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _becomeParentOf1(parameter);
       }
     }
@@ -21941,7 +22538,7 @@ final class FormalParameterListImpl extends AstNodeImpl
     _delimitedFormalParameters = _becomeParentOf2(delimitedFormalParameters);
     if (delimitedFormalParameters case var delimitedFormalParameters?) {
       for (var parameter in delimitedFormalParameters.formalParameters) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _becomeParentOf1(parameter);
       }
     }
@@ -21966,7 +22563,7 @@ final class FormalParameterListImpl extends AstNodeImpl
   @override
   Token? get rightDelimiter => delimitedFormalParameters?.rightDelimiter;
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
   ChildEntities get _childEntities {
@@ -22000,7 +22597,7 @@ final class FormalParameterListImpl extends AstNodeImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFormalParameterList(this);
 
@@ -22039,7 +22636,7 @@ final class FormalParameterListImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     // ignore: deprecated_member_use_from_same_package
@@ -22085,7 +22682,7 @@ final class FormalParameterListImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     // ignore: deprecated_member_use_from_same_package
@@ -22124,7 +22721,7 @@ final class FormalParameterListImpl extends AstNodeImpl
 sealed class ForParts implements ForLoopParts {
   /// The condition used to determine when to terminate the loop, or `null` if
   /// there's no condition.
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   Expression? get condition;
 
   /// The condition used to determine when to terminate the loop, or `null` if
@@ -22139,7 +22736,7 @@ sealed class ForParts implements ForLoopParts {
   Token get rightSeparator;
 
   /// The list of expressions run after each execution of the loop body.
-  @ToBeDeprecated('Use updaters2 instead.')
+  @V1Ast('The V2 counterpart is updaters2.')
   NodeList<Expression> get updaters;
 
   @experimental
@@ -22157,7 +22754,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
 
   final NodeListImpl<ExpressionImpl> _updaters2 = NodeListImpl._();
 
-  @ToBeDeprecated('Use updaters2 instead.')
+  @V1Ast('The V2 counterpart is updaters2.')
   @override
   late final NodeListImpl<ExpressionImpl> updaters = _V1ProjectedNodeListImpl(
     updaters2,
@@ -22168,7 +22765,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   ///
   /// Either the [condition] and the list of [updaters] can be `null` if the
   /// loop doesn't have the corresponding attribute.
-  ForPartsImpl({
+  new({
     required this.leftSeparator,
     required ExpressionImpl? condition2,
     required this.rightSeparator,
@@ -22181,7 +22778,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   Token get beginToken => leftSeparator;
 
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   @override
   ExpressionImpl? get condition => switch (condition2) {
     var node? => V1Projection.toV1Expression(node),
@@ -22203,7 +22800,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   NodeListImpl<ExpressionImpl> get updaters2 => _updaters2;
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftSeparator', leftSeparator)
@@ -22211,14 +22808,14 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     ..addToken('rightSeparator', rightSeparator)
     ..addNodeList('updaters', updaters);
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition?.accept(visitor);
     updaters.accept(visitor);
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition case var condition?) {
@@ -22234,16 +22831,25 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
 /// more variable declarations as part of the for loop.
 ///
 ///   forLoopParts ::=
-///       [VariableDeclarationList] ';' [Expression]? ';' expressionList?
+///       [LocalVariablesDeclaration] ';' [Expression]? ';' expressionList?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForPartsWithDeclarations implements ForParts {
   /// The declaration of the loop variables.
+  @V1Ast('The V2 counterpart is variables2.')
   VariableDeclarationList get variables;
+
+  /// The declaration of the loop variables.
+  @experimental
+  LocalVariablesDeclaration get variables2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('variables'),
+    GenerateNodeProperty(
+      'variables2',
+      v1Name: 'variables',
+      v1Projection: V1Projection.localVariables,
+    ),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
       'condition2',
@@ -22263,23 +22869,23 @@ abstract final class ForPartsWithDeclarations implements ForParts {
 final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     implements ForPartsWithDeclarations {
   @generated
-  VariableDeclarationListImpl _variables;
+  LocalVariablesDeclarationImpl _variables2;
 
   @generated
-  ForPartsWithDeclarationsImpl({
-    required VariableDeclarationListImpl variables,
+  new({
+    required LocalVariablesDeclarationImpl variables2,
     required super.leftSeparator,
     required super.condition2,
     required super.rightSeparator,
     required super.updaters2,
-  }) : _variables = variables {
-    _becomeParentOf12(variables);
+  }) : _variables2 = variables2 {
+    _becomeParentOf2AndExisting1(variables2);
   }
 
   @generated
   @override
   Token get beginToken {
-    return variables.beginToken;
+    return variables2.beginToken;
   }
 
   @generated
@@ -22292,16 +22898,24 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @generated
+  @V1Ast('The V2 counterpart is variables2.')
   @override
-  VariableDeclarationListImpl get variables => _variables;
+  VariableDeclarationListImpl get variables =>
+      _becomeParentOf1(V1Projection.toV1LocalVariables(variables2));
 
   @generated
-  set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf12(variables);
+  @experimental
+  @override
+  LocalVariablesDeclarationImpl get variables2 => _variables2;
+
+  @generated
+  @experimental
+  set variables2(LocalVariablesDeclarationImpl variables2) {
+    _variables2 = _becomeParentOf2AndExisting1(variables2);
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('variables', variables)
@@ -22313,14 +22927,14 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('variables', variables)
+    ..addNode('variables2', variables2)
     ..addToken('leftSeparator', leftSeparator)
     ..addNode('condition2', condition2)
     ..addToken('rightSeparator', rightSeparator)
     ..addNodeList('updaters2', updaters2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForPartsWithDeclarations(this);
@@ -22334,8 +22948,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(variables, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'variables'.");
+    if (identical(variables2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'variables2'.");
     }
     if (identical(condition2, oldNode)) {
       condition2 = null;
@@ -22352,8 +22966,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(variables, oldNode)) {
-      variables = newNode as VariableDeclarationListImpl;
+    if (identical(variables2, oldNode)) {
+      variables2 = newNode as LocalVariablesDeclarationImpl;
       return;
     }
     if (identical(condition2, oldNode)) {
@@ -22367,7 +22981,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
@@ -22379,7 +22993,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    variables.accept2(visitor);
+    variables2.accept2(visitor);
     condition2?.accept2(visitor);
     updaters2.accept2(visitor);
   }
@@ -22393,14 +23007,14 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(VariableDeclarationListImpl)? visitVariables,
+    void Function(LocalVariablesDeclarationImpl)? visitVariables2,
     void Function(ExpressionImpl)? visitCondition2,
     void Function(NodeListImpl<ExpressionImpl>)? visitUpdaters2,
   }) {
-    if (visitVariables != null) {
-      visitVariables(variables);
+    if (visitVariables2 != null) {
+      visitVariables2(variables2);
     } else {
-      variables.accept2(visitor);
+      variables2.accept2(visitor);
     }
     if (condition2 case var condition2?) {
       if (visitCondition2 != null) {
@@ -22417,7 +23031,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
@@ -22438,8 +23052,8 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (variables._containsOffset(rangeOffset, rangeEnd)) {
-      return variables;
+    if (variables2._containsOffset(rangeOffset, rangeEnd)) {
+      return variables2;
     }
     if (condition2 case var condition2?) {
       if (condition2._containsOffset(rangeOffset, rangeEnd)) {
@@ -22466,7 +23080,7 @@ abstract final class ForPartsWithExpression implements ForParts {
   ///
   /// Note that a for statement can't have both a variable list and an
   /// initialization expression, but can validly have neither.
-  @ToBeDeprecated('Use initialization2 instead.')
+  @V1Ast('The V2 counterpart is initialization2.')
   Expression? get initialization;
 
   @experimental
@@ -22502,7 +23116,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   ExpressionImpl? _initialization2;
 
   @generated
-  ForPartsWithExpressionImpl({
+  new({
     required ExpressionImpl? initialization2,
     required super.leftSeparator,
     required super.condition2,
@@ -22531,7 +23145,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use initialization2 instead.')
+  @V1Ast('The V2 counterpart is initialization2.')
   @override
   ExpressionImpl? get initialization =>
       _becomeParentOf1(switch (initialization2) {
@@ -22551,7 +23165,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('initialization', initialization)
@@ -22570,7 +23184,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
     ..addNodeList('updaters2', updaters2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitForPartsWithExpression(this);
@@ -22618,7 +23232,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     initialization?.accept(visitor);
@@ -22670,7 +23284,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (initialization case var initialization?) {
@@ -22747,7 +23361,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   PatternVariableDeclarationImpl _variables;
 
   @generated
-  ForPartsWithPatternImpl({
+  new({
     required PatternVariableDeclarationImpl variables,
     required super.leftSeparator,
     required super.condition2,
@@ -22782,7 +23396,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('variables', variables)
@@ -22801,7 +23415,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
     ..addNodeList('updaters2', updaters2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForPartsWithPattern(this);
 
@@ -22847,7 +23461,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
@@ -22897,7 +23511,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
@@ -22945,7 +23559,14 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 ///      | [DeclaredIdentifier] 'in' [Expression]
 ///      | [SimpleIdentifier] 'in' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ForStatement implements Statement, ForLoop<Statement> {}
+abstract final class ForStatement implements Statement, ForLoop<Statement> {
+  @V1Ast('The V2 counterpart is body2.')
+  @override
+  Statement get body;
+
+  @experimental
+  Statement get body2;
+}
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
@@ -22954,7 +23575,11 @@ abstract final class ForStatement implements Statement, ForLoop<Statement> {}
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty('forLoopParts'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('body'),
+    GenerateNodeProperty(
+      'body2',
+      v1Name: 'body',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class ForStatementImpl extends StatementImpl
@@ -22980,20 +23605,20 @@ final class ForStatementImpl extends StatementImpl
   final Token rightParenthesis;
 
   @generated
-  StatementImpl _body;
+  StatementImpl _body2;
 
   @generated
-  ForStatementImpl({
+  new({
     required this.awaitKeyword,
     required this.forKeyword,
     required this.leftParenthesis,
     required ForLoopPartsImpl forLoopParts,
     required this.rightParenthesis,
-    required StatementImpl body,
+    required StatementImpl body2,
   }) : _forLoopParts = forLoopParts,
-       _body = body {
+       _body2 = body2 {
     _becomeParentOf12(forLoopParts);
-    _becomeParentOf12(body);
+    _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -23006,18 +23631,25 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @generated
+  @V1Ast('The V2 counterpart is body2.')
   @override
-  StatementImpl get body => _body;
+  StatementImpl get body => _becomeParentOf1(V1Projection.toV1Statement(body2));
 
   @generated
-  set body(StatementImpl body) {
-    _body = _becomeParentOf12(body);
+  @experimental
+  @override
+  StatementImpl get body2 => _body2;
+
+  @generated
+  @experimental
+  set body2(StatementImpl body2) {
+    _body2 = _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
   @override
   Token get endToken {
-    return body.endToken;
+    return body2.endToken;
   }
 
   @generated
@@ -23030,7 +23662,7 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('awaitKeyword', awaitKeyword)
@@ -23048,10 +23680,10 @@ final class ForStatementImpl extends StatementImpl
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('forLoopParts', forLoopParts)
     ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+    ..addNode('body2', body2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitForStatement(this);
 
@@ -23066,8 +23698,8 @@ final class ForStatementImpl extends StatementImpl
     if (identical(forLoopParts, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'forLoopParts'.");
     }
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
+    if (identical(body2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body2'.");
     }
     super.removeChild(oldNode);
   }
@@ -23079,15 +23711,15 @@ final class ForStatementImpl extends StatementImpl
       forLoopParts = newNode as ForLoopPartsImpl;
       return;
     }
-    if (identical(body, oldNode)) {
-      body = newNode as StatementImpl;
+    if (identical(body2, oldNode)) {
+      body2 = newNode as StatementImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     forLoopParts.accept(visitor);
@@ -23099,7 +23731,7 @@ final class ForStatementImpl extends StatementImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     forLoopParts.accept2(visitor);
-    body.accept2(visitor);
+    body2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23112,22 +23744,22 @@ final class ForStatementImpl extends StatementImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ForLoopPartsImpl)? visitForLoopParts,
-    void Function(StatementImpl)? visitBody,
+    void Function(StatementImpl)? visitBody2,
   }) {
     if (visitForLoopParts != null) {
       visitForLoopParts(forLoopParts);
     } else {
       forLoopParts.accept2(visitor);
     }
-    if (visitBody != null) {
-      visitBody(body);
+    if (visitBody2 != null) {
+      visitBody2(body2);
     } else {
-      body.accept2(visitor);
+      body2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
@@ -23145,8 +23777,8 @@ final class ForStatementImpl extends StatementImpl
     if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
       return forLoopParts;
     }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
+    if (body2._containsOffset(rangeOffset, rangeEnd)) {
+      return body2;
     }
     return null;
   }
@@ -23260,10 +23892,7 @@ final class FunctionCallInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionCallInvocationResolutionImpl({
-    required this.invokeType,
-    required this.type,
-  });
+  new({required this.invokeType, required this.type});
 }
 
 /// A tear-off of the language-defined `call` method of a function-typed value.
@@ -23293,10 +23922,7 @@ final class FunctionCallTearOffResolutionImpl extends NamedReadResolutionImpl
   @override
   final FunctionTypeImpl associatedFunctionType;
 
-  FunctionCallTearOffResolutionImpl({
-    required this.type,
-    required this.associatedFunctionType,
-  });
+  new({required this.type, required this.associatedFunctionType});
 }
 
 /// A function declaration.
@@ -23356,6 +23982,8 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('externalKeyword'),
@@ -23365,9 +23993,10 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('functionExpression'),
   ],
 )
+@V1Ast('The V2 counterparts implement FunctionDeclarationV1OriginImpl.')
 final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
-    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
-    implements TopLevelDeclarationV1OrV2Impl, FunctionDeclaration {
+    with AstNodeWithNameScopeMixin
+    implements FunctionDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -23384,41 +24013,17 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token name;
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  TypeAnnotationImpl? _returnType;
-
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   FunctionExpressionImpl _functionExpression;
 
-  ExecutableFragmentImpl? _declaredFragment;
+  final FunctionDeclarationV1OriginImpl _v1ProjectionOrigin;
 
-  TopLevelGetterDeclarationImpl? _v1ProjectionOrigin;
-
-  @generated
-  FunctionDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required this.externalKeyword,
-    required TypeAnnotationImpl? returnType,
-    required this.propertyKeyword,
-    required this.name,
-    required FunctionExpressionImpl functionExpression,
-  }) : _returnType = returnType,
-       _functionExpression = functionExpression {
-    _becomeParentOf12(returnType);
-    _becomeParentOf12(functionExpression);
-  }
-
-  @ToBeDeprecated('Part of the V1 projection.')
-  FunctionDeclarationImpl.v1ProjectionFromGetter(
-    TopLevelGetterDeclarationImpl origin,
-  ) : augmentKeyword = origin.augmentKeyword,
+  new v1Projection(FunctionDeclarationV1OriginImpl origin)
+    : augmentKeyword = origin.augmentKeyword,
       externalKeyword = origin.externalKeyword,
-      _returnType = origin.returnType,
-      propertyKeyword = origin.getKeyword,
+      propertyKeyword = origin._v1PropertyKeyword,
       name = origin.name,
-      _functionExpression = FunctionExpressionImpl.v1ProjectionFromGetter(
+      _functionExpression = FunctionExpressionImpl.v1ProjectionFromDeclaration(
         origin,
       ),
       _v1ProjectionOrigin = origin,
@@ -23426,23 +24031,15 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
         comment: origin.documentationComment,
         metadata: origin.metadata.toList(),
       ) {
-    _attachV1Children();
+    _becomeParentOf1(origin.returnType);
+    _becomeParentOf1(_functionExpression);
   }
 
   @override
-  ExecutableFragmentImpl? get declaredFragment => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.declaredFragment,
-    _ => _declaredFragment,
-  };
+  ExecutableFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
 
-  set declaredFragment(ExecutableFragmentImpl? declaredFragment) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _declaredFragment = declaredFragment;
-  }
-
-  @DoNotGenerate(reason: 'The function expression is manually stored')
+  @generated
   @override
   Token get endToken {
     return functionExpression.endToken;
@@ -23466,16 +24063,13 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     return name;
   }
 
-  @DoNotGenerate(reason: 'V1 projections use a projected function expression')
+  @generated
   @override
   FunctionExpressionImpl get functionExpression => _functionExpression;
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   set functionExpression(FunctionExpressionImpl functionExpression) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _functionExpression = _becomeParentOf12(functionExpression);
+    _functionExpression = _becomeParentOf1(functionExpression);
   }
 
   @override
@@ -23490,28 +24084,24 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   bool get isSetter => propertyKeyword?.keyword == Keyword.SET;
 
-  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  TypeAnnotationImpl? get returnType => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.returnType,
-    _ => _returnType,
-  };
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
-  set returnType(TypeAnnotationImpl? returnType) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _returnType = _becomeParentOf12(returnType);
+  @override
+  set nameScope(Scope? nameScope) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+  TypeAnnotationImpl? get returnType => _v1ProjectionOrigin.returnType;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -23521,76 +24111,39 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     ..addToken('name', name)
     ..addNode('functionExpression', functionExpression);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    return super._childEntities2
-      ..addToken('augmentKeyword', augmentKeyword)
-      ..addToken('externalKeyword', externalKeyword)
-      ..addNode('returnType', returnType)
-      ..addToken('propertyKeyword', propertyKeyword)
-      ..addToken('name', name)
-      ..addNode('functionExpression', functionExpression);
-  }
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionDeclaration(this);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    return visitor.visitFunctionDeclaration(this);
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
   }
-
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
-  @override
-  void removeChild(AstNodeImpl oldNode) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(returnType, oldNode)) {
-      returnType = null;
-      return;
-    }
-    if (identical(functionExpression, oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove required child 'functionExpression'.",
-      );
-    }
-    super.removeChild(oldNode);
-  }
-
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
-  @override
-  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(returnType, oldNode)) {
-      returnType = newNode as TypeAnnotationImpl?;
-      return;
-    }
-    if (identical(functionExpression, oldNode)) {
-      functionExpression = newNode as FunctionExpressionImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
-  }
-
-  @override
-  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -23598,56 +24151,15 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     functionExpression.accept(visitor);
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    _visitCommentAndAnnotations2(visitor);
-    returnType?.accept2(visitor);
-    functionExpression.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(TypeAnnotationImpl)? visitReturnType,
-    void Function(FunctionExpressionImpl)? visitFunctionExpression,
-  }) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    _visitCommentAndAnnotations2(visitor);
-    if (returnType case var returnType?) {
-      if (visitReturnType != null) {
-        visitReturnType(returnType);
-      } else {
-        returnType.accept2(visitor);
-      }
-    }
-    if (visitFunctionExpression != null) {
-      visitFunctionExpression(functionExpression);
-    } else {
-      functionExpression.accept2(visitor);
-    }
-  }
-
-  @ToBeDeprecated('Part of the V1 projection.')
-  void _attachV1Children() {
-    _becomeParentOf1(returnType);
-    _becomeParentOf1(functionExpression);
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -23664,24 +24176,10 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     return null;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (returnType case var returnType?) {
-      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-        return returnType;
-      }
-    }
-    if (functionExpression._containsOffset(rangeOffset, rangeEnd)) {
-      return functionExpression;
-    }
-    return null;
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -23693,18 +24191,22 @@ abstract final class FunctionDeclarationStatement implements Statement {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [GenerateNodeProperty('functionDeclaration')],
 )
+@V1Ast('The V2 counterpart is LocalFunctionDeclarationImpl.')
 final class FunctionDeclarationStatementImpl extends StatementImpl
     implements FunctionDeclarationStatement {
   @generated
   FunctionDeclarationImpl _functionDeclaration;
 
-  @generated
-  FunctionDeclarationStatementImpl({
-    required FunctionDeclarationImpl functionDeclaration,
-  }) : _functionDeclaration = functionDeclaration {
-    _becomeParentOf12(functionDeclaration);
+  final LocalFunctionDeclarationImpl _v1ProjectionOrigin;
+
+  new v1Projection(LocalFunctionDeclarationImpl origin)
+    : _functionDeclaration = origin.v1Projection,
+      _v1ProjectionOrigin = origin {
+    _becomeParentOf1(_functionDeclaration);
   }
 
   @generated
@@ -23725,22 +24227,35 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 
   @generated
   set functionDeclaration(FunctionDeclarationImpl functionDeclaration) {
-    _functionDeclaration = _becomeParentOf12(functionDeclaration);
+    _functionDeclaration = _becomeParentOf1(functionDeclaration);
+  }
+
+  @override
+  bool get mayCompleteNormally => _v1ProjectionOrigin.mayCompleteNormally;
+
+  @override
+  set mayCompleteNormally(bool _) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNode('functionDeclaration', functionDeclaration);
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addNode('functionDeclaration', functionDeclaration);
+  ChildEntities get _childEntities2 {
+    throw StateError('FunctionDeclarationStatement is not in the V2 AST view.');
+  }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionDeclarationStatement(this);
@@ -23748,32 +24263,27 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitFunctionDeclarationStatement(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('FunctionDeclarationStatement is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(functionDeclaration, oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove required child 'functionDeclaration'.",
-      );
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(functionDeclaration, oldNode)) {
-      functionDeclaration = newNode as FunctionDeclarationImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     functionDeclaration.accept(visitor);
@@ -23783,29 +24293,11 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    functionDeclaration.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(FunctionDeclarationImpl)? visitFunctionDeclaration,
-  }) {
-    if (visitFunctionDeclaration != null) {
-      visitFunctionDeclaration(functionDeclaration);
-    } else {
-      functionDeclaration.accept2(visitor);
-    }
+    throw StateError('FunctionDeclarationStatement is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (functionDeclaration._containsOffset(rangeOffset, rangeEnd)) {
@@ -23817,11 +24309,53 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (functionDeclaration._containsOffset(rangeOffset, rangeEnd)) {
-      return functionDeclaration;
-    }
-    return null;
+    throw StateError('FunctionDeclarationStatement is not in the V2 AST view.');
   }
+}
+
+/// A V2 declaration whose V1 projection is a [FunctionDeclarationImpl] with a
+/// synthetic [FunctionExpressionImpl].
+///
+/// The V1 [FunctionDeclaration] is a tagged union of top-level functions,
+/// getters, setters, and local functions, so this interface exposes the state
+/// that the V1 projection nodes read from their V2 origin.
+sealed class FunctionDeclarationV1OriginImpl implements AstNodeImpl {
+  Token? get augmentKeyword;
+
+  FunctionBodyImpl get body;
+
+  ExecutableFragmentImpl? get declaredFragment;
+
+  CommentImpl? get documentationComment;
+
+  Token? get externalKeyword;
+
+  NodeListImpl<AnnotationImpl> get metadata;
+
+  Token get name;
+
+  Scope? get nameScope;
+
+  TypeAnnotationImpl? get returnType;
+
+  @V1Ast()
+  FunctionDeclarationImpl get v1Projection;
+
+  /// The formal parameter list of the V1 [FunctionExpression].
+  @V1Ast()
+  FormalParameterListImpl? get _v1Parameters;
+
+  /// The cached V1 projection, or `null` if it hasn't been created yet.
+  @V1Ast()
+  FunctionDeclarationImpl? get _v1Projection;
+
+  /// The `get` or `set` keyword of the V1 [FunctionDeclaration].
+  @V1Ast()
+  Token? get _v1PropertyKeyword;
+
+  /// The type parameter list of the V1 [FunctionExpression].
+  @V1Ast()
+  TypeParameterListImpl? get _v1TypeParameters;
 }
 
 /// A function expression.
@@ -23878,10 +24412,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   ExecutableFragmentImpl? _declaredFragment;
 
-  TopLevelGetterDeclarationImpl? _v1ProjectionOrigin;
+  FunctionDeclarationV1OriginImpl? _v1ProjectionOrigin;
 
   @generated
-  FunctionExpressionImpl({
+  new({
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required FunctionBodyImpl body,
@@ -23893,11 +24427,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
     _becomeParentOf12(body);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
-  FunctionExpressionImpl.v1ProjectionFromGetter(
-    TopLevelGetterDeclarationImpl origin,
-  ) : _typeParameters = origin.recoveryTypeParameters,
-      _parameters = origin.recoveryFormalParameters,
+  @V1Ast()
+  new v1ProjectionFromDeclaration(FunctionDeclarationV1OriginImpl origin)
+    : _typeParameters = origin._v1TypeParameters,
+      _parameters = origin._v1Parameters,
       _body = origin.body,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
@@ -23918,8 +24451,8 @@ final class FunctionExpressionImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   FunctionBodyImpl get body => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.body,
-    _ => _body,
+    var origin? => origin.body,
+    null => _body,
   };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -23932,8 +24465,8 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   ExecutableFragmentImpl? get declaredFragment => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.declaredFragment,
-    _ => _declaredFragment,
+    var origin? => origin.declaredFragment,
+    null => _declaredFragment,
   };
 
   set declaredFragment(ExecutableFragmentImpl? declaredFragment) {
@@ -23949,19 +24482,20 @@ final class FunctionExpressionImpl extends ExpressionImpl
     return body.endToken;
   }
 
-  /// A projection has no V2 parent to walk, and the body of a top-level
-  /// getter is never in a constant context.
+  /// A projection has no V2 parent to walk, and the body of a declaration is
+  /// never in a constant context.
   @override
   bool get inConstantContext => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl() => false,
-    _ => super.inConstantContext,
+    _? => false,
+    null => super.inConstantContext,
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   FormalParameterListImpl? get parameters => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.recoveryFormalParameters,
-    _ => _parameters,
+    // ignore: analyzer_v1_ast_use
+    var origin? => origin._v1Parameters,
+    null => _parameters,
   };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -23977,16 +24511,16 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   TypeImpl? get staticType => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin =>
-      origin.declaredFragment?.element.type,
-    _ => super.staticType,
+    var origin? => origin.declaredFragment?.element.type,
+    null => super.staticType,
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   TypeParameterListImpl? get typeParameters => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.recoveryTypeParameters,
-    _ => _typeParameters,
+    // ignore: analyzer_v1_ast_use
+    var origin? => origin._v1TypeParameters,
+    null => _typeParameters,
   };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -24003,7 +24537,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
       _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeParameters', typeParameters)
@@ -24023,7 +24557,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionExpression(this);
 
@@ -24042,8 +24576,8 @@ final class FunctionExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       switch (_v1ProjectionOrigin) {
-        TopLevelGetterDeclarationImpl() => null,
-        _ => super.computeConstantValue(),
+        _? => null,
+        null => super.computeConstantValue(),
       };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -24101,7 +24635,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
       _v1ProjectionOrigin == null ? super.toSource() : body.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -24158,7 +24692,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
     }
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   void _attachV1Children() {
     _becomeParentOf1(typeParameters);
     _becomeParentOf1(parameters);
@@ -24166,7 +24700,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -24216,7 +24750,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///
 ///     functionExpressionInvocation ::=
 ///         [Expression] [TypeArgumentList]? [ArgumentList]
-@ToBeDeprecated('Use CallInvocation instead.')
+@V1Ast('The V2 counterpart is CallInvocation.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpressionInvocation
     implements InvocationExpression {
@@ -24228,7 +24762,7 @@ abstract final class FunctionExpressionInvocation
   ExecutableElement? get element;
 
   /// The expression producing the function being invoked.
-  @ToBeDeprecated('Use function2 instead.')
+  @V1Ast('The V2 counterpart is function2.')
   @override
   Expression get function;
 
@@ -24246,12 +24780,12 @@ abstract final class FunctionExpressionInvocation
     GenerateNodeProperty('argumentList'),
   ],
 )
-@ToBeDeprecated('Use CallInvocationImpl instead.')
+@V1Ast('The V2 counterpart is CallInvocationImpl.')
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     implements FunctionExpressionInvocation {
   final CallInvocationImpl _origin;
 
-  FunctionExpressionInvocationImpl._(CallInvocationImpl origin)
+  new _(CallInvocationImpl origin)
     : _origin = origin,
       super.v1Projection(
         typeArguments: origin.typeArguments,
@@ -24287,7 +24821,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   Token get endToken => _origin.endToken;
 
   @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @ToBeDeprecated('Use function2 instead.')
+  @V1Ast('The V2 counterpart is function2.')
   @override
   ExpressionImpl get function => function2;
 
@@ -24330,7 +24864,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('function', function)
@@ -24344,7 +24878,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionExpressionInvocation(this);
@@ -24382,7 +24916,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   String toSource() => _origin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
@@ -24398,7 +24932,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (function._containsOffset(rangeOffset, rangeEnd)) {
@@ -24471,7 +25005,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  FunctionInstantiationImpl({
+  new({
     required ExpressionImpl operand,
     required TypeArgumentListImpl typeArguments,
   }) : _operand = operand,
@@ -24513,7 +25047,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
     _typeArguments = _becomeParentOf2(typeArguments);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get v1Projection {
     return _v1Projection ??= _createV1Projection();
   }
@@ -24523,7 +25057,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('FunctionInstantiation is not in the V1 AST view.');
@@ -24536,7 +25070,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
     ..addNode('typeArguments', typeArguments);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('FunctionInstantiation is not in the V1 AST view.');
@@ -24581,7 +25115,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('FunctionInstantiation is not in the V1 AST view.');
@@ -24620,7 +25154,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('FunctionInstantiation is not in the V1 AST view.');
@@ -24638,7 +25172,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
     return null;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl _createV1Projection() {
     if (operand case ImplicitCallTearOffImpl tearOff) {
       return ImplicitCallReferenceImpl.v1Projection(
@@ -24673,7 +25207,7 @@ final class FunctionInterfaceCallTearOffResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionInterfaceCallTearOffResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// An invocation permitted through core `Function` without a known signature.
@@ -24691,7 +25225,7 @@ final class FunctionInterfaceInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionInterfaceInvocationResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// An expression that applies an argument list to a function or method.
@@ -24732,10 +25266,10 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   /// `dynamic` and core `Function` here.
   TypeImpl? staticInvokeType;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   FunctionExpressionInvocationImpl? _functionExpressionInvocation;
 
-  FunctionInvocationImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
   }) : _typeArguments = typeArguments,
@@ -24752,7 +25286,7 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   FunctionExpressionInvocationImpl get functionExpressionInvocation =>
       _functionExpressionInvocation ??= switch (this) {
         CallInvocationImpl origin => FunctionExpressionInvocationImpl._(origin),
@@ -24776,8 +25310,8 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
 /// arguments applied to it.
 ///
 /// For example, the expression `print` in `var x = print;`.
-@ToBeDeprecated(
-  'Use FunctionInstantiation or ImplicitFunctionInstantiation instead.',
+@V1Ast(
+  'The V2 counterpart is FunctionInstantiation or ImplicitFunctionInstantiation.',
 )
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionReference
@@ -24792,7 +25326,7 @@ abstract final class FunctionReference
   /// a class). In code with errors, this could be other kinds of expressions.
   /// For example, `(...)<int>` parses as a [FunctionReference] whose referent
   /// is a [ParenthesizedExpression].
-  @ToBeDeprecated('Use function2 instead.')
+  @V1Ast('The V2 counterpart is function2.')
   Expression get function;
 
   @experimental
@@ -24818,7 +25352,7 @@ abstract final class FunctionReference
     GenerateNodeProperty('typeArguments'),
   ],
 )
-@ToBeDeprecated(
+@V1Ast(
   'Use FunctionInstantiationImpl or ImplicitFunctionInstantiationImpl '
   'instead.',
 )
@@ -24834,7 +25368,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   final ExpressionImpl _v1ProjectionOrigin;
 
-  FunctionReferenceImpl.v1Projection(ImplicitFunctionInstantiationImpl origin)
+  new v1Projection(ImplicitFunctionInstantiationImpl origin)
     : _function2 = origin.operand,
       _typeArguments = null,
       typeArgumentTypes = origin.typeArgumentTypes,
@@ -24842,9 +25376,8 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     _becomeParentOf1(function);
   }
 
-  FunctionReferenceImpl.v1ProjectionFromInstantiation(
-    FunctionInstantiationImpl origin,
-  ) : _function2 = origin.operand,
+  new v1ProjectionFromInstantiation(FunctionInstantiationImpl origin)
+    : _function2 = origin.operand,
       _typeArguments = origin.typeArguments,
       typeArgumentTypes = origin.typeArgumentTypes,
       _v1ProjectionOrigin = origin {
@@ -24852,7 +25385,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     _becomeParentOf1(typeArguments);
   }
 
-  FunctionReferenceImpl.v1ProjectionFromParsedExpression(
+  new v1ProjectionFromParsedExpression(
     ExpressionImpl origin,
     ExpressionImpl function,
     TypeArgumentListImpl typeArguments,
@@ -24880,7 +25413,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   Token get endToken => typeArguments?.endToken ?? function2.endToken;
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
-  @ToBeDeprecated('Use function2 instead.')
+  @V1Ast('The V2 counterpart is function2.')
   @override
   ExpressionImpl get function =>
       _becomeParentOf1(V1Projection.toV1Expression(function2));
@@ -24919,7 +25452,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('function', function)
@@ -24932,7 +25465,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionReference(this);
 
@@ -24972,7 +25505,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   };
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     function.accept(visitor);
@@ -24987,7 +25520,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (function._containsOffset(rangeOffset, rangeEnd)) {
@@ -25033,21 +25566,72 @@ abstract final class FunctionTypeAlias implements TypeAlias {
   TypeParameterList? get typeParameters;
 }
 
+/// A type alias written in the legacy function type syntax.
+///
+///     functionTypeAlias ::=
+///         'typedef' functionPrefix [TypeParameterList]?
+///         [FormalParameterList] ';'
+///
+///     functionPrefix ::=
+///         [TypeAnnotation]? [SimpleIdentifier]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionTypeAlias2
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  @override
+  TypeAliasFragment? get declaredFragment;
+
+  /// The name of the type alias.
+  Token get name;
+
+  /// The formal parameters of the aliased function type.
+  FormalParameterList get parameters;
+
+  /// The return type of the aliased function type, or `null` if no return type
+  /// was given.
+  TypeAnnotation? get returnType;
+
+  /// The semicolon terminating the declaration.
+  Token get semicolon;
+
+  /// The `typedef` keyword.
+  Token get typedefKeyword;
+
+  /// The type parameters of the type alias, or `null` if there are none.
+  TypeParameterList? get typeParameters;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('augmentKeyword', isSuper: true),
-    GenerateNodeProperty('typedefKeyword', isSuper: true),
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('typedefKeyword'),
     GenerateNodeProperty('returnType'),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('parameters'),
-    GenerateNodeProperty('semicolon', isSuper: true),
+    GenerateNodeProperty('semicolon'),
   ],
 )
-final class FunctionTypeAliasImpl extends TypeAliasImpl
-    implements FunctionTypeAlias {
+final class FunctionTypeAlias2Impl extends TopLevelDeclarationImpl
+    implements FunctionTypeAlias2 {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token typedefKeyword;
+
   @generated
   TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token name;
 
   @generated
   TypeParameterListImpl? _typeParameters;
@@ -25055,26 +25639,33 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @generated
   FormalParameterListImpl _parameters;
 
+  @generated
+  @override
+  final Token semicolon;
+
   @override
   TypeAliasFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  FunctionTypeAliasImpl? _v1Projection;
+
   @generated
-  FunctionTypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
-    required super.augmentKeyword,
-    required super.typedefKeyword,
+    required this.augmentKeyword,
+    required this.typedefKeyword,
     required TypeAnnotationImpl? returnType,
-    required super.name,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
-    required super.semicolon,
+    required this.semicolon,
   }) : _returnType = returnType,
        _typeParameters = typeParameters,
        _parameters = parameters {
-    _becomeParentOf12(returnType);
-    _becomeParentOf12(typeParameters);
-    _becomeParentOf12(parameters);
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(parameters);
   }
 
   @generated
@@ -25098,7 +25689,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set parameters(FormalParameterListImpl parameters) {
-    _parameters = _becomeParentOf12(parameters);
+    _parameters = _becomeParentOf2(parameters);
   }
 
   @generated
@@ -25107,7 +25698,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf12(returnType);
+    _returnType = _becomeParentOf2(returnType);
   }
 
   @generated
@@ -25116,20 +25707,21 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf12(typeParameters);
+    _typeParameters = _becomeParentOf2(typeParameters);
   }
 
+  @V1Ast()
+  FunctionTypeAliasImpl get v1Projection =>
+      _v1Projection ??= FunctionTypeAliasImpl.v1Projection(this);
+
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addNode('returnType', returnType)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addToken('semicolon', semicolon);
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -25143,14 +25735,17 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('FunctionTypeAlias2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFunctionTypeAlias(this);
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitFunctionTypeAlias2(this);
 
   @generated
   @override
@@ -25188,13 +25783,10 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    returnType?.accept(visitor);
-    typeParameters?.accept(visitor);
-    parameters.accept(visitor);
+    throw StateError('FunctionTypeAlias2 is not in the V1 AST view.');
   }
 
   @generated
@@ -25243,7 +25835,166 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('FunctionTypeAlias2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return parameters;
+    }
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', isSuper: true),
+    GenerateNodeProperty('typedefKeyword', isSuper: true),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('parameters'),
+    GenerateNodeProperty('semicolon', isSuper: true),
+  ],
+)
+@V1Ast('The V2 counterpart is FunctionTypeAlias2Impl.')
+final class FunctionTypeAliasImpl extends TypeAliasImpl
+    implements FunctionTypeAlias {
+  final FunctionTypeAlias2Impl _v1ProjectionOrigin;
+
+  new v1Projection(FunctionTypeAlias2Impl origin)
+    : _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+        augmentKeyword: origin.augmentKeyword,
+        typedefKeyword: origin.typedefKeyword,
+        name: origin.name,
+        semicolon: origin.semicolon,
+      ) {
+    _becomeParentOf1(origin.returnType);
+    _becomeParentOf1(origin.typeParameters);
+    _becomeParentOf1(origin.parameters);
+  }
+
+  @override
+  TypeAliasFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    return typedefKeyword;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  FormalParameterListImpl get parameters => _v1ProjectionOrigin.parameters;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeAnnotationImpl? get returnType => _v1ProjectionOrigin.returnType;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeParameterListImpl? get typeParameters =>
+      _v1ProjectionOrigin.typeParameters;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('semicolon', semicolon);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('FunctionTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    returnType?.accept(visitor);
+    typeParameters?.accept(visitor);
+    parameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('FunctionTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -25268,23 +26019,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (returnType case var returnType?) {
-      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-        return returnType;
-      }
-    }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
-      return parameters;
-    }
-    return null;
+    throw StateError('FunctionTypeAlias is not in the V2 AST view.');
   }
 }
 
@@ -25326,7 +26061,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   final Token? question;
 
   @generated
-  FunctionTypedFormalParameterSuffixImpl({
+  new({
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl formalParameters,
     required this.question,
@@ -25373,7 +26108,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeParameters', typeParameters)
@@ -25388,7 +26123,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
     ..addToken('question', question);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitFunctionTypedFormalParameterSuffix(this);
@@ -25429,7 +26164,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -25471,7 +26206,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -25521,10 +26256,7 @@ final class FunctionTypeInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionTypeInvocationResolutionImpl({
-    required this.invokeType,
-    required this.type,
-  });
+  new({required this.invokeType, required this.type});
 }
 
 class GenerateNodeImpl {
@@ -25537,7 +26269,7 @@ class GenerateNodeImpl {
   /// Whether to generate the implementation class's unnamed constructor.
   final bool generateConstructor;
 
-  const GenerateNodeImpl({
+  const new({
     this.api = AstNodeApi.shared,
     required this.childEntitiesOrder,
     this.generateConstructor = true,
@@ -25599,7 +26331,7 @@ class GenerateNodeProperty {
   /// specified (because it can be inferred from the public API declaration).
   final Type? type;
 
-  const GenerateNodeProperty(
+  const new(
     this.name, {
     this.v1Name,
     this.v1Projection = V1Projection.none,
@@ -25703,7 +26435,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   GenericFunctionTypeFragmentImpl? declaredFragment;
 
   @generated
-  GenericFunctionTypeImpl({
+  new({
     required TypeAnnotationImpl? returnType,
     required this.functionKeyword,
     required TypeParameterListImpl? typeParameters,
@@ -25763,7 +26495,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('returnType', returnType)
@@ -25782,7 +26514,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
     ..addToken('question', question);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericFunctionType(this);
 
@@ -25828,7 +26560,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     returnType?.accept(visitor);
@@ -25880,7 +26612,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (returnType case var returnType?) {
@@ -25942,20 +26674,67 @@ abstract final class GenericTypeAlias implements TypeAlias {
   TypeParameterList? get typeParameters;
 }
 
+/// A type alias written with `=`.
+///
+///     typeAlias ::=
+///         'typedef' [SimpleIdentifier] [TypeParameterList]? '='
+///         [TypeAnnotation] ';'
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class GenericTypeAlias2
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  @override
+  TypeAliasFragment? get declaredFragment;
+
+  /// The equal sign separating the name from the aliased type.
+  Token get equals;
+
+  /// The name of the type alias.
+  Token get name;
+
+  /// The semicolon terminating the declaration.
+  Token get semicolon;
+
+  /// The aliased type.
+  TypeAnnotation get type;
+
+  /// The `typedef` keyword.
+  Token get typedefKeyword;
+
+  /// The type parameters of the type alias, or `null` if there are none.
+  TypeParameterList? get typeParameters;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('augmentKeyword', isSuper: true),
-    GenerateNodeProperty('typedefKeyword', isSuper: true),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('typedefKeyword'),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('equals'),
     GenerateNodeProperty('type'),
-    GenerateNodeProperty('semicolon', isSuper: true),
+    GenerateNodeProperty('semicolon'),
   ],
 )
-final class GenericTypeAliasImpl extends TypeAliasImpl
+final class GenericTypeAlias2Impl extends TopLevelDeclarationImpl
     with AstNodeWithNameScopeMixin
-    implements GenericTypeAlias {
+    implements GenericTypeAlias2 {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token typedefKeyword;
+
+  @generated
+  @override
+  final Token name;
+
   @generated
   TypeParameterListImpl? _typeParameters;
 
@@ -25966,24 +26745,31 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @generated
   TypeAnnotationImpl _type;
 
+  @generated
+  @override
+  final Token semicolon;
+
   @override
   TypeAliasFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  GenericTypeAliasImpl? _v1Projection;
+
   @generated
-  GenericTypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
-    required super.augmentKeyword,
-    required super.typedefKeyword,
-    required super.name,
+    required this.augmentKeyword,
+    required this.typedefKeyword,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required TypeAnnotationImpl type,
-    required super.semicolon,
+    required this.semicolon,
   }) : _typeParameters = typeParameters,
        _type = type {
-    _becomeParentOf12(typeParameters);
-    _becomeParentOf12(type);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(type);
   }
 
   @generated
@@ -26001,23 +26787,13 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     return typedefKeyword;
   }
 
-  @override
-  GenericFunctionType? get functionType {
-    var type = _type;
-    return type is GenericFunctionTypeImpl ? type : null;
-  }
-
-  set functionType(GenericFunctionType? functionType) {
-    _type = _becomeParentOf12(functionType as GenericFunctionTypeImpl?)!;
-  }
-
   @generated
   @override
   TypeAnnotationImpl get type => _type;
 
   @generated
   set type(TypeAnnotationImpl type) {
-    _type = _becomeParentOf12(type);
+    _type = _becomeParentOf2(type);
   }
 
   @generated
@@ -26026,20 +26802,21 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf12(typeParameters);
+    _typeParameters = _becomeParentOf2(typeParameters);
   }
 
+  @V1Ast()
+  GenericTypeAliasImpl get v1Projection =>
+      _v1Projection ??= GenericTypeAliasImpl.v1Projection(this);
+
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addToken('equals', equals)
-    ..addNode('type', type)
-    ..addToken('semicolon', semicolon);
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -26053,14 +26830,16 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericTypeAlias(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('GenericTypeAlias2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGenericTypeAlias(this);
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGenericTypeAlias2(this);
 
   @generated
   @override
@@ -26090,12 +26869,10 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    typeParameters?.accept(visitor);
-    type.accept(visitor);
+    throw StateError('GenericTypeAlias2 is not in the V1 AST view.');
   }
 
   @generated
@@ -26135,7 +26912,175 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('GenericTypeAlias2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', isSuper: true),
+    GenerateNodeProperty('typedefKeyword', isSuper: true),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('equals'),
+    GenerateNodeProperty('type'),
+    GenerateNodeProperty('semicolon', isSuper: true),
+  ],
+)
+@V1Ast('The V2 counterpart is GenericTypeAlias2Impl.')
+final class GenericTypeAliasImpl extends TypeAliasImpl
+    with AstNodeWithNameScopeMixin
+    implements GenericTypeAlias {
+  @generated
+  @override
+  final Token equals;
+
+  final GenericTypeAlias2Impl _v1ProjectionOrigin;
+
+  new v1Projection(GenericTypeAlias2Impl origin)
+    : equals = origin.equals,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+        augmentKeyword: origin.augmentKeyword,
+        typedefKeyword: origin.typedefKeyword,
+        name: origin.name,
+        semicolon: origin.semicolon,
+      ) {
+    _becomeParentOf1(origin.typeParameters);
+    _becomeParentOf1(origin.type);
+  }
+
+  @override
+  TypeAliasFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    return typedefKeyword;
+  }
+
+  @override
+  GenericFunctionType? get functionType {
+    var type = this.type;
+    return type is GenericFunctionTypeImpl ? type : null;
+  }
+
+  @override
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
+
+  @override
+  set nameScope(Scope? nameScope) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeAnnotationImpl get type => _v1ProjectionOrigin.type;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeParameterListImpl? get typeParameters =>
+      _v1ProjectionOrigin.typeParameters;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addToken('equals', equals)
+    ..addNode('type', type)
+    ..addToken('semicolon', semicolon);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericTypeAlias(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('GenericTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    typeParameters?.accept(visitor);
+    type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('GenericTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -26155,18 +27100,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (type._containsOffset(rangeOffset, rangeEnd)) {
-      return type;
-    }
-    return null;
+    throw StateError('GenericTypeAlias is not in the V2 AST view.');
   }
 }
 
@@ -26214,12 +27148,17 @@ abstract final class GetterDeclaration
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('getKeyword'),
     GenerateNodeProperty('name'),
+    GenerateNodeProperty(
+      'recoveryFormalParameters',
+      withOverride: false,
+      type: _TypeLiteral<FormalParameterList?>,
+    ),
     GenerateNodeProperty('body'),
   ],
 )
 final class GetterDeclarationImpl extends MemberDeclarationImpl
-    with AstNodeWithNameScopeMixin
-    implements GetterDeclaration {
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    implements MethodDeclarationV1OriginImpl, GetterDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -26244,13 +27183,20 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   final Token name;
 
   @generated
+  FormalParameterListImpl? _recoveryFormalParameters;
+
+  @generated
   FunctionBodyImpl _body;
 
   @override
   GetterFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  @override
+  MethodDeclarationImpl? _v1Projection;
+
   @generated
-  GetterDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -26259,10 +27205,13 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
     required TypeAnnotationImpl? returnType,
     required this.getKeyword,
     required this.name,
+    required FormalParameterListImpl? recoveryFormalParameters,
     required FunctionBodyImpl body,
   }) : _returnType = returnType,
+       _recoveryFormalParameters = recoveryFormalParameters,
        _body = body {
     _becomeParentOf2(returnType);
+    _becomeParentOf2(recoveryFormalParameters);
     _becomeParentOf2(body);
   }
 
@@ -26299,6 +27248,20 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   @override
   bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
 
+  @override
+  Token get nameToken => name;
+
+  @generated
+  FormalParameterListImpl? get recoveryFormalParameters =>
+      _recoveryFormalParameters;
+
+  @generated
+  set recoveryFormalParameters(
+    FormalParameterListImpl? recoveryFormalParameters,
+  ) {
+    _recoveryFormalParameters = _becomeParentOf2(recoveryFormalParameters);
+  }
+
   @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
@@ -26308,12 +27271,24 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
     _returnType = _becomeParentOf2(returnType);
   }
 
+  @V1Ast()
+  @override
+  MethodDeclarationImpl get v1Projection =>
+      _v1Projection ??= MethodDeclarationImpl.v1Projection(this);
+
+  @override
+  FormalParameterListImpl? get writtenFormalParameters =>
+      recoveryFormalParameters;
+
+  @override
+  TypeParameterListImpl? get writtenTypeParameters => null;
+
   @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -26326,10 +27301,19 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
     ..addNode('returnType', returnType)
     ..addToken('getKeyword', getKeyword)
     ..addToken('name', name)
+    ..addNode('recoveryFormalParameters', recoveryFormalParameters)
     ..addNode('body', body);
 
+  @V1Ast()
+  @override
+  Token? get _v1OperatorKeyword => null;
+
+  @V1Ast()
+  @override
+  Token? get _v1PropertyKeyword => getKeyword;
+
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('GetterDeclaration is not in the V1 AST view.');
@@ -26347,6 +27331,10 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
       returnType = null;
       return;
     }
+    if (identical(recoveryFormalParameters, oldNode)) {
+      recoveryFormalParameters = null;
+      return;
+    }
     if (identical(body, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'body'.");
     }
@@ -26360,6 +27348,10 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
       returnType = newNode as TypeAnnotationImpl?;
       return;
     }
+    if (identical(recoveryFormalParameters, oldNode)) {
+      recoveryFormalParameters = newNode as FormalParameterListImpl?;
+      return;
+    }
     if (identical(body, oldNode)) {
       body = newNode as FunctionBodyImpl;
       return;
@@ -26368,7 +27360,7 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('GetterDeclaration is not in the V1 AST view.');
@@ -26380,6 +27372,7 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   void visitChildren2(AstVisitor2 visitor) {
     _visitCommentAndAnnotations2(visitor);
     returnType?.accept2(visitor);
+    recoveryFormalParameters?.accept2(visitor);
     body.accept2(visitor);
   }
 
@@ -26393,6 +27386,7 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(FormalParameterListImpl)? visitRecoveryFormalParameters,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
     _visitCommentAndAnnotations2(visitor);
@@ -26403,6 +27397,13 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
         returnType.accept2(visitor);
       }
     }
+    if (recoveryFormalParameters case var recoveryFormalParameters?) {
+      if (visitRecoveryFormalParameters != null) {
+        visitRecoveryFormalParameters(recoveryFormalParameters);
+      } else {
+        recoveryFormalParameters.accept2(visitor);
+      }
+    }
     if (visitBody != null) {
       visitBody(body);
     } else {
@@ -26411,7 +27412,7 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('GetterDeclaration is not in the V1 AST view.');
@@ -26426,6 +27427,11 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
     if (returnType case var returnType?) {
       if (returnType._containsOffset(rangeOffset, rangeEnd)) {
         return returnType;
+      }
+    }
+    if (recoveryFormalParameters case var recoveryFormalParameters?) {
+      if (recoveryFormalParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return recoveryFormalParameters;
       }
     }
     if (body._containsOffset(rangeOffset, rangeEnd)) {
@@ -26455,7 +27461,7 @@ final class GetterInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  GetterInvocationResolutionImpl({required this.element, required this.type});
+  new({required this.element, required this.type});
 
   @override
   FunctionTypeImpl get invokeType => element.type;
@@ -26492,11 +27498,9 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   late Map<String, PatternVariableElementImpl> variables;
 
   @generated
-  GuardedPatternImpl({
-    required DartPatternImpl pattern,
-    required WhenClauseImpl? whenClause,
-  }) : _pattern = pattern,
-       _whenClause = whenClause {
+  new({required DartPatternImpl pattern, required WhenClauseImpl? whenClause})
+    : _pattern = pattern,
+      _whenClause = whenClause {
     _becomeParentOf12(pattern);
     _becomeParentOf12(whenClause);
   }
@@ -26535,7 +27539,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -26548,7 +27552,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
     ..addNode('whenClause', whenClause);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitGuardedPattern(this);
 
@@ -26585,7 +27589,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -26627,7 +27631,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -26664,7 +27668,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class HideCombinator implements Combinator {
   /// The list of names from the library that are hidden by this combinator.
-  @ToBeDeprecated('Use names instead.')
+  @V1Ast('The V2 counterpart is names.')
   NodeList<SimpleIdentifier> get hiddenNames;
 }
 
@@ -26686,16 +27690,13 @@ final class HideCombinatorImpl extends CombinatorImpl
   final NodeListImpl<CombinatorNameImpl> names = NodeListImpl._();
 
   @generated
-  @ToBeDeprecated('Use names instead.')
+  @V1Ast('The V2 counterpart is names.')
   @override
   late final NodeListImpl<SimpleIdentifierImpl> hiddenNames =
       _V1ProjectedNodeListImpl(names, V1Projection.toV1CombinatorName);
 
   @generated
-  HideCombinatorImpl({
-    required super.keyword,
-    required List<CombinatorNameImpl> names,
-  }) {
+  new({required super.keyword, required List<CombinatorNameImpl> names}) {
     this.names._initializeProjected(this, names);
   }
 
@@ -26715,7 +27716,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -26728,7 +27729,7 @@ final class HideCombinatorImpl extends CombinatorImpl
     ..addNodeList('names', names);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitHideCombinator(this);
 
@@ -26758,7 +27759,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     hiddenNames.accept(visitor);
@@ -26790,7 +27791,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (hiddenNames._elementContainingRange(rangeOffset, rangeEnd)
@@ -26815,7 +27816,7 @@ final class HideCombinatorImpl extends CombinatorImpl
 ///     identifier ::=
 ///         [SimpleIdentifier]
 ///       | [PrefixedIdentifier]
-@ToBeDeprecated('Use NameExpression instead.')
+@V1Ast('The V2 counterpart is NameExpression.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Identifier implements Expression, CommentReferableExpression {
   /// The element associated with this identifier based on static type
@@ -26831,11 +27832,11 @@ sealed class Identifier implements Expression, CommentReferableExpression {
 
   /// Returns `true` if the given [name] is visible only within the library in
   /// which it's declared.
-  @ToBeDeprecated("Use name.startsWith('_') instead.")
+  @V1Ast("Use name.startsWith('_') instead.")
   static bool isPrivateName(String name) => name.isPrivateName;
 }
 
-@ToBeDeprecated('Use NameExpressionImpl instead.')
+@V1Ast('The V2 counterpart is NameExpressionImpl.')
 sealed class IdentifierImpl extends CommentReferableExpressionImpl
     implements Identifier {
   @override
@@ -26850,7 +27851,7 @@ abstract final class IfElement implements CollectionElement {
 
   /// The statement that is executed if the condition evaluates to `false`, or
   /// `null` if there's no else statement.
-  @ToBeDeprecated('Use elseElement2 instead.')
+  @V1Ast('The V2 counterpart is elseElement2.')
   CollectionElement? get elseElement;
 
   @experimental
@@ -26863,7 +27864,7 @@ abstract final class IfElement implements CollectionElement {
   /// The expression used to either determine which of the statements is
   /// executed next or to compute the value to be matched against the pattern in
   /// the `case` clause.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -26879,7 +27880,7 @@ abstract final class IfElement implements CollectionElement {
   Token get rightParenthesis;
 
   /// The statement that is executed if the condition evaluates to `true`.
-  @ToBeDeprecated('Use thenElement2 instead.')
+  @V1Ast('The V2 counterpart is thenElement2.')
   CollectionElement get thenElement;
 
   @experimental
@@ -26942,7 +27943,7 @@ final class IfElementImpl extends AstNodeImpl
   CollectionElementImpl? _elseElement2;
 
   @generated
-  IfElementImpl({
+  new({
     required this.ifKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
@@ -26981,7 +27982,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use elseElement2 instead.')
+  @V1Ast('The V2 counterpart is elseElement2.')
   @override
   CollectionElementImpl? get elseElement =>
       _becomeParentOf1(switch (elseElement2) {
@@ -27013,7 +28014,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -27036,7 +28037,7 @@ final class IfElementImpl extends AstNodeImpl
   CollectionElementImpl get ifTrue2 => thenElement2;
 
   @generated
-  @ToBeDeprecated('Use thenElement2 instead.')
+  @V1Ast('The V2 counterpart is thenElement2.')
   @override
   CollectionElementImpl get thenElement =>
       _becomeParentOf1(V1Projection.toV1CollectionElement(thenElement2));
@@ -27053,7 +28054,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
@@ -27078,7 +28079,7 @@ final class IfElementImpl extends AstNodeImpl
     ..addNode('elseElement2', elseElement2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfElement(this);
 
@@ -27139,7 +28140,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -27199,7 +28200,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -27290,18 +28291,14 @@ abstract final class IfNullAssignment implements AssignmentExpression2 {}
 )
 final class IfNullAssignmentImpl extends AssignmentExpression2Impl
     implements IfNullAssignment {
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
-  IfNullAssignmentImpl({
-    required super.target,
-    required super.operator,
-    required super.value,
-  });
+  new({required super.target, required super.operator, required super.value});
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
       AssignmentExpressionImpl.v1ProjectionFromIfNull(this);
 
@@ -27322,7 +28319,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('IfNullAssignment is not in the V1 AST view.');
@@ -27348,7 +28345,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('IfNullAssignment is not in the V1 AST view.');
@@ -27394,7 +28391,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('IfNullAssignment is not in the V1 AST view.');
@@ -27433,7 +28430,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('IfNullAssignment is not in the V1 AST view.');
@@ -27471,11 +28468,11 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @generated
   ExpressionImpl _rightOperand;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  IfNullImpl({
+  new({
     required ExpressionImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -27492,7 +28489,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._ifNull(this);
 
@@ -27528,7 +28525,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('IfNull is not in the V1 AST view.');
@@ -27542,7 +28539,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
     ..addNode('rightOperand', rightOperand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('IfNull is not in the V1 AST view.');
@@ -27588,7 +28585,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('IfNull is not in the V1 AST view.');
@@ -27627,7 +28624,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('IfNull is not in the V1 AST view.');
@@ -27662,12 +28659,16 @@ abstract final class IfStatement implements Statement {
 
   /// The statement that is executed if the condition evaluates to `false`, or
   /// `null` if there's no else statement.
+  @V1Ast('The V2 counterpart is elseStatement2.')
   Statement? get elseStatement;
+
+  @experimental
+  Statement? get elseStatement2;
 
   /// The expression used to either determine which of the statements is
   /// executed next or to compute the value matched against the pattern in the
   /// `case` clause.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -27684,7 +28685,11 @@ abstract final class IfStatement implements Statement {
   Token get rightParenthesis;
 
   /// The statement that is executed if the condition evaluates to `true`.
+  @V1Ast('The V2 counterpart is thenStatement2.')
   Statement get thenStatement;
+
+  @experimental
+  Statement get thenStatement2;
 }
 
 @GenerateNodeImpl(
@@ -27698,9 +28703,17 @@ abstract final class IfStatement implements Statement {
     ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('thenStatement'),
+    GenerateNodeProperty(
+      'thenStatement2',
+      v1Name: 'thenStatement',
+      v1Projection: V1Projection.statement,
+    ),
     GenerateNodeProperty('elseKeyword'),
-    GenerateNodeProperty('elseStatement'),
+    GenerateNodeProperty(
+      'elseStatement2',
+      v1Name: 'elseStatement',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class IfStatementImpl extends StatementImpl
@@ -27724,33 +28737,33 @@ final class IfStatementImpl extends StatementImpl
   final Token rightParenthesis;
 
   @generated
-  StatementImpl _thenStatement;
+  StatementImpl _thenStatement2;
 
   @generated
   @override
   final Token? elseKeyword;
 
   @generated
-  StatementImpl? _elseStatement;
+  StatementImpl? _elseStatement2;
 
   @generated
-  IfStatementImpl({
+  new({
     required this.ifKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
     required CaseClauseImpl? caseClause,
     required this.rightParenthesis,
-    required StatementImpl thenStatement,
+    required StatementImpl thenStatement2,
     required this.elseKeyword,
-    required StatementImpl? elseStatement,
+    required StatementImpl? elseStatement2,
   }) : _expression2 = expression2,
        _caseClause = caseClause,
-       _thenStatement = thenStatement,
-       _elseStatement = elseStatement {
+       _thenStatement2 = thenStatement2,
+       _elseStatement2 = elseStatement2 {
     _becomeParentOf2AndExisting1(expression2);
     _becomeParentOf12(caseClause);
-    _becomeParentOf12(thenStatement);
-    _becomeParentOf12(elseStatement);
+    _becomeParentOf2AndExisting1(thenStatement2);
+    _becomeParentOf2AndExisting1(elseStatement2);
   }
 
   @generated
@@ -27773,28 +28786,38 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @generated
+  @V1Ast('The V2 counterpart is elseStatement2.')
   @override
-  StatementImpl? get elseStatement => _elseStatement;
+  StatementImpl? get elseStatement => _becomeParentOf1(switch (elseStatement2) {
+    var node? => V1Projection.toV1Statement(node),
+    _ => null,
+  });
 
   @generated
-  set elseStatement(StatementImpl? elseStatement) {
-    _elseStatement = _becomeParentOf12(elseStatement);
+  @experimental
+  @override
+  StatementImpl? get elseStatement2 => _elseStatement2;
+
+  @generated
+  @experimental
+  set elseStatement2(StatementImpl? elseStatement2) {
+    _elseStatement2 = _becomeParentOf2AndExisting1(elseStatement2);
   }
 
   @generated
   @override
   Token get endToken {
-    if (elseStatement case var elseStatement?) {
-      return elseStatement.endToken;
+    if (elseStatement2 case var elseStatement2?) {
+      return elseStatement2.endToken;
     }
     if (elseKeyword case var elseKeyword?) {
       return elseKeyword;
     }
-    return thenStatement.endToken;
+    return thenStatement2.endToken;
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -27811,22 +28834,30 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @override
-  StatementImpl? get ifFalse2 => elseStatement;
+  StatementImpl? get ifFalse2 => elseStatement2;
 
   @override
-  StatementImpl get ifTrue2 => thenStatement;
+  StatementImpl get ifTrue2 => thenStatement2;
 
   @generated
+  @V1Ast('The V2 counterpart is thenStatement2.')
   @override
-  StatementImpl get thenStatement => _thenStatement;
+  StatementImpl get thenStatement =>
+      _becomeParentOf1(V1Projection.toV1Statement(thenStatement2));
 
   @generated
-  set thenStatement(StatementImpl thenStatement) {
-    _thenStatement = _becomeParentOf12(thenStatement);
+  @experimental
+  @override
+  StatementImpl get thenStatement2 => _thenStatement2;
+
+  @generated
+  @experimental
+  set thenStatement2(StatementImpl thenStatement2) {
+    _thenStatement2 = _becomeParentOf2AndExisting1(thenStatement2);
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
@@ -27846,12 +28877,12 @@ final class IfStatementImpl extends StatementImpl
     ..addNode('expression2', expression2)
     ..addNode('caseClause', caseClause)
     ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('thenStatement', thenStatement)
+    ..addNode('thenStatement2', thenStatement2)
     ..addToken('elseKeyword', elseKeyword)
-    ..addNode('elseStatement', elseStatement);
+    ..addNode('elseStatement2', elseStatement2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIfStatement(this);
 
@@ -27870,11 +28901,11 @@ final class IfStatementImpl extends StatementImpl
       caseClause = null;
       return;
     }
-    if (identical(thenStatement, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'thenStatement'.");
+    if (identical(thenStatement2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'thenStatement2'.");
     }
-    if (identical(elseStatement, oldNode)) {
-      elseStatement = null;
+    if (identical(elseStatement2, oldNode)) {
+      elseStatement2 = null;
       return;
     }
     super.removeChild(oldNode);
@@ -27891,19 +28922,19 @@ final class IfStatementImpl extends StatementImpl
       caseClause = newNode as CaseClauseImpl?;
       return;
     }
-    if (identical(thenStatement, oldNode)) {
-      thenStatement = newNode as StatementImpl;
+    if (identical(thenStatement2, oldNode)) {
+      thenStatement2 = newNode as StatementImpl;
       return;
     }
-    if (identical(elseStatement, oldNode)) {
-      elseStatement = newNode as StatementImpl?;
+    if (identical(elseStatement2, oldNode)) {
+      elseStatement2 = newNode as StatementImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -27918,8 +28949,8 @@ final class IfStatementImpl extends StatementImpl
   void visitChildren2(AstVisitor2 visitor) {
     expression2.accept2(visitor);
     caseClause?.accept2(visitor);
-    thenStatement.accept2(visitor);
-    elseStatement?.accept2(visitor);
+    thenStatement2.accept2(visitor);
+    elseStatement2?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -27933,8 +28964,8 @@ final class IfStatementImpl extends StatementImpl
     AstVisitor2 visitor, {
     void Function(ExpressionImpl)? visitExpression2,
     void Function(CaseClauseImpl)? visitCaseClause,
-    void Function(StatementImpl)? visitThenStatement,
-    void Function(StatementImpl)? visitElseStatement,
+    void Function(StatementImpl)? visitThenStatement2,
+    void Function(StatementImpl)? visitElseStatement2,
   }) {
     if (visitExpression2 != null) {
       visitExpression2(expression2);
@@ -27948,22 +28979,22 @@ final class IfStatementImpl extends StatementImpl
         caseClause.accept2(visitor);
       }
     }
-    if (visitThenStatement != null) {
-      visitThenStatement(thenStatement);
+    if (visitThenStatement2 != null) {
+      visitThenStatement2(thenStatement2);
     } else {
-      thenStatement.accept2(visitor);
+      thenStatement2.accept2(visitor);
     }
-    if (elseStatement case var elseStatement?) {
-      if (visitElseStatement != null) {
-        visitElseStatement(elseStatement);
+    if (elseStatement2 case var elseStatement2?) {
+      if (visitElseStatement2 != null) {
+        visitElseStatement2(elseStatement2);
       } else {
-        elseStatement.accept2(visitor);
+        elseStatement2.accept2(visitor);
       }
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -27996,12 +29027,12 @@ final class IfStatementImpl extends StatementImpl
         return caseClause;
       }
     }
-    if (thenStatement._containsOffset(rangeOffset, rangeEnd)) {
-      return thenStatement;
+    if (thenStatement2._containsOffset(rangeOffset, rangeEnd)) {
+      return thenStatement2;
     }
-    if (elseStatement case var elseStatement?) {
-      if (elseStatement._containsOffset(rangeOffset, rangeEnd)) {
-        return elseStatement;
+    if (elseStatement2 case var elseStatement2?) {
+      if (elseStatement2._containsOffset(rangeOffset, rangeEnd)) {
+        return elseStatement2;
       }
     }
     return null;
@@ -28038,7 +29069,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   final NodeListImpl<NamedTypeImpl> interfaces = NodeListImpl._();
 
   @generated
-  ImplementsClauseImpl({
+  new({
     required this.implementsKeyword,
     required List<NamedTypeImpl> interfaces,
   }) {
@@ -28061,7 +29092,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('implementsKeyword', implementsKeyword)
@@ -28074,7 +29105,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
     ..addNodeList('interfaces', interfaces);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImplementsClause(this);
 
@@ -28104,7 +29135,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     interfaces.accept(visitor);
@@ -28136,7 +29167,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (interfaces._elementContainingRange(rangeOffset, rangeEnd)
@@ -28162,12 +29193,12 @@ final class ImplementsClauseImpl extends AstNodeImpl
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an expression refers to a callable type); they
 /// are produced at resolution time.
-@ToBeDeprecated('Use ImplicitCallTearOff instead.')
+@V1Ast('The V2 counterpart is ImplicitCallTearOff.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImplicitCallReference
     implements MethodReferenceExpression {
   /// The expression from which a `call` method is being referenced.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -28194,7 +29225,7 @@ abstract final class ImplicitCallReference
     GenerateNodeProperty('typeArgumentTypes', type: List<DartType>),
   ],
 )
-@ToBeDeprecated('Use ImplicitCallTearOffImpl instead.')
+@V1Ast('The V2 counterpart is ImplicitCallTearOffImpl.')
 final class ImplicitCallReferenceImpl extends ExpressionImpl
     implements ImplicitCallReference {
   @generated
@@ -28212,7 +29243,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   final ExpressionImpl _v1ProjectionOrigin;
 
-  ImplicitCallReferenceImpl.v1Projection({
+  new v1Projection({
     required ExpressionImpl origin,
     required ExpressionImpl operand,
     required this.element,
@@ -28242,7 +29273,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   Token get endToken => typeArguments?.endToken ?? expression2.endToken;
 
   @DoNotGenerate(reason: 'Projects the canonical V2 operand')
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -28281,7 +29312,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -28294,7 +29325,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitImplicitCallReference(this);
@@ -28332,7 +29363,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -28347,7 +29378,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -28401,14 +29432,12 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   @override
   final MethodElement element;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ImplicitCallReferenceImpl? _v1Projection;
 
   @generated
-  ImplicitCallTearOffImpl({
-    required ExpressionImpl operand,
-    required this.element,
-  }) : _operand = operand {
+  new({required ExpressionImpl operand, required this.element})
+    : _operand = operand {
     _becomeParentOf2(operand);
   }
 
@@ -28436,7 +29465,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   @override
   Precedence get precedence => operand.precedence;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ImplicitCallReferenceImpl get v1Projection {
     return _v1Projection ??= ImplicitCallReferenceImpl.v1Projection(
       origin: this,
@@ -28451,7 +29480,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
@@ -28463,7 +29492,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
       ChildEntities()..addNode('operand', operand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
@@ -28501,7 +29530,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
@@ -28533,7 +29562,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
@@ -28588,7 +29617,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   ExpressionImpl? _v1Projection;
 
   @DoNotGenerate(reason: 'Records the language-version-dependent V1 shape')
-  ImplicitFunctionInstantiationImpl({
+  new({
     required ExpressionImpl operand,
     required this.typeArgumentTypes,
     required this.useLegacyV1Projection,
@@ -28621,7 +29650,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   @override
   Precedence get precedence => operand.precedence;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get v1Projection {
     return _v1Projection ??= _createV1Projection();
   }
@@ -28631,7 +29660,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -28645,7 +29674,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
       ChildEntities()..addNode('operand', operand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -28688,7 +29717,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -28722,7 +29751,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -28739,7 +29768,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
     return null;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl _createV1Projection() {
     var operand = this.operand;
     if (operand is ConstructorTearOffImpl) {
@@ -28833,7 +29862,7 @@ abstract final class ImportDirective implements NamespaceDirective {
 
   /// The prefix to be used with the imported names, or `null` if the imported
   /// names aren't prefixed.
-  @ToBeDeprecated('Use prefixName instead.')
+  @V1Ast('The V2 counterpart is prefixName.')
   SimpleIdentifier? get prefix;
 
   /// The name of the prefix to be used with the imported names, or `null` if
@@ -28874,11 +29903,11 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   LibraryImportImpl? _libraryImport;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _prefix;
 
   @generated
-  ImportDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.importKeyword,
@@ -28911,7 +29940,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
-  @ToBeDeprecated('Use prefixName instead.')
+  @V1Ast('The V2 counterpart is prefixName.')
   SimpleIdentifierImpl? get prefix => _prefix ??= switch (prefixName) {
     null => null,
     var prefixName => _becomeParentOf1(
@@ -28921,7 +29950,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   };
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('importKeyword', importKeyword)
@@ -28946,7 +29975,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitImportDirective(this);
 
@@ -28991,7 +30020,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -29043,7 +30072,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -29178,14 +30207,12 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixedIdentifierImpl? _prefixedIdentifier;
 
   @generated
-  ImportPrefixedAssignmentTargetImpl({
-    required ImportPrefixReferenceImpl importPrefix,
-    required this.name,
-  }) : _importPrefix = importPrefix {
+  new({required ImportPrefixReferenceImpl importPrefix, required this.name})
+    : _importPrefix = importPrefix {
     _becomeParentOf2(importPrefix);
   }
 
@@ -29211,7 +30238,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached identifier used only by the V1 compatibility projection.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixedIdentifierImpl get prefixedIdentifier {
     var result = _prefixedIdentifier ??= PrefixedIdentifierImpl.v1Projection(
       prefix: SimpleIdentifierImpl.v1Projection(token: importPrefix.name),
@@ -29227,7 +30254,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -29246,7 +30273,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -29280,7 +30307,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -29314,7 +30341,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -29359,11 +30386,11 @@ final class ImportPrefixedFunctionInvocationImpl
   @generated
   ImportPrefixReferenceImpl _importPrefix;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  ImportPrefixedFunctionInvocationImpl({
+  new({
     required ImportPrefixReferenceImpl importPrefix,
     required super.name,
     required super.typeArguments,
@@ -29394,7 +30421,7 @@ final class ImportPrefixedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -29403,7 +30430,7 @@ final class ImportPrefixedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -29420,7 +30447,7 @@ final class ImportPrefixedFunctionInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -29478,7 +30505,7 @@ final class ImportPrefixedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -29528,7 +30555,7 @@ final class ImportPrefixedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -29586,14 +30613,12 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
   NamedReadResolutionImpl? _resolution;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixedIdentifierImpl? _prefixedIdentifier;
 
   @generated
-  ImportPrefixedNameExpressionImpl({
-    required ImportPrefixReferenceImpl importPrefix,
-    required this.name,
-  }) : _importPrefix = importPrefix {
+  new({required ImportPrefixReferenceImpl importPrefix, required this.name})
+    : _importPrefix = importPrefix {
     _becomeParentOf2(importPrefix);
   }
 
@@ -29622,7 +30647,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   /// The cached identifier used only by the V1 compatibility projection.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixedIdentifierImpl get prefixedIdentifier {
     var result = _prefixedIdentifier ??= PrefixedIdentifierImpl.v1Projection(
       prefix: SimpleIdentifierImpl.v1Projection(token: importPrefix.name),
@@ -29649,7 +30674,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
@@ -29664,7 +30689,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   Element? get _legacyReadElement => resolution?.elementOrRecovery;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
@@ -29705,7 +30730,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
@@ -29737,7 +30762,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
@@ -29792,7 +30817,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   Element? element;
 
   @generated
-  ImportPrefixReferenceImpl({required this.name, required this.period});
+  new({required this.name, required this.period});
 
   @generated
   @override
@@ -29807,7 +30832,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -29820,7 +30845,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
     ..addToken('period', period);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitImportPrefixReference(this);
@@ -29832,7 +30857,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
       visitor.visitImportPrefixReference(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -29847,7 +30872,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -29919,7 +30944,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  IncrementOrDecrementExpressionImpl({
+  new({
     required this.position,
     required this.operator,
     required AssignmentTargetImpl target,
@@ -29965,7 +30990,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     _target = _becomeParentOf2(target);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get v1Projection => _v1Projection ??= switch (position) {
     IncrementOrDecrementPosition.prefix =>
       PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this),
@@ -29978,7 +31003,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -29999,7 +31024,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
         ..addToken('operator', operator),
   };
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get _legacyOperand => switch (target) {
     ParsedAssignmentTargetImpl target => target.v1Projection,
     InvalidExtensionOverrideAssignmentTargetImpl target =>
@@ -30067,7 +31092,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -30112,7 +31137,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -30146,7 +31171,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -30174,7 +31199,7 @@ enum IncrementOrDecrementOperation {
   /// The name of the binary operator implicitly invoked by this operation.
   final String binaryOperatorName;
 
-  const IncrementOrDecrementOperation(this.binaryOperatorName);
+  new(this.binaryOperatorName);
 }
 
 /// The position of the operator in an [IncrementOrDecrementExpression].
@@ -30220,10 +31245,10 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   IndexWriteResolutionImpl? write;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   IndexExpressionImpl? _indexExpression;
 
-  IndexAssignmentTargetImpl({
+  new({
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
@@ -30239,7 +31264,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   IndexExpressionImpl get indexExpression =>
       _indexExpression ??= switch (this) {
         CascadeIndexAssignmentTargetImpl origin =>
@@ -30283,11 +31308,11 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 ///
 ///     indexExpression ::=
 ///         [Expression] '[' [Expression] ']'
-@ToBeDeprecated('Use IndexExpression2 or IndexAssignmentTarget instead.')
+@V1Ast('The V2 counterpart is IndexExpression2 or IndexAssignmentTarget.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the index.
-  @ToBeDeprecated('Use index2 instead.')
+  @V1Ast('The V2 counterpart is index2.')
   Expression get index;
 
   @experimental
@@ -30319,7 +31344,7 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   /// is the same as [target]. If this index expression is part of a cascade
   /// expression, then the target expression stored with the cascade expression
   /// is returned.
-  @ToBeDeprecated('Use realTarget2 instead.')
+  @V1Ast('The V2 counterpart is realTarget2.')
   Expression get realTarget;
 
   /// The expression used to compute the object being indexed.
@@ -30339,7 +31364,7 @@ abstract final class IndexExpression implements MethodReferenceExpression {
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   Expression? get target;
 
   @experimental
@@ -30398,10 +31423,10 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   @override
   IndexReadResolutionImpl? resolution;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   IndexExpressionImpl? _indexExpression;
 
-  IndexExpression2Impl({
+  new({
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
@@ -30417,7 +31442,7 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   IndexExpressionImpl get indexExpression =>
       _indexExpression ??= switch (this) {
         CascadeIndexExpressionImpl origin =>
@@ -30454,8 +31479,8 @@ sealed class IndexExpression2Impl extends ExpressionImpl
     GenerateNodeProperty('rightBracket'),
   ],
 )
-@ToBeDeprecated(
-  'Use IndexExpression2Impl or IndexAssignmentTargetImpl instead.',
+@V1Ast(
+  'The V2 counterpart is IndexExpression2Impl or IndexAssignmentTargetImpl.',
 )
 final class IndexExpressionImpl extends ExpressionImpl
     implements IndexExpression {
@@ -30473,7 +31498,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   final AstNodeImpl _v1ProjectionOrigin;
 
-  IndexExpressionImpl.v1ProjectionFromCascadeAssignmentTarget(
+  new v1ProjectionFromCascadeAssignmentTarget(
     CascadeIndexAssignmentTargetImpl origin,
   ) : question = null,
       leftBracket = origin.leftBracket,
@@ -30482,16 +31507,15 @@ final class IndexExpressionImpl extends ExpressionImpl
     _attachV1Children();
   }
 
-  IndexExpressionImpl.v1ProjectionFromCascadeExpression(
-    CascadeIndexExpressionImpl origin,
-  ) : question = null,
+  new v1ProjectionFromCascadeExpression(CascadeIndexExpressionImpl origin)
+    : question = null,
       leftBracket = origin.leftBracket,
       rightBracket = origin.rightBracket,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  IndexExpressionImpl.v1ProjectionFromReceiverAssignmentTarget(
+  new v1ProjectionFromReceiverAssignmentTarget(
     ReceiverIndexAssignmentTargetImpl origin,
   ) : question = origin.question,
       leftBracket = origin.leftBracket,
@@ -30500,9 +31524,8 @@ final class IndexExpressionImpl extends ExpressionImpl
     _attachV1Children();
   }
 
-  IndexExpressionImpl.v1ProjectionFromReceiverExpression(
-    ReceiverIndexExpressionImpl origin,
-  ) : question = origin.question,
+  new v1ProjectionFromReceiverExpression(ReceiverIndexExpressionImpl origin)
+    : question = origin.question,
       leftBracket = origin.leftBracket,
       rightBracket = origin.rightBracket,
       _v1ProjectionOrigin = origin {
@@ -30557,7 +31580,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  @ToBeDeprecated('Use index2 instead.')
+  @V1Ast('The V2 counterpart is index2.')
   @override
   ExpressionImpl get index => V1Projection.toV1Expression(index2);
 
@@ -30628,7 +31651,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   @override
   ExpressionImpl? get target => switch (target2) {
     var node? => V1Projection.toV1Expression(node),
@@ -30673,7 +31696,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -30690,7 +31713,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIndexExpression(this);
 
@@ -30744,7 +31767,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -30764,7 +31787,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -30809,7 +31832,7 @@ abstract final class IndexReadResolution implements ReadResolution {
 
 sealed class IndexReadResolutionImpl extends ReadResolutionImpl
     implements IndexReadResolution {
-  const IndexReadResolutionImpl();
+  const new();
 
   TypeImpl get indexContextType;
 
@@ -30828,7 +31851,7 @@ abstract final class IndexWriteResolution implements WriteResolution {
 
 sealed class IndexWriteResolutionImpl extends WriteResolutionImpl
     implements IndexWriteResolution {
-  const IndexWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType;
@@ -30841,7 +31864,7 @@ sealed class IndexWriteResolutionImpl extends WriteResolutionImpl
 ///     newExpression ::=
 ///         ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])?
 ///         [ArgumentList]
-@ToBeDeprecated('Use ConstructorInvocation instead.')
+@V1Ast('The V2 counterpart is ConstructorInvocation.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InstanceCreationExpression implements Expression {
   /// The list of arguments to the constructor.
@@ -30874,7 +31897,7 @@ abstract final class InstanceCreationExpression implements Expression {
     GenerateNodeProperty('argumentList'),
   ],
 )
-@ToBeDeprecated('Use ConstructorInvocationImpl instead.')
+@V1Ast('The V2 counterpart is ConstructorInvocationImpl.')
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   final ConstructorInvocationImpl? _origin;
@@ -30885,7 +31908,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   final ArgumentListImpl? _parsedArgumentList;
 
-  InstanceCreationExpressionImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required ParsedExpressionImpl origin,
     required ConstructorNameImpl constructorName,
     required ArgumentListImpl argumentList,
@@ -30897,7 +31920,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
-  InstanceCreationExpressionImpl._(this._origin)
+  new _(this._origin)
     : _parsedOrigin = null,
       _parsedConstructorName = null,
       _parsedArgumentList = null {
@@ -30956,7 +31979,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -30971,7 +31994,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInstanceCreationExpression(this);
@@ -31011,7 +32034,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
       _origin?.toSource() ?? _parsedOrigin!._toSourceThrough(endToken);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName.accept(visitor);
@@ -31033,7 +32056,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
@@ -31153,7 +32176,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   final int? value;
 
   @generated
-  IntegerLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -31180,7 +32203,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -31199,7 +32222,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIntegerLiteral(this);
 
@@ -31230,7 +32253,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -31245,7 +32268,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -31320,7 +32343,7 @@ sealed class InterpolationElementImpl extends AstNodeImpl
 abstract final class InterpolationExpression implements InterpolationElement {
   /// The expression to be evaluated for the value to be converted into a
   /// string.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -31362,7 +32385,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   final Token? rightBracket;
 
   @generated
-  InterpolationExpressionImpl({
+  new({
     required this.leftBracket,
     required ExpressionImpl expression2,
     required this.rightBracket,
@@ -31386,7 +32409,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -31403,7 +32426,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -31418,7 +32441,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitInterpolationExpression(this);
@@ -31449,7 +32472,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -31481,7 +32504,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -31536,7 +32559,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   final String value;
 
   @generated
-  InterpolationStringImpl({required this.contents, required this.value});
+  new({required this.contents, required this.value});
 
   @generated
   @override
@@ -31557,7 +32580,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   }
 
   @override
-  @ToBeDeprecated('Use parent2 instead')
+  @V1Ast('The V2 counterpart is parent2.')
   StringInterpolationImpl get parent => super.parent as StringInterpolationImpl;
 
   @experimental
@@ -31566,7 +32589,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
       super.parent2 as StringInterpolationImpl;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('contents', contents);
@@ -31586,7 +32609,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitInterpolationString(this);
 
@@ -31597,7 +32620,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
       visitor.visitInterpolationString(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -31612,7 +32635,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -31640,22 +32663,33 @@ sealed class InvalidAssignmentTarget implements AssignmentTarget {
   InvalidWriteResolution? get write;
 }
 
-/// An unusable or absent dot-shorthand context.
+/// An unusable dot-shorthand context: there is a context type, but it has no
+/// static namespace that can be searched.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidDotShorthandContextResolution
     implements DotShorthandContextResolution {
-  /// The unusable contextual type, or `null` if no context type was available.
-  DartType? get contextType;
+  /// The contextual type supplied to the maximal dot-shorthand expression.
+  DartType get contextType;
+
+  /// The normalized [contextType] whose static namespace would be searched.
+  ///
+  /// It is not an interface type, such as a function type, or it is an
+  /// interface type whose declaration is not accessible, such as a private
+  /// class of another library.
+  DartType get lookupType;
 }
 
 final class InvalidDotShorthandContextResolutionImpl
     extends DotShorthandContextResolutionImpl
     implements InvalidDotShorthandContextResolution {
   @override
-  final TypeImpl? contextType;
+  final TypeImpl contextType;
 
-  InvalidDotShorthandContextResolutionImpl({required this.contextType});
+  @override
+  final TypeImpl lookupType;
+
+  new({required this.contextType, required this.lookupType});
 }
 
 /// An invalid assignment target whose source is an ordinary value expression.
@@ -31688,8 +32722,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   InvalidWriteResolutionImpl? write;
 
   @generated
-  InvalidExpressionAssignmentTargetImpl({required ExpressionImpl expression})
-    : _expression = expression {
+  new({required ExpressionImpl expression}) : _expression = expression {
     _becomeParentOf2(expression);
   }
 
@@ -31719,7 +32752,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -31733,7 +32766,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
       ChildEntities()..addNode('expression', expression);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -31767,7 +32800,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -31801,7 +32834,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -31844,9 +32877,8 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   InvalidWriteResolutionImpl? write;
 
   @generated
-  InvalidExtensionOverrideAssignmentTargetImpl({
-    required ExtensionOverride2Impl extensionOverride,
-  }) : _extensionOverride = extensionOverride {
+  new({required ExtensionOverride2Impl extensionOverride})
+    : _extensionOverride = extensionOverride {
     _becomeParentOf2(extensionOverride);
   }
 
@@ -31876,7 +32908,7 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -31890,7 +32922,7 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
       ChildEntities()..addNode('extensionOverride', extensionOverride);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -31926,7 +32958,7 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -31960,7 +32992,7 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -31995,9 +33027,8 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   ExtensionOverride2Impl _extensionOverride;
 
   @generated
-  InvalidExtensionOverrideExpressionImpl({
-    required ExtensionOverride2Impl extensionOverride,
-  }) : _extensionOverride = extensionOverride {
+  new({required ExtensionOverride2Impl extensionOverride})
+    : _extensionOverride = extensionOverride {
     _becomeParentOf2(extensionOverride);
   }
 
@@ -32030,7 +33061,7 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -32044,7 +33075,7 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
       ChildEntities()..addNode('extensionOverride', extensionOverride);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -32089,7 +33120,7 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -32123,7 +33154,7 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -32157,7 +33188,7 @@ final class InvalidIndexReadResolutionImpl extends IndexReadResolutionImpl
   @override
   final InternalMethodElement? recoveryElement;
 
-  InvalidIndexReadResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get indexContextType =>
@@ -32184,7 +33215,7 @@ final class InvalidIndexWriteResolutionImpl extends IndexWriteResolutionImpl
   @override
   final InternalMethodElement? recoveryElement;
 
-  InvalidIndexWriteResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get acceptedType => InvalidTypeImpl.instance;
@@ -32221,7 +33252,7 @@ final class InvalidInvocationResolutionImpl extends InvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  InvalidInvocationResolutionImpl({
+  new({
     required List<Element> candidates,
     required this.recovery,
     required this.type,
@@ -32245,7 +33276,7 @@ final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
   @override
   final Element? recoveryElement;
 
-  InvalidNamedReadResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get type => InvalidTypeImpl.instance;
@@ -32271,7 +33302,7 @@ final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
   @override
   final Element? recoveryElement;
 
-  InvalidNamedWriteResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get acceptedType => InvalidTypeImpl.instance;
@@ -32286,7 +33317,7 @@ abstract final class InvalidReadResolution implements ReadResolution {}
 
 final class InvalidReadResolutionImpl extends ReadResolutionImpl
     implements InvalidReadResolution {
-  const InvalidReadResolutionImpl();
+  const new();
 
   @override
   TypeImpl get type => InvalidTypeImpl.instance;
@@ -32316,7 +33347,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   InvalidWriteResolutionImpl? write;
 
   @generated
-  InvalidSuperAssignmentTargetImpl({required SuperReferenceImpl superReference})
+  new({required SuperReferenceImpl superReference})
     : _superReference = superReference {
     _becomeParentOf2(superReference);
   }
@@ -32347,7 +33378,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
@@ -32359,7 +33390,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
       ChildEntities()..addNode('superReference', superReference);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
@@ -32391,7 +33422,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
@@ -32423,7 +33454,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
@@ -32456,7 +33487,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   SuperReferenceImpl _superReference;
 
   @generated
-  InvalidSuperExpressionImpl({required SuperReferenceImpl superReference})
+  new({required SuperReferenceImpl superReference})
     : _superReference = superReference {
     _becomeParentOf2(superReference);
   }
@@ -32490,7 +33521,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('InvalidSuperExpression is not in the V1 AST view.');
@@ -32502,7 +33533,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
       ChildEntities()..addNode('superReference', superReference);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('InvalidSuperExpression is not in the V1 AST view.');
@@ -32540,7 +33571,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('InvalidSuperExpression is not in the V1 AST view.');
@@ -32572,7 +33603,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('InvalidSuperExpression is not in the V1 AST view.');
@@ -32597,7 +33628,7 @@ abstract final class InvalidWriteResolution implements WriteResolution {}
 
 final class InvalidWriteResolutionImpl extends WriteResolutionImpl
     implements InvalidWriteResolution {
-  const InvalidWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType => InvalidTypeImpl.instance;
@@ -32659,22 +33690,17 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   TypeImpl? staticInvokeType;
 
   /// Initializes a newly created invocation.
-  InvocationExpressionImpl({
-    required TypeArgumentListImpl? typeArguments,
-    required ArgumentListImpl argumentList,
-  }) : _typeArguments = typeArguments,
-       _argumentList = argumentList {
+  new({required this._typeArguments, required this._argumentList}) {
     _becomeParentOf12(_typeArguments);
     _becomeParentOf12(_argumentList);
   }
 
   /// Initializes a V1 projection whose children are owned in V2 by its origin.
-  @ToBeDeprecated('Part of the V1 projection.')
-  InvocationExpressionImpl.v1Projection({
-    required TypeArgumentListImpl? typeArguments,
-    required ArgumentListImpl argumentList,
-  }) : _typeArguments = typeArguments,
-       _argumentList = argumentList {
+  @V1Ast()
+  new v1Projection({
+    required this._typeArguments,
+    required this._argumentList,
+  }) {
     _becomeParentOf1(_typeArguments);
     _becomeParentOf1(_argumentList);
   }
@@ -32703,7 +33729,7 @@ abstract final class InvocationResolution {
 }
 
 sealed class InvocationResolutionImpl implements InvocationResolution {
-  const InvocationResolutionImpl();
+  const new();
 
   @override
   TypeImpl get type;
@@ -32716,7 +33742,7 @@ sealed class InvocationResolutionImpl implements InvocationResolution {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IsExpression implements Expression {
   /// The expression used to compute the value whose type is being tested.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -32760,7 +33786,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   TypeAnnotationImpl _type;
 
   @generated
-  IsExpressionImpl({
+  new({
     required ExpressionImpl expression2,
     required this.isOperator,
     required this.notOperator,
@@ -32784,7 +33810,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -32813,7 +33839,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -32830,7 +33856,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
     ..addNode('type', type);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitIsExpression(this);
 
@@ -32872,7 +33898,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -32912,7 +33938,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -32966,13 +33992,21 @@ abstract final class LabeledStatement implements Statement {
   NodeList<Label> get labels;
 
   /// The statement with which the labels are being associated.
+  @V1Ast('The V2 counterpart is statement2.')
   Statement get statement;
+
+  @experimental
+  Statement get statement2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('labels'),
-    GenerateNodeProperty('statement'),
+    GenerateNodeProperty(
+      'statement2',
+      v1Name: 'statement',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class LabeledStatementImpl extends StatementImpl
@@ -32982,15 +34016,13 @@ final class LabeledStatementImpl extends StatementImpl
   final NodeListImpl<LabelImpl> labels = NodeListImpl._();
 
   @generated
-  StatementImpl _statement;
+  StatementImpl _statement2;
 
   @generated
-  LabeledStatementImpl({
-    required List<LabelImpl> labels,
-    required StatementImpl statement,
-  }) : _statement = statement {
+  new({required List<LabelImpl> labels, required StatementImpl statement2})
+    : _statement2 = statement2 {
     this.labels._initialize(this, labels);
-    _becomeParentOf12(statement);
+    _becomeParentOf2AndExisting1(statement2);
   }
 
   @generated
@@ -32999,29 +34031,42 @@ final class LabeledStatementImpl extends StatementImpl
     if (labels.beginToken case var result?) {
       return result;
     }
-    return statement.beginToken;
+    return statement2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    return statement.endToken;
+    return statement2.endToken;
   }
 
   @generated
+  @V1Ast('The V2 counterpart is statement2.')
   @override
-  StatementImpl get statement => _statement;
+  StatementImpl get statement =>
+      _becomeParentOf1(V1Projection.toV1Statement(statement2));
 
   @generated
-  set statement(StatementImpl statement) {
-    _statement = _becomeParentOf12(statement);
+  @experimental
+  @override
+  StatementImpl get statement2 => _statement2;
+
+  @generated
+  @experimental
+  set statement2(StatementImpl statement2) {
+    _statement2 = _becomeParentOf2AndExisting1(statement2);
   }
 
+  @V1Ast('The V2 counterpart is unlabeled2.')
   @override
-  StatementImpl get unlabeled => _statement.unlabeled;
+  StatementImpl get unlabeled => statement.unlabeled;
+
+  @experimental
+  @override
+  StatementImpl get unlabeled2 => statement2.unlabeled2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -33031,10 +34076,10 @@ final class LabeledStatementImpl extends StatementImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNodeList('labels', labels)
-    ..addNode('statement', statement);
+    ..addNode('statement2', statement2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabeledStatement(this);
 
@@ -33051,8 +34096,8 @@ final class LabeledStatementImpl extends StatementImpl
         "Cannot remove child 'labels' because NodeList cannot be resized.",
       );
     }
-    if (identical(statement, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'statement'.");
+    if (identical(statement2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'statement2'.");
     }
     super.removeChild(oldNode);
   }
@@ -33063,15 +34108,15 @@ final class LabeledStatementImpl extends StatementImpl
     if (labels.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (identical(statement, oldNode)) {
-      statement = newNode as StatementImpl;
+    if (identical(statement2, oldNode)) {
+      statement2 = newNode as StatementImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -33083,7 +34128,7 @@ final class LabeledStatementImpl extends StatementImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
-    statement.accept2(visitor);
+    statement2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -33096,22 +34141,22 @@ final class LabeledStatementImpl extends StatementImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
-    void Function(StatementImpl)? visitStatement,
+    void Function(StatementImpl)? visitStatement2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
       labels.accept2(visitor);
     }
-    if (visitStatement != null) {
-      visitStatement(statement);
+    if (visitStatement2 != null) {
+      visitStatement2(statement2);
     } else {
-      statement.accept2(visitor);
+      statement2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -33131,8 +34176,8 @@ final class LabeledStatementImpl extends StatementImpl
         case var result?) {
       return result;
     }
-    if (statement._containsOffset(rangeOffset, rangeEnd)) {
-      return statement;
+    if (statement2._containsOffset(rangeOffset, rangeEnd)) {
+      return statement2;
     }
     return null;
   }
@@ -33157,7 +34202,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   LabelFragmentImpl? declaredFragment;
 
   @generated
-  LabelImpl({required this.name, required this.colon});
+  new({required this.name, required this.colon});
 
   @generated
   @override
@@ -33172,7 +34217,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -33185,7 +34230,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
     ..addToken('colon', colon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabel(this);
 
@@ -33195,7 +34240,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabel(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -33210,7 +34255,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -33244,7 +34289,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   LabelElement? element;
 
   @generated
-  LabelReferenceImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -33259,7 +34304,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
@@ -33268,7 +34313,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabelReference(this);
 
@@ -33278,7 +34323,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabelReference(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -33293,7 +34338,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -33352,7 +34397,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   LibraryElementImpl? element;
 
   @generated
-  LibraryDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.libraryKeyword,
@@ -33384,7 +34429,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('libraryKeyword', libraryKeyword)
@@ -33399,7 +34444,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryDirective(this);
 
@@ -33429,7 +34474,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -33466,7 +34511,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -33505,7 +34550,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ListLiteral implements TypedLiteral {
   /// The syntactic elements used to compute the elements of the list.
-  @ToBeDeprecated('Use elements2 instead.')
+  @V1Ast('The V2 counterpart is elements2.')
   NodeList<CollectionElement> get elements;
 
   @experimental
@@ -33543,7 +34588,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   NodeListImpl<CollectionElementImpl> elements2 = NodeListImpl._();
 
   @generated
-  @ToBeDeprecated('Use elements2 instead.')
+  @V1Ast('The V2 counterpart is elements2.')
   @override
   late final NodeListImpl<CollectionElementImpl> elements =
       _V1ProjectedNodeListImpl(elements2, V1Projection.toV1CollectionElement);
@@ -33553,7 +34598,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   final Token rightBracket;
 
   @generated
-  ListLiteralImpl({
+  new({
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
@@ -33582,7 +34627,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -33601,7 +34646,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListLiteral(this);
 
@@ -33651,7 +34696,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -33693,7 +34738,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -33783,7 +34828,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   TypeImpl? requiredType;
 
   @generated
-  ListPatternImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required this.leftBracket,
     required List<ListPatternElementImpl> elements,
@@ -33821,7 +34866,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeArguments', typeArguments)
@@ -33838,7 +34883,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitListPattern(this);
 
@@ -33901,7 +34946,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -33943,7 +34988,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -33995,6 +35040,545 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
   Precedence get precedence => Precedence.primary;
 }
 
+/// A local function declaration.
+///
+///     localFunctionDeclaration ::=
+///         [Annotation]* [TypeAnnotation]? name [TypeParameterList]?
+///         [FormalParameterList] [FunctionBody]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LocalFunctionDeclaration
+    implements Statement, AnnotatedNode, FragmentDeclaringNode {
+  /// The body of the function.
+  FunctionBody get body;
+
+  @override
+  LocalFunctionFragment? get declaredFragment;
+
+  /// The formal parameters of the function.
+  FormalParameterList get formalParameters;
+
+  /// The name of the function.
+  Token get name;
+
+  /// The return type of the function, or `null` if no return type was
+  /// declared.
+  TypeAnnotation? get returnType;
+
+  /// The type parameters of the function, or `null` if there are none.
+  TypeParameterList? get typeParameters;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class LocalFunctionDeclarationImpl extends StatementImpl
+    with _AnnotatedNodeMixin, AstNodeWithNameScopeMixin
+    implements FunctionDeclarationV1OriginImpl, LocalFunctionDeclaration {
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  TypeParameterListImpl? _typeParameters;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  LocalFunctionFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl? _v1Projection;
+
+  @V1Ast()
+  FunctionDeclarationStatementImpl? _v1StatementProjection;
+
+  @DoNotGenerate(reason: 'The superclass is not AnnotatedNodeImpl')
+  new({
+    required CommentImpl? comment,
+    required List<AnnotationImpl>? metadata,
+    required TypeAnnotationImpl? returnType,
+    required this.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl formalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _typeParameters = typeParameters,
+       _formalParameters = formalParameters,
+       _body = body {
+    _initializeCommentAndAnnotations(comment, metadata);
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(formalParameters);
+    _becomeParentOf2(body);
+  }
+
+  /// Local functions have no `augment` keyword.
+  @override
+  Token? get augmentKeyword => null;
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  /// Local functions have no `external` keyword.
+  @override
+  Token? get externalKeyword => null;
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
+  }
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf2(typeParameters);
+  }
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl get v1Projection =>
+      _v1Projection ??= FunctionDeclarationImpl.v1Projection(this);
+
+  @V1Ast()
+  FunctionDeclarationStatementImpl get v1StatementProjection =>
+      _v1StatementProjection ??= FunctionDeclarationStatementImpl.v1Projection(
+        this,
+      );
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('formalParameters', formalParameters)
+    ..addNode('body', body);
+
+  @V1Ast()
+  @override
+  FormalParameterListImpl get _v1Parameters => formalParameters;
+
+  @V1Ast()
+  @override
+  Token? get _v1PropertyKeyword => null;
+
+  @V1Ast()
+  @override
+  TypeParameterListImpl? get _v1TypeParameters => typeParameters;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LocalFunctionDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitLocalFunctionDeclaration(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = null;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = newNode as TypeParameterListImpl?;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LocalFunctionDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    typeParameters?.accept2(visitor);
+    formalParameters.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept2(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LocalFunctionDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+/// A single variable in a [LocalVariablesDeclaration].
+///
+///     initializedIdentifier ::=
+///         name ('=' [Expression])?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LocalVariable implements FragmentDeclaringNode {
+  @override
+  LocalVariableFragment? get declaredFragment;
+
+  /// The equal sign separating the name from the initializer, or `null` if
+  /// there is no initializer.
+  Token? get equals;
+
+  /// The expression used to compute the initial value of the variable, or
+  /// `null` if there is no initializer.
+  Expression? get initializer;
+
+  /// The name of the variable.
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('equals'),
+    GenerateNodeProperty('initializer'),
+  ],
+)
+final class LocalVariableImpl extends AstNodeImpl
+    with FlowAnalysisRootImpl
+    implements VariableDeclarationV1OriginImpl, LocalVariable {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  @override
+  final Token? equals;
+
+  @generated
+  ExpressionImpl? _initializer;
+
+  @override
+  LocalVariableFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl? _v1Projection;
+
+  @generated
+  new({
+    required this.name,
+    required this.equals,
+    required ExpressionImpl? initializer,
+  }) : _initializer = initializer {
+    _becomeParentOf2(initializer);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (initializer case var initializer?) {
+      return initializer.endToken;
+    }
+    if (equals case var equals?) {
+      return equals;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  ExpressionImpl? get initializer => _initializer;
+
+  @generated
+  set initializer(ExpressionImpl? initializer) {
+    _initializer = _becomeParentOf2(initializer);
+  }
+
+  @override
+  ExpressionImpl? get initializer2 => initializer;
+
+  /// Local variables are resolved in the enclosing scope.
+  @override
+  Scope? get initializerScope => null;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl get v1Projection =>
+      _v1Projection ??= VariableDeclarationImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('equals', equals)
+    ..addNode('initializer', initializer);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLocalVariable(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = newNode as ExpressionImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    initializer?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitInitializer,
+  }) {
+    if (initializer case var initializer?) {
+      if (visitInitializer != null) {
+        visitInitializer(initializer);
+      } else {
+        initializer.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LocalVariable is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (initializer case var initializer?) {
+      if (initializer._containsOffset(rangeOffset, rangeEnd)) {
+        return initializer;
+      }
+    }
+    return null;
+  }
+}
+
 /// Additional information about local variables within a function or method
 /// produced at resolution time.
 ///
@@ -34005,6 +35589,461 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
   final Set<VariableElement> potentiallyMutatedInScope = {};
+}
+
+/// The declaration of one or more local variables of the same type.
+///
+/// It is the declaration of a [LocalVariablesDeclarationStatement], or of the
+/// loop variables of a [ForPartsWithDeclarations].
+///
+///     localVariablesDeclaration ::=
+///         [Annotation]* 'late'? ('final' | 'const' | 'var')?
+///         [TypeAnnotation]? [LocalVariable] (',' [LocalVariable])*
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LocalVariablesDeclaration implements AnnotatedNode {
+  /// The `const`, `final`, or `var` keyword, or `null` if none was used.
+  Token? get constFinalOrVarKeyword;
+
+  /// If [constFinalOrVarKeyword] is `const`, returns it.
+  Token? get constKeyword;
+
+  /// If [constFinalOrVarKeyword] is `final`, returns it.
+  Token? get finalKeyword;
+
+  /// The `late` keyword, or `null` if the keyword isn't used.
+  Token? get lateKeyword;
+
+  /// The type of the variables, or `null` if no type was declared.
+  TypeAnnotation? get type;
+
+  /// The variables being declared.
+  NodeList<LocalVariable> get variables;
+
+  /// If [constFinalOrVarKeyword] is `var`, returns it.
+  Token? get varKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('lateKeyword'),
+    GenerateNodeProperty('constFinalOrVarKeyword'),
+    GenerateNodeProperty('type'),
+    GenerateNodeProperty('variables'),
+  ],
+)
+final class LocalVariablesDeclarationImpl extends AnnotatedNodeImpl
+    implements VariableDeclarationListV1OriginImpl, LocalVariablesDeclaration {
+  @generated
+  @override
+  final Token? lateKeyword;
+
+  @generated
+  @override
+  final Token? constFinalOrVarKeyword;
+
+  @generated
+  TypeAnnotationImpl? _type;
+
+  @generated
+  @override
+  final NodeListImpl<LocalVariableImpl> variables = NodeListImpl._();
+
+  @V1Ast()
+  VariableDeclarationListImpl? _v1VariableList;
+
+  @generated
+  new({
+    required super.comment,
+    required super.metadata,
+    required this.lateKeyword,
+    required this.constFinalOrVarKeyword,
+    required TypeAnnotationImpl? type,
+    required List<LocalVariableImpl> variables,
+  }) : _type = type {
+    _becomeParentOf2(type);
+    this.variables._initialize(this, variables);
+  }
+
+  @override
+  Token? get constKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.CONST) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (variables.endToken case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      return type.endToken;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (lateKeyword case var lateKeyword?) {
+      return lateKeyword;
+    }
+    throw StateError('Expected at least one non-null');
+  }
+
+  @override
+  Token? get finalKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.FINAL) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (lateKeyword case var lateKeyword?) {
+      return lateKeyword;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (type case var type?) {
+      return type.beginToken;
+    }
+    if (variables.beginToken case var result?) {
+      return result;
+    }
+    throw StateError('Expected at least one non-null');
+  }
+
+  @generated
+  @override
+  TypeAnnotationImpl? get type => _type;
+
+  @generated
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf2(type);
+  }
+
+  @V1Ast()
+  @override
+  VariableDeclarationListImpl get v1VariableList =>
+      _v1VariableList ??= VariableDeclarationListImpl.v1Projection(
+        this,
+        comment: documentationComment,
+        metadata: metadata.toList(),
+      );
+
+  @override
+  Token? get varKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.VAR) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('lateKeyword', lateKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addNodeList('variables', variables);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('LocalVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitLocalVariablesDeclaration(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(type, oldNode)) {
+      type = null;
+      return;
+    }
+    if (variables.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'variables' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(type, oldNode)) {
+      type = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (variables.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('LocalVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    variables.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(NodeListImpl<LocalVariableImpl>)? visitVariables,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept2(visitor);
+      }
+    }
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('LocalVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (variables._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+}
+
+/// A statement that declares one or more local variables of the same type.
+///
+///     localVariablesDeclarationStatement ::=
+///         [LocalVariablesDeclaration] ';'
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LocalVariablesDeclarationStatement implements Statement {
+  /// The declaration of the variables.
+  LocalVariablesDeclaration get declaration;
+
+  /// The semicolon terminating the statement.
+  Token get semicolon;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('declaration'),
+    GenerateNodeProperty('semicolon'),
+  ],
+)
+final class LocalVariablesDeclarationStatementImpl extends StatementImpl
+    implements LocalVariablesDeclarationStatement {
+  @generated
+  LocalVariablesDeclarationImpl _declaration;
+
+  @generated
+  @override
+  final Token semicolon;
+
+  @V1Ast()
+  VariableDeclarationStatementImpl? _v1StatementProjection;
+
+  @generated
+  new({
+    required LocalVariablesDeclarationImpl declaration,
+    required this.semicolon,
+  }) : _declaration = declaration {
+    _becomeParentOf2(declaration);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return declaration.beginToken;
+  }
+
+  @generated
+  @override
+  LocalVariablesDeclarationImpl get declaration => _declaration;
+
+  @generated
+  set declaration(LocalVariablesDeclarationImpl declaration) {
+    _declaration = _becomeParentOf2(declaration);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  /// The cached V1 projection of this statement.
+  @V1Ast()
+  VariableDeclarationStatementImpl get v1StatementProjection =>
+      _v1StatementProjection ??= VariableDeclarationStatementImpl.v1Projection(
+        this,
+      );
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNode('declaration', declaration)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitLocalVariablesDeclarationStatement(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(declaration, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'declaration'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(declaration, oldNode)) {
+      declaration = newNode as LocalVariablesDeclarationImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    declaration.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(LocalVariablesDeclarationImpl)? visitDeclaration,
+  }) {
+    if (visitDeclaration != null) {
+      visitDeclaration(declaration);
+    } else {
+      declaration.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'LocalVariablesDeclarationStatement is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (declaration._containsOffset(rangeOffset, rangeEnd)) {
+      return declaration;
+    }
+    return null;
+  }
 }
 
 /// A logical-and expression.
@@ -34043,11 +36082,11 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @generated
   ExpressionImpl _rightOperand;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  LogicalAndImpl({
+  new({
     required ExpressionImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -34064,7 +36103,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._and(this);
 
@@ -34100,7 +36139,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('LogicalAnd is not in the V1 AST view.');
@@ -34114,7 +36153,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
     ..addNode('rightOperand', rightOperand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('LogicalAnd is not in the V1 AST view.');
@@ -34160,7 +36199,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('LogicalAnd is not in the V1 AST view.');
@@ -34199,7 +36238,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('LogicalAnd is not in the V1 AST view.');
@@ -34254,7 +36293,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   DartPatternImpl _rightOperand;
 
   @generated
-  LogicalAndPatternImpl({
+  new({
     required DartPatternImpl leftOperand,
     required this.operator,
     required DartPatternImpl rightOperand,
@@ -34298,7 +36337,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftOperand', leftOperand)
@@ -34313,7 +36352,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
     ..addNode('rightOperand', rightOperand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalAndPattern(this);
 
@@ -34372,7 +36411,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
@@ -34412,7 +36451,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
@@ -34466,11 +36505,11 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   @generated
   ExpressionImpl _operand;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixExpressionImpl? _prefixExpression;
 
   @generated
-  LogicalNotImpl({required this.operator, required ExpressionImpl operand})
+  new({required this.operator, required ExpressionImpl operand})
     : _operand = operand {
     _becomeParentOf2(operand);
   }
@@ -34500,7 +36539,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
       PrefixExpressionImpl.v1ProjectionFromLogicalNot(this);
 
@@ -34509,7 +36548,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('LogicalNot is not in the V1 AST view.');
@@ -34522,7 +36561,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
     ..addNode('operand', operand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('LogicalNot is not in the V1 AST view.');
@@ -34561,7 +36600,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('LogicalNot is not in the V1 AST view.');
@@ -34593,7 +36632,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('LogicalNot is not in the V1 AST view.');
@@ -34645,11 +36684,11 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @generated
   ExpressionImpl _rightOperand;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  LogicalOrImpl({
+  new({
     required ExpressionImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -34666,7 +36705,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._or(this);
 
@@ -34702,7 +36741,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('LogicalOr is not in the V1 AST view.');
@@ -34716,7 +36755,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
     ..addNode('rightOperand', rightOperand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('LogicalOr is not in the V1 AST view.');
@@ -34762,7 +36801,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('LogicalOr is not in the V1 AST view.');
@@ -34801,7 +36840,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('LogicalOr is not in the V1 AST view.');
@@ -34856,7 +36895,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   DartPatternImpl _rightOperand;
 
   @generated
-  LogicalOrPatternImpl({
+  new({
     required DartPatternImpl leftOperand,
     required this.operator,
     required DartPatternImpl rightOperand,
@@ -34900,7 +36939,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftOperand', leftOperand)
@@ -34915,7 +36954,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
     ..addNode('rightOperand', rightOperand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalOrPattern(this);
 
@@ -34976,7 +37015,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     leftOperand.accept(visitor);
@@ -35016,7 +37055,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
@@ -35048,7 +37087,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MapLiteralEntry implements CollectionElement {
   /// The expression computing the key with which the value is associated.
-  @ToBeDeprecated('Use key2 instead.')
+  @V1Ast('The V2 counterpart is key2.')
   Expression get key;
 
   @experimental
@@ -35062,7 +37101,7 @@ abstract final class MapLiteralEntry implements CollectionElement {
   Token get separator;
 
   /// The expression computing the value that is associated with the key.
-  @ToBeDeprecated('Use value2 instead.')
+  @V1Ast('The V2 counterpart is value2.')
   Expression get value;
 
   @experimental
@@ -35112,7 +37151,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   ExpressionImpl _value2;
 
   @generated
-  MapLiteralEntryImpl({
+  new({
     required this.keyQuestion,
     required ExpressionImpl key2,
     required this.separator,
@@ -35140,7 +37179,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use key2 instead.')
+  @V1Ast('The V2 counterpart is key2.')
   @override
   ExpressionImpl get key => _becomeParentOf1(V1Projection.toV1Expression(key2));
 
@@ -35156,7 +37195,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use value2 instead.')
+  @V1Ast('The V2 counterpart is value2.')
   @override
   ExpressionImpl get value =>
       _becomeParentOf1(V1Projection.toV1Expression(value2));
@@ -35173,7 +37212,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyQuestion', keyQuestion)
@@ -35192,7 +37231,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
     ..addNode('value2', value2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapLiteralEntry(this);
 
@@ -35237,7 +37276,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
@@ -35277,7 +37316,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (key._containsOffset(rangeOffset, rangeEnd)) {
@@ -35339,7 +37378,7 @@ sealed class MapPatternElementImpl implements AstNodeImpl, MapPatternElement {}
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MapPatternEntry implements AstNode, MapPatternElement {
   /// The expression computing the key of the entry to be matched.
-  @ToBeDeprecated('Use key2 instead.')
+  @V1Ast('The V2 counterpart is key2.')
   Expression get key;
 
   @experimental
@@ -35376,7 +37415,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   DartPatternImpl _value;
 
   @generated
-  MapPatternEntryImpl({
+  new({
     required ExpressionImpl key2,
     required this.separator,
     required DartPatternImpl value,
@@ -35399,7 +37438,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use key2 instead.')
+  @V1Ast('The V2 counterpart is key2.')
   @override
   ExpressionImpl get key => _becomeParentOf1(V1Projection.toV1Expression(key2));
 
@@ -35424,7 +37463,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('key', key)
@@ -35439,7 +37478,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
     ..addNode('value', value);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPatternEntry(this);
 
@@ -35475,7 +37514,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     key.accept(visitor);
@@ -35515,7 +37554,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (key._containsOffset(rangeOffset, rangeEnd)) {
@@ -35568,7 +37607,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   TypeImpl? requiredType;
 
   @generated
-  MapPatternImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required this.leftBracket,
     required List<MapPatternElementImpl> elements,
@@ -35606,7 +37645,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeArguments', typeArguments)
@@ -35623,7 +37662,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMapPattern(this);
 
@@ -35687,7 +37726,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -35729,7 +37768,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -35766,10 +37805,10 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 sealed class MemberDeclaration implements AnnotatedNode {}
 
 sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
-    implements MemberDeclaration {
-  MemberDeclarationImpl({required super.comment, required super.metadata});
+    implements ClassMemberV1OrV2Impl, MemberDeclaration {
+  new({required super.comment, required super.metadata});
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     super._childEntities;
@@ -35909,8 +37948,8 @@ abstract final class MethodDeclaration2
   ],
 )
 final class MethodDeclaration2Impl extends MemberDeclarationImpl
-    with AstNodeWithNameScopeMixin
-    implements MethodDeclaration2 {
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    implements MethodDeclarationV1OriginImpl, MethodDeclaration2 {
   @generated
   @override
   final Token? augmentKeyword;
@@ -35942,8 +37981,12 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   @override
   MethodFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  @override
+  MethodDeclarationImpl? _v1Projection;
+
   @generated
-  MethodDeclaration2Impl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -36006,6 +38049,9 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   @override
   bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
 
+  @override
+  Token get nameToken => name;
+
   @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
@@ -36024,12 +38070,23 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
     _typeParameters = _becomeParentOf2(typeParameters);
   }
 
+  @V1Ast()
+  @override
+  MethodDeclarationImpl get v1Projection =>
+      _v1Projection ??= MethodDeclarationImpl.v1Projection(this);
+
+  @override
+  FormalParameterListImpl? get writtenFormalParameters => formalParameters;
+
+  @override
+  TypeParameterListImpl? get writtenTypeParameters => typeParameters;
+
   @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -36045,8 +38102,16 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
     ..addNode('formalParameters', formalParameters)
     ..addNode('body', body);
 
+  @V1Ast()
+  @override
+  Token? get _v1OperatorKeyword => null;
+
+  @V1Ast()
+  @override
+  Token? get _v1PropertyKeyword => null;
+
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('MethodDeclaration2 is not in the V1 AST view.');
@@ -36103,7 +38168,7 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('MethodDeclaration2 is not in the V1 AST view.');
@@ -36162,7 +38227,7 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('MethodDeclaration2 is not in the V1 AST view.');
@@ -36195,6 +38260,8 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
@@ -36208,8 +38275,9 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
     GenerateNodeProperty('body'),
   ],
 )
+@V1Ast('The V2 counterparts implement MethodDeclarationV1OriginImpl.')
 final class MethodDeclarationImpl extends ClassMemberImpl
-    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    with AstNodeWithNameScopeMixin
     implements MethodDeclaration {
   @generated
   @override
@@ -36224,9 +38292,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   final Token? modifierKeyword;
 
   @generated
-  TypeAnnotationImpl? _returnType;
-
-  @generated
   @override
   final Token? propertyKeyword;
 
@@ -36238,58 +38303,37 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @override
   final Token name;
 
-  @generated
-  TypeParameterListImpl? _typeParameters;
+  final MethodDeclarationV1OriginImpl _v1ProjectionOrigin;
 
-  @generated
-  FormalParameterListImpl? _parameters;
-
-  @generated
-  FunctionBodyImpl _body;
-
-  @override
-  ExecutableFragmentImpl? declaredFragment;
-
-  Scope? typeParameterScope;
-
-  @generated
-  MethodDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required this.externalKeyword,
-    required this.modifierKeyword,
-    required TypeAnnotationImpl? returnType,
-    required this.propertyKeyword,
-    required this.operatorKeyword,
-    required this.name,
-    required TypeParameterListImpl? typeParameters,
-    required FormalParameterListImpl? parameters,
-    required FunctionBodyImpl body,
-  }) : _returnType = returnType,
-       _typeParameters = typeParameters,
-       _parameters = parameters,
-       _body = body {
-    _becomeParentOf12(returnType);
-    _becomeParentOf12(typeParameters);
-    _becomeParentOf12(parameters);
-    _becomeParentOf12(body);
+  new v1Projection(MethodDeclarationV1OriginImpl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      externalKeyword = origin.externalKeyword,
+      modifierKeyword = origin.staticKeyword,
+      propertyKeyword = origin._v1PropertyKeyword,
+      operatorKeyword = origin._v1OperatorKeyword,
+      name = origin.nameToken,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(origin.returnType);
+    _becomeParentOf1(origin.writtenTypeParameters);
+    _becomeParentOf1(origin.writtenFormalParameters);
+    _becomeParentOf1(origin.body);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  FunctionBodyImpl get body => _body;
+  FunctionBodyImpl get body => _v1ProjectionOrigin.body;
 
-  @generated
-  set body(FunctionBodyImpl body) {
-    _body = _becomeParentOf12(body);
-  }
-
-  @generated
   @override
-  Token get endToken {
-    return body.endToken;
-  }
+  ExecutableFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @generated
   @override
@@ -36336,35 +38380,34 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @override
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
 
-  @generated
   @override
-  FormalParameterListImpl? get parameters => _parameters;
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
 
-  @generated
-  set parameters(FormalParameterListImpl? parameters) {
-    _parameters = _becomeParentOf12(parameters);
+  @override
+  set nameScope(Scope? nameScope) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  FormalParameterListImpl? get parameters =>
+      _v1ProjectionOrigin.writtenFormalParameters;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeAnnotationImpl? get returnType => _v1ProjectionOrigin.returnType;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeParameterListImpl? get typeParameters =>
+      _v1ProjectionOrigin.writtenTypeParameters;
+
   @generated
   @override
-  TypeAnnotationImpl? get returnType => _returnType;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf12(returnType);
-  }
-
-  @generated
-  @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
-
-  @generated
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf12(typeParameters);
-  }
-
-  @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -36378,75 +38421,39 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     ..addNode('parameters', parameters)
     ..addNode('body', body);
 
-  @generated
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 => super._childEntities2
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addToken('modifierKeyword', modifierKeyword)
-    ..addNode('returnType', returnType)
-    ..addToken('propertyKeyword', propertyKeyword)
-    ..addToken('operatorKeyword', operatorKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addNode('body', body);
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodDeclaration(this);
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMethodDeclaration(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('MethodDeclaration is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(returnType, oldNode)) {
-      returnType = null;
-      return;
-    }
-    if (identical(typeParameters, oldNode)) {
-      typeParameters = null;
-      return;
-    }
-    if (identical(parameters, oldNode)) {
-      parameters = null;
-      return;
-    }
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(returnType, oldNode)) {
-      returnType = newNode as TypeAnnotationImpl?;
-      return;
-    }
-    if (identical(typeParameters, oldNode)) {
-      typeParameters = newNode as TypeParameterListImpl?;
-      return;
-    }
-    if (identical(parameters, oldNode)) {
-      parameters = newNode as FormalParameterListImpl?;
-      return;
-    }
-    if (identical(body, oldNode)) {
-      body = newNode as FunctionBodyImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -36460,58 +38467,11 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    _visitCommentAndAnnotations2(visitor);
-    returnType?.accept2(visitor);
-    typeParameters?.accept2(visitor);
-    parameters?.accept2(visitor);
-    body.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(TypeAnnotationImpl)? visitReturnType,
-    void Function(TypeParameterListImpl)? visitTypeParameters,
-    void Function(FormalParameterListImpl)? visitParameters,
-    void Function(FunctionBodyImpl)? visitBody,
-  }) {
-    _visitCommentAndAnnotations2(visitor);
-    if (returnType case var returnType?) {
-      if (visitReturnType != null) {
-        visitReturnType(returnType);
-      } else {
-        returnType.accept2(visitor);
-      }
-    }
-    if (typeParameters case var typeParameters?) {
-      if (visitTypeParameters != null) {
-        visitTypeParameters(typeParameters);
-      } else {
-        typeParameters.accept2(visitor);
-      }
-    }
-    if (parameters case var parameters?) {
-      if (visitParameters != null) {
-        visitParameters(parameters);
-      } else {
-        parameters.accept2(visitor);
-      }
-    }
-    if (visitBody != null) {
-      visitBody(body);
-    } else {
-      body.accept2(visitor);
-    }
+    throw StateError('MethodDeclaration is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -36541,29 +38501,65 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (returnType case var returnType?) {
-      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-        return returnType;
-      }
-    }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (parameters case var parameters?) {
-      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
-        return parameters;
-      }
-    }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
-    }
-    return null;
+    throw StateError('MethodDeclaration is not in the V2 AST view.');
   }
+}
+
+/// The canonical V2 origin of a V1 [MethodDeclaration] projection.
+///
+/// Implemented by [MethodDeclaration2Impl], [OperatorDeclarationImpl],
+/// [GetterDeclarationImpl], and [SetterDeclarationImpl]. A new origin type must
+/// implement every member, so a projection cannot silently lose state.
+sealed class MethodDeclarationV1OriginImpl
+    implements
+        MemberDeclarationImpl,
+        FlowAnalysisRootImpl,
+        FragmentDeclaringNode {
+  Token? get augmentKeyword;
+
+  FunctionBodyImpl get body;
+
+  @override
+  ExecutableFragmentImpl? get declaredFragment;
+
+  Token? get externalKeyword;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  bool get isComplete;
+
+  Scope? get nameScope;
+
+  set nameScope(Scope? nameScope);
+
+  /// The name of the declaration, or the operator token of an operator.
+  Token get nameToken;
+
+  TypeAnnotationImpl? get returnType;
+
+  /// The `static` keyword, or `null` if absent; an operator can't be static.
+  Token? get staticKeyword;
+
+  @V1Ast()
+  MethodDeclarationImpl get v1Projection;
+
+  /// The written formal parameter list, including one written after the name
+  /// of a getter, or `null` for a valid getter.
+  FormalParameterListImpl? get writtenFormalParameters;
+
+  /// The written type parameter list, including one written on an operator.
+  TypeParameterListImpl? get writtenTypeParameters;
+
+  /// The `operator` keyword of the V1 [MethodDeclaration].
+  @V1Ast()
+  Token? get _v1OperatorKeyword;
+
+  /// The cached V1 projection, or `null` if it hasn't been created yet.
+  @V1Ast()
+  MethodDeclarationImpl? get _v1Projection;
+
+  /// The `get` or `set` keyword of the V1 [MethodDeclaration].
+  @V1Ast()
+  Token? get _v1PropertyKeyword;
 }
 
 /// An index read resolved to a statically selected `operator []` method.
@@ -36587,7 +38583,7 @@ final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
   @override
   final TypeImpl type;
 
-  MethodIndexReadResolutionImpl({required this.element, required this.type});
+  new({required this.element, required this.type});
 
   @override
   TypeImpl get indexContextType => element.formalParameters[0].type;
@@ -36614,7 +38610,7 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
   @override
   final InternalMethodElement element;
 
-  MethodIndexWriteResolutionImpl({required this.element});
+  new({required this.element});
 
   @override
   TypeImpl get acceptedType => element.formalParameters[1].type;
@@ -36636,7 +38632,7 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
 ///     methodInvocation ::=
 ///         ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
 ///         [ArgumentList]
-@ToBeDeprecated(
+@V1Ast(
   'Use ReceiverMethodInvocation, NamedFunctionInvocation, '
   'CascadeMethodInvocation, or ImportPrefixedFunctionInvocation instead.',
 )
@@ -36667,7 +38663,7 @@ abstract final class MethodInvocation implements InvocationExpression {
   /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
-  @ToBeDeprecated('Use realTarget2 instead.')
+  @V1Ast('The V2 counterpart is realTarget2.')
   Expression? get realTarget;
 
   /// The expression used to compute the receiver of the invocation.
@@ -36684,7 +38680,7 @@ abstract final class MethodInvocation implements InvocationExpression {
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   Expression? get target;
 
   @experimental
@@ -36702,7 +38698,7 @@ abstract final class MethodInvocation implements InvocationExpression {
     GenerateNodeProperty('argumentList', isSuper: true),
   ],
 )
-@ToBeDeprecated(
+@V1Ast(
   'Use ReceiverMethodInvocationImpl, NamedFunctionInvocationImpl, '
   'CascadeMethodInvocationImpl, or ImportPrefixedFunctionInvocationImpl '
   'instead.',
@@ -36722,7 +38718,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   final ParsedExpressionImpl? _parsedExpressionOrigin;
 
-  MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(
+  new v1ProjectionFromNamedFunctionInvocation(
     NamedFunctionInvocationImpl origin,
   ) : _target2 = _v1TargetOf(origin),
       _operator = switch (origin) {
@@ -36741,15 +38737,14 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _attachV1Children();
   }
 
-  MethodInvocationImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required ParsedExpressionImpl origin,
     required ExpressionImpl? target,
-    required Token? operator,
+    required this._operator,
     required Token name,
     required super.typeArguments,
     required super.argumentList,
   }) : _target2 = target,
-       _operator = operator,
        _methodName = SimpleIdentifierImpl.v1Projection(token: name),
        _v1ProjectionOrigin = null,
        _parsedExpressionOrigin = origin,
@@ -36907,7 +38902,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       _v1ProjectionOrigin?.staticType ?? super.staticType;
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   @override
   ExpressionImpl? get target => switch (target2) {
     var node? => V1Projection.toV1Expression(node),
@@ -36966,7 +38961,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -36982,7 +38977,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMethodInvocation(this);
 
@@ -37025,7 +39020,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
       super.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -37049,7 +39044,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -37116,6 +39111,18 @@ abstract final class MethodReferenceExpression implements Expression {
   /// this is a non-compound assignment expression, or when the method referred
   /// to couldn't be resolved.
   MethodElement? get element;
+}
+
+/// An absent dot-shorthand context: no context type was available.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class MissingDotShorthandContextResolution
+    implements DotShorthandContextResolution {}
+
+final class MissingDotShorthandContextResolutionImpl
+    extends DotShorthandContextResolutionImpl
+    implements MissingDotShorthandContextResolution {
+  const new();
 }
 
 /// The declaration of a mixin.
@@ -37205,7 +39212,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  MixinDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -37281,7 +39288,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -37306,7 +39313,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
 
@@ -37359,7 +39366,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -37424,7 +39431,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -37508,7 +39515,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   final NodeListImpl<NamedTypeImpl> superclassConstraints = NodeListImpl._();
 
   @generated
-  MixinOnClauseImpl({
+  new({
     required this.onKeyword,
     required List<NamedTypeImpl> superclassConstraints,
   }) {
@@ -37531,7 +39538,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('onKeyword', onKeyword)
@@ -37544,7 +39551,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
     ..addNodeList('superclassConstraints', superclassConstraints);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinOnClause(this);
 
@@ -37574,7 +39581,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     superclassConstraints.accept(visitor);
@@ -37606,7 +39613,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (superclassConstraints._elementContainingRange(rangeOffset, rangeEnd)
@@ -37635,7 +39642,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 ///         identifier ':' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class NamedArgument implements Argument {
-  @ToBeDeprecated('Use argumentExpression2 instead.')
+  @V1Ast('The V2 counterpart is argumentExpression2.')
   @override
   Expression get argumentExpression;
 
@@ -37676,7 +39683,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   ExpressionImpl _argumentExpression2;
 
   @generated
-  NamedArgumentImpl({
+  new({
     required this.name,
     required this.colon,
     required ExpressionImpl argumentExpression2,
@@ -37685,7 +39692,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use argumentExpression2 instead.')
+  @V1Ast('The V2 counterpart is argumentExpression2.')
   @override
   ExpressionImpl get argumentExpression =>
       _becomeParentOf1(V1Projection.toV1Expression(argumentExpression2));
@@ -37714,7 +39721,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -37729,7 +39736,7 @@ final class NamedArgumentImpl extends AstNodeImpl
     ..addNode('argumentExpression2', argumentExpression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedArgument(this);
 
@@ -37760,7 +39767,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     argumentExpression.accept(visitor);
@@ -37792,7 +39799,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (argumentExpression._containsOffset(rangeOffset, rangeEnd)) {
@@ -37838,7 +39845,7 @@ sealed class NamedFunctionInvocationImpl extends FunctionInvocationImpl
   @override
   final Token name;
 
-  NamedFunctionInvocationImpl({
+  new({
     required this.name,
     required super.typeArguments,
     required super.argumentList,
@@ -37856,7 +39863,7 @@ abstract final class NamedReadResolution implements ReadResolution {}
 
 sealed class NamedReadResolutionImpl extends ReadResolutionImpl
     implements NamedReadResolution {
-  NamedReadResolutionImpl();
+  new();
 
   @override
   TypeImpl get type;
@@ -37876,7 +39883,7 @@ abstract final class NamedReadResolutionWithElement
 
 sealed class NamedReadResolutionWithElementImpl extends NamedReadResolutionImpl
     implements NamedReadResolutionWithElement {
-  NamedReadResolutionWithElementImpl();
+  new();
 }
 
 /// A value receiver or static namespace before a named selection.
@@ -37957,7 +39964,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   TypeImpl? _type;
 
   @generated
-  NamedTypeImpl({
+  new({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
@@ -37968,8 +39975,8 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     _becomeParentOf12(typeArguments);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
-  NamedTypeImpl.v1Projection(ConstructorTypeReferenceImpl origin)
+  @V1Ast()
+  new v1Projection(ConstructorTypeReferenceImpl origin)
     : _importPrefix = origin.importPrefix,
       name = origin.name,
       _typeArguments = origin.typeArguments,
@@ -37980,8 +39987,8 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     _becomeParentOf1(_typeArguments);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
-  NamedTypeImpl.v1ProjectionFromParsedExpression({
+  @V1Ast()
+  new v1ProjectionFromParsedExpression({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl typeArguments,
@@ -38034,7 +40041,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     }
     var origin = _constructorTypeReferenceOrigin;
     var result = origin != null ? origin.importPrefix : _importPrefix;
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     return _becomeParentOf1(result);
   }
 
@@ -38049,14 +40056,8 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   bool get isDeferred {
     var importPrefixElement = importPrefix?.element;
-    if (importPrefixElement is PrefixElement) {
-      var fragments = importPrefixElement.fragments;
-      for (var i = 0; i < fragments.length; i++) {
-        if (fragments[i].isDeferred) return true;
-      }
-      return false;
-    }
-    return false;
+    return importPrefixElement is PrefixElementImpl &&
+        importPrefixElement.isDeferred;
   }
 
   @override
@@ -38091,7 +40092,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     }
     var origin = _constructorTypeReferenceOrigin;
     var result = origin != null ? origin.typeArguments : _typeArguments;
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     return _becomeParentOf1(result);
   }
 
@@ -38108,7 +40109,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('importPrefix', importPrefix)
@@ -38130,7 +40131,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedType(this);
 
@@ -38186,7 +40187,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
@@ -38236,7 +40237,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (importPrefix case var importPrefix?) {
@@ -38279,7 +40280,7 @@ abstract final class NamedWriteResolution implements WriteResolution {}
 
 sealed class NamedWriteResolutionImpl extends WriteResolutionImpl
     implements NamedWriteResolution {
-  const NamedWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType;
@@ -38297,7 +40298,7 @@ abstract final class NamedWriteResolutionWithElement
 sealed class NamedWriteResolutionWithElementImpl
     extends NamedWriteResolutionImpl
     implements NamedWriteResolutionWithElement {
-  NamedWriteResolutionWithElementImpl();
+  new();
 }
 
 /// A value-producing named access.
@@ -38357,7 +40358,7 @@ sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   /// directive doesn't have the corresponding attribute.
   ///
   /// The list of [combinators] can be `null` if there are no combinators.
-  NamespaceDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.uri,
@@ -38399,10 +40400,8 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   TypeParameterListImpl? _typeParameters;
 
   @generated
-  NameWithTypeParametersImpl({
-    required this.typeName,
-    required TypeParameterListImpl? typeParameters,
-  }) : _typeParameters = typeParameters {
+  new({required this.typeName, required TypeParameterListImpl? typeParameters})
+    : _typeParameters = typeParameters {
     _becomeParentOf12(typeParameters);
   }
 
@@ -38431,7 +40430,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('typeName', typeName)
@@ -38444,7 +40443,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
     ..addNode('typeParameters', typeParameters);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitNameWithTypeParameters(this);
@@ -38476,7 +40475,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -38510,7 +40509,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -38561,10 +40560,8 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   StringLiteralImpl? _name;
 
   @generated
-  NativeClauseImpl({
-    required this.nativeKeyword,
-    required StringLiteralImpl? name,
-  }) : _name = name {
+  new({required this.nativeKeyword, required StringLiteralImpl? name})
+    : _name = name {
     _becomeParentOf12(name);
   }
 
@@ -38593,7 +40590,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('nativeKeyword', nativeKeyword)
@@ -38606,7 +40603,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
     ..addNode('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeClause(this);
 
@@ -38636,7 +40633,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
@@ -38670,7 +40667,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name case var name?) {
@@ -38732,7 +40729,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   final Token semicolon;
 
   @generated
-  NativeFunctionBodyImpl({
+  new({
     required this.nativeKeyword,
     required StringLiteralImpl? stringLiteral,
     required this.semicolon,
@@ -38762,7 +40759,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('nativeKeyword', nativeKeyword)
@@ -38777,7 +40774,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNativeFunctionBody(this);
 
@@ -38812,7 +40809,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
       typeAnalyzer.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     stringLiteral?.accept(visitor);
@@ -38846,7 +40843,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (stringLiteral case var stringLiteral?) {
@@ -38893,7 +40890,7 @@ abstract final class NodeList<E extends AstNode> implements List<E> {
   E operator [](int index);
 
   /// Use the given [visitor] to visit each of the nodes in this list.
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   void accept(AstVisitor visitor);
 
   /// Use the given [visitor] to visit each of the nodes in this list.
@@ -38934,10 +40931,10 @@ final class NodeListImpl<E extends AstNodeImpl>
 
   /// Initializes a newly created list of nodes such that all of the nodes that
   /// are added to the list have their parent set to the given [owner].
-  NodeListImpl(AstNodeImpl owner) : _owner = owner;
+  new(AstNodeImpl owner) : _owner = owner;
 
   /// Create a partially initialized instance, [_initialize] must be called.
-  NodeListImpl._();
+  new _();
 
   @override
   Token? get beginToken {
@@ -38986,7 +40983,7 @@ final class NodeListImpl<E extends AstNodeImpl>
   }
 
   @override
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   void accept(AstVisitor visitor) {
     int length = _elements.length;
     for (var i = 0; i < length; i++) {
@@ -39144,14 +41141,12 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   @override
   final Token operator;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PostfixExpressionImpl? _postfixExpression;
 
   @generated
-  NullAssertionExpressionImpl({
-    required ExpressionImpl operand,
-    required this.operator,
-  }) : _operand = operand {
+  new({required ExpressionImpl operand, required this.operator})
+    : _operand = operand {
     _becomeParentOf2(operand);
   }
 
@@ -39177,7 +41172,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PostfixExpressionImpl get postfixExpression => _postfixExpression ??=
       PostfixExpressionImpl.v1ProjectionFromNullAssertion(this);
 
@@ -39189,7 +41184,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('NullAssertionExpression is not in the V1 AST view.');
@@ -39202,7 +41197,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
     ..addToken('operator', operator);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('NullAssertionExpression is not in the V1 AST view.');
@@ -39242,7 +41237,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('NullAssertionExpression is not in the V1 AST view.');
@@ -39274,7 +41269,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('NullAssertionExpression is not in the V1 AST view.');
@@ -39319,10 +41314,8 @@ final class NullAssertPatternImpl extends DartPatternImpl
   final Token operator;
 
   @generated
-  NullAssertPatternImpl({
-    required DartPatternImpl pattern,
-    required this.operator,
-  }) : _pattern = pattern {
+  new({required DartPatternImpl pattern, required this.operator})
+    : _pattern = pattern {
     _becomeParentOf12(pattern);
   }
 
@@ -39354,7 +41347,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -39367,7 +41360,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
     ..addToken('operator', operator);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAssertPattern(this);
 
@@ -39419,7 +41412,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -39451,7 +41444,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -39479,7 +41472,7 @@ abstract final class NullAwareElement implements CollectionElement {
   Token get question;
 
   /// The expression computing the value that is associated with the element.
-  @ToBeDeprecated('Use value2 instead.')
+  @V1Ast('The V2 counterpart is value2.')
   Expression get value;
 
   @experimental
@@ -39507,7 +41500,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   ExpressionImpl _value2;
 
   @generated
-  NullAwareElementImpl({required this.question, required ExpressionImpl value2})
+  new({required this.question, required ExpressionImpl value2})
     : _value2 = value2 {
     _becomeParentOf2AndExisting1(value2);
   }
@@ -39525,7 +41518,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use value2 instead.')
+  @V1Ast('The V2 counterpart is value2.')
   @override
   ExpressionImpl get value =>
       _becomeParentOf1(V1Projection.toV1Expression(value2));
@@ -39542,7 +41535,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('question', question)
@@ -39555,7 +41548,7 @@ final class NullAwareElementImpl extends AstNodeImpl
     ..addNode('value2', value2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAwareElement(this);
 
@@ -39593,7 +41586,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     value.accept(visitor);
@@ -39625,7 +41618,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (value._containsOffset(rangeOffset, rangeEnd)) {
@@ -39673,10 +41666,8 @@ final class NullCheckPatternImpl extends DartPatternImpl
   final Token operator;
 
   @generated
-  NullCheckPatternImpl({
-    required DartPatternImpl pattern,
-    required this.operator,
-  }) : _pattern = pattern {
+  new({required DartPatternImpl pattern, required this.operator})
+    : _pattern = pattern {
     _becomeParentOf12(pattern);
   }
 
@@ -39708,7 +41699,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -39721,7 +41712,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
     ..addToken('operator', operator);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullCheckPattern(this);
 
@@ -39773,7 +41764,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -39805,7 +41796,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -39841,7 +41832,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   final Token literal;
 
   @generated
-  NullLiteralImpl({required this.literal});
+  new({required this.literal});
 
   @generated
   @override
@@ -39856,7 +41847,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -39867,7 +41858,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
       ChildEntities()..addToken('literal', literal);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullLiteral(this);
 
@@ -39883,7 +41874,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -39898,7 +41889,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -39955,7 +41946,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   final Token rightParenthesis;
 
   @generated
-  ObjectPatternImpl({
+  new({
     required NamedTypeImpl type,
     required this.leftParenthesis,
     required List<PatternFieldImpl> fields,
@@ -39990,7 +41981,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('type', type)
@@ -40007,7 +41998,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitObjectPattern(this);
 
@@ -40075,7 +42066,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
@@ -40115,7 +42106,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -40185,13 +42176,18 @@ abstract final class OperatorDeclaration
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('operatorKeyword'),
     GenerateNodeProperty('operator'),
+    GenerateNodeProperty(
+      'recoveryTypeParameters',
+      withOverride: false,
+      type: _TypeLiteral<TypeParameterList?>,
+    ),
     GenerateNodeProperty('formalParameters'),
     GenerateNodeProperty('body'),
   ],
 )
 final class OperatorDeclarationImpl extends MemberDeclarationImpl
-    with AstNodeWithNameScopeMixin
-    implements OperatorDeclaration {
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    implements MethodDeclarationV1OriginImpl, OperatorDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -40212,6 +42208,9 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   final Token operator;
 
   @generated
+  TypeParameterListImpl? _recoveryTypeParameters;
+
+  @generated
   FormalParameterListImpl _formalParameters;
 
   @generated
@@ -40220,8 +42219,12 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   @override
   MethodFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  @override
+  MethodDeclarationImpl? _v1Projection;
+
   @generated
-  OperatorDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -40229,12 +42232,15 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
     required TypeAnnotationImpl? returnType,
     required this.operatorKeyword,
     required this.operator,
+    required TypeParameterListImpl? recoveryTypeParameters,
     required FormalParameterListImpl formalParameters,
     required FunctionBodyImpl body,
   }) : _returnType = returnType,
+       _recoveryTypeParameters = recoveryTypeParameters,
        _formalParameters = formalParameters,
        _body = body {
     _becomeParentOf2(returnType);
+    _becomeParentOf2(recoveryTypeParameters);
     _becomeParentOf2(formalParameters);
     _becomeParentOf2(body);
   }
@@ -40281,6 +42287,17 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   @override
   bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
 
+  @override
+  Token get nameToken => operator;
+
+  @generated
+  TypeParameterListImpl? get recoveryTypeParameters => _recoveryTypeParameters;
+
+  @generated
+  set recoveryTypeParameters(TypeParameterListImpl? recoveryTypeParameters) {
+    _recoveryTypeParameters = _becomeParentOf2(recoveryTypeParameters);
+  }
+
   @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
@@ -40290,12 +42307,26 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
     _returnType = _becomeParentOf2(returnType);
   }
 
+  @override
+  Token? get staticKeyword => null;
+
+  @V1Ast()
+  @override
+  MethodDeclarationImpl get v1Projection =>
+      _v1Projection ??= MethodDeclarationImpl.v1Projection(this);
+
+  @override
+  FormalParameterListImpl? get writtenFormalParameters => formalParameters;
+
+  @override
+  TypeParameterListImpl? get writtenTypeParameters => recoveryTypeParameters;
+
   @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -40307,11 +42338,20 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
     ..addNode('returnType', returnType)
     ..addToken('operatorKeyword', operatorKeyword)
     ..addToken('operator', operator)
+    ..addNode('recoveryTypeParameters', recoveryTypeParameters)
     ..addNode('formalParameters', formalParameters)
     ..addNode('body', body);
 
+  @V1Ast()
+  @override
+  Token? get _v1OperatorKeyword => operatorKeyword;
+
+  @V1Ast()
+  @override
+  Token? get _v1PropertyKeyword => null;
+
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('OperatorDeclaration is not in the V1 AST view.');
@@ -40328,6 +42368,10 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   void removeChild(AstNodeImpl oldNode) {
     if (identical(returnType, oldNode)) {
       returnType = null;
+      return;
+    }
+    if (identical(recoveryTypeParameters, oldNode)) {
+      recoveryTypeParameters = null;
       return;
     }
     if (identical(formalParameters, oldNode)) {
@@ -40348,6 +42392,10 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
       returnType = newNode as TypeAnnotationImpl?;
       return;
     }
+    if (identical(recoveryTypeParameters, oldNode)) {
+      recoveryTypeParameters = newNode as TypeParameterListImpl?;
+      return;
+    }
     if (identical(formalParameters, oldNode)) {
       formalParameters = newNode as FormalParameterListImpl;
       return;
@@ -40360,7 +42408,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('OperatorDeclaration is not in the V1 AST view.');
@@ -40372,6 +42420,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   void visitChildren2(AstVisitor2 visitor) {
     _visitCommentAndAnnotations2(visitor);
     returnType?.accept2(visitor);
+    recoveryTypeParameters?.accept2(visitor);
     formalParameters.accept2(visitor);
     body.accept2(visitor);
   }
@@ -40386,6 +42435,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitRecoveryTypeParameters,
     void Function(FormalParameterListImpl)? visitFormalParameters,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
@@ -40395,6 +42445,13 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
         visitReturnType(returnType);
       } else {
         returnType.accept2(visitor);
+      }
+    }
+    if (recoveryTypeParameters case var recoveryTypeParameters?) {
+      if (visitRecoveryTypeParameters != null) {
+        visitRecoveryTypeParameters(recoveryTypeParameters);
+      } else {
+        recoveryTypeParameters.accept2(visitor);
       }
     }
     if (visitFormalParameters != null) {
@@ -40410,7 +42467,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('OperatorDeclaration is not in the V1 AST view.');
@@ -40425,6 +42482,11 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
     if (returnType case var returnType?) {
       if (returnType._containsOffset(rangeOffset, rangeEnd)) {
         return returnType;
+      }
+    }
+    if (recoveryTypeParameters case var recoveryTypeParameters?) {
+      if (recoveryTypeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return recoveryTypeParameters;
       }
     }
     if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
@@ -40444,7 +42506,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ParenthesizedExpression implements Expression {
   /// The expression within the parentheses.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -40482,7 +42544,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   final Token rightParenthesis;
 
   @generated
-  ParenthesizedExpressionImpl({
+  new({
     required this.leftParenthesis,
     required ExpressionImpl expression2,
     required this.rightParenthesis,
@@ -40503,7 +42565,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -40522,7 +42584,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.primary;
 
-  @ToBeDeprecated('Use unParenthesized2 instead.')
+  @V1Ast('The V2 counterpart is unParenthesized2.')
   @override
   ExpressionImpl get unParenthesized {
     _checkV1View();
@@ -40549,7 +42611,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -40564,7 +42626,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
@@ -40601,7 +42663,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -40633,7 +42695,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -40689,7 +42751,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   final Token rightParenthesis;
 
   @generated
-  ParenthesizedPatternImpl({
+  new({
     required this.leftParenthesis,
     required DartPatternImpl pattern,
     required this.rightParenthesis,
@@ -40734,7 +42796,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -40749,7 +42811,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitParenthesizedPattern(this);
@@ -40796,7 +42858,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -40828,7 +42890,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -40860,10 +42922,8 @@ sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   ReadResolutionImpl? get read => null;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get v1Projection => _v1Projection ??= switch (this) {
-    ParsedUnqualifiedNameAssignmentTargetImpl(:var name) =>
-      SimpleIdentifierImpl.v1Projection(token: name),
     ParsedNameAccessAssignmentTargetImpl(
       :var operand,
       :var operator,
@@ -40896,7 +42956,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   final Token name;
 
   @generated
-  ParsedCascadeNameImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -40921,7 +42981,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedCascadeName is not in the V1 AST view.');
@@ -40932,7 +42992,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ParsedCascadeName is not in the V1 AST view.');
@@ -40950,7 +43010,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ParsedCascadeName is not in the V1 AST view.');
@@ -40967,7 +43027,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedCascadeName is not in the V1 AST view.');
@@ -41000,8 +43060,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   ExpressionImpl _expression;
 
   @generated
-  ParsedDotShorthandExpressionImpl({required ExpressionImpl expression})
-    : _expression = expression {
+  new({required ExpressionImpl expression}) : _expression = expression {
     _becomeParentOf2(expression);
   }
 
@@ -41037,7 +43096,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
@@ -41049,7 +43108,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
       ChildEntities()..addNode('expression', expression);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
@@ -41090,7 +43149,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
@@ -41122,7 +43181,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
@@ -41165,7 +43224,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   final Token name;
 
   @generated
-  ParsedDotShorthandNameImpl({required this.period, required this.name});
+  new({required this.period, required this.name});
 
   @generated
   @override
@@ -41187,7 +43246,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
@@ -41200,7 +43259,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
@@ -41219,7 +43278,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
@@ -41236,7 +43295,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
@@ -41284,7 +43343,7 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get v1Projection =>
       _v1Projection ??= _ParsedExpressionBuilder(this).build();
 
@@ -41352,7 +43411,7 @@ final class ParsedNameAccessAssignmentTargetImpl
   final Token name;
 
   @generated
-  ParsedNameAccessAssignmentTargetImpl({
+  new({
     required ParsedExpressionImpl operand,
     required this.operator,
     required this.name,
@@ -41386,7 +43445,7 @@ final class ParsedNameAccessAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -41402,7 +43461,7 @@ final class ParsedNameAccessAssignmentTargetImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -41436,7 +43495,7 @@ final class ParsedNameAccessAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -41470,7 +43529,7 @@ final class ParsedNameAccessAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -41510,7 +43569,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   final Token name;
 
   @generated
-  ParsedNameAccessImpl({
+  new({
     required InstanceReceiverImpl operand,
     required this.operator,
     required this.name,
@@ -41545,7 +43604,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedNameAccess is not in the V1 AST view.');
@@ -41559,7 +43618,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ParsedNameAccess is not in the V1 AST view.');
@@ -41596,7 +43655,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ParsedNameAccess is not in the V1 AST view.');
@@ -41628,7 +43687,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedNameAccess is not in the V1 AST view.');
@@ -41668,7 +43727,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   TypeArgumentListImpl _typeArguments;
 
   @generated
-  ParsedTypeArgumentsImpl({
+  new({
     required ExpressionImpl operand,
     required TypeArgumentListImpl typeArguments,
   }) : _operand = operand,
@@ -41710,7 +43769,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedTypeArguments is not in the V1 AST view.');
@@ -41723,7 +43782,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
     ..addNode('typeArguments', typeArguments);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ParsedTypeArguments is not in the V1 AST view.');
@@ -41768,7 +43827,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ParsedTypeArguments is not in the V1 AST view.');
@@ -41807,7 +43866,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedTypeArguments is not in the V1 AST view.');
@@ -41834,107 +43893,6 @@ abstract final class ParsedUnqualifiedName implements ParsedExpression {
   Token get name;
 }
 
-/// An unqualified name in an assignment destination.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedUnqualifiedNameAssignmentTarget
-    implements ParsedAssignmentTarget {
-  Token get name;
-}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('name')],
-)
-final class ParsedUnqualifiedNameAssignmentTargetImpl
-    extends ParsedAssignmentTargetImpl
-    implements ParsedUnqualifiedNameAssignmentTarget {
-  @generated
-  @override
-  final Token name;
-
-  @generated
-  ParsedUnqualifiedNameAssignmentTargetImpl({required this.name});
-
-  @generated
-  @override
-  Token get beginToken {
-    return name;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return name;
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
-  @override
-  ChildEntities get _childEntities {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitParsedUnqualifiedNameAssignmentTarget(this);
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
-
-  @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
-  }
-}
-
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [GenerateNodeProperty('name')],
@@ -41950,7 +43908,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   ScopeLookupResult? scopeLookupResult;
 
   @generated
-  ParsedUnqualifiedNameImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -41975,7 +43933,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
@@ -41986,7 +43944,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
@@ -42005,7 +43963,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
@@ -42022,7 +43980,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
@@ -42059,7 +44017,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   ArgumentListImpl _argumentList;
 
   @generated
-  ParsedValueArgumentsImpl({
+  new({
     required ParsedExpressionImpl operand,
     required ArgumentListImpl argumentList,
   }) : _operand = operand,
@@ -42138,7 +44096,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedValueArguments is not in the V1 AST view.');
@@ -42151,7 +44109,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ParsedValueArguments is not in the V1 AST view.');
@@ -42196,7 +44154,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ParsedValueArguments is not in the V1 AST view.');
@@ -42235,7 +44193,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedValueArguments is not in the V1 AST view.');
@@ -42293,7 +44251,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   PartIncludeImpl? partInclude;
 
   @generated
-  PartDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.partKeyword,
@@ -42314,7 +44272,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
@@ -42329,7 +44287,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartDirective(this);
 
@@ -42358,7 +44316,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -42393,7 +44351,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -42473,7 +44431,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   final Token semicolon;
 
   @generated
-  PartOfDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.partKeyword,
@@ -42518,7 +44476,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
@@ -42537,7 +44495,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPartOfDirective(this);
 
@@ -42575,7 +44533,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -42622,7 +44580,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -42671,7 +44629,7 @@ abstract final class PatternAssignment implements Expression {
   Token get equals;
 
   /// The expression that is matched by the pattern.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -42709,7 +44667,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   TypeImpl? patternTypeSchema;
 
   @generated
-  PatternAssignmentImpl({
+  new({
     required DartPatternImpl pattern,
     required this.equals,
     required ExpressionImpl expression2,
@@ -42732,7 +44690,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -42763,7 +44721,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -42778,7 +44736,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternAssignment(this);
 
@@ -42820,7 +44778,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern.accept(visitor);
@@ -42860,7 +44818,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -42930,11 +44888,9 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   Element? element;
 
   @generated
-  PatternFieldImpl({
-    required PatternFieldNameImpl? name,
-    required DartPatternImpl pattern,
-  }) : _name = name,
-       _pattern = pattern {
+  new({required PatternFieldNameImpl? name, required DartPatternImpl pattern})
+    : _name = name,
+      _pattern = pattern {
     _becomeParentOf12(name);
     _becomeParentOf12(pattern);
   }
@@ -42983,7 +44939,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('name', name)
@@ -42996,7 +44952,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     ..addNode('pattern', pattern);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternField(this);
 
@@ -43033,7 +44989,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     name?.accept(visitor);
@@ -43075,7 +45031,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name case var name?) {
@@ -43134,7 +45090,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   final Token colon;
 
   @generated
-  PatternFieldNameImpl({required this.name, required this.colon});
+  new({required this.name, required this.colon});
 
   @generated
   @override
@@ -43152,7 +45108,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -43165,7 +45121,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
     ..addToken('colon', colon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPatternFieldName(this);
 
@@ -43175,7 +45131,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternFieldName(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -43190,7 +45146,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -43213,7 +45169,7 @@ abstract final class PatternVariableDeclaration implements AnnotatedNode {
   Token get equals;
 
   /// The expression that is matched by the pattern.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -43262,7 +45218,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   late final List<BindPatternVariableElementImpl> elements;
 
   @generated
-  PatternVariableDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.keyword,
@@ -43282,7 +45238,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -43322,7 +45278,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
@@ -43339,7 +45295,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPatternVariableDeclaration(this);
@@ -43377,7 +45333,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -43420,7 +45376,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -43480,7 +45436,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   final Token semicolon;
 
   @generated
-  PatternVariableDeclarationStatementImpl({
+  new({
     required PatternVariableDeclarationImpl declaration,
     required this.semicolon,
   }) : _declaration = declaration {
@@ -43509,7 +45465,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('declaration', declaration)
@@ -43522,7 +45478,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPatternVariableDeclarationStatement(this);
@@ -43553,7 +45509,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     declaration.accept(visitor);
@@ -43585,7 +45541,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (declaration._containsOffset(rangeOffset, rangeEnd)) {
@@ -43608,8 +45564,8 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
 ///
 ///     postfixExpression ::=
 ///         [Expression] [Token]
-@ToBeDeprecated(
-  'Use NullAssertionExpression or IncrementOrDecrementExpression instead.',
+@V1Ast(
+  'The V2 counterpart is NullAssertionExpression or IncrementOrDecrementExpression.',
 )
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PostfixExpression
@@ -43639,7 +45595,7 @@ abstract final class PostfixExpression
     GenerateNodeProperty('operator'),
   ],
 )
-@ToBeDeprecated(
+@V1Ast(
   'Use NullAssertionExpressionImpl or IncrementOrDecrementExpressionImpl '
   'instead.',
 )
@@ -43648,15 +45604,14 @@ final class PostfixExpressionImpl extends ExpressionImpl
     implements PostfixExpression {
   final ExpressionImpl _origin;
 
-  PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(
+  new v1ProjectionFromIncrementOrDecrement(
     IncrementOrDecrementExpressionImpl origin,
   ) : _origin = origin {
     _attachV1Children();
   }
 
-  PostfixExpressionImpl.v1ProjectionFromNullAssertion(
-    NullAssertionExpressionImpl origin,
-  ) : _origin = origin {
+  new v1ProjectionFromNullAssertion(NullAssertionExpressionImpl origin)
+    : _origin = origin {
     _attachV1Children();
   }
 
@@ -43739,7 +45694,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('operand', operand)
@@ -43752,7 +45707,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixExpression(this);
 
@@ -43789,7 +45744,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   String toSource() => _origin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
@@ -43807,7 +45762,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
@@ -43828,8 +45783,8 @@ final class PostfixExpressionImpl extends ExpressionImpl
 ///
 ///     prefixedIdentifier ::=
 ///         [SimpleIdentifier] '.' [SimpleIdentifier]
-@ToBeDeprecated(
-  'Use ImportPrefixedNameExpression or ReceiverPropertyExtraction instead.',
+@V1Ast(
+  'The V2 counterpart is ImportPrefixedNameExpression or ReceiverPropertyExtraction.',
 )
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrefixedIdentifier implements Identifier {
@@ -43861,7 +45816,7 @@ abstract final class PrefixedIdentifier implements Identifier {
     GenerateNodeProperty('identifier'),
   ],
 )
-@ToBeDeprecated(
+@V1Ast(
   'Use ImportPrefixedNameExpressionImpl or ReceiverPropertyExtractionImpl '
   'instead.',
 )
@@ -43879,7 +45834,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @DoNotGenerate(reason: 'V1 projections synchronize the identifier getter')
   SimpleIdentifierImpl _identifier;
 
-  PrefixedIdentifierImpl.v1Projection({
+  new v1Projection({
     required SimpleIdentifierImpl prefix,
     required this.period,
     required SimpleIdentifierImpl identifier,
@@ -43947,10 +45902,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   bool get isDeferred {
     var element = _prefix.element;
-    if (element is PrefixElement) {
-      return element.fragments.any((fragment) => fragment.isDeferred);
-    }
-    return false;
+    return element is PrefixElementImpl && element.isDeferred;
   }
 
   @override
@@ -43979,7 +45931,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('prefix', prefix)
@@ -43993,7 +45945,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixedIdentifier(this);
 
@@ -44037,7 +45989,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
       '${_prefix.toSource()}${period.lexeme}${_identifier.toSource()}';
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     prefix.accept(visitor);
@@ -44052,7 +46004,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (prefix._containsOffset(rangeOffset, rangeEnd)) {
@@ -44075,7 +46027,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 ///
 ///     prefixExpression ::=
 ///         [Token] [Expression]
-@ToBeDeprecated(
+@V1Ast(
   'Use LogicalNot, UnaryOperatorInvocation, or '
   'IncrementOrDecrementExpression instead.',
 )
@@ -44107,7 +46059,7 @@ abstract final class PrefixExpression
     GenerateNodeProperty('operand'),
   ],
 )
-@ToBeDeprecated(
+@V1Ast(
   'Use LogicalNotImpl, UnaryOperatorInvocationImpl, or '
   'IncrementOrDecrementExpressionImpl instead.',
 )
@@ -44116,18 +46068,17 @@ final class PrefixExpressionImpl extends ExpressionImpl
     implements PrefixExpression {
   final ExpressionImpl _origin;
 
-  PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(
+  new v1ProjectionFromIncrementOrDecrement(
     IncrementOrDecrementExpressionImpl origin,
   ) : _origin = origin {
     _attachV1Children();
   }
 
-  PrefixExpressionImpl.v1ProjectionFromLogicalNot(LogicalNotImpl origin)
-    : _origin = origin {
+  new v1ProjectionFromLogicalNot(LogicalNotImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  PrefixExpressionImpl.v1ProjectionFromUnaryOperatorInvocation(
+  new v1ProjectionFromUnaryOperatorInvocation(
     UnaryOperatorInvocationImpl origin,
   ) : _origin = origin {
     _attachV1Children();
@@ -44215,7 +46166,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
@@ -44228,7 +46179,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPrefixExpression(this);
 
@@ -44265,7 +46216,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   String toSource() => _origin.toSource();
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
@@ -44283,7 +46234,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
@@ -44336,7 +46287,7 @@ abstract final class PrimaryConstructorBody implements ClassMember {
 )
 final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     with FlowAnalysisRootImpl
-    implements PrimaryConstructorBody {
+    implements ClassMemberV1OrV2Impl, PrimaryConstructorBody {
   @generated
   @override
   final Token? augmentKeyword;
@@ -44360,7 +46311,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   Scope? formalParameterInitializerScope;
 
   @generated
-  PrimaryConstructorBodyImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -44415,7 +46366,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -44434,7 +46385,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
     ..addNode('body', body);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorBody(this);
@@ -44473,7 +46424,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -44516,7 +46467,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -44621,7 +46572,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   List<FieldElement>? notInitializedFields;
 
   @generated
-  PrimaryConstructorDeclarationImpl({
+  new({
     required this.constKeyword,
     required this.typeName,
     required TypeParameterListImpl? typeParameters,
@@ -44646,7 +46597,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @override
   PrimaryConstructorBodyImpl? get body =>
-      parent2.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
+      parent2.classMembers2.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 
   @generated
   @override
@@ -44723,7 +46674,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -44742,7 +46693,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     ..addNode('formalParameters', formalParameters);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorDeclaration(this);
@@ -44791,7 +46742,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters?.accept(visitor);
@@ -44843,7 +46794,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -44909,7 +46860,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   final Token name;
 
   @generated
-  PrimaryConstructorNameImpl({required this.period, required this.name});
+  new({required this.period, required this.name});
 
   @generated
   @override
@@ -44924,7 +46875,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -44937,7 +46888,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitPrimaryConstructorName(this);
@@ -44949,7 +46900,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
       visitor.visitPrimaryConstructorName(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -44964,7 +46915,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -44985,7 +46936,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
 ///
 ///     propertyAccess ::=
 ///         [Expression] '.' [SimpleIdentifier]
-@ToBeDeprecated('Use PropertyExtraction or PropertyAssignmentTarget instead.')
+@V1Ast('The V2 counterpart is PropertyExtraction or PropertyAssignmentTarget.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAccess implements CommentReferableExpression {
   /// Whether this expression is cascaded.
@@ -45008,7 +46959,7 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   /// If this invocation isn't part of a cascade expression, then this is the
   /// same as [target]. If this invocation is part of a cascade expression,
   /// then the target stored with the cascade expression is returned.
-  @ToBeDeprecated('Use realTarget2 instead.')
+  @V1Ast('The V2 counterpart is realTarget2.')
   Expression get realTarget;
 
   /// The expression used to compute the receiver of the invocation.
@@ -45024,7 +46975,7 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   ///
   /// Use [realTarget] to get the target independent of whether this is part of
   /// a cascade expression.
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   Expression? get target;
 
   @experimental
@@ -45041,8 +46992,8 @@ abstract final class PropertyAccess implements CommentReferableExpression {
     GenerateNodeProperty('propertyName'),
   ],
 )
-@ToBeDeprecated(
-  'Use PropertyExtractionImpl or PropertyAssignmentTargetImpl instead.',
+@V1Ast(
+  'The V2 counterpart is PropertyExtractionImpl or PropertyAssignmentTargetImpl.',
 )
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
     implements PropertyAccess {
@@ -45057,7 +47008,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   final AstNodeImpl _v1ProjectionOrigin;
 
-  PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(
+  new v1ProjectionFromCascadeAssignmentTarget(
     CascadePropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
@@ -45065,15 +47016,14 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromCascadeExtraction(
-    CascadePropertyExtractionImpl origin,
-  ) : _target2 = null,
+  new v1ProjectionFromCascadeExtraction(CascadePropertyExtractionImpl origin)
+    : _target2 = null,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromCommentReference(
+  new v1ProjectionFromCommentReference(
     CommentReferenceImpl origin,
     ExpressionImpl target,
   ) : _target2 = target,
@@ -45083,7 +47033,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromImplicitFunctionInstantiation(
+  new v1ProjectionFromImplicitFunctionInstantiation(
     ImplicitFunctionInstantiationImpl origin,
     PropertyAccessImpl operand,
     SimpleIdentifierImpl propertyName,
@@ -45094,7 +47044,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromParsedExpression(
+  new v1ProjectionFromParsedExpression(
     AstNodeImpl origin,
     ExpressionImpl? target,
     Token operator,
@@ -45106,7 +47056,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromReceiverAssignmentTarget(
+  new v1ProjectionFromReceiverAssignmentTarget(
     ReceiverPropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
       _operator = origin.operator,
@@ -45115,9 +47065,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromReceiverExtraction(
-    ReceiverPropertyExtractionImpl origin,
-  ) : _target2 = null,
+  new v1ProjectionFromReceiverExtraction(ReceiverPropertyExtractionImpl origin)
+    : _target2 = null,
       _operator = origin.operator,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
@@ -45222,7 +47171,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
-  @ToBeDeprecated('Use target2 instead.')
+  @V1Ast('The V2 counterpart is target2.')
   @override
   ExpressionImpl? get target => switch (target2) {
     var node? => V1Projection.toV1Expression(node),
@@ -45268,7 +47217,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -45282,7 +47231,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
@@ -45329,7 +47278,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   };
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     target?.accept(visitor);
@@ -45349,7 +47298,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -45402,7 +47351,7 @@ sealed class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
-  PropertyAssignmentTargetImpl({required this.name});
+  new({required this.name});
 }
 
 /// A property value selected from a receiver.
@@ -45420,7 +47369,7 @@ sealed class PropertyExtractionImpl extends NameExpressionImpl
   @override
   NamedReadResolutionImpl? resolution;
 
-  PropertyExtractionImpl({required this.name});
+  new({required this.name});
 
   @override
   bool get isAssignable => true;
@@ -45450,7 +47399,7 @@ abstract final class ReadResolution {
 }
 
 sealed class ReadResolutionImpl implements ReadResolution {
-  const ReadResolutionImpl();
+  const new();
 
   @override
   Element? get element => null;
@@ -45492,7 +47441,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   final Token? question;
 
   @generated
-  ReceiverIndexAssignmentTargetImpl({
+  new({
     required InstanceReceiverImpl receiver,
     required this.question,
     required super.leftBracket,
@@ -45528,7 +47477,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -45546,7 +47495,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -45587,7 +47536,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -45628,7 +47577,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -45682,7 +47631,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   final Token? question;
 
   @generated
-  ReceiverIndexExpressionImpl({
+  new({
     required InstanceReceiverImpl receiver,
     required this.question,
     required super.leftBracket,
@@ -45718,7 +47667,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
@@ -45734,7 +47683,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
@@ -45787,7 +47736,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
@@ -45826,7 +47775,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
@@ -45876,11 +47825,11 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   final Token operator;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  ReceiverMethodInvocationImpl({
+  new({
     required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
@@ -45903,7 +47852,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -45921,7 +47870,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
@@ -45937,7 +47886,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
@@ -45990,7 +47939,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
@@ -46038,7 +47987,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
@@ -46096,7 +48045,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  ReceiverPropertyAssignmentTargetImpl({
+  new({
     required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
@@ -46125,7 +48074,7 @@ final class ReceiverPropertyAssignmentTargetImpl
     _receiver = _becomeParentOf2(receiver);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get v1Projection {
     var target = V1Projection.toV1NamedReceiver(receiver);
     var previous = _v1Projection;
@@ -46163,7 +48112,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -46183,7 +48132,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -46217,7 +48166,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -46251,7 +48200,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -46303,7 +48252,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  ReceiverPropertyExtractionImpl({
+  new({
     required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
@@ -46332,7 +48281,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
     _receiver = _becomeParentOf2(receiver);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   ExpressionImpl get v1Projection {
     var target = V1Projection.toV1NamedReceiver(receiver);
     var previous = _v1Projection;
@@ -46374,7 +48323,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
@@ -46388,7 +48337,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
@@ -46429,7 +48378,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
@@ -46461,7 +48410,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
@@ -46487,7 +48436,7 @@ final class RecordFieldReadResolutionImpl extends NamedReadResolutionImpl
   @override
   final TypeImpl type;
 
-  RecordFieldReadResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// A record literal.
@@ -46502,7 +48451,7 @@ abstract final class RecordLiteral implements Literal {
   Token? get constKeyword;
 
   /// The syntactic elements used to compute the fields of the record.
-  @ToBeDeprecated('Use fields2 instead.')
+  @V1Ast('The V2 counterpart is fields2.')
   NodeList<RecordLiteralField> get fields;
 
   @experimental
@@ -46526,7 +48475,7 @@ abstract final class RecordLiteral implements Literal {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RecordLiteralField implements AstNode {
   /// The expression that computes the value for this field.
-  @ToBeDeprecated('Use fieldExpression2 instead.')
+  @V1Ast('The V2 counterpart is fieldExpression2.')
   Expression get fieldExpression;
 
   @experimental
@@ -46534,7 +48483,7 @@ abstract final class RecordLiteralField implements AstNode {
 }
 
 base mixin RecordLiteralFieldImpl on AstNodeImpl implements RecordLiteralField {
-  @ToBeDeprecated('Use fieldExpression2 instead.')
+  @V1Ast('The V2 counterpart is fieldExpression2.')
   @override
   ExpressionImpl get fieldExpression;
 
@@ -46569,7 +48518,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   final NodeListImpl<RecordLiteralFieldImpl> fields2 = NodeListImpl._();
 
   @generated
-  @ToBeDeprecated('Use fields2 instead.')
+  @V1Ast('The V2 counterpart is fields2.')
   @override
   late final NodeListImpl<RecordLiteralFieldImpl> fields =
       _V1ProjectedNodeListImpl(fields2, V1Projection.toV1RecordLiteralField);
@@ -46579,7 +48528,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   final Token rightParenthesis;
 
   @generated
-  RecordLiteralImpl({
+  new({
     required this.constKeyword,
     required this.leftParenthesis,
     required List<RecordLiteralFieldImpl> fields2,
@@ -46607,7 +48556,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   bool get isConst => constKeyword != null || inConstantContext;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -46624,7 +48573,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordLiteral(this);
 
@@ -46660,7 +48609,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
@@ -46692,7 +48641,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
@@ -46721,7 +48670,7 @@ sealed class RecordLiteralNamedField implements RecordLiteralField {
   /// The colon separating the name from the expression.
   Token get colon;
 
-  @ToBeDeprecated('Use fieldExpression2 instead.')
+  @V1Ast('The V2 counterpart is fieldExpression2.')
   @override
   Expression get fieldExpression;
 
@@ -46759,7 +48708,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   ExpressionImpl _fieldExpression2;
 
   @generated
-  RecordLiteralNamedFieldImpl({
+  new({
     required this.name,
     required this.colon,
     required ExpressionImpl fieldExpression2,
@@ -46780,7 +48729,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use fieldExpression2 instead.')
+  @V1Ast('The V2 counterpart is fieldExpression2.')
   @override
   ExpressionImpl get fieldExpression =>
       _becomeParentOf1(V1Projection.toV1Expression(fieldExpression2));
@@ -46797,7 +48746,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -46812,7 +48761,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
     ..addNode('fieldExpression2', fieldExpression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordLiteralNamedField(this);
@@ -46845,7 +48794,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     fieldExpression.accept(visitor);
@@ -46877,7 +48826,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fieldExpression._containsOffset(rangeOffset, rangeEnd)) {
@@ -46935,7 +48884,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   bool hasDuplicateNamedField = false;
 
   @generated
-  RecordPatternImpl({
+  new({
     required this.leftParenthesis,
     required List<PatternFieldImpl> fields,
     required this.rightParenthesis,
@@ -46959,7 +48908,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -46974,7 +48923,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
     ..addToken('rightParenthesis', rightParenthesis);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRecordPattern(this);
 
@@ -47041,7 +48990,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
@@ -47073,7 +49022,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
@@ -47145,7 +49094,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
 
   TypeAnnotationImpl _type;
 
-  RecordTypeAnnotationFieldImpl({
+  new({
     required List<AnnotationImpl>? metadata,
     required TypeAnnotationImpl type,
   }) : _type = type {
@@ -47166,21 +49115,21 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     _type = _becomeParentOf12(type);
   }
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addNodeList('metadata', metadata)
     ..addNode('type', type)
     ..addToken('name', name);
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
     type.accept(visitor);
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -47225,7 +49174,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   TypeImpl? type;
 
   @generated
-  RecordTypeAnnotationImpl({
+  new({
     required this.leftParenthesis,
     required List<RecordTypeAnnotationPositionalFieldImpl> positionalFields,
     required RecordTypeAnnotationNamedFieldsImpl? namedFields,
@@ -47261,7 +49210,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -47280,7 +49229,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     ..addToken('question', question);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotation(this);
@@ -47320,7 +49269,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     positionalFields.accept(visitor);
@@ -47363,7 +49312,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (positionalFields._elementContainingRange(rangeOffset, rangeEnd)
@@ -47417,11 +49366,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   final Token name;
 
   @generated
-  RecordTypeAnnotationNamedFieldImpl({
-    required super.metadata,
-    required super.type,
-    required this.name,
-  });
+  new({required super.metadata, required super.type, required this.name});
 
   @generated
   @override
@@ -47439,7 +49384,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
@@ -47454,7 +49399,7 @@ final class RecordTypeAnnotationNamedFieldImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedField(this);
@@ -47493,7 +49438,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -47533,7 +49478,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
@@ -47596,7 +49541,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   final Token rightBracket;
 
   @generated
-  RecordTypeAnnotationNamedFieldsImpl({
+  new({
     required this.leftBracket,
     required List<RecordTypeAnnotationNamedFieldImpl> fields,
     required this.rightBracket,
@@ -47617,7 +49562,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -47632,7 +49577,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedFields(this);
@@ -47664,7 +49609,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     fields.accept(visitor);
@@ -47697,7 +49642,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
@@ -47738,11 +49683,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   final Token? name;
 
   @generated
-  RecordTypeAnnotationPositionalFieldImpl({
-    required super.metadata,
-    required super.type,
-    required this.name,
-  });
+  new({required super.metadata, required super.type, required this.name});
 
   @generated
   @override
@@ -47763,7 +49704,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
@@ -47778,7 +49719,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRecordTypeAnnotationPositionalField(this);
@@ -47817,7 +49758,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     metadata.accept(visitor);
@@ -47857,7 +49798,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
@@ -47893,14 +49834,14 @@ final class RecordTypeAnnotationPositionalFieldImpl
 abstract final class RedirectingConstructorInvocation
     implements
         ConstructorInitializer,
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         ConstructorReferenceNode {
   /// The list of arguments to the constructor.
   ArgumentList get argumentList;
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   SimpleIdentifier? get constructorName;
 
   /// The selector of the constructor that is being invoked, or `null` if the
@@ -47910,7 +49851,7 @@ abstract final class RedirectingConstructorInvocation
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   Token? get period;
 
   /// The token for the `this` keyword.
@@ -47941,7 +49882,7 @@ final class RedirectingConstructorInvocationImpl
   ConstructorElementImpl? element;
 
   @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
-  RedirectingConstructorInvocationImpl({
+  new({
     required this.thisKeyword,
     required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
@@ -47968,7 +49909,7 @@ final class RedirectingConstructorInvocationImpl
   }
 
   @override
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   SimpleIdentifierImpl? get constructorName =>
       _becomeParentOf1(constructorSelector?.name);
 
@@ -47988,12 +49929,12 @@ final class RedirectingConstructorInvocationImpl
     return argumentList.endToken;
   }
 
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   @override
   Token? get period => constructorSelector?.period;
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -48009,7 +49950,7 @@ final class RedirectingConstructorInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRedirectingConstructorInvocation(this);
@@ -48048,7 +49989,7 @@ final class RedirectingConstructorInvocationImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
@@ -48090,7 +50031,7 @@ final class RedirectingConstructorInvocationImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
@@ -48148,7 +50089,7 @@ abstract final class RegularFormalParameter implements FormalParameter {}
 final class RegularFormalParameterImpl extends FormalParameterImpl
     implements RegularFormalParameter {
   @generated
-  RegularFormalParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.kind,
@@ -48234,7 +50175,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('requiredKeyword', requiredKeyword)
@@ -48257,7 +50198,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
     ..addNode('defaultClause', defaultClause);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitRegularFormalParameter(this);
@@ -48305,7 +50246,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -48363,7 +50304,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -48425,7 +50366,7 @@ abstract final class RelationalPattern implements DartPattern {
   MethodElement? get element;
 
   /// The expression used to compute the operand.
-  @ToBeDeprecated('Use operand2 instead.')
+  @V1Ast('The V2 counterpart is operand2.')
   Expression get operand;
 
   @experimental
@@ -48458,10 +50399,8 @@ final class RelationalPatternImpl extends DartPatternImpl
   MethodElement? element;
 
   @generated
-  RelationalPatternImpl({
-    required this.operator,
-    required ExpressionImpl operand2,
-  }) : _operand2 = operand2 {
+  new({required this.operator, required ExpressionImpl operand2})
+    : _operand2 = operand2 {
     _becomeParentOf2AndExisting1(operand2);
   }
 
@@ -48478,7 +50417,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use operand2 instead.')
+  @V1Ast('The V2 counterpart is operand2.')
   @override
   ExpressionImpl get operand =>
       _becomeParentOf1(V1Projection.toV1Expression(operand2));
@@ -48498,7 +50437,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.relational;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
@@ -48511,7 +50450,7 @@ final class RelationalPatternImpl extends DartPatternImpl
     ..addNode('operand2', operand2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRelationalPattern(this);
 
@@ -48561,7 +50500,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
@@ -48593,7 +50532,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
@@ -48644,10 +50583,8 @@ final class RestPatternElementImpl extends AstNodeImpl
   DartPatternImpl? _pattern;
 
   @generated
-  RestPatternElementImpl({
-    required this.operator,
-    required DartPatternImpl? pattern,
-  }) : _pattern = pattern {
+  new({required this.operator, required DartPatternImpl? pattern})
+    : _pattern = pattern {
     _becomeParentOf12(pattern);
   }
 
@@ -48676,7 +50613,7 @@ final class RestPatternElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
@@ -48689,7 +50626,7 @@ final class RestPatternElementImpl extends AstNodeImpl
     ..addNode('pattern', pattern);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRestPatternElement(this);
 
@@ -48720,7 +50657,7 @@ final class RestPatternElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     pattern?.accept(visitor);
@@ -48754,7 +50691,7 @@ final class RestPatternElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern case var pattern?) {
@@ -48795,7 +50732,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   final Token rethrowKeyword;
 
   @generated
-  RethrowExpressionImpl({required this.rethrowKeyword});
+  new({required this.rethrowKeyword});
 
   @generated
   @override
@@ -48813,7 +50750,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('rethrowKeyword', rethrowKeyword);
@@ -48824,7 +50761,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
       ChildEntities()..addToken('rethrowKeyword', rethrowKeyword);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitRethrowExpression(this);
 
@@ -48840,7 +50777,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -48855,7 +50792,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -48876,7 +50813,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
 abstract final class ReturnStatement implements Statement {
   /// The expression computing the value to be returned, or `null` if no
   /// explicit value was provided.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression? get expression;
 
   @experimental
@@ -48914,7 +50851,7 @@ final class ReturnStatementImpl extends StatementImpl
   final Token semicolon;
 
   @generated
-  ReturnStatementImpl({
+  new({
     required this.returnKeyword,
     required ExpressionImpl? expression2,
     required this.semicolon,
@@ -48935,7 +50872,7 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl? get expression => _becomeParentOf1(switch (expression2) {
     var node? => V1Projection.toV1Expression(node),
@@ -48954,7 +50891,7 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('returnKeyword', returnKeyword)
@@ -48969,7 +50906,7 @@ final class ReturnStatementImpl extends StatementImpl
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitReturnStatement(this);
 
@@ -48999,7 +50936,7 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression?.accept(visitor);
@@ -49033,7 +50970,7 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression case var expression?) {
@@ -49074,7 +51011,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   final Token scriptTag;
 
   @generated
-  ScriptTagImpl({required this.scriptTag});
+  new({required this.scriptTag});
 
   @generated
   @override
@@ -49089,7 +51026,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('scriptTag', scriptTag);
@@ -49100,7 +51037,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
       ChildEntities()..addToken('scriptTag', scriptTag);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitScriptTag(this);
 
@@ -49110,7 +51047,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitScriptTag(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -49125,7 +51062,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -49154,7 +51091,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SetOrMapLiteral implements TypedLiteral {
   /// The syntactic elements used to compute the elements of the set or map.
-  @ToBeDeprecated('Use elements2 instead.')
+  @V1Ast('The V2 counterpart is elements2.')
   NodeList<CollectionElement> get elements;
 
   @experimental
@@ -49228,7 +51165,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   final NodeListImpl<CollectionElementImpl> elements2 = NodeListImpl._();
 
   @generated
-  @ToBeDeprecated('Use elements2 instead.')
+  @V1Ast('The V2 counterpart is elements2.')
   @override
   late final NodeListImpl<CollectionElementImpl> elements =
       _V1ProjectedNodeListImpl(elements2, V1Projection.toV1CollectionElement);
@@ -49245,7 +51182,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   InterfaceType? contextType;
 
   @generated
-  SetOrMapLiteralImpl({
+  new({
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
@@ -49280,7 +51217,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   bool get isSet => _resolvedKind == _SetOrMapKind.set;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -49299,7 +51236,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSetOrMapLiteral(this);
 
@@ -49363,7 +51300,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeArguments?.accept(visitor);
@@ -49405,7 +51342,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -49488,8 +51425,8 @@ abstract final class SetterDeclaration
   ],
 )
 final class SetterDeclarationImpl extends MemberDeclarationImpl
-    with AstNodeWithNameScopeMixin
-    implements SetterDeclaration {
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    implements MethodDeclarationV1OriginImpl, SetterDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -49522,8 +51459,12 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   @override
   SetterFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  @override
+  MethodDeclarationImpl? _v1Projection;
+
   @generated
-  SetterDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -49584,6 +51525,9 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   @override
   bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
 
+  @override
+  Token get nameToken => name;
+
   @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
@@ -49593,12 +51537,23 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
     _returnType = _becomeParentOf2(returnType);
   }
 
+  @V1Ast()
+  @override
+  MethodDeclarationImpl get v1Projection =>
+      _v1Projection ??= MethodDeclarationImpl.v1Projection(this);
+
+  @override
+  FormalParameterListImpl? get writtenFormalParameters => formalParameters;
+
+  @override
+  TypeParameterListImpl? get writtenTypeParameters => null;
+
   @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -49614,8 +51569,16 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
     ..addNode('formalParameters', formalParameters)
     ..addNode('body', body);
 
+  @V1Ast()
+  @override
+  Token? get _v1OperatorKeyword => null;
+
+  @V1Ast()
+  @override
+  Token? get _v1PropertyKeyword => setKeyword;
+
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('SetterDeclaration is not in the V1 AST view.');
@@ -49663,7 +51626,7 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('SetterDeclaration is not in the V1 AST view.');
@@ -49713,7 +51676,7 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('SetterDeclaration is not in the V1 AST view.');
@@ -49755,7 +51718,7 @@ final class SetterInvocationResolutionImpl
   @override
   final InternalSetterElement element;
 
-  SetterInvocationResolutionImpl({required this.element});
+  new({required this.element});
 
   @override
   TypeImpl get acceptedType => element.formalParameters.single.type;
@@ -49770,7 +51733,7 @@ final class SetterInvocationResolutionImpl
 abstract final class ShowCombinator implements Combinator {
   /// The list of names from the library that are made visible by this
   /// combinator.
-  @ToBeDeprecated('Use names instead.')
+  @V1Ast('The V2 counterpart is names.')
   NodeList<SimpleIdentifier> get shownNames;
 }
 
@@ -49792,16 +51755,13 @@ final class ShowCombinatorImpl extends CombinatorImpl
   final NodeListImpl<CombinatorNameImpl> names = NodeListImpl._();
 
   @generated
-  @ToBeDeprecated('Use names instead.')
+  @V1Ast('The V2 counterpart is names.')
   @override
   late final NodeListImpl<SimpleIdentifierImpl> shownNames =
       _V1ProjectedNodeListImpl(names, V1Projection.toV1CombinatorName);
 
   @generated
-  ShowCombinatorImpl({
-    required super.keyword,
-    required List<CombinatorNameImpl> names,
-  }) {
+  new({required super.keyword, required List<CombinatorNameImpl> names}) {
     this.names._initializeProjected(this, names);
   }
 
@@ -49821,7 +51781,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -49834,7 +51794,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
     ..addNodeList('names', names);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitShowCombinator(this);
 
@@ -49864,7 +51824,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     shownNames.accept(visitor);
@@ -49896,7 +51856,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (shownNames._elementContainingRange(rangeOffset, rangeEnd)
@@ -49924,7 +51884,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
 ///     initialCharacter ::= '_' | '$' | letter
 ///
 ///     internalCharacter ::= '_' | '$' | letter | digit
-@ToBeDeprecated('Use NameExpression, or the name token, instead.')
+@V1Ast('The V2 counterpart is NameExpression, or the name token.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SimpleIdentifier implements Identifier {
   /// Whether this identifier is the "name" part of a prefixed identifier or a
@@ -49969,7 +51929,7 @@ abstract final class SimpleIdentifier implements Identifier {
   generateConstructor: false,
   childEntitiesOrder: [GenerateNodeProperty('token')],
 )
-@ToBeDeprecated('Use NameExpressionImpl, or the name token, instead.')
+@V1Ast('The V2 counterpart is NameExpressionImpl, or the name token.')
 final class SimpleIdentifierImpl extends IdentifierImpl
     implements SimpleIdentifier {
   @generated
@@ -49987,10 +51947,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   List<TypeImpl>? tearOffTypeArgumentTypes;
 
-  SimpleIdentifierImpl.v1Projection({
-    required this.token,
-    ExpressionImpl? origin,
-  }) : _v1ProjectionOrigin = origin;
+  new v1Projection({required this.token, ExpressionImpl? origin})
+    : _v1ProjectionOrigin = origin;
 
   @generated
   @override
@@ -50053,7 +52011,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('token', token);
 
@@ -50064,7 +52022,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleIdentifier(this);
 
@@ -50202,7 +52160,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   String toSource() => token.lexeme;
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -50214,7 +52172,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -50273,7 +52231,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   final String value;
 
   @generated
-  SimpleStringLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -50306,7 +52264,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   bool get isSynthetic => literal.isSynthetic;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -50321,7 +52279,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleStringLiteral(this);
 
@@ -50338,7 +52296,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -50358,7 +52316,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -50409,7 +52367,7 @@ sealed class SingleStringLiteralImpl extends StringLiteralImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SpreadElement implements CollectionElement {
   /// The expression used to compute the collection being spread.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -50443,10 +52401,8 @@ final class SpreadElementImpl extends AstNodeImpl
   ExpressionImpl _expression2;
 
   @generated
-  SpreadElementImpl({
-    required this.spreadOperator,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.spreadOperator, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -50463,7 +52419,7 @@ final class SpreadElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -50484,7 +52440,7 @@ final class SpreadElementImpl extends AstNodeImpl
       spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('spreadOperator', spreadOperator)
@@ -50497,7 +52453,7 @@ final class SpreadElementImpl extends AstNodeImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSpreadElement(this);
 
@@ -50535,7 +52491,7 @@ final class SpreadElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -50567,7 +52523,7 @@ final class SpreadElementImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -50607,7 +52563,11 @@ final class SpreadElementImpl extends AstNodeImpl
 abstract final class Statement implements AstNode {
   /// If this is a labeled statement, returns the statement being labeled,
   /// otherwise returns the statement itself.
+  @V1Ast('The V2 counterpart is unlabeled2.')
   Statement get unlabeled;
+
+  @experimental
+  Statement get unlabeled2;
 }
 
 sealed class StatementImpl extends AstNodeImpl implements Statement {
@@ -50621,8 +52581,13 @@ sealed class StatementImpl extends AstNodeImpl implements Statement {
   /// is unreachable.
   bool mayCompleteNormally = true;
 
+  @V1Ast('The V2 counterpart is unlabeled2.')
   @override
   StatementImpl get unlabeled => this;
+
+  @experimental
+  @override
+  StatementImpl get unlabeled2 => this;
 }
 
 /// A successful invocation with a statically known function signature.
@@ -50637,7 +52602,7 @@ abstract final class StaticInvocationResolution
 sealed class StaticInvocationResolutionImpl
     extends ValidInvocationResolutionImpl
     implements StaticInvocationResolution {
-  const StaticInvocationResolutionImpl();
+  const new();
 
   @override
   FunctionTypeImpl get invokeType;
@@ -50680,14 +52645,12 @@ final class StaticQualifierImpl extends NamedReceiverImpl
 
   ScopeLookupResult? scopeLookupResult;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   IdentifierImpl? _v1Projection;
 
   @generated
-  StaticQualifierImpl({
-    required ImportPrefixReferenceImpl? importPrefix,
-    required this.name,
-  }) : _importPrefix = importPrefix {
+  new({required ImportPrefixReferenceImpl? importPrefix, required this.name})
+    : _importPrefix = importPrefix {
     _becomeParentOf2(importPrefix);
   }
 
@@ -50715,7 +52678,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
     _importPrefix = _becomeParentOf2(importPrefix);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   IdentifierImpl get v1Projection {
     if (_v1Projection case var result?) {
       return result;
@@ -50738,7 +52701,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('StaticQualifier is not in the V1 AST view.');
@@ -50751,7 +52714,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('StaticQualifier is not in the V1 AST view.');
@@ -50783,7 +52746,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('StaticQualifier is not in the V1 AST view.');
@@ -50817,7 +52780,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('StaticQualifier is not in the V1 AST view.');
@@ -50868,7 +52831,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   final NodeListImpl<InterpolationElementImpl> elements = NodeListImpl._();
 
   @DoNotGenerate(reason: 'Has useful asserts')
-  StringInterpolationImpl({required List<InterpolationElementImpl> elements}) {
+  new({required List<InterpolationElementImpl> elements}) {
     // TODO(scheglov): Replace asserts with appropriately typed parameters.
     assert(elements.length > 2, 'Expected at last three elements.');
     assert(
@@ -50934,7 +52897,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
       elements.last as InterpolationStringImpl;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNodeList('elements', elements);
@@ -50951,7 +52914,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitStringInterpolation(this);
 
@@ -50988,7 +52951,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     elements.accept(visitor);
@@ -51025,7 +52988,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (elements._elementContainingRange(rangeOffset, rangeEnd)
@@ -51058,7 +53021,7 @@ class StringLexemeHelper {
   int start = 0;
   int end = 0;
 
-  StringLexemeHelper(this.lexeme, this.isFirst, this.isLast) {
+  new(this.lexeme, this.isFirst, this.isLast) {
     if (isFirst) {
       isRaw = lexeme.startsWith('r');
       if (isRaw) {
@@ -51178,14 +53141,14 @@ sealed class StringLiteralImpl extends LiteralImpl implements StringLiteral {
 abstract final class SuperConstructorInvocation
     implements
         ConstructorInitializer,
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         ConstructorReferenceNode {
   /// The list of arguments to the constructor.
   ArgumentList get argumentList;
 
   /// The name of the constructor that is being invoked, or `null` if the
   /// unnamed constructor is being invoked.
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   SimpleIdentifier? get constructorName;
 
   /// The selector of the constructor that is being invoked, or `null` if the
@@ -51195,7 +53158,7 @@ abstract final class SuperConstructorInvocation
 
   /// The token for the period before the name of the constructor that is being
   /// invoked, or `null` if the unnamed constructor is being invoked.
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   Token? get period;
 
   /// The token for the `super` keyword.
@@ -51225,7 +53188,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   InternalConstructorElement? element;
 
   @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
-  SuperConstructorInvocationImpl({
+  new({
     required this.superKeyword,
     required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
@@ -51252,7 +53215,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @override
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   SimpleIdentifierImpl? get constructorName =>
       _becomeParentOf1(constructorSelector?.name);
 
@@ -51272,12 +53235,12 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     return argumentList.endToken;
   }
 
-  @ToBeDeprecated('Use constructorSelector instead.')
+  @V1Ast('The V2 counterpart is constructorSelector.')
   @override
   Token? get period => constructorSelector?.period;
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('superKeyword', superKeyword)
@@ -51293,7 +53256,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSuperConstructorInvocation(this);
@@ -51332,7 +53295,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     constructorName?.accept(visitor);
@@ -51374,7 +53337,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
@@ -51407,7 +53370,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 ///
 ///     superExpression ::=
 ///         'super'
-@ToBeDeprecated('Use SuperReference instead.')
+@V1Ast('The V2 counterpart is SuperReference.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperExpression implements Expression {
   /// The token representing the `super` keyword.
@@ -51419,7 +53382,7 @@ abstract final class SuperExpression implements Expression {
   generateConstructor: false,
   childEntitiesOrder: [GenerateNodeProperty('superKeyword')],
 )
-@ToBeDeprecated('Use SuperReferenceImpl instead.')
+@V1Ast('The V2 counterpart is SuperReferenceImpl.')
 final class SuperExpressionImpl extends ExpressionImpl
     implements SuperExpression {
   @generated
@@ -51428,7 +53391,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   final SuperReferenceImpl _origin;
 
-  SuperExpressionImpl.v1Projection(SuperReferenceImpl origin)
+  new v1Projection(SuperReferenceImpl origin)
     : _origin = origin,
       superKeyword = origin.superKeyword;
 
@@ -51455,7 +53418,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('superKeyword', superKeyword);
@@ -51467,7 +53430,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSuperExpression(this);
 
@@ -51505,7 +53468,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   String toSource() => 'super';
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -51517,7 +53480,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -51582,7 +53545,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   final Token period;
 
   @generated
-  SuperFormalParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.kind,
@@ -51636,7 +53599,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   Token get name => super.name!;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('requiredKeyword', requiredKeyword)
@@ -51663,7 +53626,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
     ..addNode('defaultClause', defaultClause);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSuperFormalParameter(this);
@@ -51711,7 +53674,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -51769,7 +53732,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -51838,14 +53801,14 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   @override
   final Token superKeyword;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SuperExpressionImpl? _v1Projection;
 
   /// Retained solely for the historical V1 expression view.
   TypeImpl? legacyStaticType;
 
   @generated
-  SuperReferenceImpl({required this.superKeyword});
+  new({required this.superKeyword});
 
   @generated
   @override
@@ -51859,7 +53822,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
     return superKeyword;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SuperExpressionImpl get v1Projection {
     var result = _v1Projection ??= SuperExpressionImpl.v1Projection(this);
     if (legacyStaticType case var type?) {
@@ -51873,7 +53836,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('SuperReference is not in the V1 AST view.');
@@ -51885,7 +53848,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
       ChildEntities()..addToken('superKeyword', superKeyword);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('SuperReference is not in the V1 AST view.');
@@ -51897,7 +53860,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSuperReference(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('SuperReference is not in the V1 AST view.');
@@ -51914,7 +53877,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('SuperReference is not in the V1 AST view.');
@@ -51934,7 +53897,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchCase implements SwitchMember {
   /// The expression controlling whether the statements are executed.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -51951,7 +53914,12 @@ abstract final class SwitchCase implements SwitchMember {
       v1Projection: V1Projection.expression,
     ),
     GenerateNodeProperty('colon', isSuper: true),
-    GenerateNodeProperty('statements', isSuper: true),
+    GenerateNodeProperty(
+      'statements2',
+      isSuper: true,
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
@@ -51959,12 +53927,12 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   ExpressionImpl _expression2;
 
   @generated
-  SwitchCaseImpl({
+  new({
     required super.labels,
     required super.keyword,
     required ExpressionImpl expression2,
     required super.colon,
-    required super.statements,
+    required super.statements2,
   }) : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
@@ -51981,14 +53949,14 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @generated
   @override
   Token get endToken {
-    if (statements.endToken case var result?) {
+    if (statements2.endToken case var result?) {
       return result;
     }
     return colon;
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -52005,7 +53973,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -52021,10 +53989,10 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     ..addToken('keyword', keyword)
     ..addNode('expression2', expression2)
     ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+    ..addNodeList('statements2', statements2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchCase(this);
 
@@ -52044,9 +54012,9 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     if (identical(expression2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -52062,14 +54030,14 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
       expression2 = newNode as ExpressionImpl;
       return;
     }
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -52083,7 +54051,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
     expression2.accept2(visitor);
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -52097,7 +54065,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
     void Function(ExpressionImpl)? visitExpression2,
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
@@ -52109,15 +54077,15 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     } else {
       expression2.accept2(visitor);
     }
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -52144,7 +54112,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     if (expression2._containsOffset(rangeOffset, rangeEnd)) {
       return expression2;
     }
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -52164,17 +54132,22 @@ abstract final class SwitchDefault implements SwitchMember {}
     GenerateNodeProperty('labels', isSuper: true),
     GenerateNodeProperty('keyword', isSuper: true),
     GenerateNodeProperty('colon', isSuper: true),
-    GenerateNodeProperty('statements', isSuper: true),
+    GenerateNodeProperty(
+      'statements2',
+      isSuper: true,
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class SwitchDefaultImpl extends SwitchMemberImpl
     implements SwitchDefault {
   @generated
-  SwitchDefaultImpl({
+  new({
     required super.labels,
     required super.keyword,
     required super.colon,
-    required super.statements,
+    required super.statements2,
   });
 
   @generated
@@ -52189,14 +54162,14 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   @generated
   @override
   Token get endToken {
-    if (statements.endToken case var result?) {
+    if (statements2.endToken case var result?) {
       return result;
     }
     return colon;
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -52210,10 +54183,10 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
     ..addNodeList('labels', labels)
     ..addToken('keyword', keyword)
     ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+    ..addNodeList('statements2', statements2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchDefault(this);
 
@@ -52230,9 +54203,9 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
         "Cannot remove child 'labels' because NodeList cannot be resized.",
       );
     }
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -52244,14 +54217,14 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
     if (labels.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -52263,7 +54236,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -52276,22 +54249,22 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
       labels.accept2(visitor);
     }
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -52312,7 +54285,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
         case var result?) {
       return result;
     }
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -52331,7 +54304,7 @@ abstract final class SwitchExpression implements Expression {
   NodeList<SwitchExpressionCase> get cases;
 
   /// The expression used to determine which of the switch cases is selected.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -52364,7 +54337,7 @@ abstract final class SwitchExpressionCase implements AstNode {
 
   /// The expression whose value is returned from the switch expression if the
   /// pattern matches.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -52399,7 +54372,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   ExpressionImpl _expression2;
 
   @generated
-  SwitchExpressionCaseImpl({
+  new({
     required GuardedPatternImpl guardedPattern,
     required this.arrow,
     required ExpressionImpl expression2,
@@ -52422,7 +54395,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -52448,7 +54421,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('guardedPattern', guardedPattern)
@@ -52463,7 +54436,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitSwitchExpressionCase(this);
@@ -52501,7 +54474,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     guardedPattern.accept(visitor);
@@ -52541,7 +54514,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -52611,7 +54584,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   final Token rightBracket;
 
   @generated
-  SwitchExpressionImpl({
+  new({
     required this.switchKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
@@ -52637,7 +54610,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -52657,7 +54630,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.primary;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('switchKeyword', switchKeyword)
@@ -52680,7 +54653,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchExpression(this);
 
@@ -52723,7 +54696,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -52763,7 +54736,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -52816,7 +54789,11 @@ sealed class SwitchMember implements AstNode {
   NodeList<Label> get labels;
 
   /// The statements that are executed if this switch member is selected.
+  @V1Ast('The V2 counterpart is statements2.')
   NodeList<Statement> get statements;
+
+  @experimental
+  NodeList<Statement> get statements2;
 }
 
 sealed class SwitchMemberImpl extends AstNodeImpl
@@ -52830,19 +54807,25 @@ sealed class SwitchMemberImpl extends AstNodeImpl
   @override
   final Token colon;
 
-  final NodeListImpl<StatementImpl> _statements = NodeListImpl._();
+  final NodeListImpl<StatementImpl> _statements2 = NodeListImpl._();
+
+  @V1Ast('The V2 counterpart is _statements2.')
+  late final NodeListImpl<StatementImpl> _statements = _V1ProjectedNodeListImpl(
+    _statements2,
+    V1Projection.toV1Statement,
+  );
 
   /// Initializes a newly created switch member.
   ///
   /// The list of [labels] can be `null` if there are no labels.
-  SwitchMemberImpl({
+  new({
     required List<LabelImpl> labels,
     required this.keyword,
     required this.colon,
-    required List<StatementImpl> statements,
+    required List<StatementImpl> statements2,
   }) {
     _labels._initialize(this, labels);
-    _statements._initialize(this, statements);
+    _statements2._initializeProjected(this, statements2);
   }
 
   @override
@@ -52855,8 +54838,8 @@ sealed class SwitchMemberImpl extends AstNodeImpl
 
   @override
   Token get endToken {
-    if (_statements.isNotEmpty) {
-      return _statements.endToken!;
+    if (_statements2.isNotEmpty) {
+      return _statements2.endToken!;
     }
     return colon;
   }
@@ -52864,8 +54847,13 @@ sealed class SwitchMemberImpl extends AstNodeImpl
   @override
   NodeListImpl<LabelImpl> get labels => _labels;
 
+  @V1Ast('The V2 counterpart is statements2.')
   @override
   NodeListImpl<StatementImpl> get statements => _statements;
+
+  @experimental
+  @override
+  NodeListImpl<StatementImpl> get statements2 => _statements2;
 }
 
 /// A pattern-based case in a switch statement.
@@ -52884,7 +54872,12 @@ abstract final class SwitchPatternCase implements SwitchMember {
     GenerateNodeProperty('keyword', isSuper: true),
     GenerateNodeProperty('guardedPattern'),
     GenerateNodeProperty('colon', isSuper: true),
-    GenerateNodeProperty('statements', isSuper: true),
+    GenerateNodeProperty(
+      'statements2',
+      isSuper: true,
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class SwitchPatternCaseImpl extends SwitchMemberImpl
@@ -52893,12 +54886,12 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   GuardedPatternImpl _guardedPattern;
 
   @generated
-  SwitchPatternCaseImpl({
+  new({
     required super.labels,
     required super.keyword,
     required GuardedPatternImpl guardedPattern,
     required super.colon,
-    required super.statements,
+    required super.statements2,
   }) : _guardedPattern = guardedPattern {
     _becomeParentOf12(guardedPattern);
   }
@@ -52915,7 +54908,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   @generated
   @override
   Token get endToken {
-    if (statements.endToken case var result?) {
+    if (statements2.endToken case var result?) {
       return result;
     }
     return colon;
@@ -52931,7 +54924,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -52947,10 +54940,10 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     ..addToken('keyword', keyword)
     ..addNode('guardedPattern', guardedPattern)
     ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+    ..addNodeList('statements2', statements2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchPatternCase(this);
 
@@ -52970,9 +54963,9 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     if (identical(guardedPattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'guardedPattern'.");
     }
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -52988,14 +54981,14 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
       guardedPattern = newNode as GuardedPatternImpl;
       return;
     }
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
@@ -53009,7 +55002,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
     guardedPattern.accept2(visitor);
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -53023,7 +55016,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
     void Function(GuardedPatternImpl)? visitGuardedPattern,
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
@@ -53035,15 +55028,15 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     } else {
       guardedPattern.accept2(visitor);
     }
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -53070,7 +55063,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
       return guardedPattern;
     }
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -53085,7 +55078,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SwitchStatement implements Statement {
   /// The expression used to determine which of the switch members is selected.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -53117,10 +55110,10 @@ class SwitchStatementCaseGroup {
   /// Joined variables declared in [members], available in [statements].
   late Map<String, PromotableElementImpl> variables;
 
-  SwitchStatementCaseGroup(this.members, this.hasLabels);
+  new(this.members, this.hasLabels);
 
   NodeListImpl<StatementImpl> get statements {
-    return members.last.statements;
+    return members.last.statements2;
   }
 }
 
@@ -53172,7 +55165,7 @@ final class SwitchStatementImpl extends StatementImpl
       _computeMemberGroups();
 
   @generated
-  SwitchStatementImpl({
+  new({
     required this.switchKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
@@ -53198,7 +55191,7 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -53215,7 +55208,7 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('switchKeyword', switchKeyword)
@@ -53238,7 +55231,7 @@ final class SwitchStatementImpl extends StatementImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSwitchStatement(this);
 
@@ -53275,7 +55268,7 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -53315,7 +55308,7 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -53348,7 +55341,7 @@ final class SwitchStatementImpl extends StatementImpl
     for (var member in members) {
       groupMembers.add(member);
       groupHasLabels |= member.labels.isNotEmpty;
-      if (member.statements.isNotEmpty) {
+      if (member.statements2.isNotEmpty) {
         groups.add(SwitchStatementCaseGroup(groupMembers, groupHasLabels));
         groupMembers = [];
         groupHasLabels = false;
@@ -53390,7 +55383,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   final List<Token> components;
 
   @generated
-  SymbolLiteralImpl({required this.poundSign, required this.components});
+  new({required this.poundSign, required this.components});
 
   @generated
   @override
@@ -53405,7 +55398,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('poundSign', poundSign)
@@ -53418,7 +55411,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
     ..addTokenList('components', components);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSymbolLiteral(this);
 
@@ -53434,7 +55427,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -53449,7 +55442,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -53480,7 +55473,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   final Token thisKeyword;
 
   @generated
-  ThisExpressionImpl({required this.thisKeyword});
+  new({required this.thisKeyword});
 
   @generated
   @override
@@ -53498,7 +55491,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.primary;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('thisKeyword', thisKeyword);
@@ -53509,7 +55502,7 @@ final class ThisExpressionImpl extends ExpressionImpl
       ChildEntities()..addToken('thisKeyword', thisKeyword);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThisExpression(this);
 
@@ -53525,7 +55518,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {}
 
@@ -53540,7 +55533,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -53560,7 +55553,7 @@ final class ThisExpressionImpl extends ExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ThrowExpression implements Expression {
   /// The expression computing the exception to be thrown.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -53590,10 +55583,8 @@ final class ThrowExpressionImpl extends ExpressionImpl
   ExpressionImpl _expression2;
 
   @generated
-  ThrowExpressionImpl({
-    required this.throwKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.throwKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -53610,7 +55601,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -53630,7 +55621,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('throwKeyword', throwKeyword)
@@ -53643,7 +55634,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitThrowExpression(this);
 
@@ -53678,7 +55669,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -53710,7 +55701,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -53729,16 +55720,6 @@ final class ThrowExpressionImpl extends ExpressionImpl
   }
 }
 
-/// Marks an API that should become deprecated once its replacement is ready for
-/// public migration guidance.
-final class ToBeDeprecated {
-  /// An optional note for maintainers.
-  final String message;
-
-  /// Creates a marker for an API that will be deprecated later.
-  const ToBeDeprecated([this.message = '']);
-}
-
 /// A declaration that can appear directly in a compilation unit in V2.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -53746,7 +55727,7 @@ abstract final class TopLevelDeclaration implements AnnotatedNode {}
 
 sealed class TopLevelDeclarationImpl extends AnnotatedNodeImpl
     implements TopLevelDeclarationV1OrV2Impl, TopLevelDeclaration {
-  TopLevelDeclarationImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 }
 
 /// A temporary marker interface for declarations in
@@ -53755,6 +55736,357 @@ sealed class TopLevelDeclarationImpl extends AnnotatedNodeImpl
 /// This unifies V1 declarations that have not yet been migrated with V2
 /// [TopLevelDeclaration]s.
 sealed class TopLevelDeclarationV1OrV2Impl implements AnnotatedNodeImpl {}
+
+/// A top-level function declaration.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class TopLevelFunctionDeclaration
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the function.
+  FunctionBody get body;
+
+  @override
+  TopLevelFunctionFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external function.
+  Token? get externalKeyword;
+
+  /// The formal parameters of the function.
+  ///
+  /// Parser recovery synthesizes an empty list if none is written.
+  FormalParameterList get formalParameters;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// A function declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The name of the function.
+  Token get name;
+
+  /// The return type of the function, or `null` if no return type was
+  /// declared.
+  TypeAnnotation? get returnType;
+
+  /// The type parameters of the function, or `null` if there are none.
+  TypeParameterList? get typeParameters;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword'),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class TopLevelFunctionDeclarationImpl extends TopLevelDeclarationImpl
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    implements FunctionDeclarationV1OriginImpl, TopLevelFunctionDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  TypeParameterListImpl? _typeParameters;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  TopLevelFunctionFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl? _v1Projection;
+
+  @generated
+  new({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.name,
+    required TypeParameterListImpl? typeParameters,
+    required FormalParameterListImpl formalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _typeParameters = typeParameters,
+       _formalParameters = formalParameters,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(formalParameters);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (externalKeyword case var externalKeyword?) {
+      return externalKeyword;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf2(typeParameters);
+  }
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl get v1Projection =>
+      _v1Projection ??= FunctionDeclarationImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('formalParameters', formalParameters)
+    ..addNode('body', body);
+
+  @V1Ast()
+  @override
+  FormalParameterListImpl get _v1Parameters => formalParameters;
+
+  @V1Ast()
+  @override
+  Token? get _v1PropertyKeyword => null;
+
+  @V1Ast()
+  @override
+  TypeParameterListImpl? get _v1TypeParameters => typeParameters;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('TopLevelFunctionDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitTopLevelFunctionDeclaration(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = null;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = newNode as TypeParameterListImpl?;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('TopLevelFunctionDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    typeParameters?.accept2(visitor);
+    formalParameters.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept2(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('TopLevelFunctionDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
 
 /// A top-level getter declaration.
 @experimental
@@ -53797,11 +56129,6 @@ abstract final class TopLevelGetterDeclaration
     GenerateNodeProperty('getKeyword'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty(
-      'recoveryTypeParameters',
-      withOverride: false,
-      type: _TypeLiteral<TypeParameterList?>,
-    ),
-    GenerateNodeProperty(
       'recoveryFormalParameters',
       withOverride: false,
       type: _TypeLiteral<FormalParameterList?>,
@@ -53811,7 +56138,7 @@ abstract final class TopLevelGetterDeclaration
 )
 final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
-    implements TopLevelGetterDeclaration {
+    implements FunctionDeclarationV1OriginImpl, TopLevelGetterDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -53832,9 +56159,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   final Token name;
 
   @generated
-  TypeParameterListImpl? _recoveryTypeParameters;
-
-  @generated
   FormalParameterListImpl? _recoveryFormalParameters;
 
   @generated
@@ -53843,10 +56167,12 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   GetterFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  @override
   FunctionDeclarationImpl? _v1Projection;
 
   @generated
-  TopLevelGetterDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -53854,15 +56180,12 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     required TypeAnnotationImpl? returnType,
     required this.getKeyword,
     required this.name,
-    required TypeParameterListImpl? recoveryTypeParameters,
     required FormalParameterListImpl? recoveryFormalParameters,
     required FunctionBodyImpl body,
   }) : _returnType = returnType,
-       _recoveryTypeParameters = recoveryTypeParameters,
        _recoveryFormalParameters = recoveryFormalParameters,
        _body = body {
     _becomeParentOf2(returnType);
-    _becomeParentOf2(recoveryTypeParameters);
     _becomeParentOf2(recoveryFormalParameters);
     _becomeParentOf2(body);
   }
@@ -53912,14 +56235,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   }
 
   @generated
-  TypeParameterListImpl? get recoveryTypeParameters => _recoveryTypeParameters;
-
-  @generated
-  set recoveryTypeParameters(TypeParameterListImpl? recoveryTypeParameters) {
-    _recoveryTypeParameters = _becomeParentOf2(recoveryTypeParameters);
-  }
-
-  @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
@@ -53928,16 +56243,17 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     _returnType = _becomeParentOf2(returnType);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
+  @override
   FunctionDeclarationImpl get v1Projection =>
-      _v1Projection ??= FunctionDeclarationImpl.v1ProjectionFromGetter(this);
+      _v1Projection ??= FunctionDeclarationImpl.v1Projection(this);
 
   @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -53949,12 +56265,25 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     ..addNode('returnType', returnType)
     ..addToken('getKeyword', getKeyword)
     ..addToken('name', name)
-    ..addNode('recoveryTypeParameters', recoveryTypeParameters)
     ..addNode('recoveryFormalParameters', recoveryFormalParameters)
     ..addNode('body', body);
 
+  @V1Ast()
+  @override
+  FormalParameterListImpl? get _v1Parameters => recoveryFormalParameters;
+
+  @V1Ast()
+  @override
+  Token get _v1PropertyKeyword => getKeyword;
+
+  /// The parser doesn't build type parameters for top-level getters and
+  /// setters.
+  @V1Ast()
+  @override
+  TypeParameterListImpl? get _v1TypeParameters => null;
+
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('TopLevelGetterDeclaration is not in the V1 AST view.');
@@ -53971,10 +56300,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   void removeChild(AstNodeImpl oldNode) {
     if (identical(returnType, oldNode)) {
       returnType = null;
-      return;
-    }
-    if (identical(recoveryTypeParameters, oldNode)) {
-      recoveryTypeParameters = null;
       return;
     }
     if (identical(recoveryFormalParameters, oldNode)) {
@@ -53994,10 +56319,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
       returnType = newNode as TypeAnnotationImpl?;
       return;
     }
-    if (identical(recoveryTypeParameters, oldNode)) {
-      recoveryTypeParameters = newNode as TypeParameterListImpl?;
-      return;
-    }
     if (identical(recoveryFormalParameters, oldNode)) {
       recoveryFormalParameters = newNode as FormalParameterListImpl?;
       return;
@@ -54010,7 +56331,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('TopLevelGetterDeclaration is not in the V1 AST view.');
@@ -54022,7 +56343,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   void visitChildren2(AstVisitor2 visitor) {
     _visitCommentAndAnnotations2(visitor);
     returnType?.accept2(visitor);
-    recoveryTypeParameters?.accept2(visitor);
     recoveryFormalParameters?.accept2(visitor);
     body.accept2(visitor);
   }
@@ -54037,7 +56357,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
-    void Function(TypeParameterListImpl)? visitRecoveryTypeParameters,
     void Function(FormalParameterListImpl)? visitRecoveryFormalParameters,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
@@ -54047,13 +56366,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
         visitReturnType(returnType);
       } else {
         returnType.accept2(visitor);
-      }
-    }
-    if (recoveryTypeParameters case var recoveryTypeParameters?) {
-      if (visitRecoveryTypeParameters != null) {
-        visitRecoveryTypeParameters(recoveryTypeParameters);
-      } else {
-        recoveryTypeParameters.accept2(visitor);
       }
     }
     if (recoveryFormalParameters case var recoveryFormalParameters?) {
@@ -54071,7 +56383,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('TopLevelGetterDeclaration is not in the V1 AST view.');
@@ -54088,11 +56400,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
         return returnType;
       }
     }
-    if (recoveryTypeParameters case var recoveryTypeParameters?) {
-      if (recoveryTypeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return recoveryTypeParameters;
-      }
-    }
     if (recoveryFormalParameters case var recoveryFormalParameters?) {
       if (recoveryFormalParameters._containsOffset(rangeOffset, rangeEnd)) {
         return recoveryFormalParameters;
@@ -54100,6 +56407,529 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     }
     if (body._containsOffset(rangeOffset, rangeEnd)) {
       return body;
+    }
+    return null;
+  }
+}
+
+/// A top-level setter declaration.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class TopLevelSetterDeclaration
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the setter.
+  FunctionBody get body;
+
+  @override
+  SetterFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external setter.
+  Token? get externalKeyword;
+
+  /// The formal parameters of the setter.
+  ///
+  /// A valid setter declares exactly one required positional parameter. When
+  /// the written list doesn't, parser recovery keeps only the first written
+  /// parameter, or synthesizes one if none is written.
+  FormalParameterList get formalParameters;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// A setter declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The name of the setter.
+  Token get name;
+
+  /// The return type of the setter, or `null` if no return type was declared.
+  TypeAnnotation? get returnType;
+
+  /// The `set` keyword.
+  Token get setKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword'),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('setKeyword'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class TopLevelSetterDeclarationImpl extends TopLevelDeclarationImpl
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    implements FunctionDeclarationV1OriginImpl, TopLevelSetterDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token setKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  SetterFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl? _v1Projection;
+
+  @generated
+  new({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.setKeyword,
+    required this.name,
+    required FormalParameterListImpl formalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _formalParameters = formalParameters,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(formalParameters);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (externalKeyword case var externalKeyword?) {
+      return externalKeyword;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return setKeyword;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl get v1Projection =>
+      _v1Projection ??= FunctionDeclarationImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('setKeyword', setKeyword)
+    ..addToken('name', name)
+    ..addNode('formalParameters', formalParameters)
+    ..addNode('body', body);
+
+  @V1Ast()
+  @override
+  FormalParameterListImpl get _v1Parameters => formalParameters;
+
+  @V1Ast()
+  @override
+  Token get _v1PropertyKeyword => setKeyword;
+
+  /// The parser doesn't build type parameters for top-level getters and
+  /// setters.
+  @V1Ast()
+  @override
+  TypeParameterListImpl? get _v1TypeParameters => null;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('TopLevelSetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitTopLevelSetterDeclaration(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('TopLevelSetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    formalParameters.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('TopLevelSetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+/// A single variable in a [TopLevelVariablesDeclaration].
+///
+///     initializedIdentifier ::=
+///         name ('=' [Expression])?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class TopLevelVariable2 implements FragmentDeclaringNode {
+  @override
+  TopLevelVariableFragment? get declaredFragment;
+
+  /// The equal sign separating the name from the initializer, or `null` if
+  /// there is no initializer.
+  Token? get equals;
+
+  /// The expression used to compute the initial value of the variable, or
+  /// `null` if there is no initializer.
+  Expression? get initializer;
+
+  /// The name of the variable.
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('equals'),
+    GenerateNodeProperty('initializer'),
+  ],
+)
+final class TopLevelVariable2Impl extends AstNodeImpl
+    with FlowAnalysisRootImpl
+    implements VariableDeclarationV1OriginImpl, TopLevelVariable2 {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  @override
+  final Token? equals;
+
+  @generated
+  ExpressionImpl? _initializer;
+
+  @override
+  TopLevelVariableFragmentImpl? declaredFragment;
+
+  @override
+  Scope? initializerScope;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl? _v1Projection;
+
+  @generated
+  new({
+    required this.name,
+    required this.equals,
+    required ExpressionImpl? initializer,
+  }) : _initializer = initializer {
+    _becomeParentOf2(initializer);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    if (initializer case var initializer?) {
+      return initializer.endToken;
+    }
+    if (equals case var equals?) {
+      return equals;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  ExpressionImpl? get initializer => _initializer;
+
+  @generated
+  set initializer(ExpressionImpl? initializer) {
+    _initializer = _becomeParentOf2(initializer);
+  }
+
+  @override
+  ExpressionImpl? get initializer2 => initializer;
+
+  @V1Ast()
+  @override
+  VariableDeclarationImpl get v1Projection =>
+      _v1Projection ??= VariableDeclarationImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('TopLevelVariable2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('equals', equals)
+    ..addNode('initializer', initializer);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('TopLevelVariable2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTopLevelVariable2(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = null;
+      return;
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(initializer, oldNode)) {
+      initializer = newNode as ExpressionImpl?;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('TopLevelVariable2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    initializer?.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(ExpressionImpl)? visitInitializer,
+  }) {
+    if (initializer case var initializer?) {
+      if (visitInitializer != null) {
+        visitInitializer(initializer);
+      } else {
+        initializer.accept2(visitor);
+      }
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('TopLevelVariable2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (initializer case var initializer?) {
+      if (initializer._containsOffset(rangeOffset, rangeEnd)) {
+        return initializer;
+      }
     }
     return null;
   }
@@ -54137,6 +56967,8 @@ abstract final class TopLevelVariableDeclaration
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('externalKeyword'),
@@ -54145,8 +56977,9 @@ abstract final class TopLevelVariableDeclaration
     GenerateNodeProperty('semicolon'),
   ],
 )
+@V1Ast('The V2 counterpart is TopLevelVariablesDeclaration.')
 final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
-    implements TopLevelDeclarationV1OrV2Impl, TopLevelVariableDeclaration {
+    implements TopLevelVariableDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -54166,17 +56999,20 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token semicolon;
 
-  @generated
-  TopLevelVariableDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required this.externalKeyword,
-    required this.abstractKeyword,
-    required VariableDeclarationListImpl variables,
-    required this.semicolon,
-  }) : _variables = variables {
-    _becomeParentOf12(variables);
+  final TopLevelVariablesDeclarationImpl _v1ProjectionOrigin;
+
+  new v1Projection(TopLevelVariablesDeclarationImpl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      externalKeyword = origin.externalKeyword,
+      abstractKeyword = origin.abstractKeyword,
+      _variables = origin.v1VariableList,
+      semicolon = origin.semicolon,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(_variables);
   }
 
   @override
@@ -54209,11 +57045,15 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf12(variables);
+    _variables = _becomeParentOf1(variables);
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -54222,17 +57062,12 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     ..addNode('variables', variables)
     ..addToken('semicolon', semicolon);
 
-  @generated
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 => super._childEntities2
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addNode('variables', variables)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitTopLevelVariableDeclaration(this);
@@ -54240,30 +57075,27 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitTopLevelVariableDeclaration(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('TopLevelVariableDeclaration is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(variables, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'variables'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(variables, oldNode)) {
-      variables = newNode as VariableDeclarationListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -54274,31 +57106,11 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    _visitCommentAndAnnotations2(visitor);
-    variables.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(VariableDeclarationListImpl)? visitVariables,
-  }) {
-    _visitCommentAndAnnotations2(visitor);
-    if (visitVariables != null) {
-      visitVariables(variables);
-    } else {
-      variables.accept2(visitor);
-    }
+    throw StateError('TopLevelVariableDeclaration is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -54313,11 +57125,328 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('TopLevelVariableDeclaration is not in the V2 AST view.');
+  }
+}
+
+/// The declaration of one or more top-level variables of the same type.
+///
+///     topLevelVariablesDeclaration ::=
+///         ('final' | 'const') <type>? <staticFinalDeclarationList> ';'
+///       | 'late' 'final' <type>? <initializedIdentifierList> ';'
+///       | 'late'? <varOrType> <initializedIdentifierList> ';'
+///       | 'external' <finalVarOrType> <identifierList> ';'
+///       | 'abstract' <finalVarOrType> <identifierList> ';'
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class TopLevelVariablesDeclaration
+    implements TopLevelDeclaration {
+  /// The `abstract` keyword, or `null` if the keyword isn't used.
+  Token? get abstractKeyword;
+
+  /// The `augment` keyword, or `null` if the keyword isn't used.
+  Token? get augmentKeyword;
+
+  /// The `const`, `final`, or `var` keyword, or `null` if none was used.
+  Token? get constFinalOrVarKeyword;
+
+  /// If [constFinalOrVarKeyword] is `const`, returns it.
+  Token? get constKeyword;
+
+  /// The `external` keyword, or `null` if the keyword isn't used.
+  Token? get externalKeyword;
+
+  /// If [constFinalOrVarKeyword] is `final`, returns it.
+  Token? get finalKeyword;
+
+  /// The `late` keyword, or `null` if the keyword isn't used.
+  Token? get lateKeyword;
+
+  /// The semicolon terminating the declaration.
+  Token get semicolon;
+
+  /// The type of the variables, or `null` if no type was declared.
+  TypeAnnotation? get type;
+
+  /// The variables being declared.
+  NodeList<TopLevelVariable2> get variables;
+
+  /// If [constFinalOrVarKeyword] is `var`, returns it.
+  Token? get varKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword'),
+    GenerateNodeProperty('abstractKeyword'),
+    GenerateNodeProperty('lateKeyword'),
+    GenerateNodeProperty('constFinalOrVarKeyword'),
+    GenerateNodeProperty('type'),
+    GenerateNodeProperty('variables'),
+    GenerateNodeProperty('semicolon'),
+  ],
+)
+final class TopLevelVariablesDeclarationImpl extends TopLevelDeclarationImpl
+    implements
+        VariableDeclarationListV1OriginImpl,
+        TopLevelVariablesDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  @override
+  final Token? abstractKeyword;
+
+  @generated
+  @override
+  final Token? lateKeyword;
+
+  @generated
+  @override
+  final Token? constFinalOrVarKeyword;
+
+  @generated
+  TypeAnnotationImpl? _type;
+
+  @generated
+  @override
+  final NodeListImpl<TopLevelVariable2Impl> variables = NodeListImpl._();
+
+  @generated
+  @override
+  final Token semicolon;
+
+  @V1Ast()
+  TopLevelVariableDeclarationImpl? _v1Projection;
+
+  @V1Ast()
+  VariableDeclarationListImpl? _v1VariableList;
+
+  @generated
+  new({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required this.abstractKeyword,
+    required this.lateKeyword,
+    required this.constFinalOrVarKeyword,
+    required TypeAnnotationImpl? type,
+    required List<TopLevelVariable2Impl> variables,
+    required this.semicolon,
+  }) : _type = type {
+    _becomeParentOf2(type);
+    this.variables._initialize(this, variables);
+  }
+
+  @override
+  Token? get constKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.CONST) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @override
+  Token? get finalKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.FINAL) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (externalKeyword case var externalKeyword?) {
+      return externalKeyword;
+    }
+    if (abstractKeyword case var abstractKeyword?) {
+      return abstractKeyword;
+    }
+    if (lateKeyword case var lateKeyword?) {
+      return lateKeyword;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (type case var type?) {
+      return type.beginToken;
+    }
+    if (variables.beginToken case var result?) {
+      return result;
+    }
+    return semicolon;
+  }
+
+  @generated
+  @override
+  TypeAnnotationImpl? get type => _type;
+
+  @generated
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf2(type);
+  }
+
+  @V1Ast()
+  TopLevelVariableDeclarationImpl get v1Projection =>
+      _v1Projection ??= TopLevelVariableDeclarationImpl.v1Projection(this);
+
+  @V1Ast()
+  @override
+  VariableDeclarationListImpl get v1VariableList =>
+      _v1VariableList ??= VariableDeclarationListImpl.v1Projection(this);
+
+  @override
+  Token? get varKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.VAR) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('lateKeyword', lateKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addNodeList('variables', variables)
+    ..addToken('semicolon', semicolon);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('TopLevelVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitTopLevelVariablesDeclaration(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(type, oldNode)) {
+      type = null;
+      return;
+    }
+    if (variables.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'variables' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(type, oldNode)) {
+      type = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (variables.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('TopLevelVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    type?.accept2(visitor);
+    variables.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(NodeListImpl<TopLevelVariable2Impl>)? visitVariables,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept2(visitor);
+      }
+    }
+    if (visitVariables != null) {
+      visitVariables(variables);
+    } else {
+      variables.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('TopLevelVariablesDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (variables._containsOffset(rangeOffset, rangeEnd)) {
-      return variables;
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (variables._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
     }
     return null;
   }
@@ -54379,7 +57508,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   BlockImpl? _finallyBlock;
 
   @generated
-  TryStatementImpl({
+  new({
     required this.tryKeyword,
     required BlockImpl body,
     required List<CatchClauseImpl> catchClauses,
@@ -54432,7 +57561,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('tryKeyword', tryKeyword)
@@ -54451,7 +57580,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
     ..addNode('finallyBlock', finallyBlock);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTryStatement(this);
 
@@ -54496,7 +57625,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     body.accept(visitor);
@@ -54546,7 +57675,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (body._containsOffset(rangeOffset, rangeEnd)) {
@@ -54605,7 +57734,7 @@ abstract final class TypeAlias implements CompilationUnitMember {
 }
 
 sealed class TypeAliasImpl extends CompilationUnitMemberImpl
-    implements TopLevelDeclarationV1OrV2Impl, TypeAlias {
+    implements TypeAlias {
   @override
   final Token? augmentKeyword;
 
@@ -54622,7 +57751,7 @@ sealed class TypeAliasImpl extends CompilationUnitMemberImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// declaration doesn't have the corresponding attribute.
-  TypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -54699,7 +57828,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   final Token rightBracket;
 
   @generated
-  TypeArgumentListImpl({
+  new({
     required this.leftBracket,
     required List<TypeAnnotationImpl> arguments,
     required this.rightBracket,
@@ -54720,7 +57849,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -54735,7 +57864,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeArgumentList(this);
 
@@ -54765,7 +57894,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     arguments.accept(visitor);
@@ -54797,7 +57926,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (arguments._elementContainingRange(rangeOffset, rangeEnd)
@@ -54851,11 +57980,8 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   ///
   /// The [constKeyword] can be `null` if the literal isn't a constant.
   ///
-  /// The [typeArguments] can be `null` if no type arguments were declared.
-  TypedLiteralImpl({
-    required this.constKeyword,
-    required TypeArgumentListImpl? typeArguments,
-  }) : _typeArguments = typeArguments {
+  /// The [_typeArguments] can be `null` if no type arguments were declared.
+  new({required this.constKeyword, required this._typeArguments}) {
     _becomeParentOf12(_typeArguments);
   }
 
@@ -54882,19 +58008,19 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     _typeArguments = _becomeParentOf12(typeArguments);
   }
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
     ..addNode('typeArguments', typeArguments);
 
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _typeArguments?.accept(visitor);
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (_typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
@@ -54918,7 +58044,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
 abstract final class TypeLiteral
     implements
         Expression,
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         CommentReferableExpression {
   /// The type represented by this literal.
   NamedType get type;
@@ -54930,7 +58056,7 @@ final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   NamedTypeImpl _type;
 
   @generated
-  TypeLiteralImpl({required NamedTypeImpl type}) : _type = type {
+  new({required NamedTypeImpl type}) : _type = type {
     _becomeParentOf12(type);
   }
 
@@ -54967,7 +58093,7 @@ final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addNode('type', type);
 
@@ -54976,7 +58102,7 @@ final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   ChildEntities get _childEntities2 => ChildEntities()..addNode('type', type);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeLiteral(this);
 
@@ -55011,7 +58137,7 @@ final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     type.accept(visitor);
@@ -55043,7 +58169,7 @@ final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -55115,7 +58241,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeParameterFragmentImpl? declaredFragment;
 
   @generated
-  TypeParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.varianceKeyword,
@@ -55157,7 +58283,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('varianceKeyword', varianceKeyword)
@@ -55174,7 +58300,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     ..addNode('bound', bound);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameter(this);
 
@@ -55204,7 +58330,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -55241,7 +58367,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -55308,7 +58434,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   final Token rightBracket;
 
   @generated
-  TypeParameterListImpl({
+  new({
     required this.leftBracket,
     required List<TypeParameterImpl> typeParameters,
     required this.rightBracket,
@@ -55329,7 +58455,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -55344,7 +58470,7 @@ final class TypeParameterListImpl extends AstNodeImpl
     ..addToken('rightBracket', rightBracket);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitTypeParameterList(this);
 
@@ -55374,7 +58500,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     typeParameters.accept(visitor);
@@ -55406,7 +58532,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters._elementContainingRange(rangeOffset, rangeEnd)
@@ -55478,14 +58604,12 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InternalMethodElement? element;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixExpressionImpl? _prefixExpression;
 
   @generated
-  UnaryOperatorInvocationImpl({
-    required this.operator,
-    required InstanceReceiverImpl operand,
-  }) : _operand = operand {
+  new({required this.operator, required InstanceReceiverImpl operand})
+    : _operand = operand {
     _becomeParentOf2(operand);
   }
 
@@ -55514,7 +58638,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
       PrefixExpressionImpl.v1ProjectionFromUnaryOperatorInvocation(this);
 
@@ -55534,7 +58658,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
@@ -55547,7 +58671,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
     ..addNode('operand', operand);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
@@ -55587,7 +58711,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
@@ -55619,7 +58743,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
@@ -55654,11 +58778,11 @@ final class UnqualifiedFunctionInvocationImpl
     implements UnqualifiedFunctionInvocation {
   ScopeLookupResult? scopeLookupResult;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  UnqualifiedFunctionInvocationImpl({
+  new({
     required super.name,
     required super.typeArguments,
     required super.argumentList,
@@ -55677,7 +58801,7 @@ final class UnqualifiedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -55686,7 +58810,7 @@ final class UnqualifiedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -55702,7 +58826,7 @@ final class UnqualifiedFunctionInvocationImpl
     ..addNode('argumentList', argumentList);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -55753,7 +58877,7 @@ final class UnqualifiedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -55796,7 +58920,7 @@ final class UnqualifiedFunctionInvocationImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -55845,11 +58969,11 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _simpleIdentifier;
 
   @generated
-  UnqualifiedNameAssignmentTargetImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -55864,7 +58988,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached identifier used only by the V1 compatibility projection.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl get simpleIdentifier {
     var result = _simpleIdentifier ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -55879,7 +59003,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -55900,7 +59024,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   Element? get _legacyWriteElement => write?.elementOrRecovery;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError(
@@ -55915,7 +59039,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
       visitor.visitUnqualifiedNameAssignmentTarget(this);
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError(
@@ -55934,7 +59058,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -55972,11 +59096,11 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
   NamedReadResolutionImpl? _resolution;
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl? _simpleIdentifier;
 
   @generated
-  UnqualifiedNameExpressionImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -56004,7 +59128,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   }
 
   /// The cached identifier used only by the V1 compatibility projection.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   SimpleIdentifierImpl get simpleIdentifier {
     var result = _simpleIdentifier ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -56020,7 +59144,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities {
     throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
@@ -56033,7 +59157,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   Element? get _legacyReadElement => resolution?.elementOrRecovery;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) {
     throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
@@ -56052,7 +59176,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
@@ -56069,7 +59193,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
@@ -56103,11 +59227,7 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// directive doesn't have the corresponding attribute.
-  UriBasedDirectiveImpl({
-    required super.comment,
-    required super.metadata,
-    required StringLiteralImpl uri,
-  }) : _uri = uri {
+  new({required super.comment, required super.metadata, required this._uri}) {
     _becomeParentOf12(_uri);
   }
 
@@ -56118,7 +59238,7 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf12(uri);
   }
 
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
@@ -56174,10 +59294,23 @@ class UriValidationCode {
   final String name;
 
   /// Initializes a newly created validation code to have the given [name].
-  const UriValidationCode(this.name);
+  const new(this.name);
 
   @override
   String toString() => name;
+}
+
+/// Marks an API as part of the V1 AST API, which remains supported for clients.
+///
+/// The analyzer itself should use such API only to implement other V1 AST API;
+/// the `analyzer_v1_ast_use` lint enforces this. This keeps the V1 AST API
+/// separable from the rest of the analyzer.
+final class V1Ast {
+  /// An optional note, usually naming the V2 counterpart.
+  final String message;
+
+  /// Creates a marker for the V1 AST API.
+  const new([this.message = '']);
 }
 
 /// The kind of V1 view projection generated for a child property.
@@ -56188,6 +59321,9 @@ enum V1Projection {
   /// Project an [ArgumentImpl] child to the V1 argument view.
   argument,
 
+  /// Project a [ClassMemberV1OrV2Impl] child to the V1 class member view.
+  classMember,
+
   /// Project a [CollectionElementImpl] child to the V1 collection view.
   collectionElement,
 
@@ -56197,10 +59333,16 @@ enum V1Projection {
   /// Project an [ExpressionImpl] child to the V1 expression view.
   expression,
 
-  /// Project a [RecordLiteralFieldImpl] child to the V1 record view.
-  recordLiteralField;
+  /// Project a [LocalVariablesDeclarationImpl] child to the V1 variable list.
+  localVariables,
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  /// Project a [RecordLiteralFieldImpl] child to the V1 record view.
+  recordLiteralField,
+
+  /// Project a [StatementImpl] child to the V1 statement view.
+  statement;
+
+  @V1Ast()
   static ArgumentImpl toV1Argument(ArgumentImpl node) {
     if (node is ExpressionImpl) {
       return toV1Expression(node);
@@ -56208,7 +59350,17 @@ enum V1Projection {
     return node;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
+  static ClassMemberImpl toV1ClassMember(ClassMemberV1OrV2Impl node) {
+    return switch (node) {
+      ConstructorDeclarationImpl() => node,
+      PrimaryConstructorBodyImpl() => node,
+      FieldsDeclarationImpl() => node.v1Projection,
+      MethodDeclarationV1OriginImpl() => node.v1Projection,
+    };
+  }
+
+  @V1Ast()
   static CollectionElementImpl toV1CollectionElement(
     CollectionElementImpl node,
   ) {
@@ -56218,25 +59370,41 @@ enum V1Projection {
     return node;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static SimpleIdentifierImpl toV1CombinatorName(CombinatorNameImpl node) {
     return node.v1Projection;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static CompilationUnitMemberImpl toV1CompilationUnitMember(AstNodeImpl node) {
-    if (node is TopLevelGetterDeclarationImpl) {
+    if (node is FunctionDeclarationV1OriginImpl) {
+      return node.v1Projection;
+    }
+    if (node is TopLevelVariablesDeclarationImpl) {
+      return node.v1Projection;
+    }
+    if (node is FunctionTypeAlias2Impl) {
+      return node.v1Projection;
+    }
+    if (node is GenericTypeAlias2Impl) {
       return node.v1Projection;
     }
     return node as CompilationUnitMemberImpl;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static ExpressionImpl toV1Expression(ExpressionImpl node) {
     return _toV1Expression(node, createIfAbsent: true)!;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
+  static VariableDeclarationListImpl toV1LocalVariables(
+    LocalVariablesDeclarationImpl node,
+  ) {
+    return node.v1VariableList;
+  }
+
+  @V1Ast()
   static ExpressionImpl toV1NamedReceiver(NamedReceiverImpl node) {
     if (node is SuperReferenceImpl) return node.v1Projection;
     if (node is ExtensionOverride2Impl) return node.v1Projection;
@@ -56246,7 +59414,7 @@ enum V1Projection {
     return toV1Expression(node as ExpressionImpl);
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static RecordLiteralFieldImpl toV1RecordLiteralField(
     RecordLiteralFieldImpl node,
   ) {
@@ -56256,14 +59424,34 @@ enum V1Projection {
     return node;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
+  static StatementImpl toV1Statement(StatementImpl node) {
+    if (node is LocalFunctionDeclarationImpl) {
+      return node.v1StatementProjection;
+    }
+    if (node is LocalVariablesDeclarationStatementImpl) {
+      return node.v1StatementProjection;
+    }
+    return node;
+  }
+
+  @V1Ast()
   static AstNodeImpl? _existingNode(AstNodeImpl node) => switch (node) {
     ExpressionImpl() => _toV1Expression(node, createIfAbsent: false),
     SuperReferenceImpl() => node._v1Projection,
     ExtensionOverride2Impl() => node._v1Projection,
     CascadeSectionImpl() => _existingNode(node.body),
     CombinatorNameImpl() => node._v1Projection,
-    TopLevelGetterDeclarationImpl() => node._v1Projection,
+    LocalFunctionDeclarationImpl() => node._v1StatementProjection,
+    LocalVariablesDeclarationImpl() => node._v1VariableList,
+    LocalVariablesDeclarationStatementImpl() => node._v1StatementProjection,
+    FunctionDeclarationV1OriginImpl() => node._v1Projection,
+    FieldsDeclarationImpl() => node._v1Projection,
+    MethodDeclarationV1OriginImpl() => node._v1Projection,
+    TopLevelVariablesDeclarationImpl() => node._v1Projection,
+    VariableDeclarationV1OriginImpl() => node._v1Projection,
+    FunctionTypeAlias2Impl() => node._v1Projection,
+    GenericTypeAlias2Impl() => node._v1Projection,
     _ => node._astNodeApi == AstNodeApi.shared ? node : null,
   };
 
@@ -56287,7 +59475,7 @@ enum V1Projection {
   /// Materializes the V2-only region containing [node]. Shared nodes delimit
   /// these regions; projection constructors establish the internal V1 links,
   /// including links that skip or expand canonical nodes.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static void _materializeEnclosingTree(AstNodeImpl node) {
     var root = node;
     while (root._parent2?._astNodeApi == AstNodeApi.v2) {
@@ -56304,7 +59492,15 @@ enum V1Projection {
       CascadeSectionImpl() => toV1Expression(root.body),
       ConstructorReference2Impl() => root.constructorName,
       ConstructorTypeReferenceImpl() => root.namedType,
-      TopLevelGetterDeclarationImpl() => root.v1Projection,
+      LocalFunctionDeclarationImpl() => root.v1StatementProjection,
+      LocalVariablesDeclarationImpl() => root.v1VariableList,
+      LocalVariablesDeclarationStatementImpl() => root.v1StatementProjection,
+      FunctionDeclarationV1OriginImpl() => root.v1Projection,
+      FieldsDeclarationImpl() => root.v1Projection,
+      MethodDeclarationV1OriginImpl() => root.v1Projection,
+      TopLevelVariablesDeclarationImpl() => root.v1Projection,
+      FunctionTypeAlias2Impl() => root.v1Projection,
+      GenericTypeAlias2Impl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
       StaticQualifierImpl() => root.v1Projection,
       SuperReferenceImpl() => root.v1Projection,
@@ -56316,7 +59512,7 @@ enum V1Projection {
     }
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static ExpressionImpl _parsedProperty(
     AstNodeImpl origin,
     ExpressionImpl operand,
@@ -56344,7 +59540,7 @@ enum V1Projection {
 
   /// Existing origin fields let a projection requested directly from its
   /// canonical node discover its parent without retaining another tree link.
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static AstNodeImpl? _sourceOf(AstNodeImpl node) => switch (node) {
     AssignmentExpressionImpl() => node._v1ProjectionOrigin,
     BinaryExpressionImpl() => node._origin,
@@ -56355,10 +59551,19 @@ enum V1Projection {
       node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
     DotShorthandPropertyAccessImpl() =>
       node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
+    FieldDeclarationImpl() => node._v1ProjectionOrigin,
     FunctionDeclarationImpl() => node._v1ProjectionOrigin,
+    MethodDeclarationImpl() => node._v1ProjectionOrigin,
+    TopLevelVariableDeclarationImpl() => node._v1ProjectionOrigin,
+    VariableDeclarationImpl() => node._v1ProjectionOrigin,
+    VariableDeclarationListImpl() => node._v1ProjectionOrigin,
+    FunctionDeclarationStatementImpl() => node._v1ProjectionOrigin,
+    VariableDeclarationStatementImpl() => node._v1ProjectionOrigin,
     FunctionExpressionImpl() => node._v1ProjectionOrigin,
     FunctionExpressionInvocationImpl() => node._origin,
     FunctionReferenceImpl() => node._v1ProjectionOrigin,
+    FunctionTypeAliasImpl() => node._v1ProjectionOrigin,
+    GenericTypeAliasImpl() => node._v1ProjectionOrigin,
     ImplicitCallReferenceImpl() => node._v1ProjectionOrigin,
     IndexExpressionImpl() => node._v1ProjectionOrigin,
     InstanceCreationExpressionImpl() => node._origin ?? node._parsedOrigin,
@@ -56375,7 +59580,7 @@ enum V1Projection {
     _ => null,
   };
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static ExpressionImpl? _toV1Expression(
     ExpressionImpl node, {
     required bool createIfAbsent,
@@ -56524,7 +59729,7 @@ enum V1Projection {
     return node;
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
+  @V1Ast()
   static bool _usesPrefixedIdentifier(
     NamedReceiverImpl receiver,
     Token operator,
@@ -56571,10 +59776,7 @@ final class ValidDotShorthandContextResolutionImpl
   @override
   final InterfaceTypeImpl lookupType;
 
-  ValidDotShorthandContextResolutionImpl({
-    required this.contextType,
-    required this.lookupType,
-  });
+  new({required this.contextType, required this.lookupType});
 }
 
 /// A successful index read resolution.
@@ -56596,7 +59798,33 @@ abstract final class ValidInvocationResolution
 
 sealed class ValidInvocationResolutionImpl extends InvocationResolutionImpl
     implements ValidInvocationResolution {
-  const ValidInvocationResolutionImpl();
+  const new();
+}
+
+/// A single variable in a variable declaration group: a top-level variable, a
+/// field, or a local variable.
+///
+/// Initializer resolution and linking are shared by all kinds of variables,
+/// and use this interface. Modifiers and whether the type is declared are
+/// read from [declaredFragment], not from the enclosing group.
+///
+/// The variable is the flow analysis root of its initializer if it is a
+/// top-level variable or a field.
+sealed class VariableBindingImpl implements AstNodeImpl, FlowAnalysisRootImpl {
+  VariableFragmentImpl? get declaredFragment;
+
+  Token? get equals;
+
+  ExpressionImpl? get initializer2;
+
+  /// The scope in which the initializer is resolved.
+  ///
+  /// For instance non-late fields inside classes with primary constructors
+  /// the initializer scope is different from the scope of the enclosing
+  /// [FieldDeclaration].
+  Scope? get initializerScope;
+
+  Token get name;
 }
 
 /// An identifier that has an initial value associated with it.
@@ -56629,7 +59857,7 @@ abstract final class VariableDeclaration implements Declaration {
 
   /// The expression used to compute the initial value for the variable, or
   /// `null` if the initial value isn't specified.
-  @ToBeDeprecated('Use initializer2 instead.')
+  @V1Ast('The V2 counterpart is initializer2.')
   Expression? get initializer;
 
   @experimental
@@ -56652,18 +59880,16 @@ abstract final class VariableDeclaration implements Declaration {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('name'),
     GenerateNodeProperty('equals'),
-    GenerateNodeProperty(
-      'initializer2',
-      v1Name: 'initializer',
-      v1Projection: V1Projection.expression,
-    ),
+    GenerateNodeProperty('initializer'),
   ],
 )
+@V1Ast('The V2 counterparts are Field2, LocalVariable, and TopLevelVariable2.')
 final class VariableDeclarationImpl extends DeclarationImpl
-    with FlowAnalysisRootImpl
     implements VariableDeclaration {
   @generated
   @override
@@ -56673,33 +59899,20 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   final Token? equals;
 
-  @generated
-  ExpressionImpl? _initializer2;
+  final VariableDeclarationV1OriginImpl _v1ProjectionOrigin;
+
+  new v1Projection(VariableDeclarationV1OriginImpl origin)
+    : name = origin.name,
+      equals = origin.equals,
+      _v1ProjectionOrigin = origin,
+      super(comment: null, metadata: null) {
+    // Link the V1 initializer, so that it can find its V1 parent.
+    initializer;
+  }
 
   @override
-  VariableFragmentImpl? declaredFragment;
-
-  /// For instance non-late fields inside classes with primary constructors
-  /// the initializer scope is different from the scope of the enclosing
-  /// [FieldDeclaration].
-  Scope? initializerScope;
-
-  /// When this node is read as a part of summaries, we usually don't want
-  /// to read the [initializer2], but we need to know if there is one in
-  /// the code. So, this flag might be set to `true` even though
-  /// [initializer2] is `null`.
-  bool hasInitializer = false;
-
-  @generated
-  VariableDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.name,
-    required this.equals,
-    required ExpressionImpl? initializer2,
-  }) : _initializer2 = initializer2 {
-    _becomeParentOf2AndExisting1(initializer2);
-  }
+  VariableFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
 
   /// This overridden implementation of [documentationComment] looks in the
   /// grandparent node for Dartdoc comments if no documentation is specifically
@@ -56708,7 +59921,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   CommentImpl? get documentationComment {
     var comment = super.documentationComment;
     if (comment == null) {
-      var node = parent2?.parent2;
+      var node = parentInPrimaryView?.parentInPrimaryView;
       if (node is AnnotatedNodeImpl) {
         return node.documentationComment;
       }
@@ -56716,17 +59929,9 @@ final class VariableDeclarationImpl extends DeclarationImpl
     return comment;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  Token get endToken {
-    if (initializer2 case var initializer2?) {
-      return initializer2.endToken;
-    }
-    if (equals case var equals?) {
-      return equals;
-    }
-    return name;
-  }
+  Token get endToken => _v1ProjectionOrigin.endToken;
 
   @generated
   @override
@@ -56734,91 +59939,80 @@ final class VariableDeclarationImpl extends DeclarationImpl
     return name;
   }
 
-  @generated
-  @ToBeDeprecated('Use initializer2 instead.')
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   ExpressionImpl? get initializer => _becomeParentOf1(switch (initializer2) {
     var node? => V1Projection.toV1Expression(node),
     _ => null,
   });
 
-  @generated
   @experimental
   @override
-  ExpressionImpl? get initializer2 => _initializer2;
-
-  @generated
-  @experimental
-  set initializer2(ExpressionImpl? initializer2) {
-    _initializer2 = _becomeParentOf2AndExisting1(initializer2);
-  }
+  ExpressionImpl? get initializer2 => _v1ProjectionOrigin.initializer2;
 
   @override
   bool get isConst {
-    var parent = parent2;
+    var parent = parentInPrimaryView;
     return parent is VariableDeclarationListImpl && parent.isConst;
   }
 
   @override
   bool get isFinal {
-    var parent = parent2;
+    var parent = parentInPrimaryView;
     return parent is VariableDeclarationListImpl && parent.isFinal;
   }
 
   @override
   bool get isLate {
-    var parent = parent2;
+    var parent = parentInPrimaryView;
     return parent is VariableDeclarationListImpl && parent.isLate;
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('name', name)
     ..addToken('equals', equals)
     ..addNode('initializer', initializer);
 
-  @generated
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 => super._childEntities2
-    ..addToken('name', name)
-    ..addToken('equals', equals)
-    ..addNode('initializer2', initializer2);
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariableDeclaration(this);
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitVariableDeclaration(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('VariableDeclaration is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(initializer2, oldNode)) {
-      initializer2 = null;
-      return;
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(initializer2, oldNode)) {
-      initializer2 = newNode as ExpressionImpl?;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -56829,33 +60023,11 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    _visitCommentAndAnnotations2(visitor);
-    initializer2?.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitInitializer2,
-  }) {
-    _visitCommentAndAnnotations2(visitor);
-    if (initializer2 case var initializer2?) {
-      if (visitInitializer2 != null) {
-        visitInitializer2(initializer2);
-      } else {
-        initializer2.accept2(visitor);
-      }
-    }
+    throw StateError('VariableDeclaration is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -56872,15 +60044,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (initializer2 case var initializer2?) {
-      if (initializer2._containsOffset(rangeOffset, rangeEnd)) {
-        return initializer2;
-      }
-    }
-    return null;
+    throw StateError('VariableDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -56929,12 +60093,18 @@ abstract final class VariableDeclarationList implements AnnotatedNode {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('lateKeyword'),
     GenerateNodeProperty('keyword'),
     GenerateNodeProperty('type'),
     GenerateNodeProperty('variables'),
   ],
+)
+@V1Ast(
+  'The V2 counterparts are FieldsDeclaration, LocalVariablesDeclaration, '
+  'and TopLevelVariablesDeclaration.',
 )
 final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     implements VariableDeclarationList {
@@ -56947,26 +60117,29 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   final Token? keyword;
 
   @generated
-  TypeAnnotationImpl? _type;
-
-  @generated
   @override
   final NodeListImpl<VariableDeclarationImpl> variables = NodeListImpl._();
 
-  @generated
-  VariableDeclarationListImpl({
-    required super.comment,
-    required super.metadata,
-    required this.lateKeyword,
-    required this.keyword,
-    required TypeAnnotationImpl? type,
-    required List<VariableDeclarationImpl> variables,
-  }) : _type = type {
-    _becomeParentOf12(type);
-    this.variables._initialize(this, variables);
+  final VariableDeclarationListV1OriginImpl _v1ProjectionOrigin;
+
+  /// A V1 projection of [origin].
+  ///
+  /// The [comment] and [metadata] are those of a local variable declaration;
+  /// for other declarations they belong to the enclosing V1 declaration.
+  new v1Projection(
+    VariableDeclarationListV1OriginImpl origin, {
+    super.comment,
+    super.metadata,
+  }) : lateKeyword = origin.lateKeyword,
+       keyword = origin.constFinalOrVarKeyword,
+       _v1ProjectionOrigin = origin {
+    _becomeParentOf1(origin.type);
+    variables._initialize(this, [
+      for (var variable in origin.variables) variable.v1Projection,
+    ]);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   Token get endToken {
     if (variables.endToken case var result?) {
@@ -57011,17 +60184,16 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   bool get isLate => lateKeyword != null;
 
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeAnnotationImpl? get type => _v1ProjectionOrigin.type;
+
   @generated
   @override
-  TypeAnnotationImpl? get type => _type;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
-  set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf12(type);
-  }
-
-  @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('lateKeyword', lateKeyword)
@@ -57029,16 +60201,12 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     ..addNode('type', type)
     ..addNodeList('variables', variables);
 
-  @generated
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 => super._childEntities2
-    ..addToken('lateKeyword', lateKeyword)
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addNodeList('variables', variables);
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitVariableDeclarationList(this);
@@ -57046,39 +60214,34 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitVariableDeclarationList(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('VariableDeclarationList is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(type, oldNode)) {
-      type = null;
-      return;
-    }
-    if (variables.containsChild(oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove child 'variables' because NodeList cannot be resized.",
-      );
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(type, oldNode)) {
-      type = newNode as TypeAnnotationImpl?;
-      return;
-    }
-    if (variables.replaceChild(oldNode, newNode)) {
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  String toSource() {
+    return [
+      ?lateKeyword?.lexeme,
+      ?keyword?.lexeme,
+      ?type?.toSource(),
+      variables.map((variable) => variable.toSource()).join(', '),
+    ].join(' ');
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
@@ -57090,40 +60253,11 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    _visitCommentAndAnnotations2(visitor);
-    type?.accept2(visitor);
-    variables.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(TypeAnnotationImpl)? visitType,
-    void Function(NodeListImpl<VariableDeclarationImpl>)? visitVariables,
-  }) {
-    _visitCommentAndAnnotations2(visitor);
-    if (type case var type?) {
-      if (visitType != null) {
-        visitType(type);
-      } else {
-        type.accept2(visitor);
-      }
-    }
-    if (visitVariables != null) {
-      visitVariables(variables);
-    } else {
-      variables.accept2(visitor);
-    }
+    throw StateError('VariableDeclarationList is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -57144,20 +60278,23 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (type case var type?) {
-      if (type._containsOffset(rangeOffset, rangeEnd)) {
-        return type;
-      }
-    }
-    if (variables._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    return null;
+    throw StateError('VariableDeclarationList is not in the V2 AST view.');
   }
+}
+
+/// The canonical V2 origin of a V1 [VariableDeclarationList] projection.
+sealed class VariableDeclarationListV1OriginImpl implements AstNodeImpl {
+  Token? get constFinalOrVarKeyword;
+
+  Token? get lateKeyword;
+
+  TypeAnnotationImpl? get type;
+
+  /// The cached V1 projection.
+  @V1Ast()
+  VariableDeclarationListImpl get v1VariableList;
+
+  NodeListImpl<VariableDeclarationV1OriginImpl> get variables;
 }
 
 /// A list of variables that are being declared in a context where a statement
@@ -57175,11 +60312,14 @@ abstract final class VariableDeclarationStatement implements Statement {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('semicolon'),
   ],
 )
+@V1Ast('The V2 counterpart is LocalVariablesDeclarationStatementImpl.')
 final class VariableDeclarationStatementImpl extends StatementImpl
     implements VariableDeclarationStatement {
   @generated
@@ -57189,12 +60329,13 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @override
   final Token semicolon;
 
-  @generated
-  VariableDeclarationStatementImpl({
-    required VariableDeclarationListImpl variables,
-    required this.semicolon,
-  }) : _variables = variables {
-    _becomeParentOf12(variables);
+  final LocalVariablesDeclarationStatementImpl _v1ProjectionOrigin;
+
+  new v1Projection(LocalVariablesDeclarationStatementImpl origin)
+    : _variables = origin.declaration.v1VariableList,
+      semicolon = origin.semicolon,
+      _v1ProjectionOrigin = origin {
+    _becomeParentOf1(_variables);
   }
 
   @generated
@@ -57209,17 +60350,29 @@ final class VariableDeclarationStatementImpl extends StatementImpl
     return semicolon;
   }
 
+  @override
+  bool get mayCompleteNormally => _v1ProjectionOrigin.mayCompleteNormally;
+
+  @override
+  set mayCompleteNormally(bool _) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
   @generated
   @override
   VariableDeclarationListImpl get variables => _variables;
 
   @generated
   set variables(VariableDeclarationListImpl variables) {
-    _variables = _becomeParentOf12(variables);
+    _variables = _becomeParentOf1(variables);
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('variables', variables)
@@ -57227,12 +60380,12 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('variables', variables)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities2 {
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
+  }
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
       visitor.visitVariableDeclarationStatement(this);
@@ -57240,30 +60393,27 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitVariableDeclarationStatement(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(variables, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'variables'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(variables, oldNode)) {
-      variables = newNode as VariableDeclarationListImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     variables.accept(visitor);
@@ -57273,29 +60423,11 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    variables.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(VariableDeclarationListImpl)? visitVariables,
-  }) {
-    if (visitVariables != null) {
-      visitVariables(variables);
-    } else {
-      variables.accept2(visitor);
-    }
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
@@ -57307,11 +60439,19 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (variables._containsOffset(rangeOffset, rangeEnd)) {
-      return variables;
-    }
-    return null;
+    throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
   }
+}
+
+/// The canonical V2 origin of a V1 [VariableDeclaration] projection.
+sealed class VariableDeclarationV1OriginImpl implements VariableBindingImpl {
+  /// The cached V1 projection.
+  @V1Ast()
+  VariableDeclarationImpl get v1Projection;
+
+  /// The cached V1 projection, or `null` if it hasn't been created yet.
+  @V1Ast()
+  VariableDeclarationImpl? get _v1Projection;
 }
 
 /// The shared interface of [AssignedVariablePattern] and
@@ -57331,7 +60471,7 @@ sealed class VariablePatternImpl extends DartPatternImpl
   /// implicit name node is recorded here for a future use.
   PatternFieldNameImpl? fieldNameWithImplicitName;
 
-  VariablePatternImpl({required this.name});
+  new({required this.name});
 
   @override
   VariablePatternImpl? get variablePattern => this;
@@ -57355,7 +60495,7 @@ final class VariableReadResolutionImpl
   @override
   final TypeImpl type;
 
-  VariableReadResolutionImpl({required this.element, required this.type});
+  new({required this.element, required this.type});
 }
 
 /// A direct write to a variable.
@@ -57376,10 +60516,7 @@ final class VariableWriteResolutionImpl
   @override
   final InternalVariableElement element;
 
-  VariableWriteResolutionImpl({
-    required this.element,
-    required this.acceptedType,
-  });
+  new({required this.element, required this.acceptedType});
 }
 
 /// A guard in a pattern-based `case` in a `switch` statement, `switch`
@@ -57391,7 +60528,7 @@ final class VariableWriteResolutionImpl
 abstract final class WhenClause implements AstNode {
   /// The condition that is evaluated when the pattern matches, that must
   /// evaluate to `true` in order for the [expression] to be executed.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -57420,10 +60557,8 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   ExpressionImpl _expression2;
 
   @generated
-  WhenClauseImpl({
-    required this.whenKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.whenKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -57440,7 +60575,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -57457,7 +60592,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('whenKeyword', whenKeyword)
@@ -57470,7 +60605,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
     ..addNode('expression2', expression2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhenClause(this);
 
@@ -57499,7 +60634,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -57531,7 +60666,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -57557,10 +60692,14 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class WhileStatement implements Statement {
   /// The body of the loop.
+  @V1Ast('The V2 counterpart is body2.')
   Statement get body;
 
+  @experimental
+  Statement get body2;
+
   /// The expression used to determine whether to execute the body of the loop.
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   Expression get condition;
 
   @experimental
@@ -57586,7 +60725,11 @@ abstract final class WhileStatement implements Statement {
       v1Projection: V1Projection.expression,
     ),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('body'),
+    GenerateNodeProperty(
+      'body2',
+      v1Name: 'body',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class WhileStatementImpl extends StatementImpl implements WhileStatement {
@@ -57606,19 +60749,19 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   final Token rightParenthesis;
 
   @generated
-  StatementImpl _body;
+  StatementImpl _body2;
 
   @generated
-  WhileStatementImpl({
+  new({
     required this.whileKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
     required this.rightParenthesis,
-    required StatementImpl body,
+    required StatementImpl body2,
   }) : _condition2 = condition2,
-       _body = body {
+       _body2 = body2 {
     _becomeParentOf2AndExisting1(condition2);
-    _becomeParentOf12(body);
+    _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -57628,16 +60771,23 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   }
 
   @generated
+  @V1Ast('The V2 counterpart is body2.')
   @override
-  StatementImpl get body => _body;
+  StatementImpl get body => _becomeParentOf1(V1Projection.toV1Statement(body2));
 
   @generated
-  set body(StatementImpl body) {
-    _body = _becomeParentOf12(body);
+  @experimental
+  @override
+  StatementImpl get body2 => _body2;
+
+  @generated
+  @experimental
+  set body2(StatementImpl body2) {
+    _body2 = _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
-  @ToBeDeprecated('Use condition2 instead.')
+  @V1Ast('The V2 counterpart is condition2.')
   @override
   ExpressionImpl get condition =>
       _becomeParentOf1(V1Projection.toV1Expression(condition2));
@@ -57656,11 +60806,11 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @generated
   @override
   Token get endToken {
-    return body.endToken;
+    return body2.endToken;
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('whileKeyword', whileKeyword)
@@ -57676,10 +60826,10 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('condition2', condition2)
     ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+    ..addNode('body2', body2);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWhileStatement(this);
 
@@ -57694,8 +60844,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     if (identical(condition2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'condition2'.");
     }
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
+    if (identical(body2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body2'.");
     }
     super.removeChild(oldNode);
   }
@@ -57707,15 +60857,15 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
       condition2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(body, oldNode)) {
-      body = newNode as StatementImpl;
+    if (identical(body2, oldNode)) {
+      body2 = newNode as StatementImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     condition.accept(visitor);
@@ -57727,7 +60877,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @override
   void visitChildren2(AstVisitor2 visitor) {
     condition2.accept2(visitor);
-    body.accept2(visitor);
+    body2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -57740,22 +60890,22 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ExpressionImpl)? visitCondition2,
-    void Function(StatementImpl)? visitBody,
+    void Function(StatementImpl)? visitBody2,
   }) {
     if (visitCondition2 != null) {
       visitCondition2(condition2);
     } else {
       condition2.accept2(visitor);
     }
-    if (visitBody != null) {
-      visitBody(body);
+    if (visitBody2 != null) {
+      visitBody2(body2);
     } else {
-      body.accept2(visitor);
+      body2.accept2(visitor);
     }
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -57773,8 +60923,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     if (condition2._containsOffset(rangeOffset, rangeEnd)) {
       return condition2;
     }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
+    if (body2._containsOffset(rangeOffset, rangeEnd)) {
+      return body2;
     }
     return null;
   }
@@ -57818,7 +60968,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   final Token name;
 
   @generated
-  WildcardPatternImpl({
+  new({
     required this.keyword,
     required TypeAnnotationImpl? type,
     required this.name,
@@ -57866,7 +61016,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -57881,7 +61031,7 @@ final class WildcardPatternImpl extends DartPatternImpl
     ..addToken('name', name);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWildcardPattern(this);
 
@@ -57944,7 +61094,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     type?.accept(visitor);
@@ -57978,7 +61128,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type case var type?) {
@@ -58030,10 +61180,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   final NodeListImpl<NamedTypeImpl> mixinTypes = NodeListImpl._();
 
   @generated
-  WithClauseImpl({
-    required this.withKeyword,
-    required List<NamedTypeImpl> mixinTypes,
-  }) {
+  new({required this.withKeyword, required List<NamedTypeImpl> mixinTypes}) {
     this.mixinTypes._initialize(this, mixinTypes);
   }
 
@@ -58053,7 +61200,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('withKeyword', withKeyword)
@@ -58066,7 +61213,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
     ..addNodeList('mixinTypes', mixinTypes);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitWithClause(this);
 
@@ -58096,7 +61243,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     mixinTypes.accept(visitor);
@@ -58128,7 +61275,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (mixinTypes._elementContainingRange(rangeOffset, rangeEnd)
@@ -58168,7 +61315,7 @@ abstract final class WriteResolution {
 }
 
 sealed class WriteResolutionImpl implements WriteResolution {
-  const WriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType;
@@ -58184,7 +61331,7 @@ sealed class WriteResolutionImpl implements WriteResolution {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class YieldStatement implements Statement {
   /// The expression whose value is yielded.
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   Expression get expression;
 
   @experimental
@@ -58229,7 +61376,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   final Token semicolon;
 
   @generated
-  YieldStatementImpl({
+  new({
     required this.yieldKeyword,
     required this.star,
     required ExpressionImpl expression2,
@@ -58251,7 +61398,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use expression2 instead.')
+  @V1Ast('The V2 counterpart is expression2.')
   @override
   ExpressionImpl get expression =>
       _becomeParentOf1(V1Projection.toV1Expression(expression2));
@@ -58268,7 +61415,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('yieldKeyword', yieldKeyword)
@@ -58285,7 +61432,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
     ..addToken('semicolon', semicolon);
 
   @generated
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitYieldStatement(this);
 
@@ -58314,7 +61461,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
+  @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
     expression.accept(visitor);
@@ -58346,7 +61493,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -58401,7 +61548,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
     return <AstNode>[?comment, ..._metadata]..sort(AstNode.LEXICAL_ORDER);
   }
 
-  @ToBeDeprecated('Use _childEntities2 instead.')
+  @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   @mustCallSuper
   ChildEntities get _childEntities {
@@ -58444,6 +61591,25 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
     super.replaceChild(oldNode, newNode);
   }
 
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _documentationComment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _documentationComment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
   /// Returns `true` if there are no annotations before the comment.
   ///
   /// Note that a result of `true` doesn't imply that there's a comment, nor
@@ -58471,7 +61637,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   /// [metadata] (if any).
   ///
   /// Intended to be called from the [AstNode.visitChildren] method.
-  @ToBeDeprecated('Use _visitCommentAndAnnotations2 instead.')
+  @V1Ast('The V2 counterpart is _visitCommentAndAnnotations2.')
   void _visitCommentAndAnnotations(AstVisitor<dynamic> visitor) {
     if (_commentIsBeforeAnnotations()) {
       _documentationComment?.accept(visitor);
@@ -58511,7 +61677,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
 /// parsed expression and the canonical expression that replaces it during
 /// resolution have the same V1 children. The type arguments and the arguments
 /// are the shared nodes inside the expression.
-@ToBeDeprecated('Part of the V1 projection.')
+@V1Ast()
 final class _AnnotationV1Children {
   final IdentifierImpl name;
   final SimpleIdentifierImpl _nameHead;
@@ -58521,18 +61687,17 @@ final class _AnnotationV1Children {
   final SimpleIdentifierImpl? constructorName;
   final ArgumentListImpl? arguments;
 
-  _AnnotationV1Children._({
+  new _({
     required this.name,
-    required SimpleIdentifierImpl nameHead,
-    required SimpleIdentifierImpl? nameTail,
+    required this._nameHead,
+    required this._nameTail,
     required this.typeArguments,
     required this.period,
     required this.constructorName,
     required this.arguments,
-  }) : _nameHead = nameHead,
-       _nameTail = nameTail;
+  });
 
-  factory _AnnotationV1Children._of(AnnotationImpl annotation) {
+  factory _of(AnnotationImpl annotation) {
     var expression = annotation.expression;
     var end = expression.endToken;
     Token? tokenAfter(Token token) {
@@ -58730,7 +61895,7 @@ final class _FormalParameterListV1NodeList
     extends NodeListImpl<FormalParameterImpl> {
   final FormalParameterListImpl _ownerNode;
 
-  _FormalParameterListV1NodeList(this._ownerNode) : super._();
+  new(this._ownerNode) : super._();
 
   @override
   Token? get beginToken => isEmpty ? null : this[0].beginToken;
@@ -58763,7 +61928,7 @@ final class _FormalParameterListV1NodeList
   }
 
   @override
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   void accept(AstVisitor visitor) {
     for (var parameter in this) {
       parameter.accept(visitor);
@@ -58802,7 +61967,7 @@ final class _FormalParameterListV1NodeList
 final class _FormalParameterListView extends ListBase<FormalParameterImpl> {
   final FormalParameterListImpl _node;
 
-  _FormalParameterListView(this._node);
+  new(this._node);
 
   @override
   int get length =>
@@ -58841,17 +62006,17 @@ final class _FormalParameterListView extends ListBase<FormalParameterImpl> {
 }
 
 class _Generated {
-  const _Generated();
+  const new();
 }
 
 /// Builds a V1 projection from parsed syntax, preserving canonical ownership.
 ///
 /// This builder performs syntactic grouping without name lookup or inference.
-@ToBeDeprecated('Part of the V1 projection.')
+@V1Ast()
 class _ParsedExpressionBuilder {
   final ParsedExpressionImpl chain;
 
-  _ParsedExpressionBuilder(this.chain);
+  new(this.chain);
 
   ExpressionImpl build() {
     InstanceReceiverImpl node = chain;
@@ -59038,7 +62203,7 @@ enum _SetOrMapKind {
   unresolved,
 }
 
-@ToBeDeprecated('Part of the V1 projection.')
+@V1Ast()
 final class _V1ProjectedNodeListImpl<
   V2Node extends AstNodeImpl,
   V1Node extends AstNodeImpl
@@ -59048,9 +62213,7 @@ final class _V1ProjectedNodeListImpl<
   final V1Node Function(V2Node node) _project;
   final bool _supportsV2;
 
-  _V1ProjectedNodeListImpl(this._base, this._project, {bool supportsV2 = false})
-    : _supportsV2 = supportsV2,
-      super._();
+  new(this._base, this._project, {this._supportsV2 = false}) : super._();
 
   @override
   Token? get beginToken {
@@ -59091,7 +62254,7 @@ final class _V1ProjectedNodeListImpl<
   }
 
   @override
-  @ToBeDeprecated('Use accept2 instead.')
+  @V1Ast('The V2 counterpart is accept2.')
   void accept(AstVisitor visitor) {
     int length = this.length;
     for (var i = 0; i < length; i++) {

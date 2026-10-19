@@ -139,7 +139,7 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     _getterName = nameNode.name;
-    if (!nameNode.inGetterContext()) {
+    if (!nameNode.inGetterContext() || nameNode.isInvocationName) {
       return;
     }
     // prepare target

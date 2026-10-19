@@ -1755,12 +1755,14 @@ InternalExpression createSuperIndexSet({
   required Member setter,
   required InternalExpression index,
   required InternalExpression value,
+  required bool forEffect,
   required int fileOffset,
 }) {
   return new SuperIndexSet(
     setter: setter,
     index: index,
     value: value,
+    forEffect: forEffect,
     fileOffset: fileOffset,
   );
 }

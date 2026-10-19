@@ -23,7 +23,7 @@ import 'dart:core' as mycore;
 main() {
   dynamic;
 //^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'dynamic'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'dynamic'.
 }
 ''');
 
@@ -395,7 +395,7 @@ extension E on ({int foo}) {
   void f() {
     bar;
 //  ^^^
-// [diag.undefinedIdentifier] Undefined name 'bar'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'bar'.
   }
 }
 ''');
@@ -493,7 +493,7 @@ extension E on (int, String) {
   void f() {
     $3;
 //  ^^
-// [diag.undefinedIdentifier] Undefined name '$3'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '$3'.
   }
 }
 ''');

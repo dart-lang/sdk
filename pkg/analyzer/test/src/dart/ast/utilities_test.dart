@@ -29,14 +29,13 @@ class NodeLocator2Test extends ParserDiagnosticsTest {
     var code = ' f() {} ';
     //             01234567
     var unit = parseTestCodeWithDiagnostics(code).unit;
-    var function = unit.declarations2.single as FunctionDeclaration;
-    var expression = function.functionExpression;
-    var body = expression.body as BlockFunctionBody;
+    var function = unit.declarations2.single as TopLevelFunctionDeclaration;
+    var body = function.body as BlockFunctionBody;
     expect(NodeLocator2(0).searchWithin(unit), same(unit));
     expect(NodeLocator2(1).searchWithin(unit), same(function));
     expect(NodeLocator2(2).searchWithin(unit), same(function));
-    expect(NodeLocator2(3).searchWithin(unit), same(expression.parameters));
-    expect(NodeLocator2(4).searchWithin(unit), same(expression));
+    expect(NodeLocator2(3).searchWithin(unit), same(function.formalParameters));
+    expect(NodeLocator2(4).searchWithin(unit), same(function));
     expect(NodeLocator2(5).searchWithin(unit), same(body.block));
     expect(NodeLocator2(6).searchWithin(unit), same(body.block));
     expect(NodeLocator2(7).searchWithin(unit), same(unit));
@@ -70,7 +69,7 @@ void f() {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isFunctionDeclaration);
+    expect(node, isA<TopLevelFunctionDeclaration>());
   }
 
   void test_searchWithin_function_afterName_beforeTypeParameters() {
@@ -79,7 +78,7 @@ void f<T>() {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
-    expect(node, isFunctionDeclaration);
+    expect(node, isA<TopLevelFunctionDeclaration>());
   }
 
   void test_searchWithin_method_afterName_beforeParameters() {
@@ -90,7 +89,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isMethodDeclaration);
+    expect(node, isMethodDeclaration2);
   }
 
   void test_searchWithin_method_afterName_beforeTypeParameters() {
@@ -101,7 +100,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
-    expect(node, isMethodDeclaration);
+    expect(node, isMethodDeclaration2);
   }
 
   void test_searchWithin_namedConstructor_afterName_beforeParameters() {
@@ -121,14 +120,14 @@ set s(int i) {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('(int i)'));
-    expect(node, isFunctionDeclaration);
+    expect(node, isA<TopLevelSetterDeclaration>());
   }
 
   void test_startEndOffset() {
     var code = ' f() {} ';
     //             01234567
     var unit = parseTestCodeWithDiagnostics(code).unit;
-    var function = unit.declarations2.single as FunctionDeclaration;
+    var function = unit.declarations2.single as TopLevelFunctionDeclaration;
     expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
     expect(NodeLocator2(1, 2).searchWithin(unit), same(function));
@@ -154,7 +153,7 @@ set s(int i) {}
 
 @reflectiveTest
 class ScopedNameFinderTest extends ParserDiagnosticsTest {
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_constructorInvocation_views() {
     var code = '''
 void f(int parameter) {
@@ -178,6 +177,30 @@ void f(int parameter) {
 
     expect(finder.locals, {'parameter', 'local'});
     expect(finder2.locals, finder.locals);
-    expect(finder2.declaration, same(finder.declaration));
+    expect(finder.declaration, same(unit.declarations.single));
+    expect(finder2.declaration, same(unit.declarations2.single));
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_topLevelSetter_views() {
+    var code = '''
+set foo(int parameter) {
+  var local = 0;
+  new C();
+  var after = 1;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder2.locals, finder.locals);
   }
 }

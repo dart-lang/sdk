@@ -292,16 +292,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Reference? get writeTargetReference => null;
 
-  void registerInitializers(
-    List<Initializer> initializers, {
-    required bool isErroneous,
-  }) {
-    if (isErroneous) {
-      markAsErroneous();
-    }
-    _implementation.registerInitializers(initializers);
-  }
-
   void addSuperParameterDefaultValueCloners(
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
@@ -415,12 +405,6 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   @override
   void inferTypes(ClassHierarchyBase hierarchy) {
     inferFormalTypes(hierarchy);
-  }
-
-  void prepareInitializers() {
-    for (int i = 0; i < _declarations.length; i++) {
-      _declarations[i].prepareInitializers();
-    }
   }
 
   void prependInitializer(Initializer initializer) {

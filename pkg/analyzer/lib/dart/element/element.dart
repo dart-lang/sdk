@@ -57,7 +57,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:meta/meta.dart';
@@ -997,7 +997,7 @@ class ElementKind implements Comparable<ElementKind> {
   final String displayName;
 
   /// Initialize a newly created element kind to have the given [displayName].
-  const ElementKind(this.name, this.ordinal, this.displayName);
+  const new(this.name, this.ordinal, this.displayName);
 
   @override
   int compareTo(ElementKind other) => ordinal - other.ordinal;
@@ -2462,7 +2462,7 @@ class LibraryLanguageVersion {
   /// The version specified using `@dart` override, `null` if absent or invalid.
   final Version? override;
 
-  LibraryLanguageVersion({required this.package, required this.override});
+  new({required this.package, required this.override});
 
   /// The effective language version for the library.
   Version get effective {
@@ -3412,7 +3412,7 @@ abstract class VariableElement implements Element {
   ///
   /// Is `null` if this variable is not a constant, or does not have the
   /// initializer or the default value specified.
-  @ToBeDeprecated('Use constantInitializer2 instead.')
+  @V1Ast('The V2 counterpart is constantInitializer2.')
   Expression? get constantInitializer;
 
   /// The constant initializer for this constant variable, or the default

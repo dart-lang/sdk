@@ -35,7 +35,7 @@ class DynamicTypeImpl extends TypeImpl
   /// The instance of this class without an alias.
   static final DynamicTypeImpl instance = DynamicTypeImpl._();
 
-  factory DynamicTypeImpl({InstantiatedTypeAliasElementImpl? alias}) {
+  factory({InstantiatedTypeAliasElementImpl? alias}) {
     if (alias == null) {
       return instance;
     }
@@ -43,7 +43,7 @@ class DynamicTypeImpl extends TypeImpl
   }
 
   /// Prevent the creation of instances of this class.
-  DynamicTypeImpl._({super.alias});
+  new _({super.alias});
 
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
@@ -137,7 +137,7 @@ class FunctionTypeImpl extends TypeImpl
   /// instead.
   final List<InternalFormalParameterElement> sortedNamedParameters;
 
-  factory FunctionTypeImpl({
+  factory({
     required List<TypeParameterElementImpl> typeParameters,
     required List<InternalFormalParameterElement> formalParameters,
     required TypeImpl returnType,
@@ -201,7 +201,7 @@ class FunctionTypeImpl extends TypeImpl
     );
   }
 
-  FunctionTypeImpl._({
+  new _({
     required this.typeParameters,
     required this.parameters,
     required this.returnType,
@@ -516,7 +516,7 @@ class FunctionTypeImpl extends TypeImpl
 /// A concrete implementation of [DartType] representing types of the form
 /// `FutureOr<...>`.
 class FutureOrTypeImpl extends InterfaceTypeImpl {
-  FutureOrTypeImpl({
+  new({
     required super.element,
     required super.typeArgument,
     required super.nullabilitySuffix,
@@ -551,7 +551,7 @@ class InstantiatedTypeAliasElementImpl implements InstantiatedTypeAliasElement {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  InstantiatedTypeAliasElementImpl({
+  new({
     required this.element,
     required this.typeArguments,
     required this.nullabilitySuffix,
@@ -598,7 +598,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /// Cached [InternalMethodElement]s - members or raw elements.
   List<InternalMethodElement>? _methods;
 
-  factory InterfaceTypeImpl({
+  factory({
     required InterfaceElementImpl element,
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -625,14 +625,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
   }
 
-  InterfaceTypeImpl._({
+  new _({
     required this.element,
     required this.typeArguments,
     required this.nullabilitySuffix,
     required super.alias,
   });
 
-  InterfaceTypeImpl._futureOr({
+  new _futureOr({
     required this.element,
     required TypeImpl typeArgument,
     required this.nullabilitySuffix,
@@ -642,7 +642,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     assert(this is FutureOrTypeImpl);
   }
 
-  InterfaceTypeImpl._null({required this.element, super.alias})
+  new _null({required this.element, super.alias})
     : typeArguments = const [],
       nullabilitySuffix = NullabilitySuffix.none {
     assert(element.name == 'Null' && element.library.isDartCore);
@@ -1139,7 +1139,7 @@ class InvalidTypeImpl extends TypeImpl
   static final InvalidTypeImpl instance = InvalidTypeImpl._();
 
   /// Prevent the creation of instances of this class.
-  InvalidTypeImpl._();
+  new _();
 
   @override
   Null get element => null;
@@ -1205,7 +1205,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
   final NullabilitySuffix nullabilitySuffix;
 
   /// Prevent the creation of instances of this class.
-  NeverTypeImpl._({required this.nullabilitySuffix, super.alias});
+  new _({required this.nullabilitySuffix, super.alias});
 
   @override
   int get hashCode => 0;
@@ -1274,7 +1274,7 @@ class NeverTypeImpl extends TypeImpl implements NeverType {
 /// A concrete implementation of [DartType] representing the type `Null`, with
 /// no type parameters and no nullability suffix.
 class NullTypeImpl extends InterfaceTypeImpl implements SharedNullType {
-  NullTypeImpl({required super.element, super.alias}) : super._null();
+  new({required super.element, super.alias}) : super._null();
 
   @override
   bool get isDartCoreNull => true;
@@ -1287,7 +1287,7 @@ abstract class RecordTypeFieldImpl implements RecordTypeField {
   @override
   final TypeImpl type;
 
-  RecordTypeFieldImpl({required DartType type})
+  new({required DartType type})
     : // TODO(paulberry): eliminate this cast by changing the type of the
       // constructor parameter to `TypeImpl`.
       type = type as TypeImpl;
@@ -1308,14 +1308,14 @@ class RecordTypeImpl extends TypeImpl implements RecordType, SharedRecordType {
     for (var field in positionalFields) field.type,
   ];
 
-  RecordTypeImpl({
+  new({
     required this.positionalFields,
     required List<RecordTypeNamedFieldImpl> namedFields,
     required this.nullabilitySuffix,
     super.alias,
   }) : namedFields = _sortNamedFields(namedFields);
 
-  factory RecordTypeImpl.fromApi({
+  factory fromApi({
     required List<DartType> positional,
     required Map<String, DartType> named,
     required NullabilitySuffix nullabilitySuffix,
@@ -1463,7 +1463,7 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
   @override
   final String name;
 
-  RecordTypeNamedFieldImpl({required this.name, required super.type});
+  new({required this.name, required super.type});
 
   @override
   String get nameShared => name;
@@ -1474,7 +1474,7 @@ class RecordTypeNamedFieldImpl extends RecordTypeFieldImpl
 
 class RecordTypePositionalFieldImpl extends RecordTypeFieldImpl
     implements RecordTypePositionalField {
-  RecordTypePositionalFieldImpl({required super.type});
+  new({required super.type});
 }
 
 /// The abstract class `TypeImpl` implements the behavior common to objects
@@ -1484,7 +1484,7 @@ abstract class TypeImpl implements DartType, SharedType {
   final InstantiatedTypeAliasElementImpl? alias;
 
   /// Initialize a newly created type.
-  const TypeImpl({this.alias});
+  const new({this.alias});
 
   @override
   TypeImpl get extensionTypeErasure {
@@ -1643,7 +1643,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   /// Initialize a newly created type parameter type to be declared by the given
   /// [element] and to have the given name.
-  TypeParameterTypeImpl({
+  new({
     required this.element,
     required this.nullabilitySuffix,
     DartType? promotedBound,
@@ -1763,7 +1763,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   /// The instance of this class without an alias.
   static final VoidTypeImpl instance = VoidTypeImpl._();
 
-  factory VoidTypeImpl({InstantiatedTypeAliasElementImpl? alias}) {
+  factory({InstantiatedTypeAliasElementImpl? alias}) {
     if (alias == null) {
       return instance;
     }
@@ -1771,7 +1771,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType, SharedVoidType {
   }
 
   /// Prevent the creation of instances of this class.
-  VoidTypeImpl._({super.alias});
+  new _({super.alias});
 
   @override
   Null get element => null;

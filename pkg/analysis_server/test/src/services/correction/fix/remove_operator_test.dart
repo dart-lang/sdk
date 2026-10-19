@@ -33,7 +33,7 @@ var s1 = 'b' 'c';
 }
 
 @reflectiveTest
-class RemoveOperatorTest extends FixProcessorLintTest {
+class RemoveOperatorTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeOperator;
 

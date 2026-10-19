@@ -92,7 +92,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertToFunctionDeclarationTest extends FixProcessorLintTest {
+class ConvertToFunctionDeclarationTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToFunctionDeclaration;
 

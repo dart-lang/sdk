@@ -458,7 +458,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo;
 //        ^^^
-// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
 }
 
 extension E on Type {
@@ -907,7 +907,7 @@ class C<T> {}
 var x = C<int>.new.hashCode;
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
   receiver: ConstructorTearOff

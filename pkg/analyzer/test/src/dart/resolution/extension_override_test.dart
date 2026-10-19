@@ -1678,7 +1678,7 @@ IncrementOrDecrementExpression
   position: postfix
   element: <null>
   operatorResultType: dynamic
-  staticType: dynamic Function()
+  staticType: InvalidType
 V1: PostfixExpression
   operand: PropertyAccess
     target: ExtensionOverride
@@ -1706,7 +1706,7 @@ V1: PostfixExpression
   writeElement: <testLibrary>::@extension::E::@method::v
   writeType: InvalidType
   element: <null>
-  staticType: dynamic Function()
+  staticType: InvalidType
 ''');
   }
 

@@ -14,12 +14,12 @@ class ConstructorFieldsVerifier {
   final TypeSystemImpl typeSystem;
   final Map<InstanceElement, _Interface> _interfaces = Map.identity();
 
-  ConstructorFieldsVerifier({required this.typeSystem});
+  new({required this.typeSystem});
 
   void addConstructors(
     DiagnosticReporter diagnosticReporter,
     InterfaceElement element,
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     ClassNamePartImpl primaryConstructor,
   ) {
     var interfaceFields = _forInterface(element);
@@ -155,7 +155,7 @@ class _Constructor {
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;
 
-  _Constructor({
+  new({
     required this.typeSystem,
     required this.diagnosticReporter,
     required this.errorRange,
@@ -338,7 +338,7 @@ class _Field {
   final FieldElement element;
   final String name;
 
-  _Field(this.element, this.name);
+  new(this.element, this.name);
 }
 
 /// The four states of a field initialization state through a constructor
@@ -373,7 +373,7 @@ class _Interface {
 
   final Map<ConstructorElement, _Constructor> constructors = Map.identity();
 
-  _Interface({
+  new({
     required this.typeSystem,
     required this.element,
     required this.fields,

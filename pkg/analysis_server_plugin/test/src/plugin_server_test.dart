@@ -1230,7 +1230,7 @@ class _InvertBoolean extends ResolvedCorrectionProducer {
     'Invert Boolean value',
   );
 
-  _InvertBoolean({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -1300,7 +1300,7 @@ class _WrapInQuotes extends ResolvedCorrectionProducer {
     'Wrap in quotes everywhere in file',
   );
 
-  _WrapInQuotes({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>

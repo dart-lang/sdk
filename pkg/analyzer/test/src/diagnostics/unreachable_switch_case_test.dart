@@ -116,7 +116,7 @@ void f(Object? x) {
       break;
     case unresolved:
 //       ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'unresolved'.
       break;
     case 2:
       break;

@@ -4267,24 +4267,6 @@ DEFINE_EMIT(Float64x2Zero, (XmmRegister value)) {
   __ xorpd(value, value);
 }
 
-DEFINE_EMIT(Float32x4Clamp,
-            (SameAsFirstInput,
-             XmmRegister left,
-             XmmRegister lower,
-             XmmRegister upper)) {
-  __ minps(left, upper);
-  __ maxps(left, lower);
-}
-
-DEFINE_EMIT(Float64x2Clamp,
-            (SameAsFirstInput,
-             XmmRegister left,
-             XmmRegister lower,
-             XmmRegister upper)) {
-  __ minpd(left, upper);
-  __ maxpd(left, lower);
-}
-
 DEFINE_EMIT(Int32x4FromInts,
             (XmmRegister result, Register, Register, Register, Register)) {
   // TODO(dartbug.com/30949) avoid transfer through memory.
@@ -4471,8 +4453,6 @@ DEFINE_EMIT(Int32x4Select,
   SIMPLE(Int32x4FromBools)                                                     \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
-  SIMPLE(Float32x4Clamp)                                                       \
-  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Int32x4GetX)                                                            \
   CASE(Int32x4GetY)                                                            \
   CASE(Int32x4GetZ)                                                            \

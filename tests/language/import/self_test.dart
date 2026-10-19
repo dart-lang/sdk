@@ -18,6 +18,6 @@ var _x = "The quick brown fox jumps over the dazy log";
 main() {
   p._x;
   //^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name '_x'.
 }

@@ -348,10 +348,10 @@ enum ExperimentalFlag {
 
   thisPromotion(
     name: 'this-promotion',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 15),
+    experimentReleasedVersion: const Version(3, 15),
   ),
 
   tripleShift(
@@ -400,7 +400,7 @@ enum ExperimentalFlag {
   final Version experimentEnabledVersion;
   final Version experimentReleasedVersion;
 
-  const ExperimentalFlag({
+  new({
     required this.name,
     required this.isEnabledByDefault,
     required this.isExpired,
@@ -413,7 +413,7 @@ class Version {
   final int major;
   final int minor;
 
-  const Version(this.major, this.minor);
+  const new(this.major, this.minor);
 
   String toText() => '$major.$minor';
 

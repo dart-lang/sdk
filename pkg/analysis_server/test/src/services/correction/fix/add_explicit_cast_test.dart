@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddExplicitCastMultiTest extends FixProcessorTest {
+class AddExplicitCastMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addExplicitCastMulti;
 
@@ -231,7 +231,7 @@ class B {}
 }
 
 @reflectiveTest
-class AddExplicitCastTest extends FixProcessorTest {
+class AddExplicitCastTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addExplicitCast;
 
@@ -649,6 +649,29 @@ B b = a as B;
 
 class A {}
 class B {}
+''');
+  }
+
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+void f(C c, A a) {
+  c[0] = a;
+}
+class A {}
+class B {}
+class C {
+  void operator []=(int i, B b) {}
+}
+''');
+    await assertHasFix('''
+void f(C c, A a) {
+  c[0] = a as B;
+}
+class A {}
+class B {}
+class C {
+  void operator []=(int i, B b) {}
+}
 ''');
   }
 
