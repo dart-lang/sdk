@@ -1,3 +1,7 @@
+## v0.1.2
+ - Support loading Flutter assets from the workspace and dependency packages.
+ - Retain Git history when cloning Flutter in `dart run dartpad setup flutter --channel`.
+
 ## v0.1.1
  - Add `DartPadSdk.sharedWorker` and `dart run dartpad setup shared-worker` CLI
    subcommand for running DartPad inside a `SharedWorker`.
