@@ -25,6 +25,17 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t01: SkipSlow # Issue 43036
 [ $compiler == dart2bytecode || $runtime == dart_precompiled ]
 Language/Classes/Instance_Methods/Operators/unary_minus_t01: SkipByDesign # dart:mirrors is not supported.
 Language/Expressions/Constants/Constant_Contexts/constant_context_A02_t01: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t03: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t04: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t05: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t06: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t07: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t08: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t09: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t10: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t11: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t12: SkipByDesign # dart:mirrors is not supported.
+LanguageFeatures/Augmentations/metadata_A01_t13: SkipByDesign # dart:mirrors is not supported.
 LanguageFeatures/Constructor-tear-offs/unnamed_constructor_A06_t01: SkipByDesign # dart:mirrors is not supported.
 LibTest/mirrors/*: SkipByDesign # dart:mirrors is not supported.
 
