@@ -90,6 +90,7 @@ _pkg_builder(
     channels = ["beta", "stable"],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
+    siso = True,
 )
 _pkg_nightly_builder(
     "pkg-linux-debug",

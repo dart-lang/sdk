@@ -174,6 +174,7 @@ _nightly_builder(
     channels = [],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
+    siso = True,
 )
 _vm_builder(
     "vm-win-release-arm64",
@@ -182,6 +183,7 @@ _vm_builder(
     channels = ["beta", "stable"],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
+    siso = True,
 )
 
 # vm|appjit
@@ -274,6 +276,7 @@ _nightly_builder(
     channels = [],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
+    siso = True,
 )
 _vm_builder(
     "vm-aot-win-release-arm64",
@@ -282,6 +285,7 @@ _vm_builder(
     channels = ["beta", "stable"],
     dimensions = [windows, arm64, flutter_pool],
     properties = [no_reclient],
+    siso = True,
 )
 
 # vm|aot|android
