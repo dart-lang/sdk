@@ -160,7 +160,11 @@ class StringScanner extends AbstractScanner {
       start,
       scanOffset + extraOffset,
       tokenStart,
-      canonicalize: true,
+      // Identifiers repeat a lot, so canonicalizing them saves memory. Other
+      // lexemes, like comments, are rarely worth it: a cache hit would save
+      // only a substring, while string literals and comments fill the
+      // canonicalization cache and make it prune repeatedly.
+      canonicalize: identical(type, TokenType.IDENTIFIER),
       precedingComments: comments,
       allowLazy: allowLazy,
     );
@@ -199,7 +203,6 @@ class StringScanner extends AbstractScanner {
       start,
       scanOffset + extraOffset,
       tokenStart,
-      canonicalize: true,
     );
   }
 
@@ -216,7 +219,6 @@ class StringScanner extends AbstractScanner {
       start,
       scanOffset + extraOffset,
       tokenStart,
-      canonicalize: true,
     );
   }
 
@@ -233,7 +235,6 @@ class StringScanner extends AbstractScanner {
       tokenStart,
       major,
       minor,
-      canonicalize: true,
     );
   }
 
