@@ -620,10 +620,12 @@ class LibraryBuilder {
         var includedPart = state.includedPart;
         if (includedPart != null && _includedFiles.add(includedPart.file)) {
           var partFile = includedPart.file;
-          var partUnitNode = partFile.parse(
-            performance: OperationPerformanceImpl('<root>'),
-            scanComments: false,
-          );
+          var partUnitNode =
+              partFile.takeParsedUnitForLinking() ??
+              partFile.parse(
+                performance: OperationPerformanceImpl('<root>'),
+                scanComments: false,
+              );
           var libraryFragment = LibraryFragmentImpl(
             library: containerLibrary,
             source: partFile.source,
@@ -719,7 +721,8 @@ class LibraryBuilder {
     var libraryReference = rootReference.getOrCreateLibrary(libraryFile.uri);
 
     var libraryUnitNode = performance.run('libraryFile', (performance) {
-      return libraryFile.parse(performance: performance, scanComments: false);
+      return libraryFile.takeParsedUnitForLinking() ??
+          libraryFile.parse(performance: performance, scanComments: false);
     });
 
     var name = '';
