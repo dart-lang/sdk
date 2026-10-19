@@ -474,6 +474,32 @@ void f(A a) {
 ''');
   }
 
+  test_index_compoundValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+  void operator []=(int index, String value) {}
+}
+f(A a) {
+  a[0] += 1;
+//        ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+}''');
+  }
+
+  test_index_ifNullValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  String? operator [](int index) => null;
+  void operator []=(int index, String value) {}
+}
+f(A a) {
+  a[0] ??= 0;
+//         ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+}''');
+  }
+
   test_index_invalidRead() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -517,6 +543,42 @@ f(A a) {
 }''');
   }
 
+  test_index_postfixIncrementDecrement() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+  void operator []=(int index, String value) {}
+}
+
+void f(A a) {
+  a[0]++;
+//^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+  a[0]--;
+//^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+}
+''');
+  }
+
+  test_index_prefixIncrementDecrement() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+  void operator []=(int index, String value) {}
+}
+
+void f(A a) {
+  ++a[0];
+//^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+  --a[0];
+//^^^^^^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+}
+''');
+  }
+
   test_index_validRead_invalidWrite() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -533,6 +595,30 @@ f(A a) {
   a['0']++;
 //  ^^^
 // [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+}''');
+  }
+
+  test_index_value() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void operator []=(int index, String value) {}
+}
+f(A a) {
+  a[0] = 0;
+//       ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+}''');
+  }
+
+  test_index_value_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void operator []=(int index, String value) {}
+}
+f(A a) {
+  a..[0] = 0;
+//         ^
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
   }
 

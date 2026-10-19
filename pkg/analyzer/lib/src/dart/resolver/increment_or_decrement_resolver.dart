@@ -106,11 +106,17 @@ class IncrementOrDecrementResolver {
       strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
     )) {
       _typeAnalyzer.diagnosticReporter.report(
-        diag.invalidAssignment
-            .withArguments(
-              actualStaticType: type,
-              expectedStaticType: operandWriteType,
-            )
+        // An index increment or decrement invokes `operator []=`, so a
+        // non-assignable result is reported as an argument error.
+        (node.target is IndexAssignmentTargetImpl
+                ? const NonAssignabilityReporterForArgument().createDiagnostic(
+                    expectedStaticType: operandWriteType,
+                    actualStaticType: type,
+                  )
+                : diag.invalidAssignment.withArguments(
+                    actualStaticType: type,
+                    expectedStaticType: operandWriteType,
+                  ))
             .at(node),
       );
     }

@@ -30,7 +30,7 @@ void testBadValues32() {
   list[0] = 2; // Not an error because of int-to-double.
   list[0] = "hello";
   //        ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'double'.
 }
 
@@ -54,7 +54,7 @@ void testBadValues64() {
   list[0] = 2; // Not an error because of int-to-double.
   list[0] = "hello";
   //        ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'String' can't be assigned to the parameter type 'double'.
 }
 

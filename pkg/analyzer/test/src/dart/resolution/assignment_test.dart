@@ -2556,7 +2556,7 @@ abstract class B {
 test(A? a, String s) {
   a?.b[s] = null;
 //          ^^^^
-// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'int'.
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'int'.
 }
 ''');
 

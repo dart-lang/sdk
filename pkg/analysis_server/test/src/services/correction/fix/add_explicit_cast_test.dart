@@ -652,6 +652,29 @@ class B {}
 ''');
   }
 
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+void f(C c, A a) {
+  c[0] = a;
+}
+class A {}
+class B {}
+class C {
+  void operator []=(int i, B b) {}
+}
+''');
+    await assertHasFix('''
+void f(C c, A a) {
+  c[0] = a as B;
+}
+class A {}
+class B {}
+class C {
+  void operator []=(int i, B b) {}
+}
+''');
+  }
+
   Future<void> test_notExpression_incomplete() async {
     await resolveTestCode(r'''
 void foo(int a) {

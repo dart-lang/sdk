@@ -315,6 +315,19 @@ class C {
 ''');
   }
 
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+void f(List<int> l, int? y) {
+  l[0] = y;
+}
+''');
+    await assertHasFix('''
+void f(List<int> l, int? y) {
+  l[0] = y!;
+}
+''');
+  }
+
   Future<void> test_indexExpression() async {
     await resolveTestCode('''
 void f (List<String>? args) {

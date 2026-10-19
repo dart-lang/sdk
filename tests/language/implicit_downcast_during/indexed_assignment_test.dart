@@ -18,6 +18,6 @@ void main() {
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'A' can't be assigned to the parameter type 'B'.
   //     ^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'A' can't be assigned to the parameter type 'B'.
 }

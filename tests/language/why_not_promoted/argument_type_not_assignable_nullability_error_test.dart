@@ -639,7 +639,7 @@ indexSetRhs(C35 c, List<int> x) {
   if (c.bad == null) return;
   x[0] = c.bad;
   //     ^^^^^
-  // [analyzer 49] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [analyzer 49] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //       ^
   // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
 }

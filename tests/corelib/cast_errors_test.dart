@@ -32,6 +32,6 @@ void testMapDowncast() {
   // [cfe] The argument type 'C' can't be assigned to the parameter type 'D?'.
   dMap[d] = c;
   //        ^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The argument type 'C' can't be assigned to the parameter type 'D?'.
 }
