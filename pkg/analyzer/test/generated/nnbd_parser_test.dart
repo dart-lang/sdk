@@ -1822,7 +1822,7 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -1909,7 +1909,7 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -2012,7 +2012,7 @@ CompilationUnit
         typeName: Foo
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType

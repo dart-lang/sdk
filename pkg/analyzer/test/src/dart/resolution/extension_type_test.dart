@@ -732,7 +732,7 @@ ExtensionTypeDeclaration
         type: A Function(String)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -3808,7 +3808,7 @@ ExtensionTypeDeclaration
         type: A Function(InvalidType)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -3878,7 +3878,7 @@ ExtensionTypeDeclaration
         type: A Function(int)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -4421,7 +4421,7 @@ ExtensionTypeDeclaration
         type: A Function({bool it})
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         colon: :
@@ -4696,7 +4696,7 @@ ExtensionTypeDeclaration
         type: A Function(int)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       ConstructorDeclaration
         typeName2: A
         typeName(v1): SimpleIdentifier
@@ -4784,7 +4784,7 @@ ExtensionTypeDeclaration
         type: A Function(num)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       ConstructorDeclaration
         constKeyword: const
         typeName2: A

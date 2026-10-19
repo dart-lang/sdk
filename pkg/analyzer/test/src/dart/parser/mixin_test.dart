@@ -117,7 +117,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -148,7 +148,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -176,7 +176,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -206,7 +206,7 @@ MixinDeclaration
   name: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         body: EmptyFunctionBody
@@ -228,7 +228,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         propertyKeyword: set
         name: foo
@@ -301,7 +301,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -331,7 +331,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -362,7 +362,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -394,7 +394,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -423,7 +423,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -484,7 +484,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -514,7 +514,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -663,7 +663,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -892,7 +892,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -933,7 +933,7 @@ MixinDeclaration
   name: M
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static

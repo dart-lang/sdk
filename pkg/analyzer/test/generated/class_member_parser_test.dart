@@ -52,7 +52,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: void
@@ -2878,7 +2878,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -2910,7 +2910,7 @@ CompilationUnit
       name: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -3035,7 +3035,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: bool
@@ -3079,7 +3079,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: foo
             parameters: FormalParameterList
@@ -3508,7 +3508,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -3570,7 +3570,7 @@ CompilationUnit
         typeName: <empty> <synthetic>
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             constKeyword: const
             typeName2: <empty> <synthetic>
@@ -3623,7 +3623,7 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: /
             typeName(v1): SimpleIdentifier

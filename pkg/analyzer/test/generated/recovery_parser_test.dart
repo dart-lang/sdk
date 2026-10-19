@@ -1566,7 +1566,7 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: A
             typeName(v1): SimpleIdentifier
@@ -2803,7 +2803,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2834,7 +2834,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2865,7 +2865,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2895,7 +2895,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             staticKeyword: static
             fields: VariableDeclarationList
@@ -2928,7 +2928,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -2958,7 +2958,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -3258,7 +3258,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -3428,7 +3428,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -3471,7 +3471,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -3548,7 +3548,7 @@ CompilationUnit
           rightBracket: >
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3623,7 +3623,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -3658,7 +3658,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -3697,7 +3697,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -3730,7 +3730,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -3767,7 +3767,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -4118,7 +4118,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: b
             parameters: FormalParameterList
@@ -4244,7 +4244,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -4541,7 +4541,7 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: b
             parameters: FormalParameterList

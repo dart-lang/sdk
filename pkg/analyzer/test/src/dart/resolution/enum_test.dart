@@ -233,7 +233,7 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: {
         semicolon: ;
-        members
+        members2
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -1535,7 +1535,7 @@ EnumDeclaration
         constructorElement: <testLibrary>::@enum::A::@constructor::new
         declaredFragment: <testLibraryFragment> v@23
     semicolon: ;
-    members
+    members2
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -2236,7 +2236,7 @@ EnumDeclaration
         constructorElement: <testLibrary>::@enum::A::@constructor::new
         declaredFragment: <testLibraryFragment> v@27
     semicolon: ;
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         colon: :

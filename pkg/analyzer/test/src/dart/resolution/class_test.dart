@@ -687,7 +687,7 @@ ClassDeclaration
         type: A Function(String, bool)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -778,7 +778,7 @@ ClassDeclaration
         type: A Function(int)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -1427,7 +1427,7 @@ ClassDeclaration
         type: A Function(bool, bool)
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         colon: :

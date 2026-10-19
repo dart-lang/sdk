@@ -32,7 +32,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             metadata
               Annotation
@@ -94,7 +94,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             metadata
               Annotation
@@ -129,7 +129,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             metadata
               Annotation
@@ -167,7 +167,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             metadata
               Annotation
@@ -203,7 +203,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             metadata
               Annotation
@@ -237,7 +237,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             metadata
               Annotation
@@ -283,7 +283,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             metadata
               Annotation
@@ -328,7 +328,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             metadata
               Annotation
@@ -374,7 +374,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             metadata
               Annotation
@@ -455,7 +455,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             metadata
               Annotation
@@ -534,7 +534,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             metadata
               Annotation
@@ -596,7 +596,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             metadata
               Annotation

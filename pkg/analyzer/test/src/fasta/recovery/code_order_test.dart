@@ -837,7 +837,7 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             constKeyword: const
             typeName2: A
@@ -868,7 +868,7 @@ CompilationUnit
         typeName: B
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               variables

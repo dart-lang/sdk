@@ -8159,7 +8159,7 @@ ClassDeclaration
     typeName: C
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: var

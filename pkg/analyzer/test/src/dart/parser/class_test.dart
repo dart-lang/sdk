@@ -1557,7 +1557,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract
@@ -1589,7 +1589,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract
@@ -1619,7 +1619,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -1650,7 +1650,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         covariantKeyword: covariant
@@ -1682,7 +1682,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -1711,7 +1711,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1743,7 +1743,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1775,7 +1775,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract
@@ -1807,7 +1807,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         abstractKeyword: abstract
@@ -1837,7 +1837,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1867,7 +1867,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1991,7 +1991,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -2024,7 +2024,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -2076,7 +2076,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -2490,7 +2490,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -4308,7 +4308,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -4350,7 +4350,7 @@ ClassDeclaration
     typeName: A
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static

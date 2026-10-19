@@ -65,7 +65,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -690,7 +690,7 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: A
             typeName(v1): SimpleIdentifier
@@ -1195,7 +1195,7 @@ CompilationUnit
           name: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: Foo
             typeName(v1): SimpleIdentifier
@@ -1229,7 +1229,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: foo
             parameters: FormalParameterList
@@ -1294,7 +1294,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: foo
             parameters: FormalParameterList
@@ -1359,7 +1359,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             name: foo
             parameters: FormalParameterList

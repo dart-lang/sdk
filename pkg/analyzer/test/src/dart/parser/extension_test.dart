@@ -113,7 +113,7 @@ ExtensionDeclaration
       name: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -145,7 +145,7 @@ ExtensionDeclaration
       name: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -178,7 +178,7 @@ ExtensionDeclaration
       name: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         propertyKeyword: set
         name: foo
@@ -259,7 +259,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -290,7 +290,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -322,7 +322,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -351,7 +351,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -381,7 +381,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -411,7 +411,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -470,7 +470,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -744,7 +744,7 @@ ExtensionDeclaration
       name: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         body: EmptyFunctionBody
@@ -766,7 +766,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -807,7 +807,7 @@ ExtensionDeclaration
   name: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static

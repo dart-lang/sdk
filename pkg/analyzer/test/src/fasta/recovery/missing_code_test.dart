@@ -887,7 +887,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -1191,7 +1191,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -1572,7 +1572,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -1764,7 +1764,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -1872,7 +1872,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -1980,7 +1980,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2088,7 +2088,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2145,7 +2145,7 @@ CompilationUnit
         typeName: Test
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: Test
             typeName(v1): SimpleIdentifier
@@ -2193,7 +2193,7 @@ CompilationUnit
         typeName: Test
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: Test
             typeName(v1): SimpleIdentifier
@@ -2242,7 +2242,7 @@ CompilationUnit
         typeName: Test
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: Test
             typeName(v1): SimpleIdentifier
@@ -2480,7 +2480,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2588,7 +2588,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2696,7 +2696,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2804,7 +2804,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2859,7 +2859,7 @@ CompilationUnit
         typeName: Bar
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -3074,7 +3074,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -3509,7 +3509,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -3716,7 +3716,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -3824,7 +3824,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -4036,7 +4036,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -4370,7 +4370,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -4420,7 +4420,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -4474,7 +4474,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -4528,7 +4528,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType

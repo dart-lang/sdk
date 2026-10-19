@@ -2363,7 +2363,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: const
@@ -2442,7 +2442,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -2475,7 +2475,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2509,7 +2509,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: void
@@ -2543,7 +2543,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2581,7 +2581,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -2619,7 +2619,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           MethodDeclaration
             propertyKeyword: set
             name: a
@@ -2666,7 +2666,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               variables
@@ -2719,7 +2719,7 @@ CompilationUnit
           name: String
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var

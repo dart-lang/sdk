@@ -79,7 +79,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -147,7 +147,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -211,7 +211,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -261,7 +261,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -316,7 +316,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -365,7 +365,7 @@ CompilationUnit
         typeName: C
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           ConstructorDeclaration
             typeName2: C
             typeName(v1): SimpleIdentifier
@@ -873,7 +873,7 @@ CompilationUnit
           literal: 'something'
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: final
@@ -934,7 +934,7 @@ CompilationUnit
         typeName: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               keyword: var
@@ -5933,7 +5933,7 @@ CompilationUnit
       name: A
       body: BlockClassBody
         leftBracket: {
-        members
+        members2
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType

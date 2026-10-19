@@ -188,7 +188,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -821,7 +821,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -887,7 +887,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -919,7 +919,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -952,7 +952,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -986,7 +986,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1017,7 +1017,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1049,7 +1049,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1081,7 +1081,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1268,7 +1268,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -2076,7 +2076,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -2119,7 +2119,7 @@ EnumDeclaration
   body: BlockEnumBody
     leftBracket: {
     semicolon: ;
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static

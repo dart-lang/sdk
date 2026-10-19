@@ -59,7 +59,7 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -102,7 +102,7 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -144,7 +144,7 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -186,7 +186,7 @@ ExtensionDeclaration
       type: int
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         propertyKeyword: set
         name: s

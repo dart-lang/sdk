@@ -548,7 +548,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -611,7 +611,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         modifierKeyword: static
         returnType: NamedType
@@ -704,7 +704,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       ConstructorDeclaration
         typeName2: A
         typeName(v1): SimpleIdentifier
@@ -749,7 +749,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       ConstructorDeclaration
         augmentKeyword: augment
         typeName2: E
@@ -826,7 +826,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -861,7 +861,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -911,7 +911,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -959,7 +959,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -1007,7 +1007,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -1039,7 +1039,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1073,7 +1073,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1122,7 +1122,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -1155,7 +1155,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1190,7 +1190,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1226,7 +1226,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1289,7 +1289,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         propertyKeyword: set
         name: foo
@@ -1333,7 +1333,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -1379,7 +1379,7 @@ ExtensionTypeDeclaration
     typeName: E
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -3921,7 +3921,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members
+    members2
       PrimaryConstructorBody
         thisKeyword: this
         body: EmptyFunctionBody
