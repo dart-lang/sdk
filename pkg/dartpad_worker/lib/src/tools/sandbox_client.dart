@@ -5,11 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analyzer/file_system/file_system.dart';
 // ignore: implementation_imports
 import 'package:dartpad/src/exceptions.dart' show rethrowAsDartPadException;
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:package_config/package_config.dart';
 
-import '../shared.dart';
+import '../shared.dart' hide FileSystemException;
 import '../util/message_port.dart';
 import '../util/parameters_ext.dart';
 
@@ -97,7 +99,10 @@ final class SandboxClient {
   /// When [port] is closed, [onClosed] will be called.
   SandboxClient(
     MessagePort port, {
+    required ResourceProvider resourceProvider,
     required WorkspaceFileReader fileReader,
+    required VersionInfo version,
+    required String? Function() packageConfigPath,
     required void Function() onClosed,
   }) : _peer = Peer.withoutJson(port.jsonRpcChannel()),
        _onClosed = onClosed {
@@ -160,11 +165,51 @@ final class SandboxClient {
       );
     });
 
-    // Register read-only filesystem RPC handlers
+    // Register read-only filesystem and package resolution RPC handlers
     _peer.registerMethod('readFileAsText', fileReader.readFileAsText);
     _peer.registerMethod('readFileAsBytes', fileReader.readFileAsBytes);
     _peer.registerMethod('stat', fileReader.stat);
     _peer.registerMethod('listDirectory', fileReader.listDirectory);
+    _peer.registerMethod('resolvePackage', (Parameters params) {
+      final package = params['package'].asString;
+      final configPath = packageConfigPath();
+      if (configPath == null) {
+        throw InvalidSandboxStateException('No application is running.');
+      }
+      final context = resourceProvider.pathContext;
+      final PackageConfig packages;
+      try {
+        packages = PackageConfig.parseString(
+          resourceProvider.getFile(configPath).readAsStringSync(),
+          context.toUri(configPath),
+        );
+      } on FileSystemException {
+        throw PackageConfigNotFoundException(
+          'Unable to find `.dart_tool/package_config.json`.',
+          data: {'path': configPath},
+        );
+      } on FormatException catch (e) {
+        throw PackageConfigNotFoundException(
+          'Invalid `.dart_tool/package_config.json`: ${e.message}',
+          data: {'path': configPath},
+        );
+      }
+      final pkg = packages[package];
+      return {
+        'package': pkg != null
+            ? {
+                'name': pkg.name,
+                'rootPath': context.normalize(context.fromUri(pkg.root)),
+                'packagePath': context.normalize(
+                  context.fromUri(pkg.packageUriRoot),
+                ),
+                'languageVersion':
+                    pkg.languageVersion?.toString() ??
+                    version.dartVersion.split('.').take(2).join('.'),
+              }
+            : null,
+      };
+    });
 
     // Start listening
     _peer.listen().whenComplete(() {

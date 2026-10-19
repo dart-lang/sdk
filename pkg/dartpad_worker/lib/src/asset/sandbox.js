@@ -240,6 +240,12 @@
       });
       return entries;
     },
+    async resolvePackage(packageName) {
+      const { package: pkg } = await sendRequest('resolvePackage', {
+        package: packageName,
+      });
+      return pkg;
+    },
   };
 
   function loadScript(scriptUrl) {

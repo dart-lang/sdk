@@ -118,4 +118,47 @@ void main() {
     await sandbox.close();
     await iframe.close();
   });
+
+  testDartWorkspace('sandbox resolvePackage', (ws) async {
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    // Before run(), resolvePackage throws InvalidSandboxStateException
+    await check(
+      iframe.resolvePackage('myapp'),
+    ).throws<InvalidSandboxStateException>();
+
+    await ws.writeFileFromText('pubspec.yaml', '''
+name: myapp
+publish_to: none
+dependencies:
+  foo: ^1.0.0
+environment:
+  sdk: ^3.11.0
+''');
+    await ws.writeFileFromText('bin/main.dart', 'void main() {}');
+    await ws.pub(command: 'get');
+
+    await sandbox.run('bin/main.dart', mode: 'console');
+
+    await check(iframe.resolvePackage('myapp')).completes(
+      .it()..equals((
+        name: 'myapp',
+        rootPath: ws.workspaceFolder,
+        packagePath: '${ws.workspaceFolder}/lib',
+        languageVersion: '3.11',
+      )),
+    );
+
+    final fooPkg = await iframe.resolvePackage('foo');
+    check(fooPkg).isNotNull();
+    await check(
+      iframe.readFileAsText('${fooPkg!.rootPath}/pubspec.yaml'),
+    ).completes(.it()..contains('foo'));
+
+    await check(iframe.resolvePackage('unknown_pkg')).completes(.it()..isNull);
+
+    await sandbox.close();
+    await iframe.close();
+  });
 }

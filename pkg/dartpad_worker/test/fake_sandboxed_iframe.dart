@@ -243,6 +243,30 @@ final class FakeSandboxedIframe {
         .toList();
   }
 
+  Future<
+    ({
+      String name,
+      String rootPath,
+      String packagePath,
+      String languageVersion,
+    })?
+  >
+  resolvePackage(String package) async {
+    final result = await _sendRequest<Map>('resolvePackage', {
+      'package': package,
+    });
+    final pkg = result['package'] as Map?;
+    if (pkg == null) {
+      return null;
+    }
+    return (
+      name: pkg['name'] as String,
+      rootPath: pkg['rootPath'] as String,
+      packagePath: pkg['packagePath'] as String,
+      languageVersion: pkg['languageVersion'] as String,
+    );
+  }
+
   Future<void> close() async {
     await _peer.close();
     await _eventStreamController.close();

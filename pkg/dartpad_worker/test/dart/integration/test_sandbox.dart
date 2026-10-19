@@ -178,6 +178,7 @@ void main() {
         external JSPromise<JSUint8Array> readFileAsBytes(String path);
         external JSPromise<_Stat> stat(String path);
         external JSPromise<JSArray<_Entry>> listDirectory(String path);
+        external JSPromise<_Package?> resolvePackage(String package);
       }
 
       extension type _Stat._(JSObject _) implements JSObject {
@@ -190,6 +191,13 @@ void main() {
         external String get type;
       }
 
+      extension type _Package._(JSObject _) implements JSObject {
+        external String get name;
+        external String get rootPath;
+        external String get packagePath;
+        external String get languageVersion;
+      }
+
       Future<void> main() async {
         print('packageRoot=${_workspace.packageRoot}');
         final text = (await _workspace.readFileAsText('assets/hello.txt').toDart).toDart;
@@ -200,6 +208,10 @@ void main() {
         print('stat=${s.type}:${s.size}');
         final entries = (await _workspace.listDirectory('assets').toDart).toDart;
         print('entries=${entries.map((e) => '${e.path}:${e.type}').join(',')}');
+        final pkg = await _workspace.resolvePackage('pad').toDart;
+        print('pkg=${pkg?.name}:${pkg?.rootPath}:${pkg?.packagePath}:${pkg?.languageVersion}');
+        final missing = await _workspace.resolvePackage('unknown').toDart;
+        print('missing=$missing');
       }
     ''');
 
@@ -218,5 +230,12 @@ void main() {
     await ctx.checkConsole(.it()..equals('bytes=[104, 101, 108, 108, 111]'));
     await ctx.checkConsole(.it()..equals('stat=file:5'));
     await ctx.checkConsole(.it()..equals('entries=hello.txt:file'));
+    await ctx.checkConsole(
+      .it()..equals(
+        'pkg=pad:${ctx.ws.workspaceFolder}:'
+        '${ctx.ws.workspaceFolder}/lib:3.11',
+      ),
+    );
+    await ctx.checkConsole(.it()..equals('missing=null'));
   });
 }

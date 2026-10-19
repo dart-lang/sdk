@@ -48,7 +48,10 @@ final class Sandbox {
     Sandbox? sandbox;
     final client = SandboxClient(
       port,
+      resourceProvider: resourceProvider,
       fileReader: fileReader,
+      version: version,
+      packageConfigPath: () => sandbox?.packageConfigPath,
       onClosed: () {
         onClosed();
         sandbox?.close().ignore();
