@@ -211,6 +211,8 @@ remove them.
   `extension <T extends JSObject> on T`).
   For more details, see SDK issue [#61248][].
 
+- Added `jsThrow`, which throws an error without any Dart wrappers.
+
 #### `dart:mirrors`
 
 - The `dart:mirrors` library is now marked `@deprecated`, and will be removed
