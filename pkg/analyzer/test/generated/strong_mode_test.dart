@@ -4152,7 +4152,7 @@ class B<T2, U2> {
 
     var b = result.unit.declarations2[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
-    var bConstructor = classBody.members[0] as ConstructorDeclaration;
+    var bConstructor = classBody.members2[0] as ConstructorDeclaration;
     var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;
@@ -4185,7 +4185,7 @@ class B<T2, U2> {
 
     var b = result.unit.declarations2[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
-    var bConstructor = classBody.members[0] as ConstructorDeclaration;
+    var bConstructor = classBody.members2[0] as ConstructorDeclaration;
     var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;

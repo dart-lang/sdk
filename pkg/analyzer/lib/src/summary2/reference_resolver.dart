@@ -55,13 +55,13 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    node.members.accept2(this);
+    node.members2.accept2(this);
   }
 
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
     node.constants.accept2(this);
-    node.members.accept2(this);
+    node.members2.accept2(this);
   }
 
   @override

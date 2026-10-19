@@ -71,7 +71,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members,
+          members: declaration.body.members2,
           primaryConstructor: declaration.namePart.tryCast(),
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
@@ -115,7 +115,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members,
+          members: declaration.body.members2,
           primaryConstructor: declaration.namePart.tryCast(),
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
@@ -137,7 +137,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members,
+          members: declaration.body.members2,
           onClause: declaration.onClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
@@ -261,7 +261,7 @@ class _ClassVerifier {
 
   final CompilationUnitMember node;
   final Token classNameToken;
-  final List<ClassMember> members;
+  final List<AnnotatedNode> members;
   final ImplementsClause? implementsClause;
   final MixinOnClause? onClause;
   final PrimaryConstructorDeclarationImpl? primaryConstructor;

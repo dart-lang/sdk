@@ -568,7 +568,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForAugmentationExtendsClauseAlreadyPresent(node, declaredFragment);
       _checkForClassAugmentationModifierMismatch(declaredFragment, node);
 
-      List<ClassMember> members = node.body.members;
+      List<AnnotatedNode> members = node.body.members2;
       if (!element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
           node.namePart.typeName,
@@ -1042,7 +1042,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       }
 
-      var members = node.body.members;
+      var members = node.body.members2;
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
         element,
@@ -1110,7 +1110,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingExtensionTypeVariableErrorCodes(element);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members,
+        node.body.members2,
       );
 
       GetterSetterTypesVerifier(
@@ -1154,10 +1154,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members,
+        node.body.members2,
       );
 
-      var members = node.body.members;
+      var members = node.body.members2;
       if (!_featureSet.isEnabled(Feature.augmentations)) {
         _checkForRepeatedType(
           libraryContext.setOfImplements(element),
@@ -1862,7 +1862,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingClassMembers(declaredFragment);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members,
+        node.body.members2,
       );
       _checkForMainFunction1(declaredFragment, node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces(element);
@@ -5550,7 +5550,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (_featureSet.isEnabled(Feature.augmentations)) {
       return;
     }
-    for (var member in node.body.members) {
+    for (var member in node.body.members2) {
       if (member is MethodDeclarationImpl && !member.isStatic) {
         if (!member.isComplete) {
           diagnosticReporter.report(
@@ -6406,7 +6406,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// [diag.mixinInheritsFromNotObject].
   void _checkForMixinClassErrorCodes(
     CompilationUnitMember node,
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     NamedType? superclass,
     WithClause? withClause,
   ) {
@@ -6419,7 +6419,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
 
       // Check that the class does not have a constructor.
-      for (ClassMember member in members) {
+      for (var member in members) {
         if (member case ConstructorDeclarationImpl constructor) {
           if (!constructor.isSynthetic && constructor.isGenerative) {
             if (!constructor.isTrivial) {
@@ -6739,7 +6739,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForMultiplePrimaryConstructorBodyDeclarations(
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
   ) {
     var primaryConstructorBodies = members
         .whereType<PrimaryConstructorBody>()
@@ -7166,7 +7166,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// [ConstructorFieldsVerifier].
   void _checkForNotInitializedFieldDeclarations(
     InstanceFragmentImpl fragment,
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
   ) {
     var hasGenerativeConstructor = false;
     var element = fragment.element;

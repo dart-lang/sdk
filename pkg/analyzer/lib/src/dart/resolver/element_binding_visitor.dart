@@ -543,7 +543,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.implementsClause?.accept2(this);
     node.nativeClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindClassTypeAlias(
@@ -630,7 +630,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
       _bindEnumConstant(constant, memberFragments.nextField());
     }
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindExtensionDeclaration(
@@ -651,7 +651,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     _bindTypeParameters(node.typeParameters, fragment.typeParameters);
     node.onClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindExtensionTypeDeclaration(
@@ -683,7 +683,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindField(
@@ -789,7 +789,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMembers(
-    List<ClassMemberImpl> members,
+    List<ClassMemberV1OrV2Impl> members,
     _ContainerMemberFragments fragments,
   ) {
     for (var member in members) {
@@ -812,6 +812,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
           }
         case PrimaryConstructorBodyImpl():
           member.accept2(this);
+        case MemberDeclarationImpl():
+          throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
   }
@@ -856,7 +858,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.onClause?.accept2(this);
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members, memberFragments);
+    _bindMembers(node.body.members2, memberFragments);
   }
 
   void _bindTopLevelFunctionDeclaration(

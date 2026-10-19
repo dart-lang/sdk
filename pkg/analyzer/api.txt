@@ -1434,6 +1434,7 @@ package:analyzer/dart/ast/ast.dart:
     name (getter: Token)
   ClassBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockClassBody, ClassBodyImpl, EmptyClassBody)):
     members (getter: NodeList<ClassMember>)
+    members2 (getter: NodeList<AnnotatedNode>, experimental)
   ClassDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
     abstractKeyword (getter: Token?)
     augmentKeyword (getter: Token?)
@@ -1685,6 +1686,7 @@ package:analyzer/dart/ast/ast.dart:
   EnumBody (class extends Object implements AstNode, sealed (immediate subtypes: BlockEnumBody, EmptyEnumBody, EnumBodyImpl)):
     constants (getter: NodeList<EnumConstantDeclaration>)
     members (getter: NodeList<ClassMember>)
+    members2 (getter: NodeList<AnnotatedNode>, experimental)
   EnumConstantArguments (class extends Object implements AstNode, abstract, final):
     argumentList (getter: ArgumentList)
     constructorSelector (getter: ConstructorSelector?)

@@ -19,7 +19,7 @@ class ConstructorFieldsVerifier {
   void addConstructors(
     DiagnosticReporter diagnosticReporter,
     InterfaceElement element,
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     ClassNamePartImpl primaryConstructor,
   ) {
     var interfaceFields = _forInterface(element);

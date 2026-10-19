@@ -1212,9 +1212,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   void _validateAbiSpecificIntegerAnnotation(ClassDeclarationImpl node) {
     if ((node.namePart.typeParameters?.length ?? 0) != 0 ||
-        node.body.members.length != 1 ||
-        node.body.members.single is! ConstructorDeclaration ||
-        (node.body.members.single as ConstructorDeclaration).constKeyword ==
+        node.body.members2.length != 1 ||
+        node.body.members2.single is! ConstructorDeclaration ||
+        (node.body.members2.single as ConstructorDeclaration).constKeyword ==
             null) {
       _diagnosticReporter.report(
         diag.abiSpecificIntegerInvalid.at(node.namePart.typeName),

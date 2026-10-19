@@ -6859,7 +6859,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -6967,7 +6967,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
         leftBracket: leftBracket,
         constants: constants,
         semicolon: semicolon,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -7015,7 +7015,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -7064,7 +7064,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }
@@ -7139,7 +7139,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockClassBodyImpl(
         leftBracket: leftBracket,
-        members: members,
+        members2: members,
         rightBracket: rightBracket,
       );
     }

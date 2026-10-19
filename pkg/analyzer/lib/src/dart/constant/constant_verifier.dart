@@ -184,7 +184,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       if (node.factoryKeyword == null &&
           element.enclosingElement.primaryConstructor == null) {
         _validateFieldInitializers(
-          node.parent2.classMembers,
+          node.parent2.classMembers2,
           constKeyword,
           isEnumDeclaration: element.enclosingElement is EnumElementImpl,
         );
@@ -407,7 +407,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     var element = node.declaredFragment!.element;
     if (element.isConst) {
       _validatePrimaryFieldInitializers(
-        members: node.parent2.classMembers,
+        members: node.parent2.classMembers2,
         errorToken: node.constKeyword ?? node.typeName,
         isEnumDeclaration: element.enclosingElement is EnumElementImpl,
       );
@@ -976,11 +976,11 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// required if the class has a constant constructor, the error is reported at
   /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     Token constKeyword, {
     required bool isEnumDeclaration,
   }) {
-    for (ClassMember member in members) {
+    for (var member in members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (VariableDeclaration variableDeclaration
             in member.fields.variables) {
@@ -1023,11 +1023,11 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// [_validateFieldInitializers], this allows references to primary
   /// constructor parameters.
   void _validatePrimaryFieldInitializers({
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     required Token errorToken,
     required bool isEnumDeclaration,
   }) {
-    for (ClassMember member in members) {
+    for (var member in members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var variableDeclaration in member.fields.variables) {
           if (isEnumDeclaration &&

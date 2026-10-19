@@ -1332,7 +1332,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    node.members.accept2(this);
+    node.members2.accept2(this);
   }
 
   @override
@@ -1600,7 +1600,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       );
 
       node.namePart.accept2(this);
-      for (var member in node.body.members) {
+      for (var member in node.body.members2) {
         member.accept2(this);
       }
     });
@@ -1638,7 +1638,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept2(this);
-      for (var member in node.body.members) {
+      for (var member in node.body.members2) {
         member.accept2(this);
       }
     });

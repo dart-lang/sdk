@@ -3095,15 +3095,6 @@ Expected parent: (${parent.runtimeType}) $parent
     }
 
     var entities2 = node.namedChildEntities2.toList();
-    // TODO(scheglov): Remove when class and enum bodies have members2.
-    if (node is ClassBody || node is EnumBody) {
-      entities2 = [
-        for (var entity in entities2)
-          entity.name == 'members'
-              ? ChildEntity('members2', entity.value)
-              : entity,
-      ];
-    }
     var entities =
         !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
         ? <ChildEntity>[]

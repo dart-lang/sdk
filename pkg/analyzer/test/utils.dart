@@ -50,8 +50,7 @@ class AstFinder {
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
-    NodeList<ClassMember> classMembers = classBody.members;
-    for (ClassMember classMember in classMembers) {
+    for (var classMember in classBody.members2) {
       if (classMember is ConstructorDeclaration) {
         if (classMember.name?.lexeme == constructorName) {
           return classMember;
@@ -70,8 +69,7 @@ class AstFinder {
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
-    NodeList<ClassMember> classMembers = classBody.members;
-    for (ClassMember classMember in classMembers) {
+    for (var classMember in classBody.members2) {
       if (classMember is FieldDeclaration) {
         NodeList<VariableDeclaration> fields = classMember.fields.variables;
         for (VariableDeclaration field in fields) {
@@ -93,8 +91,7 @@ class AstFinder {
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
-    NodeList<ClassMember> classMembers = classBody.members;
-    for (ClassMember classMember in classMembers) {
+    for (var classMember in classBody.members2) {
       if (classMember is MethodDeclaration) {
         if (classMember.name.lexeme == methodName) {
           return classMember;

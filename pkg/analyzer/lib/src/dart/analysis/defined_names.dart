@@ -16,7 +16,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     }
   }
 
-  void appendClassMemberName(ClassMemberImpl member) {
+  void appendClassMemberName(ClassMemberV1OrV2Impl member) {
     if (member is MethodDeclarationImpl) {
       appendName(names.classMemberNames, member.name);
     } else if (member is FieldDeclarationImpl) {
@@ -49,7 +49,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
             case PrimaryConstructorDeclarationImpl constructor) {
           appendDeclaringFormalParameterNames(constructor);
         }
-        member.body.members.forEach(appendClassMemberName);
+        member.body.members2.forEach(appendClassMemberName);
       case EnumDeclarationImpl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
@@ -59,10 +59,10 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
         for (var constant in member.body.constants) {
           appendName(names.classMemberNames, constant.name);
         }
-        member.body.members.forEach(appendClassMemberName);
+        member.body.members2.forEach(appendClassMemberName);
       case ExtensionDeclarationImpl():
         appendName(names.topLevelNames, member.name);
-        member.body.members.forEach(appendClassMemberName);
+        member.body.members2.forEach(appendClassMemberName);
       case ExtensionTypeDeclarationImpl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
@@ -72,10 +72,10 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
             isExtensionType: true,
           );
         }
-        member.body.members.forEach(appendClassMemberName);
+        member.body.members2.forEach(appendClassMemberName);
       case MixinDeclarationImpl():
         appendName(names.topLevelNames, member.name);
-        member.body.members.forEach(appendClassMemberName);
+        member.body.members2.forEach(appendClassMemberName);
       case TopLevelFunctionDeclarationImpl():
         appendName(names.topLevelNames, member.name);
       case TopLevelVariablesDeclarationImpl():

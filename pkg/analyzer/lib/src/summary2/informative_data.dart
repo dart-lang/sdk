@@ -670,7 +670,7 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }
@@ -795,10 +795,10 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members,
+        members: node.body.members2,
         fields: [
           ...node.body.constants.map(_buildEnumConstant),
-          ...node.body.members
+          ...node.body.members2
               .whereType<FieldDeclaration>()
               .expand((node) => node.fields.variables)
               .map((node) => _buildField(node)),
@@ -835,7 +835,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }
@@ -849,7 +849,7 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }
@@ -939,7 +939,7 @@ class _InfoBuilder {
     Declaration node, {
     required Token? name,
     required TypeParameterList? typeParameters,
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
     // Build all needed lists based on `members` with a single iteration the list.
@@ -988,7 +988,7 @@ class _InfoBuilder {
     required Token? name,
     required TypeParameterList? typeParameters,
     PrimaryConstructorDeclaration? primaryConstructor,
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     List<_InfoFieldDeclaration>? fields,
   }) {
     var instanceData = _buildInstanceData(
@@ -1064,7 +1064,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members,
+        members: node.body.members2,
       ),
     );
   }

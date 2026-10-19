@@ -83,13 +83,13 @@ class _UnitApiSignatureComputer {
 
   void _addClass(ClassDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    bool hasConstConstructor = node.body.members.any(
+    bool hasConstConstructor = node.body.members2.any(
       (m) => m is ConstructorDeclarationImpl && m.constKeyword != null,
     );
-    _addClassMembers(node.body.members, hasConstConstructor);
+    _addClassMembers(node.body.members2, hasConstConstructor);
   }
 
-  void _addClassMembers(List<ClassMember> members, bool hasConstConstructor) {
+  void _addClassMembers(List<AnnotatedNode> members, bool hasConstConstructor) {
     signature.addInt(members.length);
     for (var member in members) {
       if (member is ConstructorDeclarationImpl) {
@@ -115,7 +115,7 @@ class _UnitApiSignatureComputer {
   }
 
   void _addEnum(EnumDeclarationImpl node) {
-    var members = node.body.members;
+    var members = node.body.members2;
 
     // If not enhanced, include the whole node.
     var firstMember = members.firstOrNull;
@@ -130,7 +130,7 @@ class _UnitApiSignatureComputer {
 
   void _addExtension(ExtensionDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members, false);
+    _addClassMembers(node.body.members2, false);
   }
 
   void _addFieldDeclaration(FieldDeclaration node, bool hasConstConstructor) {
@@ -169,7 +169,7 @@ class _UnitApiSignatureComputer {
 
   void _addMixin(MixinDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members, false);
+    _addClassMembers(node.body.members2, false);
     signature.addStringList(node.superInvokedNames);
   }
 

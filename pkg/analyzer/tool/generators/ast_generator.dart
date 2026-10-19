@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This generator reads the analyzer's own AST through the V1 API.
+// ignore_for_file: analyzer_v1_ast_use, unnecessary_ignore
+
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide Element;
@@ -213,9 +216,7 @@ class AstNodeImplGenerator {
   }
 
   Future<void> _buildImplClasses(ResolvedUnitResult astUnitResult) async {
-    var declarations = astUnitResult
-        .unit
-        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
+    var declarations = astUnitResult.unit.declarations;
     for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         var implClass = await _buildImplClass(nodeImpl);
@@ -1729,6 +1730,7 @@ class _Property {
         '$name: Expected a v1 projection.',
       ),
       _V1ProjectionKind.argument => 'V1Projection.toV1Argument',
+      _V1ProjectionKind.classMember => 'V1Projection.toV1ClassMember',
       _V1ProjectionKind.collectionElement =>
         'V1Projection.toV1CollectionElement',
       _V1ProjectionKind.combinatorName => 'V1Projection.toV1CombinatorName',
@@ -1761,6 +1763,7 @@ class _Property {
     return switch (v1Projection) {
       _V1ProjectionKind.none => expression,
       _V1ProjectionKind.argument ||
+      _V1ProjectionKind.classMember ||
       _V1ProjectionKind.collectionElement ||
       _V1ProjectionKind.combinatorName ||
       _V1ProjectionKind.expression ||
@@ -1821,7 +1824,8 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   new({required this.elementType});
 
   String get elementTypeCode {
-    return '${elementType.element.name!}Impl';
+    var name = elementType.element.name!;
+    return name.endsWith('Impl') ? name : '${name}Impl';
   }
 
   _V1ProjectionKind? get requiredV1Projection {
@@ -1862,6 +1866,7 @@ class _Replacement {
 enum _V1ProjectionKind {
   none,
   argument,
+  classMember,
   collectionElement,
   combinatorName,
   expression,

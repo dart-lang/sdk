@@ -4186,7 +4186,12 @@ sealed class BlockClassBody implements ClassBody {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('members'),
+    GenerateNodeProperty(
+      'members2',
+      v1Name: 'members',
+      v1Projection: V1Projection.classMember,
+      type: NodeList<ClassMemberV1OrV2Impl>,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -4196,8 +4201,17 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   final Token leftBracket;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._();
+
+  @generated
+  @V1Ast('The V2 counterpart is members2.')
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = _V1ProjectedNodeListImpl(
+    members2,
+    V1Projection.toV1ClassMember,
+  );
 
   @generated
   @override
@@ -4206,10 +4220,10 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   new({
     required this.leftBracket,
-    required List<ClassMemberImpl> members,
+    required List<ClassMemberV1OrV2Impl> members2,
     required this.rightBracket,
   }) {
-    this.members._initialize(this, members);
+    this.members2._initializeProjected(this, members2);
   }
 
   @generated
@@ -4236,7 +4250,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
+    ..addNodeList('members2', members2)
     ..addToken('rightBracket', rightBracket);
 
   @generated
@@ -4252,9 +4266,9 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (members.containsChild(oldNode)) {
+    if (members2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'members' because NodeList cannot be resized.",
+        "Cannot remove child 'members2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -4263,7 +4277,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (members.replaceChild(oldNode, newNode)) {
+    if (members2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -4280,7 +4294,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    members.accept2(visitor);
+    members2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -4292,12 +4306,12 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
+    void Function(NodeListImpl<ClassMemberV1OrV2Impl>)? visitMembers2,
   }) {
-    if (visitMembers != null) {
-      visitMembers(members);
+    if (visitMembers2 != null) {
+      visitMembers2(members2);
     } else {
-      members.accept2(visitor);
+      members2.accept2(visitor);
     }
   }
 
@@ -4315,7 +4329,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
+    if (members2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -4341,7 +4355,12 @@ abstract final class BlockEnumBody implements EnumBody {
     GenerateNodeProperty('leftBracket'),
     GenerateNodeProperty('constants'),
     GenerateNodeProperty('semicolon'),
-    GenerateNodeProperty('members'),
+    GenerateNodeProperty(
+      'members2',
+      v1Name: 'members',
+      v1Projection: V1Projection.classMember,
+      type: NodeList<ClassMemberV1OrV2Impl>,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -4359,8 +4378,17 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   final Token? semicolon;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+  final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._();
+
+  @generated
+  @V1Ast('The V2 counterpart is members2.')
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = _V1ProjectedNodeListImpl(
+    members2,
+    V1Projection.toV1ClassMember,
+  );
 
   @generated
   @override
@@ -4371,11 +4399,11 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
     required this.leftBracket,
     required List<EnumConstantDeclarationImpl> constants,
     required this.semicolon,
-    required List<ClassMemberImpl> members,
+    required List<ClassMemberV1OrV2Impl> members2,
     required this.rightBracket,
   }) {
     this.constants._initialize(this, constants);
-    this.members._initialize(this, members);
+    this.members2._initializeProjected(this, members2);
   }
 
   @generated
@@ -4406,7 +4434,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
     ..addToken('leftBracket', leftBracket)
     ..addNodeList('constants', constants)
     ..addToken('semicolon', semicolon)
-    ..addNodeList('members', members)
+    ..addNodeList('members2', members2)
     ..addToken('rightBracket', rightBracket);
 
   @generated
@@ -4427,9 +4455,9 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
         "Cannot remove child 'constants' because NodeList cannot be resized.",
       );
     }
-    if (members.containsChild(oldNode)) {
+    if (members2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'members' because NodeList cannot be resized.",
+        "Cannot remove child 'members2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -4441,7 +4469,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
     if (constants.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (members.replaceChild(oldNode, newNode)) {
+    if (members2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -4460,7 +4488,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @override
   void visitChildren2(AstVisitor2 visitor) {
     constants.accept2(visitor);
-    members.accept2(visitor);
+    members2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -4473,17 +4501,17 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NodeListImpl<EnumConstantDeclarationImpl>)? visitConstants,
-    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
+    void Function(NodeListImpl<ClassMemberV1OrV2Impl>)? visitMembers2,
   }) {
     if (visitConstants != null) {
       visitConstants(constants);
     } else {
       constants.accept2(visitor);
     }
-    if (visitMembers != null) {
-      visitMembers(members);
+    if (visitMembers2 != null) {
+      visitMembers2(members2);
     } else {
-      members.accept2(visitor);
+      members2.accept2(visitor);
     }
   }
 
@@ -4509,7 +4537,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
         case var result?) {
       return result;
     }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
+    if (members2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -7311,13 +7339,28 @@ class ChildEntity {
 /// The body of a class declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {
-  /// The members declared in the body.
+  /// The members declared in the body in the V1 AST view.
+  ///
+  /// Analyzer implementations should traverse [members2] instead.
+  @V1Ast('The V2 counterpart is members2.')
   NodeList<ClassMember> get members;
+
+  /// The members declared in the body in the V2 AST view.
+  ///
+  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
+  /// is in progress. Each entry is either a V2 [MemberDeclaration] or a V1
+  /// [ClassMember] whose V2 representation is not yet available.
+  @experimental
+  NodeList<AnnotatedNode> get members2;
 }
 
 sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
+  @V1Ast('The V2 counterpart is members2.')
   @override
   NodeListImpl<ClassMemberImpl> get members;
+
+  @override
+  NodeListImpl<ClassMemberV1OrV2Impl> get members2;
 }
 
 /// The declaration of a class.
@@ -7843,7 +7886,8 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassMember implements Declaration {}
 
-sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
+sealed class ClassMemberImpl extends DeclarationImpl
+    implements ClassMemberV1OrV2Impl, ClassMember {
   /// Initializes a newly created member of a class.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
@@ -7853,6 +7897,13 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 }
+
+/// A temporary marker interface for members in [ClassBodyImpl.members2] and
+/// [EnumBodyImpl.members2].
+///
+/// This unifies V1 class members that have not yet been migrated with V2
+/// [MemberDeclaration]s.
+sealed class ClassMemberV1OrV2Impl implements AnnotatedNodeImpl {}
 
 /// The name of a class, enum, or extension type declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -15904,8 +15955,13 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @override
   final Token semicolon;
 
+  @V1Ast('The V2 counterpart is members2.')
   @override
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
+  @override
+  late final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._()
     .._initialize(this, null);
 
   @generated
@@ -15990,8 +16046,13 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   late final NodeListImpl<EnumConstantDeclarationImpl> constants =
       NodeListImpl._().._initialize(this, null);
 
+  @V1Ast('The V2 counterpart is members2.')
   @override
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
+  @override
+  late final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._()
     .._initialize(this, null);
 
   @generated
@@ -16238,16 +16299,31 @@ sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
-  /// The members declared in the body.
+  /// The members declared in the body in the V1 AST view.
+  ///
+  /// Analyzer implementations should traverse [members2] instead.
+  @V1Ast('The V2 counterpart is members2.')
   NodeList<ClassMember> get members;
+
+  /// The members declared in the body in the V2 AST view.
+  ///
+  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
+  /// is in progress. Each entry is either a V2 [MemberDeclaration] or a V1
+  /// [ClassMember] whose V2 representation is not yet available.
+  @experimental
+  NodeList<AnnotatedNode> get members2;
 }
 
 sealed class EnumBodyImpl extends AstNodeImpl implements EnumBody {
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants;
 
+  @V1Ast('The V2 counterpart is members2.')
   @override
   NodeListImpl<ClassMemberImpl> get members;
+
+  @override
+  NodeListImpl<ClassMemberV1OrV2Impl> get members2;
 }
 
 /// The arguments part of an enum constant.
@@ -37123,7 +37199,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 sealed class MemberDeclaration implements AnnotatedNode {}
 
 sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
-    implements MemberDeclaration {
+    implements ClassMemberV1OrV2Impl, MemberDeclaration {
   new({required super.comment, required super.metadata});
 
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -45887,7 +45963,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @override
   PrimaryConstructorBodyImpl? get body =>
-      parent2.classMembers.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
+      parent2.classMembers2.whereType<PrimaryConstructorBodyImpl>().firstOrNull;
 
   @generated
   @override
@@ -58585,6 +58661,9 @@ enum V1Projection {
   /// Project an [ArgumentImpl] child to the V1 argument view.
   argument,
 
+  /// Project a [ClassMemberV1OrV2Impl] child to the V1 class member view.
+  classMember,
+
   /// Project a [CollectionElementImpl] child to the V1 collection view.
   collectionElement,
 
@@ -58609,6 +58688,11 @@ enum V1Projection {
       return toV1Expression(node);
     }
     return node;
+  }
+
+  @V1Ast()
+  static ClassMemberImpl toV1ClassMember(ClassMemberV1OrV2Impl node) {
+    return node as ClassMemberImpl;
   }
 
   @V1Ast()

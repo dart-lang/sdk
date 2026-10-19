@@ -2323,7 +2323,7 @@ class C {
 ''');
     var node =
         (parseResult.findNode.singleClassDeclaration.body as BlockClassBody)
-            .members
+            .members2
             .first;
     assertParsedNodeText(node, r'''
 MethodDeclaration

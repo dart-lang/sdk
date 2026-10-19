@@ -120,7 +120,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitBlockClassBody(BlockClassBody node) {
     sink.write(' {');
-    _visitNodeList(node.members, separator: ' ');
+    _visitNodeList(node.members2, separator: ' ');
     sink.write('}');
   }
 
@@ -129,7 +129,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
     _visitToken(node.semicolon);
-    _visitNodeList(node.members, prefix: ' ', separator: ' ');
+    _visitNodeList(node.members2, prefix: ' ', separator: ' ');
     sink.write('}');
   }
 

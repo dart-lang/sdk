@@ -82,10 +82,10 @@ class _LocalNameScope {
   factory forClass(_LocalNameScope enclosing, ClassDeclarationImpl node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
+    for (var member in node.body.members2) {
+      if (member is FieldDeclarationImpl) {
         scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
+      } else if (member is MethodDeclarationImpl) {
         scope.add(member.name);
       }
     }
@@ -113,10 +113,10 @@ class _LocalNameScope {
   ) {
     var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
+    for (var member in node.body.members2) {
+      if (member is FieldDeclarationImpl) {
         scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
+      } else if (member is MethodDeclarationImpl) {
         scope.add(member.name);
       }
     }

@@ -228,6 +228,7 @@ extension AstNodeExtension on AstNode {
 }
 
 extension AstNodeNullableExtension on AstNode? {
+  @V1Ast('The V2 counterpart is classMembers2.')
   List<ClassMember> get classMembers {
     var self = this;
     return switch (self) {
@@ -238,6 +239,20 @@ extension AstNodeNullableExtension on AstNode? {
       ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
       MixinDeclaration() => self.body.members,
+      _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
+  }
+
+  List<AnnotatedNode> get classMembers2 {
+    var self = this;
+    return switch (self) {
+      BlockClassBody() => self.members2,
+      BlockEnumBody() => self.members2,
+      ClassDeclarationImpl() => self.body.members2,
+      EnumDeclaration() => self.body.members2,
+      ExtensionDeclaration() => self.body.members2,
+      ExtensionTypeDeclarationImpl() => self.body.members2,
+      MixinDeclaration() => self.body.members2,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }

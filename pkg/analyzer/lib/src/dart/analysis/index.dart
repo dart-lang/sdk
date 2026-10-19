@@ -945,7 +945,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
 
     super.visitEnumDeclaration(node);
@@ -991,7 +991,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     _addSubtype(
       node.namePart.typeName.lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
 
     super.visitExtensionTypeDeclaration(node);
@@ -1349,7 +1349,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     WithClause? withClause,
     MixinOnClause? onClause,
     ImplementsClause? implementsClause,
-    required List<ClassMember> memberNodes,
+    required List<AnnotatedNode> memberNodes,
   }) {
     List<String> supertypes = [];
     List<String> members = [];
@@ -1376,7 +1376,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    for (ClassMember member in memberNodes) {
+    for (var member in memberNodes) {
       if (member is MethodDeclaration && !member.isStatic) {
         addMemberName(member.name);
       } else if (member is FieldDeclaration && !member.isStatic) {
@@ -1399,7 +1399,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       superclass: node.extendsClause?.superclass,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
   }
 
@@ -1420,7 +1420,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members,
+      memberNodes: node.body.members2,
     );
   }
 
