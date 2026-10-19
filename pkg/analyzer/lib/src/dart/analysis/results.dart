@@ -116,7 +116,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is VariableDeclaration) {
+      } else if (node is Field2) {
         if (_hasOffset(node.name)) {
           result = node;
         }

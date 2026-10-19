@@ -1206,98 +1206,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    for (var variable in node.fields.variables) {
-      var declaredFragment = variable.declaredFragment! as FieldFragmentImpl;
-      var hasConstVariableAugmentation = _checkForConstVariableAugmentation(
-        fragment: declaredFragment,
-        errorToken: variable.name,
-      );
-      if (node.augmentKeyword != null) {
-        if (!hasConstVariableAugmentation) {
-          _checkAugmentationWithoutDeclaration(declaredFragment, variable.name);
-          _checkAugmentationWithoutDeclarationForInducedAccessors(
-            declaredFragment,
-            variable.name,
-          );
-          _checkForAugmentationInducedAccessorsAlreadyComplete(
-            fragment: declaredFragment,
-            errorToken: variable.name,
-          );
-          _checkForAugmentationVariableDifferentGetterSetterTypes(
-            fragment: declaredFragment,
-            errorToken: variable.name,
-          );
-          if (declaredFragment.inducedGetter case var inducedGetter?) {
-            _checkForAugmentationReturnTypeMismatch(
-              fragment: inducedGetter,
-              returnTypeNode: node.fields.type,
-              errorEntity: variable.name,
-            );
-          }
-        }
-      }
-    }
-
-    // Abstract fields are syntactic sugar for incomplete getters/setters.
-    // For classes, instance accessors can be implemented by subclasses.
-    // Static fields, enum fields, and extension/extension type fields have no
-    // subclass implementation path, so their induced accessors must be
-    // completed by augmentations.
-    if (node.abstractKeyword != null) {
-      if (node.isStatic ||
-          _enclosingInstanceElement is EnumElement ||
-          _enclosingInstanceElement is ExtensionElement ||
-          _enclosingInstanceElement is ExtensionTypeElement) {
-        for (var variable in node.fields.variables) {
-          var declaredFragment =
-              variable.declaredFragment! as FieldFragmentImpl;
-          _checkForIncompleteInducedAccessors(
-            fragment: declaredFragment,
-            nameToken: variable.name,
-          );
-        }
-      }
-    }
-
-    if (!node.isStatic) {
-      if (node.fields.isConst) {
-        diagnosticReporter.report(
-          diag.constInstanceField.at(node.fields.keyword!),
-        );
-      }
-    }
-
-    _checkForExtensionDeclaresInstanceField(node);
-    _checkForExtensionTypeDeclaresInstanceField(node);
-    if (_enclosingInstanceElement case InterfaceElementImpl element) {
-      _checkForWrongTypeParameterVarianceInField(element, node);
-      _checkForLateFinalFieldWithConstConstructor(node, element);
-    }
-    _checkForNonFinalFieldInEnum(
-      fieldDeclaration: node,
-      primaryConstructor: null,
-    );
-
-    node.visitChildrenWithHooks(
-      this,
-      visitFields: (fields) {
-        _withThisContext(
-          () {
-            if (node.isStatic) {
-              return ThisContext.staticFieldDeclaration;
-            } else if (node.fields.isLate) {
-              return ThisContext.lateInstanceFieldDeclaration;
-            } else {
-              return ThisContext.instanceFieldDeclaration;
-            }
-          }(),
-          () {
-            fields.accept2(this);
-          },
-        );
-      },
-    );
+  void visitField2(covariant Field2Impl node) {
+    _visitVariableInitializer(node);
   }
 
   @override
@@ -1320,6 +1230,102 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     super.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(covariant FieldsDeclarationImpl node) {
+    var isStatic = node.staticKeyword != null;
+    for (var variable in node.fields) {
+      var declaredFragment = variable.declaredFragment!;
+      var hasConstVariableAugmentation = _checkForConstVariableAugmentation(
+        fragment: declaredFragment,
+        errorToken: variable.name,
+      );
+      if (node.augmentKeyword != null) {
+        if (!hasConstVariableAugmentation) {
+          _checkAugmentationWithoutDeclaration(declaredFragment, variable.name);
+          _checkAugmentationWithoutDeclarationForInducedAccessors(
+            declaredFragment,
+            variable.name,
+          );
+          _checkForAugmentationInducedAccessorsAlreadyComplete(
+            fragment: declaredFragment,
+            errorToken: variable.name,
+          );
+          _checkForAugmentationVariableDifferentGetterSetterTypes(
+            fragment: declaredFragment,
+            errorToken: variable.name,
+          );
+          if (declaredFragment.inducedGetter case var inducedGetter?) {
+            _checkForAugmentationReturnTypeMismatch(
+              fragment: inducedGetter,
+              returnTypeNode: node.type,
+              errorEntity: variable.name,
+            );
+          }
+        }
+      }
+    }
+
+    // Abstract fields are syntactic sugar for incomplete getters/setters.
+    // For classes, instance accessors can be implemented by subclasses.
+    // Static fields, enum fields, and extension/extension type fields have no
+    // subclass implementation path, so their induced accessors must be
+    // completed by augmentations.
+    if (node.abstractKeyword != null) {
+      if (isStatic ||
+          _enclosingInstanceElement is EnumElement ||
+          _enclosingInstanceElement is ExtensionElement ||
+          _enclosingInstanceElement is ExtensionTypeElement) {
+        for (var variable in node.fields) {
+          var declaredFragment = variable.declaredFragment!;
+          _checkForIncompleteInducedAccessors(
+            fragment: declaredFragment,
+            nameToken: variable.name,
+          );
+        }
+      }
+    }
+
+    if (!isStatic) {
+      if (node.constKeyword case var constKeyword?) {
+        diagnosticReporter.report(diag.constInstanceField.at(constKeyword));
+      }
+    }
+
+    _checkForExtensionDeclaresInstanceField(node);
+    _checkForExtensionTypeDeclaresInstanceField(node);
+    if (_enclosingInstanceElement case InterfaceElementImpl element) {
+      _checkForWrongTypeParameterVarianceInField(element, node);
+      _checkForLateFinalFieldWithConstConstructor(node, element);
+    }
+    _checkForNonFinalFieldInEnum(
+      fieldDeclaration: node,
+      primaryConstructor: null,
+    );
+
+    _checkForTypeAnnotationDeferredClass(node.type);
+
+    // The type and the fields are in the context of the declaration, but the
+    // metadata and the documentation comment are not.
+    var thisContext = isStatic
+        ? ThisContext.staticFieldDeclaration
+        : node.lateKeyword != null
+        ? ThisContext.lateInstanceFieldDeclaration
+        : ThisContext.instanceFieldDeclaration;
+    node.visitChildrenWithHooks(
+      this,
+      visitType: (type) {
+        _withThisContext(thisContext, () {
+          type.accept2(this);
+        });
+      },
+      visitFields: (fields) {
+        _withThisContext(thisContext, () {
+          fields.accept2(this);
+        });
+      },
+    );
   }
 
   @override
@@ -2568,17 +2574,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     );
     _checkUseVerifier.checkNameExpression(node, node.resolution);
     super.visitUnqualifiedNameExpression(node);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    _visitVariableInitializer(node);
-  }
-
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _checkForTypeAnnotationDeferredClass(node.type);
-    super.visitVariableDeclarationList(node);
   }
 
   void _checkAugmentationWithoutDeclaration(
@@ -5202,18 +5197,18 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForExtensionDeclaresInstanceField(FieldDeclarationImpl node) {
+  void _checkForExtensionDeclaresInstanceField(FieldsDeclarationImpl node) {
     if (node.parent2?.parent2 is! ExtensionDeclaration) {
       return;
     }
 
-    if (node.isStatic ||
+    if (node.staticKeyword != null ||
         node.externalKeyword != null ||
         node.isAbstractWhenAugmentationsEnabled(_featureSet)) {
       return;
     }
 
-    for (var field in node.fields.variables) {
+    for (var field in node.fields) {
       diagnosticReporter.report(
         diag.extensionDeclaresInstanceField.at(field.name),
       );
@@ -5250,18 +5245,18 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForExtensionTypeDeclaresInstanceField(FieldDeclarationImpl node) {
+  void _checkForExtensionTypeDeclaresInstanceField(FieldsDeclarationImpl node) {
     if (_enclosingInstanceElement is! ExtensionTypeElement) {
       return;
     }
 
-    if (node.isStatic ||
+    if (node.staticKeyword != null ||
         node.externalKeyword != null ||
         node.isAbstractWhenAugmentationsEnabled(_featureSet)) {
       return;
     }
 
-    for (var field in node.fields.variables) {
+    for (var field in node.fields) {
       diagnosticReporter.report(
         diag.extensionTypeDeclaresInstanceField.at(field.name),
       );
@@ -6092,15 +6087,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForLateFinalFieldWithConstConstructor(
-    FieldDeclaration node,
+    FieldsDeclaration node,
     InterfaceElementImpl enclosingElement,
   ) {
-    if (node.isStatic) return;
+    if (node.staticKeyword != null) return;
+    if (node.finalKeyword == null) return;
 
-    var variableList = node.fields;
-    if (!variableList.isFinal) return;
-
-    var lateKeyword = variableList.lateKeyword;
+    var lateKeyword = node.lateKeyword;
     if (lateKeyword == null) return;
 
     var hasGenerativeConstConstructor = enclosingElement.constructors.any(
@@ -6922,7 +6915,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForNonFinalFieldInEnum({
-    required FieldDeclarationImpl? fieldDeclaration,
+    required FieldsDeclarationImpl? fieldDeclaration,
     required PrimaryConstructorDeclarationImpl? primaryConstructor,
   }) {
     if (_enclosingInstanceElement is! EnumElement) {
@@ -6930,16 +6923,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     if (fieldDeclaration != null) {
-      if (!fieldDeclaration.isStatic) {
+      if (fieldDeclaration.staticKeyword == null) {
         // External fields don't add stored state to enum instance. When
         // augmentations are enabled, abstract fields are checked as incomplete
         // induced accessors that may be completed by augmentations.
         if (fieldDeclaration.externalKeyword == null &&
             !fieldDeclaration.isAbstractWhenAugmentationsEnabled(_featureSet)) {
-          var variableList = fieldDeclaration.fields;
-          if (!variableList.isFinal) {
+          if (fieldDeclaration.finalKeyword == null) {
             diagnosticReporter.report(
-              diag.nonFinalFieldInEnum.at(variableList.variables.first.name),
+              diag.nonFinalFieldInEnum.at(fieldDeclaration.fields.first.name),
             );
           }
         }
@@ -7026,14 +7018,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// If [hasGenerativeConstructor] is `true`, then [ConstructorFieldsVerifier]
   /// will verify that instance fields are initialized.
   void _checkForNotInitializedFieldDeclaration(
-    FieldDeclaration fieldDeclaration,
+    FieldsDeclaration fieldDeclaration,
     bool hasGenerativeConstructor,
   ) {
-    var variableList = fieldDeclaration.fields;
-
-    if (variableList.isConst) {
-      for (var variable in variableList.variables) {
-        if (variable.initializer2 == null) {
+    if (fieldDeclaration.constKeyword != null) {
+      for (var variable in fieldDeclaration.fields) {
+        if (variable.initializer == null) {
           diagnosticReporter.report(
             diag.constNotInitialized
                 .withArguments(name: variable.name.lexeme)
@@ -7046,11 +7036,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     if (fieldDeclaration.abstractKeyword != null ||
         fieldDeclaration.externalKeyword != null ||
-        variableList.isLate) {
+        fieldDeclaration.lateKeyword != null) {
       return;
     }
 
-    var isInstanceField = !fieldDeclaration.isStatic;
+    var isInstanceField = fieldDeclaration.staticKeyword == null;
     if (isInstanceField) {
       // [FfiVerifier] reports [fieldMustBeExternalInStruct].
       if (_isEnclosingFfiStruct || _isEnclosingFfiUnion) {
@@ -7062,14 +7052,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
-    for (var variable in variableList.variables) {
+    for (var variable in fieldDeclaration.fields) {
       var element = variable.declaredFragment!.element;
 
-      if (variable.initializer2 != null) {
+      if (variable.initializer != null) {
         continue;
       }
 
-      if (variableList.isFinal) {
+      if (fieldDeclaration.finalKeyword != null) {
         diagnosticReporter.report(
           diag.finalNotInitialized
               .withArguments(name: variable.name.lexeme)
@@ -7117,7 +7107,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         .whereType<PrimaryConstructorBodyImpl>()
         .isNotEmpty;
 
-    for (var fieldDeclaration in members.whereType<FieldDeclaration>()) {
+    for (var fieldDeclaration in members.whereType<FieldsDeclaration>()) {
       _checkForNotInitializedFieldDeclaration(
         fieldDeclaration,
         hasGenerativeConstructor,
@@ -7907,20 +7897,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   void _checkForWrongTypeParameterVarianceInField(
     InterfaceElementImpl enclosingElement,
-    FieldDeclarationImpl node,
+    FieldsDeclarationImpl node,
   ) {
-    var fields = node.fields;
-    var element = fields.variables.first.declaredFragment!.element;
+    var firstField = node.fields.first;
+    var element = firstField.declaredFragment!.element;
 
     for (var typeParameter in enclosingElement.typeParameters) {
       if (!typeParameter.isLegacyCovariant) {
-        var fieldName = fields.variables.first.name;
+        var fieldName = firstField.name;
         Variance fieldVariance = typeParameter.computeVarianceInType(
           element.type,
         );
 
         _checkForWrongVariancePosition(typeParameter, fieldVariance, fieldName);
-        if (!fields.isFinal && node.covariantKeyword == null) {
+        if (node.finalKeyword == null && node.covariantKeyword == null) {
           _checkForWrongVariancePosition(
             typeParameter,
             Variance.contravariant.combine(fieldVariance),

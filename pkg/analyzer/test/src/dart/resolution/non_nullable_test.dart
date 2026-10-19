@@ -53,7 +53,7 @@ class C {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   type: NamedType

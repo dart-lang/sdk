@@ -124,23 +124,23 @@ class MemberDuplicateDefinitionVerifier {
               );
             }
           }
-        case FieldDeclarationImpl():
-          for (var field in member.fields.variables) {
+        case FieldsDeclarationImpl():
+          var isStatic = member.staticKeyword != null;
+          for (var field in member.fields) {
             var fieldFragment = field.declaredFragment!;
-            fieldFragment as FieldFragmentImpl;
             if (fieldFragment.isAugmentation) {
               continue;
             }
             var fieldElement = fieldFragment.element;
             _checkDuplicateIdentifier(
-              member.isStatic ? staticScope : instanceScope,
+              isStatic ? staticScope : instanceScope,
               field.name,
               fragment: fieldElement.getter!.firstFragment,
               originFragment: fieldFragment,
             );
             if (fieldElement.setter case var setter?) {
               _checkDuplicateIdentifier(
-                member.isStatic ? staticScope : instanceScope,
+                isStatic ? staticScope : instanceScope,
                 field.name,
                 fragment: setter.firstFragment,
                 originFragment: fieldFragment,
@@ -189,9 +189,9 @@ class MemberDuplicateDefinitionVerifier {
     // TODO(scheglov): This code is duplicated for enums. But for classes it is
     // separated also into ErrorVerifier - where we check inherited.
     for (var member in members) {
-      if (member is FieldDeclaration) {
-        if (member.isStatic) {
-          for (VariableDeclaration field in member.fields.variables) {
+      if (member is FieldsDeclaration) {
+        if (member.staticKeyword != null) {
+          for (var field in member.fields) {
             var identifier = field.name;
             String name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {
@@ -491,9 +491,9 @@ class MemberDuplicateDefinitionVerifier {
     var elementContext = _getElementContext(firstFragment);
     var instanceScope = elementContext.instanceScope;
     for (var member in node.body.members2) {
-      if (member is FieldDeclarationImpl) {
-        if (member.isStatic) {
-          for (var field in member.fields.variables) {
+      if (member is FieldsDeclarationImpl) {
+        if (member.staticKeyword != null) {
+          for (var field in member.fields) {
             var identifier = field.name;
             var name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {

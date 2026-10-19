@@ -399,12 +399,12 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldsDeclaration(FieldsDeclaration node) {
     if (inCompound) {
       _validateFieldsInCompound(node);
     }
 
-    for (var declared in node.fields.variables) {
+    for (var declared in node.fields) {
       var declaredElement = declared.declaredFragment?.element;
       if (declaredElement != null) {
         _checkFfiNative(
@@ -417,7 +417,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
 
-    super.visitFieldDeclaration(node);
+    super.visitFieldsDeclaration(node);
   }
 
   @override
@@ -1724,24 +1724,24 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   /// Validate that the fields declared by the given [node] meet the
   /// requirements for fields within a struct or union class.
-  void _validateFieldsInCompound(FieldDeclaration node) {
-    if (node.isStatic) {
+  void _validateFieldsInCompound(FieldsDeclaration node) {
+    if (node.staticKeyword != null) {
       return;
     }
 
-    VariableDeclarationList fields = node.fields;
+    var firstField = node.fields.first;
     NodeList<Annotation> annotations = node.metadata;
 
     if (node.externalKeyword == null) {
       _diagnosticReporter.report(
-        diag.fieldMustBeExternalInStruct.at(fields.variables[0].name),
+        diag.fieldMustBeExternalInStruct.at(firstField.name),
       );
     }
 
-    var fieldType = fields.type;
+    var fieldType = node.type;
     if (fieldType == null) {
       _diagnosticReporter.report(
-        diag.missingFieldTypeInStruct.at(fields.variables[0].name),
+        diag.missingFieldTypeInStruct.at(firstField.name),
       );
     } else {
       DartType declaredType = fieldType.typeOrThrow;
@@ -1776,8 +1776,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           );
         }
         var arrayDimensions = declaredType.arrayDimensions;
-        var fieldElement =
-            node.fields.variables.first.declaredFragment?.element;
+        var fieldElement = firstField.declaredFragment?.element;
         var lastElement = (fieldElement?.enclosingElement as ClassElement?)
             ?.fields
             .reversed

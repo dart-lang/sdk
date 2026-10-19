@@ -798,10 +798,10 @@ class _InfoBuilder {
         members: node.body.members2,
         fields: [
           ...node.body.constants.map(_buildEnumConstant),
-          ...node.body.members2
-              .whereType<FieldDeclaration>()
-              .expand((node) => node.fields.variables)
-              .map((node) => _buildField(node)),
+          for (var declaration
+              in node.body.members2.whereType<FieldsDeclaration>())
+            for (var field in declaration.fields)
+              _buildField(declaration, field),
         ],
       ),
     );
@@ -854,18 +854,22 @@ class _InfoBuilder {
     );
   }
 
-  _InfoFieldDeclaration _buildField(VariableDeclaration node) {
-    var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent2!.parent2 as FieldDeclaration;
+  _InfoFieldDeclaration _buildField(
+    FieldsDeclaration declaration,
+    Field2 node,
+  ) {
+    var codeOffset = node == declaration.fields.first
+        ? declaration.offset
+        : node.offset;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
       codeLength: node.end - codeOffset,
       nameOffset: node.name.offsetIfNotEmpty,
-      documentationComment: _getDocumentationComment(node),
+      documentationComment: _getDocumentationComment(declaration),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer2,
+        constantInitializer: node.initializer,
       ),
     );
   }
@@ -958,9 +962,9 @@ class _InfoBuilder {
           case MethodDeclaration2Impl() || OperatorDeclarationImpl():
             methods.add(_buildMethodDeclaration(member));
         }
-      } else if (processFields && member is FieldDeclaration) {
-        for (var variable in member.fields.variables) {
-          fields.add(_buildField(variable));
+      } else if (processFields && member is FieldsDeclaration) {
+        for (var field in member.fields) {
+          fields.add(_buildField(member, field));
         }
       }
     }
@@ -1203,15 +1207,6 @@ class _InfoBuilder {
       typeParameters.length,
       (index) => _buildTypeParameter(typeParameters[index]),
     );
-  }
-
-  int _codeOffsetForVariable(VariableDeclaration node) {
-    var codeOffset = node.offset;
-    var variableList = node.parent2 as VariableDeclarationList;
-    if (variableList.variables[0] == node) {
-      codeOffset = variableList.parent2!.offset;
-    }
-    return codeOffset;
   }
 
   String? _getDocumentationComment(AnnotatedNode? node) {

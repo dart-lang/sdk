@@ -687,20 +687,19 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindField(
-    VariableDeclarationImpl node,
+    Field2Impl node,
     FieldFragmentImpl fragment,
-    FieldDeclarationImpl declaration,
+    FieldsDeclarationImpl declaration,
   ) {
     node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, declaration.metadata);
 
-    var offset = node == declaration.fields.variables.first
+    var offset = node == declaration.fields.first
         ? declaration.offset
         : node.offset;
     fragment.setCodeRange(offset, node.end - offset);
 
-    node.documentationComment?.accept2(this);
-    if (node.initializer2 case var initializer?) {
+    if (node.initializer case var initializer?) {
       _withElementHolder(ElementHolder(fragment), () {
         initializer.accept2(this);
       });
@@ -812,11 +811,11 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
           var fragment = fragments.nextSetter();
           member.declaredFragment = fragment;
           _bindMethodDeclaration(member, fragment);
-        case FieldDeclarationImpl():
+        case FieldsDeclarationImpl():
           member.documentationComment?.accept2(this);
-          member.fields.type?.accept2(this);
-          for (var variable in member.fields.variables) {
-            _bindField(variable, fragments.nextField(), member);
+          member.type?.accept2(this);
+          for (var field in member.fields) {
+            _bindField(field, fragments.nextField(), member);
           }
         case PrimaryConstructorBodyImpl():
           member.accept2(this);

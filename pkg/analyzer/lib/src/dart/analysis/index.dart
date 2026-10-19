@@ -1380,8 +1380,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       if (member is MethodDeclarationV1OriginImpl &&
           member.staticKeyword == null) {
         addMemberName(member.nameToken);
-      } else if (member is FieldDeclaration && !member.isStatic) {
-        for (var field in member.fields.variables) {
+      } else if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var field in member.fields) {
           addMemberName(field.name);
         }
       }

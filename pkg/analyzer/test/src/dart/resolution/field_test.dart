@@ -26,7 +26,7 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   lateKeyword: late
@@ -71,7 +71,7 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   lateKeyword: late
@@ -118,7 +118,7 @@ class A {
 }
 ''');
 
-    var node = result.findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldsDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: final
@@ -170,7 +170,7 @@ class A {
 }
 ''');
 
-    var node = result.findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldsDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: final
@@ -222,7 +222,7 @@ class A {
 }
 ''');
 
-    var node = result.findNode.fieldDeclaration('b =');
+    var node = result.findNode.fieldsDeclaration('b =');
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: final
@@ -282,7 +282,7 @@ class A {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: final
@@ -367,7 +367,7 @@ class A<T> {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: var

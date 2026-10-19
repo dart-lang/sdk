@@ -837,7 +837,7 @@ enum E {
 }
 ''');
 
-    var node = result.findNode.fieldDeclaration('foo =');
+    var node = result.findNode.fieldsDeclaration('foo =');
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: final
@@ -2656,7 +2656,7 @@ enum A(int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: final
@@ -2697,7 +2697,7 @@ enum A(final int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   constFinalOrVarKeyword: final
@@ -2742,7 +2742,7 @@ enum A(int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   lateKeyword: late
@@ -2786,7 +2786,7 @@ enum A(int foo) {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   staticKeyword: static

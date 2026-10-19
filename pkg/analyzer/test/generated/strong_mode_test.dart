@@ -414,13 +414,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    VariableDeclaration field = AstFinder.getFieldInClass(
-      result.unit,
-      "A",
-      "f0",
-    );
+    Field2 field = AstFinder.getFieldInClass(result.unit, "A", "f0");
 
-    _isListOf(_isString)(field.initializer2!.staticType as InterfaceType);
+    _isListOf(_isString)(field.initializer!.staticType as InterfaceType);
   }
 
   test_functionDeclaration_body_propagation() async {
@@ -2999,11 +2995,7 @@ V1: MethodInvocation
       (DartType type) => assertListOfInt(type as InterfaceType),
     );
 
-    VariableDeclaration mapB = AstFinder.getFieldInClass(
-      result.unit,
-      "B",
-      "map",
-    );
+    Field2 mapB = AstFinder.getFieldInClass(result.unit, "B", "map");
     GetterDeclaration mapC = AstFinder.getGetterInClass(
       result.unit,
       "C",
@@ -3016,7 +3008,7 @@ V1: MethodInvocation
       mapC.declaredFragment!.element.returnType as InterfaceType,
     );
 
-    var mapLiteralB = mapB.initializer2 as SetOrMapLiteral;
+    var mapLiteralB = mapB.initializer as SetOrMapLiteral;
     var mapLiteralC =
         (mapC.body as ExpressionFunctionBody).expression2 as SetOrMapLiteral;
     assertMapOfIntToListOfInt(mapLiteralB.staticType as InterfaceType);

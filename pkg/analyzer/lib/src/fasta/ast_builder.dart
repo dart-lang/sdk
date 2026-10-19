@@ -6409,35 +6409,28 @@ class AstBuilder extends StackListener {
 
     var variables = popTypedList2<_FieldVariable>(count);
     var type = pop() as TypeAnnotationImpl?;
-    var variableList = VariableDeclarationListImpl(
-      comment: null,
-      metadata: null,
-      lateKeyword: lateToken,
-      keyword: varFinalOrConst,
-      type: type,
-      variables: [
-        for (var variable in variables)
-          VariableDeclarationImpl(
-            comment: null,
-            metadata: [],
-            name: variable.name,
-            equals: variable.equals,
-            initializer2: variable.initializer,
-          ),
-      ],
-    );
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     _classLikeBuilder?.members.add(
-      FieldDeclarationImpl(
+      FieldsDeclarationImpl(
         comment: comment,
         metadata: metadata,
-        abstractKeyword: abstractToken,
         augmentKeyword: augmentToken,
-        covariantKeyword: covariantToken,
         externalKeyword: externalToken,
         staticKeyword: staticToken,
-        fields: variableList,
+        abstractKeyword: abstractToken,
+        covariantKeyword: covariantToken,
+        lateKeyword: lateToken,
+        constFinalOrVarKeyword: varFinalOrConst,
+        type: type,
+        fields: [
+          for (var variable in variables)
+            Field2Impl(
+              name: variable.name,
+              equals: variable.equals,
+              initializer: variable.initializer,
+            ),
+        ],
         semicolon: endToken,
       ),
     );

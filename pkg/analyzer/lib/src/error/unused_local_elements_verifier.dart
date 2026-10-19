@@ -31,9 +31,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   /// Whether the visitor is inside an [IsExpression]'s type.
   bool _insideIsExpression = false;
 
-  /// Non-null when the visitor is inside a [VariableDeclarationList]'s type.
-  VariableDeclarationList? _enclosingVariableDeclaration;
-
   new(this._enclosingLibrary);
 
   @override
@@ -444,19 +441,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     super.visitUnqualifiedFunctionInvocation(node);
   }
 
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    node.metadata.accept2(this);
-    var enclosingVariableDeclarationOld = _enclosingVariableDeclaration;
-    try {
-      _enclosingVariableDeclaration = node;
-      node.type?.accept2(this);
-    } finally {
-      _enclosingVariableDeclaration = enclosingVariableDeclarationOld;
-    }
-    node.variables.accept2(this);
-  }
-
   /// Add [element] as a used member and, if [element] is a setter, add its
   /// corresponding getter as a used member.
   void _addMemberAndCorrespondingGetter(Element element) {
@@ -815,12 +799,12 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    for (var field in node.fields.variables) {
-      _visitFieldElement(field.declaredFragment!.element as FieldElement);
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    for (var field in node.fields) {
+      _visitFieldElement(field.declaredFragment!.element);
     }
 
-    super.visitFieldDeclaration(node);
+    super.visitFieldsDeclaration(node);
   }
 
   @override

@@ -1507,24 +1507,15 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
           typeArguments: null,
         );
 
-        var variableDeclaration = VariableDeclarationImpl(
-          comment: null,
-          metadata: [],
+        var fieldNode = Field2Impl(
           name: StringToken(TokenType.STRING, name, -1),
           equals: Tokens.eq(),
-          initializer2: initializer,
+          initializer: initializer,
         );
         constant.declaredFragment = field;
-        variableDeclaration.declaredFragment = field;
-        VariableDeclarationListImpl(
-          comment: null,
-          metadata: null,
-          lateKeyword: null,
-          keyword: null,
-          type: null,
-          variables: [variableDeclaration],
-        );
-        _linker.setFragmentNode(field, variableDeclaration);
+        fieldNode.declaredFragment = field;
+        _syntheticFieldsDeclaration(fieldNode);
+        _linker.setFragmentNode(field, fieldNode);
 
         _addChildFragment(field);
 
@@ -1554,12 +1545,10 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       AstNodeImpl.linkNodeTokens(initializer);
       valuesField.constantInitializer2 = initializer;
 
-      var variableDeclaration = VariableDeclarationImpl(
-        comment: null,
-        metadata: [],
+      var valuesNode = Field2Impl(
         name: StringToken(TokenType.STRING, 'values', -1),
         equals: Tokens.eq(),
-        initializer2: initializer,
+        initializer: initializer,
       );
       var valuesTypeNode = NamedTypeImpl(
         importPrefix: null,
@@ -1578,22 +1567,19 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         ),
         question: null,
       );
-      VariableDeclarationListImpl(
-        comment: null,
-        metadata: null,
-        lateKeyword: null,
-        keyword: Tokens.const_(),
-        variables: [variableDeclaration],
+      _syntheticFieldsDeclaration(
+        valuesNode,
+        constKeyword: Tokens.const_(),
         type: valuesTypeNode,
       );
-      _linker.setFragmentNode(valuesField, variableDeclaration);
+      _linker.setFragmentNode(valuesField, valuesNode);
 
       _addChildFragment(valuesField);
 
       _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
         fragment: fragment,
         valuesTypeNode: valuesTypeNode,
-        valuesNode: variableDeclaration,
+        valuesNode: valuesNode,
         valuesFragment: valuesField,
         valuesNames: valuesNames,
         valuesInitializer: initializer,
@@ -1680,46 +1666,6 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    var metadata = _buildMetadata(node.metadata);
-    for (var variable in node.fields.variables) {
-      var nameToken = variable.name;
-
-      var fragment = FieldFragmentImpl(name: _getFragmentName(nameToken));
-      fragment.hasInitializer = variable.initializer2 != null;
-      fragment.isAbstract = node.abstractKeyword != null;
-      fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isConst = node.fields.isConst;
-      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-      fragment.isExternal = node.externalKeyword != null;
-      fragment.isFinal = node.fields.isFinal;
-      fragment.isLate = node.fields.isLate;
-      fragment.isOriginDeclaration = true;
-      fragment.isStatic = node.isStatic;
-      fragment.metadata = metadata;
-
-      if (variable.initializer2 case var initializer?) {
-        if (node.fields.isConst) {
-          fragment.constantInitializer2 = initializer;
-        } else if (node.fields.isFinal && !node.isStatic) {
-          fragment.constantInitializer2 = initializer;
-          _libraryBuilder.finalInstanceFields.add(fragment);
-        }
-      }
-
-      if (node.fields.type == null) {
-        fragment.hasImplicitType = true;
-      }
-
-      variable.declaredFragment = fragment;
-      _linker.setFragmentNode(fragment, variable);
-
-      _addChildFragment(fragment);
-    }
-    node.fields.type?.accept2(this);
-  }
-
-  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
@@ -1759,6 +1705,49 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     // TODO(scheglov): check that we don't set reference for parameters
     _buildFunctionTypedParameterSuffix(fragment, node.functionTypedSuffix);
 
+    node.type?.accept2(this);
+  }
+
+  @override
+  void visitFieldsDeclaration(covariant FieldsDeclarationImpl node) {
+    var metadata = _buildMetadata(node.metadata);
+    var isConst = node.constKeyword != null;
+    var isFinal = node.finalKeyword != null;
+    var isStatic = node.staticKeyword != null;
+    for (var field in node.fields) {
+      var nameToken = field.name;
+
+      var fragment = FieldFragmentImpl(name: _getFragmentName(nameToken));
+      fragment.hasInitializer = field.initializer != null;
+      fragment.isAbstract = node.abstractKeyword != null;
+      fragment.isAugmentation = node.augmentKeyword != null;
+      fragment.isConst = isConst;
+      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
+      fragment.isExternal = node.externalKeyword != null;
+      fragment.isFinal = isFinal;
+      fragment.isLate = node.lateKeyword != null;
+      fragment.isOriginDeclaration = true;
+      fragment.isStatic = isStatic;
+      fragment.metadata = metadata;
+
+      if (field.initializer case var initializer?) {
+        if (isConst) {
+          fragment.constantInitializer2 = initializer;
+        } else if (isFinal && !isStatic) {
+          fragment.constantInitializer2 = initializer;
+          _libraryBuilder.finalInstanceFields.add(fragment);
+        }
+      }
+
+      if (node.type == null) {
+        fragment.hasImplicitType = true;
+      }
+
+      field.declaredFragment = fragment;
+      _linker.setFragmentNode(fragment, field);
+
+      _addChildFragment(fragment);
+    }
     node.type?.accept2(this);
   }
 
@@ -2398,6 +2387,29 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       return null;
     }
     return nameToken.lexeme;
+  }
+
+  /// Wraps the synthetic [field] of an enum into a [FieldsDeclarationImpl],
+  /// so that it has a parent, as a field declared in code.
+  void _syntheticFieldsDeclaration(
+    Field2Impl field, {
+    Token? constKeyword,
+    TypeAnnotationImpl? type,
+  }) {
+    FieldsDeclarationImpl(
+      comment: null,
+      metadata: null,
+      augmentKeyword: null,
+      externalKeyword: null,
+      staticKeyword: null,
+      abstractKeyword: null,
+      covariantKeyword: null,
+      lateKeyword: null,
+      constFinalOrVarKeyword: constKeyword,
+      type: type,
+      fields: [field],
+      semicolon: Tokens.semicolon(),
+    );
   }
 
   void _withEnclosing(_EnclosingContext context, void Function() f) {

@@ -885,6 +885,30 @@ class C {
     assertInContext("C()}", true);
   }
 
+  test_inConstantContext_constructorInvocation_staticConstField_true() {
+    parse('''
+class C {
+  static const d = D();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", true);
+  }
+
+  test_inConstantContext_constructorInvocation_staticFinalField_false() {
+    parse('''
+class C {
+  static final d = D();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", false);
+  }
+
   test_inConstantContext_constructorInvocation_switch_true() {
     parse('''
 f(v) {

@@ -62,7 +62,7 @@ class AstFinder {
 
   /// Return the declaration of the field with the given [fieldName] in the
   /// class with the given [className] in the given compilation [unit].
-  static VariableDeclaration getFieldInClass(
+  static Field2 getFieldInClass(
     CompilationUnit unit,
     String className,
     String fieldName,
@@ -70,9 +70,8 @@ class AstFinder {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
     for (var classMember in classBody.members2) {
-      if (classMember is FieldDeclaration) {
-        NodeList<VariableDeclaration> fields = classMember.fields.variables;
-        for (VariableDeclaration field in fields) {
+      if (classMember is FieldsDeclaration) {
+        for (var field in classMember.fields) {
           if (field.name.lexeme == fieldName) {
             return field;
           }

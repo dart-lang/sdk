@@ -83,8 +83,10 @@ class _LocalNameScope {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
     for (var member in node.body.members2) {
-      if (member is FieldDeclarationImpl) {
-        scope.addVariableNames(member.fields);
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
       } else if (member is MethodDeclarationV1OriginImpl) {
         scope.add(member.nameToken);
       }
@@ -114,8 +116,10 @@ class _LocalNameScope {
     var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
     for (var member in node.body.members2) {
-      if (member is FieldDeclarationImpl) {
-        scope.addVariableNames(member.fields);
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
       } else if (member is MethodDeclarationV1OriginImpl) {
         scope.add(member.nameToken);
       }
@@ -232,12 +236,6 @@ class _LocalNameScope {
   void addTypeParameters(TypeParameterList? typeParameterList) {
     if (typeParameterList != null) {
       typeParameterList.typeParameters.map((p) => p.name).forEach(add);
-    }
-  }
-
-  void addVariableNames(VariableDeclarationList variableList) {
-    for (VariableDeclaration variable in variableList.variables) {
-      add(variable.name);
     }
   }
 

@@ -366,15 +366,15 @@ class _ClassVerifier {
     // Check the members of the class itself, against all the previously
     // collected superinterfaces of the supertype, mixins, and interfaces.
     for (var member in members) {
-      if (member is FieldDeclarationImpl) {
-        var fieldList = member.fields;
-        for (var field in fieldList.variables) {
-          var fieldFragment = field.declaredFragment! as FieldFragmentImpl;
+      if (member is FieldsDeclarationImpl) {
+        var isStatic = member.staticKeyword != null;
+        for (var field in member.fields) {
+          var fieldFragment = field.declaredFragment!;
           _checkDeclaredField(field.name, fieldFragment.element);
-          if (!member.isStatic && element is! EnumElementImpl) {
+          if (!isStatic && element is! EnumElementImpl) {
             _checkIllegalEnumValuesDeclaration(field.name);
           }
-          if (!member.isStatic) {
+          if (!isStatic) {
             _checkIllegalConcreteEnumMemberDeclaration(field.name);
           }
         }
@@ -934,17 +934,17 @@ class _ClassVerifier {
           name += '=';
         }
         if (checkMemberNameCombo(member, name, displayName)) return true;
-      } else if (member is FieldDeclaration) {
+      } else if (member is FieldsDeclaration) {
         if (member.augmentKeyword != null) {
           continue;
         }
         if (classElement is EnumElement && member.abstractKeyword != null) {
           continue;
         }
-        for (var variableDeclaration in member.fields.variables) {
-          var name = variableDeclaration.name.lexeme;
+        for (var field in member.fields) {
+          var name = field.name.lexeme;
           if (checkMemberNameCombo(member, name, name)) return true;
-          if (!variableDeclaration.isFinal) {
+          if (member.finalKeyword == null) {
             if (checkMemberNameCombo(member, '$name=', name)) return true;
           }
         }

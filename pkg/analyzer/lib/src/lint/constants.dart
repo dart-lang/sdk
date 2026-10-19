@@ -27,9 +27,9 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 /// of the constructor does not check them for invalid named reads.
 bool _hasInvalidNamedReadInFieldInitializers(List<AnnotatedNode> members) {
   for (var member in members) {
-    if (member is FieldDeclaration && !member.isStatic) {
-      for (var variable in member.fields.variables) {
-        if (variable.initializer2?._hasInvalidNamedRead ?? false) {
+    if (member is FieldsDeclaration && member.staticKeyword == null) {
+      for (var variable in member.fields) {
+        if (variable.initializer?._hasInvalidNamedRead ?? false) {
           return true;
         }
       }

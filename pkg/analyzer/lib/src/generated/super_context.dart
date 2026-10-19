@@ -66,11 +66,11 @@ class SuperContext {
         return SuperContext.extension;
       } else if (node is ExtensionTypeDeclaration) {
         return SuperContext.extensionType;
-      } else if (node is FieldDeclaration) {
+      } else if (node is FieldsDeclaration) {
         if (node.staticKeyword != null) {
           return SuperContext.static;
         }
-        if (node.fields.lateKeyword == null) {
+        if (node.lateKeyword == null) {
           return SuperContext.static;
         }
       } else if (node is FormalParameterDefaultClause) {

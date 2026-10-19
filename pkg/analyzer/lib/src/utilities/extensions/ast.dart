@@ -281,9 +281,20 @@ extension ExtensionElementExtension on ExtensionElement {
       extendedType.tryCast<InterfaceType>()?.element;
 }
 
+extension Field2Extension on Field2 {
+  FieldElementImpl get declaredElement {
+    return declaredFragment!.element as FieldElementImpl;
+  }
+}
+
+@V1Ast('The V2 counterpart is FieldsDeclarationExtension.')
 extension FieldDeclarationExtension on FieldDeclaration {
   Element get firstVariableElement =>
       fields.variables.first.declaredFragment!.element;
+}
+
+extension FieldsDeclarationExtension on FieldsDeclaration {
+  Element get firstVariableElement => fields.first.declaredFragment!.element;
 }
 
 extension InterpolationExpressionExtension on InterpolationExpression {
@@ -333,6 +344,7 @@ extension TopLevelVariablesDeclarationExtension
   Element get firstVariableElement => variables.first.declaredFragment!.element;
 }
 
+@V1Ast('The V2 counterpart is Field2Extension.')
 extension VariableDeclarationExtension on VariableDeclaration {
   FieldElementImpl get declaredFieldElement {
     return declaredFragment!.element as FieldElementImpl;

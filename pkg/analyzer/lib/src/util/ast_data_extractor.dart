@@ -174,6 +174,12 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitField2(Field2 node) {
+    computeForMember(node, createMemberId(node));
+    super.visitField2(node);
+  }
+
+  @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     // A for-in loop has no enclosing expression to attribute the write of its
     // variable to, so flow analysis attributes it to the target.
@@ -299,12 +305,6 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   void visitTopLevelVariable2(TopLevelVariable2 node) {
     computeForMember(node, createMemberId(node));
     super.visitTopLevelVariable2(node);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    computeForMember(node, createMemberId(node));
-    super.visitVariableDeclaration(node);
   }
 
   int _nodeOffset(AstNode node) {

@@ -624,15 +624,9 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
-    _visitToken(node.externalKeyword, suffix: ' ');
-    _visitToken(node.staticKeyword, suffix: ' ');
-    _visitToken(node.abstractKeyword, suffix: ' ');
-    _visitToken(node.covariantKeyword, suffix: ' ');
-    _visitNode(node.fields);
-    sink.write(';');
+  void visitField2(Field2 node) {
+    _visitToken(node.name);
+    _visitNode(node.initializer, prefix: ' = ');
   }
 
   @override
@@ -642,6 +636,21 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.name);
     _visitNode(node.functionTypedSuffix);
     _visitNode(node.defaultClause);
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitToken(node.staticKeyword, suffix: ' ');
+    _visitToken(node.abstractKeyword, suffix: ' ');
+    _visitToken(node.covariantKeyword, suffix: ' ');
+    _visitToken(node.lateKeyword, suffix: ' ');
+    _visitToken(node.constFinalOrVarKeyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    _visitNodeList(node.fields, separator: ', ');
+    sink.write(';');
   }
 
   @override
@@ -1818,22 +1827,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     _visitToken(node.name);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.name);
-    _visitNode(node.initializer2, prefix: ' = ');
-  }
-
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.lateKeyword, suffix: ' ');
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.type, suffix: ' ');
-    _visitNodeList(node.variables, separator: ', ');
   }
 
   @override

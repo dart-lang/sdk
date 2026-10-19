@@ -273,6 +273,12 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(covariant Field2Impl node) {
+    super.visitField2(node);
+    _checkVariableInitializer(node);
+  }
+
+  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
@@ -558,12 +564,6 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
     super.visitTopLevelVariable2(node);
-    _checkVariableInitializer(node);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    super.visitVariableDeclaration(node);
     _checkVariableInitializer(node);
   }
 
@@ -995,14 +995,13 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     required bool isEnumDeclaration,
   }) {
     for (var member in members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (VariableDeclaration variableDeclaration
-            in member.fields.variables) {
+      if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var variableDeclaration in member.fields) {
           if (isEnumDeclaration &&
               variableDeclaration.name.lexeme == 'values') {
             continue;
           }
-          var initializer = variableDeclaration.initializer2;
+          var initializer = variableDeclaration.initializer;
           if (initializer != null) {
             // Ignore any diagnostics produced during validation--if the
             // constant can't be evaluated we'll just report a single error.
@@ -1042,14 +1041,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     required bool isEnumDeclaration,
   }) {
     for (var member in members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (var variableDeclaration in member.fields.variables) {
+      if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var variableDeclaration in member.fields) {
           if (isEnumDeclaration &&
               variableDeclaration.name.lexeme == 'values') {
             continue;
           }
 
-          var initializer = variableDeclaration.initializer2;
+          var initializer = variableDeclaration.initializer;
           if (initializer == null) {
             continue;
           }
@@ -1753,24 +1752,20 @@ extension on Expression {
         // A parameter default value does not constitute a constant context, but
         // must be a constant expression.
         return true;
-      } else if (parent is VariableDeclaration &&
-          child == parent.initializer2) {
-        var declarationList = parent.parent2;
-        if (declarationList is VariableDeclarationList) {
-          var declarationListParent = declarationList.parent2;
-          if (declarationListParent is FieldDeclaration &&
-              !declarationListParent.isStatic) {
-            var body = declarationListParent.parent2;
-            if (body is BlockClassBody) {
-              var container = body.parent2;
-              if (container is ClassDeclaration) {
-                var enclosingClass = container.declaredFragment!.element;
-                if (enclosingClass is ClassElementImpl) {
-                  // A field initializer of a class with at least one generative
-                  // const constructor does not constitute a constant context, but
-                  // must be a constant expression.
-                  return enclosingClass.hasGenerativeConstConstructor;
-                }
+      } else if (parent is Field2 && child == parent.initializer) {
+        var declaration = parent.parent2;
+        if (declaration is FieldsDeclaration &&
+            declaration.staticKeyword == null) {
+          var body = declaration.parent2;
+          if (body is BlockClassBody) {
+            var container = body.parent2;
+            if (container is ClassDeclaration) {
+              var enclosingClass = container.declaredFragment!.element;
+              if (enclosingClass is ClassElementImpl) {
+                // A field initializer of a class with at least one generative
+                // const constructor does not constitute a constant context, but
+                // must be a constant expression.
+                return enclosingClass.hasGenerativeConstConstructor;
               }
             }
           }

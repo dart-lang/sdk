@@ -19,8 +19,8 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
   void appendClassMemberName(ClassMemberV1OrV2Impl member) {
     if (member is MethodDeclarationV1OriginImpl) {
       appendName(names.classMemberNames, member.nameToken);
-    } else if (member is FieldDeclarationImpl) {
-      for (var field in member.fields.variables) {
+    } else if (member is FieldsDeclarationImpl) {
+      for (var field in member.fields) {
         appendName(names.classMemberNames, field.name);
       }
     }

@@ -119,7 +119,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
     for (var field in fragment.fields) {
       if (field.isEnumConstant || field.isOriginEnumValues) {
         var fieldNode = linker.getLinkingNode(field);
-        fieldNode as VariableDeclarationImpl;
+        fieldNode as Field2Impl;
         fieldNode.initializerScope = node.bodyScope;
       }
     }
@@ -153,13 +153,19 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    _scopeContext.visitFieldDeclaration(node, visitor: this);
+  void visitField2(covariant Field2Impl node) {
+    node.initializerScope = nameScope;
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(covariant FieldsDeclarationImpl node) {
+    _scopeContext.visitFieldsDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override
@@ -400,19 +406,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.typeParameters.accept2(this);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    node.initializerScope = nameScope;
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    _scopeContext.visitVariableDeclarationList(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
   }
 
   @override

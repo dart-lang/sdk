@@ -445,18 +445,31 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _checkForColonDefaultValue(node);
+    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
+    _elementUsageFrontierDetector.formalParameter(node);
+    _checkFinalParameter(node);
+    try {
+      super.visitFieldFormalParameter(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+    }
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
     _elementUsageFrontierDetector.pushElement(node.firstVariableElement);
 
     try {
-      super.visitFieldDeclaration(node);
-      for (var field in node.fields.variables) {
+      super.visitFieldsDeclaration(node);
+      for (var field in node.fields) {
         if (!_invalidAccessVerifier._inTestDirectory) {
-          _checkForAssignmentOfDoNotStore(field.initializer2);
+          _checkForAssignmentOfDoNotStore(field.initializer);
         }
 
         var element = field.declaredFragment!.element;
-        var enclosingElement = element.enclosingElement!;
+        var enclosingElement = element.enclosingElement;
         if (enclosingElement is! InterfaceElement) {
           continue;
         }
@@ -487,19 +500,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
           );
         }
       }
-    } finally {
-      _elementUsageFrontierDetector.popElement();
-    }
-  }
-
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    _checkForColonDefaultValue(node);
-    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
-    _elementUsageFrontierDetector.formalParameter(node);
-    _checkFinalParameter(node);
-    try {
-      super.visitFieldFormalParameter(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }

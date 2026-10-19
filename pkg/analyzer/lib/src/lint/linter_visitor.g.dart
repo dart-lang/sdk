@@ -1680,15 +1680,23 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _runSubscriptions(node, _registry._forFieldDeclaration);
+  void visitField2(Field2 node) {
+    _runSubscriptions(node, _registry._forField2);
     node.visitChildren2(this);
   }
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     _runSubscriptions(node, _registry._forFieldFormalParameter);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _runSubscriptions(node, _registry._forFieldsDeclaration);
     node.visitChildren2(this);
   }
 
@@ -2652,18 +2660,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     _runSubscriptions(node, _registry._forUnqualifiedNameExpression);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _runSubscriptions(node, _registry._forVariableDeclaration);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _runSubscriptions(node, _registry._forVariableDeclarationList);
     node.visitChildren2(this);
   }
 
@@ -4677,10 +4673,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ExtensionTypeDeclaration>>
   _forExtensionTypeDeclaration = [];
 
-  final List<_Subscription2<FieldDeclaration>> _forFieldDeclaration = [];
+  final List<_Subscription2<Field2>> _forField2 = [];
 
   final List<_Subscription2<FieldFormalParameter>> _forFieldFormalParameter =
       [];
+
+  final List<_Subscription2<FieldsDeclaration>> _forFieldsDeclaration = [];
 
   final List<_Subscription2<ForEachPartsWithDeclaration>>
   _forForEachPartsWithDeclaration = [];
@@ -5033,11 +5031,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<UnqualifiedNameExpression>>
   _forUnqualifiedNameExpression = [];
-
-  final List<_Subscription2<VariableDeclaration>> _forVariableDeclaration = [];
-
-  final List<_Subscription2<VariableDeclarationList>>
-  _forVariableDeclarationList = [];
 
   final List<_Subscription2<WhenClause>> _forWhenClause = [];
 
@@ -5627,9 +5620,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addFieldDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addField2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forFieldDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forField2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5638,6 +5631,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
     _forFieldFormalParameter.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
+  }
+
+  @override
+  void addFieldsDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+    _hasNodeProcessors = true;
+    _forFieldsDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -6797,23 +6796,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forUnqualifiedNameExpression.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
-  void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forVariableDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addVariableDeclarationList(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forVariableDeclarationList.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

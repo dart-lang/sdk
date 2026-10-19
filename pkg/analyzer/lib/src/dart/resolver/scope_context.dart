@@ -219,12 +219,32 @@ class ScopeContext {
     });
   }
 
-  void visitFieldDeclaration(
-    FieldDeclarationImpl node, {
+  void visitFieldsDeclaration(
+    FieldsDeclarationImpl node, {
     required AstVisitor2 visitor,
   }) {
-    withInStaticMember(node.isStatic, () {
-      node.visitChildren2(visitor);
+    var isStatic = node.staticKeyword != null;
+    withInStaticMember(isStatic, () {
+      var fieldsScope = nameScope;
+
+      // Use different scope for instance non-late field initializers.
+      if (!isStatic && node.lateKeyword == null) {
+        var primaryConstructor = node.enclosingPrimaryConstructor;
+        if (primaryConstructor != null) {
+          fieldsScope = _constructorInitializerScope(
+            primaryConstructor.declaredFragment!,
+          );
+        }
+      }
+
+      node.visitChildrenWithHooks(
+        visitor,
+        visitFields: (fields) {
+          withScope(fieldsScope, () {
+            fields.accept2(visitor);
+          });
+        },
+      );
     });
   }
 
@@ -489,32 +509,6 @@ class ScopeContext {
     });
   }
 
-  void visitVariableDeclarationList(
-    VariableDeclarationListImpl node, {
-    required AstVisitor2 visitor,
-  }) {
-    node.metadata.accept2(visitor);
-    node.type?.accept2(visitor);
-
-    var variablesScope = nameScope;
-
-    // Use different scope for instance non-late field initializers.
-    if (node.parent2 case FieldDeclarationImpl fieldDeclaration) {
-      if (!fieldDeclaration.isStatic && node.lateKeyword == null) {
-        var primaryConstructor = fieldDeclaration.enclosingPrimaryConstructor;
-        if (primaryConstructor != null) {
-          variablesScope = _constructorInitializerScope(
-            primaryConstructor.declaredFragment!,
-          );
-        }
-      }
-    }
-
-    withScope(variablesScope, () {
-      node.variables.accept2(visitor);
-    });
-  }
-
   void withExtensionScope(
     ExtensionElementImpl element,
     void Function() operation,
@@ -645,7 +639,7 @@ extension LocalScopeExtension on LocalScope {
   }
 }
 
-extension _FieldDeclarationExtension on FieldDeclaration {
+extension _FieldsDeclarationExtension on FieldsDeclaration {
   PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
     return switch (parent2?.parent2) {
       ClassDeclarationImpl(:var namePart) => namePart.tryCast(),

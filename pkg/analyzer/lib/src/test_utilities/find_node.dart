@@ -26,6 +26,8 @@ class FindNode extends _FindNodeBase {
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
 
+  FieldDeclaration get singleFieldDeclaration => _single();
+
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
       _single();
 
@@ -56,6 +58,10 @@ class FindNode extends _FindNodeBase {
   TopLevelVariableDeclaration get singleTopLevelVariableDeclaration =>
       _single();
 
+  VariableDeclaration get singleVariableDeclaration => _single();
+
+  VariableDeclarationList get singleVariableDeclarationList => _single();
+
   VariableDeclarationStatement get singleVariableDeclarationStatement =>
       _single();
 
@@ -85,6 +91,10 @@ class FindNode extends _FindNodeBase {
 
   ExtensionOverride extensionOverride(String search) {
     return _node(search, (n) => n is ExtensionOverride);
+  }
+
+  FieldDeclaration fieldDeclaration(String search) {
+    return _node(search, (n) => n is FieldDeclaration);
   }
 
   FunctionExpressionInvocation functionExpressionInvocation(String search) {
@@ -164,6 +174,14 @@ class FindNode extends _FindNodeBase {
     throw StateError(name);
   }
 
+  VariableDeclaration variableDeclaration(String search) {
+    return _node(search, (n) => n is VariableDeclaration);
+  }
+
+  VariableDeclarationList variableDeclarationList(String search) {
+    return _node(search, (n) => n is VariableDeclarationList);
+  }
+
   VariableDeclarationStatement variableDeclarationStatement(String search) {
     return _node(search, (n) => n is VariableDeclarationStatement);
   }
@@ -226,6 +244,10 @@ class FindNode2 extends _FindNodeBase {
       _single();
 
   DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
+
+  Field2 get singleField => _single();
+
+  FieldsDeclaration get singleFieldsDeclaration => _single();
 
   FunctionTypeAlias2 get singleFunctionTypeAlias => _single();
 
@@ -328,6 +350,14 @@ class FindNode2 extends _FindNodeBase {
 
   ExtensionOverride2 extensionOverride2(String search) {
     return _node(search, (n) => n is ExtensionOverride2);
+  }
+
+  Field2 field(String search) {
+    return _node(search, (n) => n is Field2);
+  }
+
+  FieldsDeclaration fieldsDeclaration(String search) {
+    return _node(search, (n) => n is FieldsDeclaration);
   }
 
   FunctionTypeAlias2 functionTypeAlias(String search) {
@@ -620,8 +650,6 @@ abstract class _FindNodeBase {
 
   ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
-  FieldDeclaration get singleFieldDeclaration => _single();
-
   FieldFormalParameter get singleFieldFormalParameter => _single();
 
   ForEachPartsWithIdentifier get singleForEachPartsWithIdentifier => _single();
@@ -802,10 +830,6 @@ abstract class _FindNodeBase {
   TypeParameter get singleTypeParameter => _single();
 
   TypeParameterList get singleTypeParameterList => _single();
-
-  VariableDeclaration get singleVariableDeclaration => _single();
-
-  VariableDeclarationList get singleVariableDeclarationList => _single();
 
   WhenClause get singleWhenClause => _single();
 
@@ -1035,10 +1059,6 @@ abstract class _FindNodeBase {
 
   ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
     return _node(search, (n) => n is ExtensionTypeDeclaration);
-  }
-
-  FieldDeclaration fieldDeclaration(String search) {
-    return _node(search, (n) => n is FieldDeclaration);
   }
 
   FieldFormalParameter fieldFormalParameter(String search) {
@@ -1460,14 +1480,6 @@ abstract class _FindNodeBase {
 
   TypeParameterList typeParameterList(String search) {
     return _node(search, (n) => n is TypeParameterList);
-  }
-
-  VariableDeclaration variableDeclaration(String search) {
-    return _node(search, (n) => n is VariableDeclaration);
-  }
-
-  VariableDeclarationList variableDeclarationList(String search) {
-    return _node(search, (n) => n is VariableDeclarationList);
   }
 
   WhenClause whenClause(String search) {

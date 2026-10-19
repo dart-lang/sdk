@@ -266,8 +266,8 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
                   if (member.name!.lexeme == name) {
                     return member.offset;
                   }
-                } else if (member is FieldDeclaration) {
-                  for (var variable in member.fields.variables) {
+                } else if (member is FieldsDeclaration) {
+                  for (var variable in member.fields) {
                     if (variable.name.lexeme == name) {
                       return variable.offset;
                     }

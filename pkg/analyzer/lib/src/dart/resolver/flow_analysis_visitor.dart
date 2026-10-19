@@ -1171,6 +1171,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(Field2 node) {
+    throw StateError('Should not visit field declarations');
+  }
+
+  @override
   void visitForElement(covariant ForElementImpl node) {
     _handleFor(node, node.forLoopParts, node.body2);
   }
@@ -1356,11 +1361,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     if (node.scopeLookupResult?.getter case PromotableElementImpl element) {
       assignedVariables.read(element);
     }
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    throw StateError('Should not visit field declarations');
   }
 
   @override

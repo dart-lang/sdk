@@ -2394,14 +2394,22 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) {
+  R? visitField2(Field2 node) {
     node.visitChildren2(this);
     return null;
   }
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3361,18 +3369,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitVariableDeclaration(VariableDeclaration node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitWhenClause(WhenClause node) {
     node.visitChildren2(this);
     return null;
@@ -4248,11 +4244,16 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) => null;
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) => null;
+  R? visitField2(Field2 node) => null;
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) => null;
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) => null;
 
   @override
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) => null;
@@ -4781,12 +4782,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) => null;
-
-  @override
-  R? visitVariableDeclaration(VariableDeclaration node) => null;
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) => null;
 
   @override
   R? visitWhenClause(WhenClause node) => null;
@@ -5679,11 +5674,16 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
       _throw(node);
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) => _throw(node);
+  R? visitField2(Field2 node) => _throw(node);
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) => _throw(node);
 
   @override
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
@@ -6225,12 +6225,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) =>
       _throw(node);
-
-  @override
-  R? visitVariableDeclaration(VariableDeclaration node) => _throw(node);
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) => _throw(node);
 
   @override
   R? visitWhenClause(WhenClause node) => _throw(node);
@@ -8386,10 +8380,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitFieldDeclaration(FieldDeclaration node) {
+  T? visitField2(Field2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitFieldDeclaration(node);
+    T? result = _baseVisitor.visitField2(node);
     stopwatch.stop();
     return result;
   }
@@ -8398,6 +8393,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitFieldFormalParameter(FieldFormalParameter node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFieldFormalParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitFieldsDeclaration(FieldsDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitFieldsDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -9651,22 +9655,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitVariableDeclaration(VariableDeclaration node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariableDeclaration(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitVariableDeclarationList(VariableDeclarationList node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariableDeclarationList(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitWhenClause(WhenClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWhenClause(node);
@@ -10612,11 +10600,16 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
       visitNode(node);
 
+  @experimental
   @override
-  R? visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
+  R? visitField2(Field2 node) => visitNode(node);
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitFieldsDeclaration(FieldsDeclaration node) => visitNode(node);
 
   @override
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) =>
@@ -11176,13 +11169,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node) =>
-      visitNode(node);
-
-  @override
-  R? visitVariableDeclaration(VariableDeclaration node) => visitNode(node);
-
-  @override
-  R? visitVariableDeclarationList(VariableDeclarationList node) =>
       visitNode(node);
 
   @override

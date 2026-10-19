@@ -187,8 +187,8 @@ class TypesBuilder {
       _superFormalParameter(node);
     } else if (node is TypeParameterImpl) {
       _typeParameter(node);
-    } else if (node is VariableDeclarationListImpl) {
-      _variableDeclarationList(node);
+    } else if (node is FieldsDeclarationImpl) {
+      _fieldsDeclaration(node);
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
@@ -250,6 +250,18 @@ class TypesBuilder {
       fragment.element.type = type;
     } else {
       fragment.element.type = node.type?.type ?? _dynamicType;
+    }
+  }
+
+  void _fieldsDeclaration(FieldsDeclarationImpl node) {
+    var type = node.type?.type;
+    if (type != null) {
+      for (var variable in node.fields) {
+        var variableFragment = variable.declaredFragment!;
+        if (variableFragment.previousFragment == null) {
+          variableFragment.element.type = type;
+        }
+      }
     }
   }
 
@@ -494,18 +506,6 @@ class TypesBuilder {
     }
 
     return node.typeParameters.map((p) => p.declaredFragment!).toFixedList();
-  }
-
-  void _variableDeclarationList(VariableDeclarationListImpl node) {
-    var type = node.type?.type;
-    if (type != null) {
-      for (var variable in node.variables) {
-        var variableFragment = variable.declaredFragment!;
-        if (variableFragment.previousFragment == null) {
-          variableFragment.element.type = type;
-        }
-      }
-    }
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

@@ -472,7 +472,7 @@ var v = <int, int, int>{};
 //         ^^^
 // [diag.expectedToken] Expected to find '>'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -498,7 +498,7 @@ var v = <int, int, int>{1};
 //         ^^^
 // [diag.expectedToken] Expected to find '>'.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 SetOrMapLiteral
   typeArguments: TypeArgumentList
@@ -6619,7 +6619,7 @@ V1: PrefixExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = --super;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
   operator: --
@@ -6659,7 +6659,7 @@ V1: PrefixExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = /* 0 */ --super;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 PrefixExpression
   operator: --

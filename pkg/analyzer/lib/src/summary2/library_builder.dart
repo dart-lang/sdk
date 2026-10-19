@@ -126,7 +126,7 @@ class DefiningLinkingUnit extends LinkingUnit {
 class ImplicitEnumNodes {
   final EnumFragmentImpl fragment;
   final ast.NamedTypeImpl valuesTypeNode;
-  final ast.VariableDeclarationImpl valuesNode;
+  final ast.Field2Impl valuesNode;
   final FieldFragmentImpl valuesFragment;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;

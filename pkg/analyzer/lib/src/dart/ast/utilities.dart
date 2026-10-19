@@ -388,8 +388,15 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
       node.statements;
 
   @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    _declarationNode = node;
+  }
+
+  @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    _addVariables(node.variables.variables);
+    for (var variable in node.variables.variables) {
+      _addToScope(variable.name);
+    }
     visitNode(node);
   }
 
@@ -446,6 +453,11 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   @override
   List<Statement> switchMemberStatementsOf(SwitchMember node) =>
       node.statements2;
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _declarationNode = node;
+  }
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
@@ -580,10 +592,6 @@ mixin _ScopedNameFinderMixin {
     _declarationNode = node;
   }
 
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _declarationNode = node;
-  }
-
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _addToScope(node.loopVariable.name);
     visitNode(node);
@@ -620,12 +628,6 @@ mixin _ScopedNameFinderMixin {
     }
   }
 
-  void _addVariables(NodeList<VariableDeclaration> variables) {
-    for (VariableDeclaration variable in variables) {
-      _addToScope(variable.name);
-    }
-  }
-
   /// Check the given list of [statements] for any that come before the
   /// immediate child and that define a name that would be visible to the
   /// immediate child.
@@ -635,7 +637,9 @@ mixin _ScopedNameFinderMixin {
         return;
       }
       if (statement is VariableDeclarationStatement) {
-        _addVariables(statement.variables.variables);
+        for (var variable in statement.variables.variables) {
+          _addToScope(variable.name);
+        }
       } else if (statement is LocalVariablesDeclarationStatement) {
         for (var variable in statement.declaration.variables) {
           _addToScope(variable.name);

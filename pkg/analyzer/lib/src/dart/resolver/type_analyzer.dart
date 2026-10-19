@@ -3152,18 +3152,23 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
-      checkUnreachableNode(node);
-      node.visitChildren2(this);
-      elementResolver.visitFieldDeclaration(node);
-    });
+  void visitField2(covariant Field2Impl node) {
+    _variableDeclarationResolver.resolve(node);
+    _checkTypeInferenceError(node);
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _visitFormalParameter(node);
     elementResolver.visitFieldFormalParameter(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    _withUnpromotedThisType(enclosingInstanceElement?.thisType, () {
+      checkUnreachableNode(node);
+      node.visitChildren2(this);
+    });
   }
 
   @override
@@ -4855,20 +4860,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
     _insertImplicitCallTearOff(replacement, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    _resolveVariable(node);
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
-    elementResolver.visitVariableDeclarationList(node);
   }
 
   @override

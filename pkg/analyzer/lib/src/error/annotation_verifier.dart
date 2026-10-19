@@ -104,9 +104,9 @@ class AnnotationVerifier {
     } else if (parent is TopLevelSetterDeclaration) {
       var type = parent.declaredFragment?.element.type;
       checkType(type?.returnType);
-    } else if (parent case FieldDeclaration(:var fields)) {
-      for (var field in fields.variables) {
-        checkType(field.declaredFieldElement.type, errorNode: field);
+    } else if (parent case FieldsDeclaration(:var fields)) {
+      for (var field in fields) {
+        checkType(field.declaredElement.type, errorNode: field);
       }
     } else if (parent case TopLevelVariablesDeclaration(:var variables)) {
       for (var variable in variables) {
@@ -338,9 +338,9 @@ class AnnotationVerifier {
           );
         }
       }
-    } else if (parent is FieldDeclaration) {
-      for (var variable in parent.fields.variables) {
-        var element = variable.declaredFieldElement;
+    } else if (parent is FieldsDeclaration) {
+      for (var variable in parent.fields) {
+        var element = variable.declaredElement;
         if (element.isPrivate) {
           _diagnosticReporter.report(
             diag.invalidInternalAnnotation.at(variable),
@@ -582,10 +582,10 @@ class AnnotationVerifier {
           reportInvalidAnnotation(variableName);
         }
       }
-    } else if (parent is FieldDeclaration) {
-      for (VariableDeclaration variable in parent.fields.variables) {
-        var fieldElement = variable.declaredFieldElement;
-        if (parent.isStatic && element.isVisibleForOverriding) {
+    } else if (parent is FieldsDeclaration) {
+      for (var variable in parent.fields) {
+        var fieldElement = variable.declaredElement;
+        if (parent.staticKeyword != null && element.isVisibleForOverriding) {
           // This is reported by `_checkKinds`.
           return;
         }
@@ -634,7 +634,7 @@ class AnnotationVerifier {
         containedDeclaration = constructorDeclaration;
       case EnumConstantDeclaration enumConstant:
         containedDeclaration = enumConstant;
-      case FieldDeclaration fieldDeclaration:
+      case FieldsDeclaration fieldDeclaration:
         containedDeclaration = fieldDeclaration;
       case MethodDeclarationV1OriginImpl methodDeclaration:
         containedDeclaration = methodDeclaration;
@@ -795,10 +795,9 @@ class AnnotationVerifier {
   /// can correspond to multiple element targets.
   List<Element> _targetElements(AstNode target) {
     switch (target) {
-      case FieldDeclaration(:var fields):
+      case FieldsDeclaration(:var fields):
         return [
-          for (var variable in fields.variables)
-            ?variable.declaredFragment?.element,
+          for (var variable in fields) ?variable.declaredFragment?.element,
         ];
       case FormalParameter():
         var element = target.declaredFragment?.element;

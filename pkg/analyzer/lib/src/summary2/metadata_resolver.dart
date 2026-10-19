@@ -173,16 +173,16 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     node.metadata.accept2(this);
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
       functionTypedSuffix.formalParameters.accept2(this);
     }
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    node.metadata.accept2(this);
   }
 
   @override

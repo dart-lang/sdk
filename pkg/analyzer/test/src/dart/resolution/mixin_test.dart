@@ -117,7 +117,7 @@ mixin M<T> {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
 FieldsDeclaration
   lateKeyword: late

@@ -201,8 +201,6 @@ class ElementResolver {
 
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
 
-  void visitFieldDeclaration(FieldDeclaration node) {}
-
   void visitFieldFormalParameter(FieldFormalParameter node) {}
 
   void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {}
@@ -379,8 +377,6 @@ class ElementResolver {
       contextType: contextType,
     );
   }
-
-  void visitVariableDeclarationList(VariableDeclarationList node) {}
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
   /// using those argument, compute the list of parameters that correspond to
