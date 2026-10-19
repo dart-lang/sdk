@@ -202,7 +202,6 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
             command += ['-v']
         if UseRBE(out_dir):
             using_rbe = True
-            command += ['-remote_jobs=%s' % str(options.j)]
         else:
             command += ['-offline']
         command += targets
