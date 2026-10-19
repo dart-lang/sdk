@@ -95,7 +95,8 @@ template("_compiled_action") {
 
     args = []
 
-    if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
+    if (_is_dart && use_rbe && !use_siso && host_os == rbe_os &&
+        host_cpu == rbe_cpu) {
       args += [
                 "/usr/bin/python3",
                 rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
@@ -152,7 +153,8 @@ template("_prebuilt_tool_action") {
 
     args = []
 
-    if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
+    if (_is_dart && use_rbe && !use_siso && host_os == rbe_os &&
+        host_cpu == rbe_cpu) {
       args += [
                 "/usr/bin/python3",
                 rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
@@ -359,6 +361,7 @@ template("_built_tool_action") {
 #    visibility
 template("dart_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
+
   _built_tool_action(target_name) {
     tool = "$_dart_root/runtime/bin:dartvm"
     forward_variables_from(invoker,
@@ -419,6 +422,7 @@ template("dart_action") {
 #    visibility
 template("dartaotruntime_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
+
   _built_tool_action(target_name) {
     tool = "$_dart_root/runtime/bin:dartaotruntime"
     forward_variables_from(invoker,
@@ -471,6 +475,7 @@ template("gen_snapshot_action") {
   assert(
       !defined(invoker.script),
       "script must not be defined for $target_name. If there is a script use args instead.")
+
   _built_tool_action(target_name) {
     mnemonic = "GEN_SNAPSHOT"
     if (product_mode) {

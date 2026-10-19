@@ -15,7 +15,7 @@ import("//build/config/sysroot.gni")
 import("//build/toolchain/rbe.gni")
 import("//build/toolchain/signing.gni")
 
-if (use_rbe) {
+if (use_rbe && !use_siso) {
   compiler_args =
       rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
   if (rbe_os != host_os || rbe_cpu != host_cpu) {

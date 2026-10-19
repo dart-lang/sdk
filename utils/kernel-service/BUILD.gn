@@ -58,12 +58,12 @@ application_snapshot("frontend_server") {
     ":frontend_server_files_stamp",
     "../../runtime/vm:kernel_platform_files($host_toolchain)",
   ]
-  sdk_root = rebase_path("$root_out_dir")
+  sdk_root = rebase_path("$root_out_dir", root_build_dir)
   training_args = [
     "--train",
     "--sdk-root=$sdk_root/",
     "--platform=$sdk_root/vm_platform.dill",
-    rebase_path(main_dart),
+    rebase_path(main_dart, root_build_dir),
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
 }
