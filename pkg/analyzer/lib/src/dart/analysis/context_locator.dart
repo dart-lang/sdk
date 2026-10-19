@@ -597,6 +597,10 @@ class _ContextLocator {
   /// Return a list containing the glob patterns used to exclude files from
   /// analysis by the given [optionsFile]. The list will be empty if there is no
   /// options file or if there are no exclusion patterns in the options file.
+  ///
+  /// All patterns are relative to the folder of [optionsFile], including
+  /// patterns from included files, not to their declaring files: shared
+  /// options describe files of the including package.
   List<LocatedGlob> _getExcludedGlobs(
     File? optionsFile,
     SourceFactory sourceFactory,
@@ -622,19 +626,18 @@ class _ContextLocator {
     var pathContext = _resourceProvider.pathContext;
     List<LocatedGlob> patterns = [];
 
-    void addGlob(Folder parent, List<String> components) {
+    void addGlob(List<String> components) {
       var pattern = posix.joinAll(components);
-      patterns.add(LocatedGlob(parent, Glob(pattern, context: pathContext)));
+      patterns.add(
+        LocatedGlob(optionsFile.parent, Glob(pattern, context: pathContext)),
+      );
     }
 
     for (var excluded in excludePatterns) {
       var excludedComponents = posix.split(excluded.pattern);
-      addGlob(excluded.declaringFile.parent, excludedComponents);
+      addGlob(excludedComponents);
       if (excludedComponents.length > 1 && excludedComponents.last == '**') {
-        addGlob(
-          excluded.declaringFile.parent,
-          excludedComponents..removeLast(),
-        );
+        addGlob(excludedComponents..removeLast());
       }
     }
 

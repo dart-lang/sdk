@@ -3524,33 +3524,34 @@ workspaces
     );
   }
 
-  test_packageConfigWorkspace_includedAnalysisOptions_exclude_relativeToDeclaringFile() async {
+  test_packageConfigWorkspace_includedAnalysisOptions_exclude_packageUri() async {
     configuration.withExcludedGlobs = true;
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
-    var testPackageLibPath = '$testPackageRootPath/lib';
+    var fooPackageRootPath = '$workspaceRootPath/foo';
 
-    newAnalysisOptionsYamlFile(workspaceRootPath, r'''
+    newFile('$fooPackageRootPath/lib/included.yaml', r'''
 analyzer:
   exclude:
-    - test/lib/nested/b.dart
+    - build/**
 ''');
 
     newPubspecYamlFile(testPackageRootPath, r'''
 name: test
 ''');
-    newSinglePackageConfigJsonFile(
-      packagePath: testPackageRootPath,
-      name: 'test',
+    newPackageConfigJsonFileFromBuilder(
+      testPackageRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'test', rootFolder: getFolder(testPackageRootPath))
+        ..add(name: 'foo', rootFolder: getFolder(fooPackageRootPath)),
     );
     newAnalysisOptionsYamlFile(testPackageRootPath, r'''
-include: ../analysis_options.yaml
+include: package:foo/included.yaml
 ''');
 
-    newFile('$testPackageLibPath/a.dart', '');
-    newFile('$testPackageLibPath/nested/b.dart', '');
-    newFile('$testPackageRootPath/test/lib/nested/b.dart', '');
+    newFile('$testPackageRootPath/lib/a.dart', '');
+    newFile('$testPackageRootPath/build/generated.dart', '');
 
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
@@ -3570,11 +3571,67 @@ contexts
         uri: package:test/a.dart
         analysisOptions_0
         workspacePackage_0_0
-      /home/test/test/lib/nested/b.dart
+    excludedGlobs
+      build/** in /home/test
+      build in /home/test
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_includedAnalysisOptions_exclude_relativePath() async {
+    configuration.withExcludedGlobs = true;
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+
+    newAnalysisOptionsYamlFile(workspaceRootPath, r'''
+analyzer:
+  exclude:
+    - build/**
+''');
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+include: ../analysis_options.yaml
+''');
+
+    newFile('$testPackageRootPath/lib/a.dart', '');
+    newFile('$testPackageRootPath/build/generated.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(testPackageRootPath).path],
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/pubspec.yaml
+      /home/test/analysis_options.yaml
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
         analysisOptions_0
         workspacePackage_0_0
     excludedGlobs
-      test/lib/nested/b.dart in /home
+      build/** in /home/test
+      build in /home/test
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
 workspaces
