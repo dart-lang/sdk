@@ -154,86 +154,147 @@ class _DebuggingSession {
     // It is more efficient doing it this way instead of invoking the Dart CLI
     // with the 'development-service' command which would then dispatch to the
     // Dart AOT runtime.
-    final dartDir = File(Platform.executable).parent.path;
+    final isProduct = const bool.fromEnvironment('dart.vm.product');
+    final candidateDirs = [
+      File(Platform.resolvedExecutable).parent.path,
+      File(Platform.executable).parent.path,
+    ];
     final suffix = Platform.isWindows ? '.exe' : '';
     final dartAotRuntime = 'dartaotruntime${suffix}';
     final dart = 'dart${suffix}';
-    var executable = [dartDir, dartAotRuntime].join(Platform.pathSeparator);
-    var script = [
-      dartDir,
-      'snapshots',
-      'dds_aot.dart.snapshot',
+    var executable = [
+      candidateDirs.first,
+      dartAotRuntime,
     ].join(Platform.pathSeparator);
-    if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
-      script = [dartDir, 'dds_aot.dart.snapshot'].join(Platform.pathSeparator);
-      if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
-        // We could be running on IA32 architecture so check if the JIT
-        // snapshot is available.
-        executable = [dartDir, dart].join(Platform.pathSeparator);
-        script = [dartDir, 'dds.dart.snapshot'].join(Platform.pathSeparator);
-        if (FileSystemEntity.typeSync(script) ==
+
+    // In product builds (e.g., prebuilt SDKs and google3), the AOT snapshot is
+    // built with the product-mode AOT runtime (`dds_aot_product.dart.snapshot`),
+    // whereas local non-product SDK builds produce `dds_aot.dart.snapshot`.
+    // Check the snapshot matching the current runtime mode first, falling back
+    // to the other if only one was built in the output directory.
+    final aotSnapshots = isProduct
+        ? ['dds_aot_product.dart.snapshot', 'dds_aot.dart.snapshot']
+        : ['dds_aot.dart.snapshot', 'dds_aot_product.dart.snapshot'];
+
+    String? script;
+    for (final dartDir in candidateDirs) {
+      for (final name in aotSnapshots) {
+        final direct = [dartDir, name].join(Platform.pathSeparator);
+        if (FileSystemEntity.typeSync(direct) !=
             FileSystemEntityType.notFound) {
-          script = 'development-service';
+          script = direct;
+          executable = [dartDir, dartAotRuntime].join(Platform.pathSeparator);
+          break;
+        }
+        final inSnapshots = [
+          dartDir,
+          'snapshots',
+          name,
+        ].join(Platform.pathSeparator);
+        if (FileSystemEntity.typeSync(inSnapshots) !=
+            FileSystemEntityType.notFound) {
+          script = inSnapshots;
+          executable = [dartDir, dartAotRuntime].join(Platform.pathSeparator);
+          break;
         }
       }
+      if (script != null) break;
     }
 
-    // If the directory of dart is '.' it's likely that dart is on the user's
-    // PATH. If so, './dart' might not exist and we should be using 'dart'
-    // instead.
-    if (dartDir == '.' &&
-        (FileSystemEntity.typeSync(executable)) ==
-            FileSystemEntityType.notFound) {
-      executable = dart;
+    script ??= 'development-service';
+
+    // If the directory of dart is '.' or executable not found at path, it's
+    // likely that dart/dartaotruntime is on the user's PATH.
+    if ((FileSystemEntity.typeSync(executable)) ==
+        FileSystemEntityType.notFound) {
+      executable = (script == 'development-service') ? dart : dartAotRuntime;
     }
-    var process;
+    final args = [
+      script,
+      '--vm-service-uri=$serverAddress',
+      '--bind-address=$host',
+      '--bind-port=$port',
+      if (disableServiceAuthCodes) '--disable-service-auth-codes',
+      if (enableDevTools) '--serve-devtools',
+      if (_enableServicePortFallback) '--enable-service-port-fallback',
+    ];
+    Process process;
     try {
-      _process = process = await Process.start(executable, [
-        script,
-        '--vm-service-uri=$serverAddress',
-        '--bind-address=$host',
-        '--bind-port=$port',
-        if (disableServiceAuthCodes) '--disable-service-auth-codes',
-        if (enableDevTools) '--serve-devtools',
-        if (_enableServicePortFallback) '--enable-service-port-fallback',
-      ], mode: ProcessStartMode.detachedWithStdio);
+      _process = process = await Process.start(
+        executable,
+        args,
+        mode: ProcessStartMode.detachedWithStdio,
+      );
     } catch (e) {
       stderr.writeln('Could not start the VM service: Process.start failed\n');
       return false;
     }
 
-    // DDS will close stderr once it's finished launching.
-    final launchResultStderr = await process.stderr
+    // Drain stdout immediately so the child process never blocks on write.
+    unawaited(process.stdout.drain());
+
+    // DDS will emit a JSON status message to stderr once finished launching.
+    final launchResultCompleter = Completer<Map<String, Object?>?>();
+    final stderrBuffer = StringBuffer();
+    process.stderr
         .transform(utf8.decoder)
-        .join();
+        .transform(const LineSplitter())
+        .listen(
+          (line) {
+            stderrBuffer.writeln(line);
+            if (!launchResultCompleter.isCompleted) {
+              try {
+                if (json.decode(line) case final Map<String, Object?> result) {
+                  launchResultCompleter.complete(result);
+                }
+              } on FormatException {
+                // Non-JSON stderr lines (e.g., VM warnings or crash stack
+                // traces) are buffered in `stderrBuffer` and logged below if
+                // DDS exits without emitting a valid JSON launch result.
+              }
+            }
+          },
+          onDone: () {
+            if (!launchResultCompleter.isCompleted) {
+              launchResultCompleter.complete(null);
+            }
+          },
+          onError: (Object e) {
+            if (!launchResultCompleter.isCompleted) {
+              launchResultCompleter.completeError(e);
+            }
+          },
+          cancelOnError: false,
+        );
+
+    final result = await launchResultCompleter.future;
 
     void printError(String details) =>
         stderr.writeln('Could not start the VM service: $details');
 
-    try {
-      final result = json.decode(launchResultStderr) as Map<String, dynamic>;
-      if (result case {'state': 'started'}) {
-        if (result case {'devToolsUri': String devToolsUri}) {
-          // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
-          // is changed to ensure consistency.
-          const devToolsMessagePrefix =
-              'The Dart DevTools debugger and profiler is available at:';
-          serverPrint('$devToolsMessagePrefix $devToolsUri');
-        }
-        if (result case {'dtd': {'uri': String dtdUri}} when _printDtd) {
-          serverPrint('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
-        }
-      } else {
-        printError(result['error'] ?? result);
-        return false;
-      }
-    } catch (_) {
-      // Malformed JSON was likely encountered, so output the entirety of
-      // stderr in the error message.
-      printError("Couldn't parse JSON: ${launchResultStderr}");
+    if (result == null) {
+      printError("Couldn't parse JSON: $stderrBuffer");
       return false;
     }
-    return true;
+    if (result case {'state': 'started'}) {
+      if (result case {'devToolsUri': final String devToolsUri}) {
+        // NOTE: update pkg/dartdev/lib/src/commands/run.dart if this message
+        // is changed to ensure consistency.
+        const devToolsMessagePrefix =
+            'The Dart DevTools debugger and profiler is available at:';
+        serverPrint('$devToolsMessagePrefix $devToolsUri');
+      }
+      if (result case {'dtd': {'uri': final String dtdUri}} when _printDtd) {
+        serverPrint('The Dart Tooling Daemon (DTD) is available at: $dtdUri');
+      }
+      return true;
+    }
+    if (result case {'state': 'error', 'errorDetails': final String details}) {
+      printError(details);
+      return false;
+    }
+    printError('${result['error'] ?? result}');
+    return false;
   }
 
   void shutdown() => _process?.kill();
@@ -273,10 +334,16 @@ class Server {
     }
     final server = _httpServer;
     if (server != null) {
-      final ip = server.address.address;
-      final port = server.port;
-      final path = !_authCodesDisabled ? '$serviceAuthToken/' : '/';
-      return Uri(scheme: 'http', host: ip, port: port, path: path);
+      try {
+        final ip = server.address.address;
+        final port = server.port;
+        final path = !_authCodesDisabled ? '$serviceAuthToken/' : '/';
+        return Uri(scheme: 'http', host: ip, port: port, path: path);
+      } catch (_) {
+        // [server.address] or [server.port] can throw if the server is closing
+        // or closed during shutdown.
+        return null;
+      }
     }
     return null;
   }
@@ -361,13 +428,19 @@ class Server {
 
     if (_waitForDdsToAdvertiseService) {
       _ddsInstance = _DebuggingSession();
-      await _ddsInstance!.start(
+      final success = await _ddsInstance!.start(
         serverAddress!,
         _ddsIP,
         _ddsPort.toString(),
         _authCodesDisabled,
         _serveDevtools,
       );
+      if (!success) {
+        // DDS failed to initialize; fall back to directly advertising the VM
+        // service connection information so the process doesn't fail.
+        serverPrint('Failed to start DDS. Falling back to VM Service.');
+        await outputConnectionInformation();
+      }
     } else {
       await outputConnectionInformation();
     }
@@ -378,7 +451,15 @@ class Server {
     startingCompleter.complete(true);
   }
 
+  /// Shuts down the VM service server and any spawned DDS instance.
+  ///
+  /// If [forced] is true, active socket connections and the DDS subprocess are
+  /// terminated immediately without waiting for pending requests or startup.
   Future<void> shutdown(bool forced) async {
+    if (forced) {
+      _ddsInstance?.shutdown();
+      _ddsInstance = null;
+    }
     // If start is pending, wait for it to complete.
     if (_startingCompleter != null) {
       if (!_startingCompleter!.isCompleted) {
