@@ -284,7 +284,7 @@ abstract class SourceCompilationUnit
 
   /// Registers that [augmentation] is a part of the library for which this is
   /// the main compilation unit.
-  void registerAugmentation(CompilationUnit augmentation);
+  void registerPatch(CompilationUnit augmentation);
 
   /// Reports [message] on all compilation units that access this compilation
   /// unit.

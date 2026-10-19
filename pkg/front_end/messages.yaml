@@ -3108,8 +3108,9 @@ partTwice:
     main.dart: "part 'part.dart'; part 'part.dart';"
 
 partOfTwoLibraries:
-  parameters: none
-  problemMessage: "A file can't be part of more than one library."
+  parameters:
+    Uri uri: The URI that is used as a part in more than one library.
+  problemMessage: "Can't use '#uri' as a part of more than one library."
   correctionMessage: "Try moving the shared declarations into the libraries, or into a new library."
   script:
     main.dart: "library lib; import 'lib.dart'; part 'part.dart';"

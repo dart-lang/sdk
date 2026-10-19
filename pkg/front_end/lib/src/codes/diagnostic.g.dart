@@ -10774,11 +10774,23 @@ const MessageCode partOfSelf = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode partOfTwoLibraries = const MessageCode(
-  "PartOfTwoLibraries",
-  problemMessage: """A file can't be part of more than one library.""",
-  correctionMessage: """Try moving the shared declarations into the libraries, or into a new library.""",
-);
+const Template<Message Function({required Uri uri})> partOfTwoLibraries =
+    const Template(
+      "PartOfTwoLibraries",
+      withArguments: _withArgumentsPartOfTwoLibraries,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPartOfTwoLibraries({required Uri uri}) {
+  var uri_0 = conversions.relativizeUri(uri);
+  return new Message(
+    partOfTwoLibraries,
+    problemMessage:
+        """Can't use '${uri_0}' as a part of more than one library.""",
+    correctionMessage: """Try moving the shared declarations into the libraries, or into a new library.""",
+    arguments: {'uri': uri},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode partOfTwoLibrariesContext = const MessageCode(

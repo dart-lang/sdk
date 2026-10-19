@@ -1990,7 +1990,7 @@ class KernelTarget {
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        compilationUnit.registerAugmentation(
+        compilationUnit.registerPatch(
           loader.read(
             patch,
             -1,

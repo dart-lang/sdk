@@ -632,10 +632,9 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
 
     _checkForDartCore(uri, compilationUnit);
 
-    if (uri.isScheme("dart") && originImportUri.isScheme("dart")) {
+    if (uri.isScheme("dart") && originImportUri == uri) {
       // We only read the patch files if the [compilationUnit] is loaded as a
-      // dart: library (through [uri]) and is considered a dart: library
-      // (through [originImportUri]).
+      // root of a dart: library.
       //
       // This is to avoid reading patches and when reading dart: parts, and to
       // avoid reading patches of non-dart: libraries that claim to be a part of
