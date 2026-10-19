@@ -5236,6 +5236,7 @@ void DeoptimizeAt(Thread* mutator_thread,
 // and unoptimized code has the kDeoptAfter.
 void DeoptimizeFunctionsOnStack() {
   auto thread = Thread::Current();
+  ASSERT_EQUAL(thread->execution_state(), Thread::kThreadInVM);
   // Have to grab program_lock before stopping everybody else.
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
