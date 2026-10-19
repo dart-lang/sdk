@@ -239,7 +239,25 @@ class A<T> {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  staticKeyword: static
+  returnType: NamedType
+    name: T
+    question: ?
+    element: #E0 T
+    type: InvalidType
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@25
+    element: <testLibrary>::@class::A::@method::foo
+      type: InvalidType Function()
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: T

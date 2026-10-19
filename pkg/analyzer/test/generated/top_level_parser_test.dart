@@ -5942,10 +5942,10 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ;
-          MethodDeclaration
+          GetterDeclaration
             returnType: NamedType
               name: int
-            propertyKeyword: get
+            getKeyword: get
             name: g
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -5954,23 +5954,16 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: f
               semicolon: ;
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: s
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   type: NamedType
                     name: int
                   name: v
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: int
-                name: v
               rightParenthesis: )
             body: BlockFunctionBody
               block: Block
@@ -5991,24 +5984,17 @@ CompilationUnit
                         token: v
                     semicolon: ;
                 rightBracket: }
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: int
             name: add
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   type: NamedType
                     name: int
                   name: v
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: int
-                name: v
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -6024,6 +6010,72 @@ CompilationUnit
                     name: v
                   binaryOperator: add
               expression(v1): AssignmentExpression
+                leftHandSide: SimpleIdentifier
+                  token: f
+                operator: =
+                rightHandSide: BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: f
+                  operator: +
+                  rightOperand: SimpleIdentifier
+                    token: v
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: int
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ;
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            propertyKeyword: get
+            name: g
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: SimpleIdentifier
+                token: f
+              semicolon: ;
+          MethodDeclaration
+            propertyKeyword: set
+            name: s
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+                name: v
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements
+                  ExpressionStatement
+                    expression: AssignmentExpression
+                      leftHandSide: SimpleIdentifier
+                        token: f
+                      operator: =
+                      rightHandSide: SimpleIdentifier
+                        token: v
+                    semicolon: ;
+                rightBracket: }
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            name: add
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+                name: v
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: AssignmentExpression
                 leftHandSide: SimpleIdentifier
                   token: f
                 operator: =

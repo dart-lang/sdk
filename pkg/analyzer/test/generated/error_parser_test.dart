@@ -1774,14 +1774,24 @@ class C {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  returnType: NamedType
+    name: String
+  getKeyword: get
+  name: m
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+    semicolon: ;
+V1: MethodDeclaration
   returnType: NamedType
     name: String
   propertyKeyword: get
   name: m
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -2436,7 +2446,23 @@ class C {
 
     var member = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(member, r'''
-MethodDeclaration
+MethodDeclaration2
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: E
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
   name: f
   typeParameters: TypeParameterList
     leftBracket: <
@@ -2445,12 +2471,6 @@ MethodDeclaration
         name: E
     rightBracket: >
   parameters: FormalParameterList
-    leftParenthesis: (
-    requiredPositionalFormalParameters
-      RegularFormalParameter
-        name: E
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: E
@@ -2471,7 +2491,26 @@ class C {
 
     var method = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(method, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+      TypeParameter
+        name: hello
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
   returnType: NamedType
     name: void
   name: m
@@ -2930,7 +2969,18 @@ class C {
 
     var member = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(member, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+  name: m
+  formalParameters: FormalParameterList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
   returnType: NamedType
     name: void
   name: m

@@ -3549,18 +3549,13 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             name: m
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: BlockFunctionBody
               block: Block
@@ -3598,6 +3593,47 @@ CompilationUnit
                       expression2: ParsedUnqualifiedName
                         name: <empty> <synthetic>
                       expression(v1): SimpleIdentifier
+                        token: <empty> <synthetic>
+                      semicolon: ; <synthetic>
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            name: m
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements
+                  IfStatement
+                    ifKeyword: if
+                    leftParenthesis: (
+                    expression: IsExpression
+                      expression: SimpleIdentifier
+                        token: x
+                      isOperator: is
+                      type: NamedType
+                        name: <empty> <synthetic>
+                    rightParenthesis: )
+                    thenStatement: ReturnStatement
+                      returnKeyword: return
+                      semicolon: ;
+                  IfStatement
+                    ifKeyword: if
+                    leftParenthesis: (
+                    expression: IsExpression
+                      expression: SimpleIdentifier
+                        token: x
+                      isOperator: is
+                      notOperator: !
+                      type: NamedType
+                        name: <empty> <synthetic>
+                    rightParenthesis: )
+                    thenStatement: ExpressionStatement
+                      expression: SimpleIdentifier
                         token: <empty> <synthetic>
                       semicolon: ; <synthetic>
                 rightBracket: }
@@ -4119,6 +4155,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            name: b
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+        members(v1)
           MethodDeclaration
             name: b
             parameters: FormalParameterList
@@ -4245,6 +4291,29 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: length
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration2
+            returnType: NamedType
+              name: void
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -4542,9 +4611,9 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             name: b
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
@@ -4564,7 +4633,14 @@ CompilationUnit
                 RegularFormalParameter
                   name: e
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            name: b
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: c

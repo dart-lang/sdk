@@ -272,12 +272,31 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -405,15 +424,32 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -649,6 +685,27 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -656,7 +713,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -690,24 +747,44 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -741,17 +818,36 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -791,16 +887,34 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1020,12 +1134,30 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1058,22 +1190,39 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1104,17 +1253,33 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1144,18 +1309,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            returnType: NamedType
+              name: f
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: f
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1349,6 +1524,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -1356,7 +1542,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1380,24 +1566,34 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1421,17 +1617,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1461,16 +1666,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -1739,12 +1952,31 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -1872,15 +2104,32 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2116,6 +2365,27 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2123,7 +2393,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2157,24 +2427,44 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2208,17 +2498,36 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2258,16 +2567,34 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2487,12 +2814,30 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2525,22 +2870,39 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2571,17 +2933,33 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2611,18 +2989,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            returnType: NamedType
+              name: f
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: f
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2816,6 +3204,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2823,7 +3222,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2847,24 +3246,34 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -2888,17 +3297,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2928,16 +3346,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3212,12 +3638,32 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3348,15 +3794,33 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3598,6 +4062,28 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -3605,7 +4091,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3640,24 +4126,45 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3692,17 +4199,37 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3743,16 +4270,35 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -3978,12 +4524,31 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4017,22 +4582,40 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4064,17 +4647,34 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: const
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4104,6 +4704,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: f
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -4111,12 +4728,6 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4315,6 +4926,18 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          GetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -4323,7 +4946,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4347,6 +4970,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -4354,18 +4994,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4389,18 +5023,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            staticKeyword: static
+            returnType: NamedType
+              name: void
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
               name: void
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4430,17 +5074,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
-            modifierKeyword: static
-            propertyKeyword: set
+          SetterDeclaration
+            staticKeyword: static
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            modifierKeyword: static
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -4715,12 +5368,32 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -4851,15 +5524,33 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5101,6 +5792,28 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -5108,7 +5821,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5143,24 +5856,45 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5195,17 +5929,37 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5246,16 +6000,35 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5481,12 +6254,31 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5520,22 +6312,40 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5567,17 +6377,34 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: final
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5607,6 +6434,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: f
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -5614,12 +6458,6 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5818,6 +6656,18 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          GetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -5826,7 +6676,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5850,6 +6700,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -5857,18 +6724,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -5892,18 +6753,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            staticKeyword: static
+            returnType: NamedType
+              name: void
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
               name: void
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -5933,17 +6804,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
-            modifierKeyword: static
-            propertyKeyword: set
+          SetterDeclaration
+            staticKeyword: static
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            modifierKeyword: static
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6224,12 +7104,33 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -6363,15 +7264,34 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6619,6 +7539,29 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -6626,7 +7569,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -6662,24 +7605,46 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -6715,17 +7680,38 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -6767,16 +7753,36 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7006,6 +8012,26 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -7013,7 +8039,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7046,24 +8072,43 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7096,17 +8141,35 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7145,16 +8208,33 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7379,12 +8459,30 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7417,22 +8515,39 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7464,17 +8579,33 @@ CompilationUnit
                 VariableDeclaration
                   name: A
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: A
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7502,6 +8633,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: A
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -7509,12 +8657,6 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -7789,12 +8931,32 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -7925,15 +9087,33 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8175,6 +9355,28 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -8182,7 +9384,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8217,24 +9419,45 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8269,17 +9492,37 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8320,16 +9563,35 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8557,12 +9819,31 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8598,22 +9879,40 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8645,17 +9944,34 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            staticKeyword: static
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8685,6 +10001,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: f
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -8692,12 +10025,6 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -8896,6 +10223,18 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          GetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -8904,7 +10243,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8928,6 +10267,23 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -8935,18 +10291,12 @@ CompilationUnit
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -8970,18 +10320,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            staticKeyword: static
+            returnType: NamedType
+              name: void
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
               name: void
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9011,17 +10371,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
-            modifierKeyword: static
-            propertyKeyword: set
+          SetterDeclaration
+            staticKeyword: static
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            modifierKeyword: static
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9296,12 +10665,32 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -9432,15 +10821,33 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9682,6 +11089,28 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -9689,7 +11118,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -9724,24 +11153,45 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -9776,17 +11226,37 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -9827,16 +11297,35 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10125,12 +11614,31 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10164,22 +11672,40 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10215,17 +11741,36 @@ CompilationUnit
                 VariableDeclaration
                   name: <empty> <synthetic>
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10265,15 +11810,32 @@ CompilationUnit
                 VariableDeclaration
                   name: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10454,6 +12016,25 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -10461,7 +12042,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10493,24 +12074,42 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10542,17 +12141,34 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10590,16 +12206,32 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10818,12 +12450,29 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10855,22 +12504,38 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              type: NamedType
+                name: A
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -10901,17 +12566,32 @@ CompilationUnit
                 VariableDeclaration
                   name: A
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: A
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -10939,18 +12619,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            returnType: NamedType
+              name: A
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: A
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -11219,12 +12909,31 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11352,15 +13061,32 @@ CompilationUnit
                   initializer(v1): SimpleIdentifier
                     token: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: SimpleIdentifier
+                    token: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -11596,6 +13322,27 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -11603,7 +13350,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11637,24 +13384,44 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -11688,17 +13455,36 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -11738,16 +13524,34 @@ CompilationUnit
                   initializer2: IntegerLiteral
                     literal: 0
             semicolon: ; <synthetic>
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                  equals: =
+                  initializer: IntegerLiteral
+                    literal: 0
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12029,12 +13833,30 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12067,22 +13889,39 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12117,17 +13956,35 @@ CompilationUnit
                 VariableDeclaration
                   name: <empty> <synthetic>
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: <empty> <synthetic>
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12166,15 +14023,31 @@ CompilationUnit
                 VariableDeclaration
                   name: set
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+                VariableDeclaration
+                  name: set
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12354,12 +14227,30 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
+          GetterDeclaration
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
           MethodDeclaration
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12394,22 +14285,39 @@ CompilationUnit
                 VariableDeclaration
                   name: int
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              type: NamedType
+                name: f
+              variables
+                VariableDeclaration
+                  name: int
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12440,17 +14348,33 @@ CompilationUnit
                 VariableDeclaration
                   name: f
             semicolon: ; <synthetic>
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          FieldDeclaration
+            fields: VariableDeclarationList
+              keyword: var
+              variables
+                VariableDeclaration
+                  name: f
+            semicolon: ; <synthetic>
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12480,18 +14404,28 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          SetterDeclaration
+            returnType: NamedType
+              name: f
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: f
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12685,6 +14619,17 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -12692,7 +14637,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12716,24 +14661,34 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
             name: a
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -12757,17 +14712,26 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -12797,16 +14761,24 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
-            propertyKeyword: set
+          SetterDeclaration
+            setKeyword: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            propertyKeyword: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b

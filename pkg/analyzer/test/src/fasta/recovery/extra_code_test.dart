@@ -66,9 +66,9 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             name: m
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             body: ExpressionFunctionBody
@@ -88,6 +88,29 @@ CompilationUnit
                   leftParenthesis: (
                   rightParenthesis: )
               expression(v1): InstanceCreationExpression
+                keyword: new
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: C
+                      rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              semicolon: ;
+        members(v1)
+          MethodDeclaration
+            name: m
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
                   type: NamedType
@@ -1230,6 +1253,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             name: foo
             parameters: FormalParameterList
@@ -1295,6 +1328,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             name: foo
             parameters: FormalParameterList
@@ -1360,6 +1403,25 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+          MethodDeclaration2
+            name: bar
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
           MethodDeclaration
             name: foo
             parameters: FormalParameterList

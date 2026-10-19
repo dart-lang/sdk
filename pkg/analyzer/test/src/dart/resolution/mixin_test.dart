@@ -144,7 +144,23 @@ mixin M {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@20
+    element: <testLibrary>::@mixin::M::@getter::foo
+      type: int Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: int
     element: dart:core::@class::int
@@ -153,7 +169,7 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -255,7 +271,23 @@ mixin M {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@17
+    element: <testLibrary>::@mixin::M::@method::foo
+      type: void Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
@@ -354,14 +386,14 @@ mixin M {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+SetterDeclaration
   returnType: NamedType
     name: void
     element: <null>
     type: void
-  propertyKeyword: set
+  setKeyword: set
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -374,7 +406,21 @@ MethodDeclaration
           element: isPrivate
             type: int
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@21
+    element: <testLibrary>::@mixin::M::@setter::foo
+      type: void Function(int)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

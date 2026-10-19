@@ -113,7 +113,19 @@ class C {
 
     var node = result.findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@12
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
+V1: MethodDeclaration
   name: _
   parameters: FormalParameterList
     leftParenthesis: (
@@ -141,7 +153,19 @@ class C {
 
     var node = result.findNode.methodDeclaration('_()');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@28
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
+V1: MethodDeclaration
   name: _
   parameters: FormalParameterList
     leftParenthesis: (

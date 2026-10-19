@@ -1838,6 +1838,18 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      GetterDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1846,7 +1858,7 @@ ClassDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1868,6 +1880,19 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      GetterDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1877,7 +1902,7 @@ ClassDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1895,12 +1920,20 @@ class A {
 
     var node = parseResult.findNode.methodDeclaration('get A');
     assertParsedNodeText(node, r'''
-MethodDeclaration
-  propertyKeyword: get
+GetterDeclaration
+  getKeyword: get
   name: A
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: IntegerLiteral
+      literal: 0
+    semicolon: ;
+V1: MethodDeclaration
+  propertyKeyword: get
+  name: A
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -1915,7 +1948,15 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  staticKeyword: static
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: int
@@ -1938,7 +1979,15 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  staticKeyword: static
+  returnType: NamedType
+    name: int
+  getKeyword: get
+  name: foo
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: int
@@ -1992,6 +2041,19 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -2025,6 +2087,17 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -2048,7 +2121,18 @@ augment class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
   augmentKeyword: augment
   externalKeyword: external
   returnType: NamedType
@@ -2077,6 +2161,20 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -2103,7 +2201,17 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  staticKeyword: static
+  returnType: NamedType
+    name: int
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: int
@@ -2128,7 +2236,17 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  staticKeyword: static
+  returnType: NamedType
+    name: int
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: int
@@ -2491,6 +2609,26 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      OperatorDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        operator: +
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -2499,14 +2637,6 @@ ClassDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: other
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -2514,7 +2644,7 @@ ClassDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -4309,11 +4439,11 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      MethodDeclaration
+      SetterDeclaration
         augmentKeyword: augment
-        propertyKeyword: set
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -4321,7 +4451,16 @@ ClassDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4351,12 +4490,12 @@ ClassDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      MethodDeclaration
+      SetterDeclaration
         augmentKeyword: augment
-        modifierKeyword: static
-        propertyKeyword: set
+        staticKeyword: static
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -4364,7 +4503,17 @@ ClassDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4390,16 +4539,23 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-MethodDeclaration
-  propertyKeyword: set @12
+SetterDeclaration
+  setKeyword: set @12
   name: foo @16
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: ( @20 <synthetic>
     requiredPositionalFormalParameters
       RegularFormalParameter
         name: <empty> @20 <synthetic>
     rightParenthesis: ) @20 <synthetic>
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @20
+      rightBracket: } @21
+V1: MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
     leftParenthesis: ( @20 <synthetic>
     parameter: RegularFormalParameter
       name: <empty> @20 <synthetic>
@@ -4422,16 +4578,23 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-MethodDeclaration
-  propertyKeyword: set @12
+SetterDeclaration
+  setKeyword: set @12
   name: foo @16
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: ( @19
     requiredPositionalFormalParameters
       RegularFormalParameter
         name: a @21
     rightParenthesis: ) @23
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @25
+      rightBracket: } @26
+V1: MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
     leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: a @21
@@ -4454,16 +4617,23 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-MethodDeclaration
-  propertyKeyword: set @12
+SetterDeclaration
+  setKeyword: set @12
   name: foo @16
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: ( @19
     requiredPositionalFormalParameters
       RegularFormalParameter
         name: a @21
     rightParenthesis: ) @23
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @25
+      rightBracket: } @26
+V1: MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
     leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: a @21
@@ -4486,16 +4656,23 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-MethodDeclaration
-  propertyKeyword: set @12
+SetterDeclaration
+  setKeyword: set @12
   name: foo @16
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: ( @19
     requiredPositionalFormalParameters
       RegularFormalParameter
         name: a @20
     rightParenthesis: ) @27
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @29
+      rightBracket: } @30
+V1: MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
     leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: a @20
@@ -4518,16 +4695,23 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-MethodDeclaration
-  propertyKeyword: set @12
+SetterDeclaration
+  setKeyword: set @12
   name: foo @16
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: ( @19
     requiredPositionalFormalParameters
       RegularFormalParameter
         name: <empty> @20 <synthetic>
     rightParenthesis: ) @20
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @22
+      rightBracket: } @23
+V1: MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
     leftParenthesis: ( @19
     parameter: RegularFormalParameter
       name: <empty> @20 <synthetic>
@@ -4548,11 +4732,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
-  modifierKeyword: static
-  propertyKeyword: set
+SetterDeclaration
+  staticKeyword: static
+  setKeyword: set
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -4560,7 +4744,13 @@ MethodDeclaration
           name: int
         name: _
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
+  modifierKeyword: static
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -4584,11 +4774,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
-  modifierKeyword: static
-  propertyKeyword: set
+SetterDeclaration
+  staticKeyword: static
+  setKeyword: set
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -4596,7 +4786,13 @@ MethodDeclaration
           name: int
         name: _
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
+  modifierKeyword: static
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType

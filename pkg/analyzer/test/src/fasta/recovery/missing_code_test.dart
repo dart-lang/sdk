@@ -888,21 +888,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: &
-            parameters: FormalParameterList
+            operator: &
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -914,6 +909,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: bitwiseAnd
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: &
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: &
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: &
@@ -1192,21 +1207,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: |
-            parameters: FormalParameterList
+            operator: |
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -1218,6 +1228,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: bitwiseOr
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: |
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: |
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: |
@@ -1573,21 +1603,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: ==
-            parameters: FormalParameterList
+            operator: ==
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -1599,6 +1624,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: equal
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ==
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: ==
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ==
@@ -1765,21 +1810,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: >
-            parameters: FormalParameterList
+            operator: >
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -1791,6 +1831,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: greaterThan
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: >
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >
@@ -1873,21 +1933,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: >>
-            parameters: FormalParameterList
+            operator: >>
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -1899,6 +1954,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: shiftRight
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >>
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: >>
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >>
@@ -1981,21 +2056,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: >=
-            parameters: FormalParameterList
+            operator: >=
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -2007,6 +2077,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: greaterThanOrEqual
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >=
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: >=
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >=
@@ -2089,21 +2179,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: ^
-            parameters: FormalParameterList
+            operator: ^
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -2115,6 +2200,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: bitwiseXor
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ^
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: ^
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ^
@@ -2481,21 +2586,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: <
-            parameters: FormalParameterList
+            operator: <
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -2507,6 +2607,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: lessThan
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: <
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <
@@ -2589,21 +2709,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: <<
-            parameters: FormalParameterList
+            operator: <<
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -2615,6 +2730,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: shiftLeft
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <<
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: <<
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <<
@@ -2697,21 +2832,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: <=
-            parameters: FormalParameterList
+            operator: <=
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -2723,6 +2853,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: lessThanOrEqual
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <=
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: <=
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <=
@@ -2805,21 +2955,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: -
-            parameters: FormalParameterList
+            operator: -
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -2831,6 +2976,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: subtract
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: -
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: -
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: -
@@ -2860,6 +3025,19 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
           MethodDeclaration
             returnType: NamedType
               name: int
@@ -2869,7 +3047,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3075,21 +3253,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: %
-            parameters: FormalParameterList
+            operator: %
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -3101,6 +3274,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: modulo
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: %
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: %
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: %
@@ -3510,21 +3703,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: +
-            parameters: FormalParameterList
+            operator: +
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -3536,6 +3724,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: add
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: +
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: +
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: +
@@ -3717,21 +3925,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: /
-            parameters: FormalParameterList
+            operator: /
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -3743,6 +3946,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: divide
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: /
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: /
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: /
@@ -3825,21 +4048,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: *
-            parameters: FormalParameterList
+            operator: *
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -3851,6 +4069,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: multiply
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: *
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: *
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: *
@@ -4037,21 +4275,16 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          OperatorDeclaration
             returnType: NamedType
               name: int
             operatorKeyword: operator
-            name: ~/
-            parameters: FormalParameterList
+            operator: ~/
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
@@ -4063,6 +4296,26 @@ CompilationUnit
                   name: <empty> <synthetic>
                 binaryOperator: truncatingDivide
               expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ~/
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        members(v1)
+          MethodDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            name: ~/
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ~/

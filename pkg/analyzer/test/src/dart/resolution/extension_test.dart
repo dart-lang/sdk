@@ -103,6 +103,23 @@ ExtensionDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      GetterDeclaration
+        returnType: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        getKeyword: get
+        name: g
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> g@31
+          element: <testLibrary>::@extension::E::@getter::g
+            type: int Function()
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -112,7 +129,7 @@ ExtensionDeclaration
         name: g
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
             staticType: int
           semicolon: ;
@@ -145,6 +162,23 @@ ExtensionDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+          element: <null>
+          type: void
+        name: m
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> m@28
+          element: <testLibrary>::@extension::E::@method::m
+            type: void Function()
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -187,10 +221,10 @@ ExtensionDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      MethodDeclaration
-        propertyKeyword: set
+      SetterDeclaration
+        setKeyword: set
         name: s
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -203,7 +237,18 @@ ExtensionDeclaration
                 element: isPublic
                   type: int
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> s@27
+          element: <testLibrary>::@extension::E::@setter::s
+            type: void Function(int)
+    members(v1)
+      MethodDeclaration
+        propertyKeyword: set
+        name: s
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

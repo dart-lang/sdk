@@ -842,7 +842,7 @@ extension type A<T>(int it) {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
     element: <null>
@@ -856,7 +856,7 @@ MethodDeclaration
         declaredFragment: <testLibraryFragment> U@41
           defaultType: dynamic
     rightBracket: >
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -878,7 +878,45 @@ MethodDeclaration
           element: isPublic
             type: U
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: TypeLiteral
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
+            staticType: Type
+          semicolon: ;
+        ExpressionStatement
+          expression2: TypeLiteral
+            type: NamedType
+              name: U
+              element: #E1 U
+              type: U
+            staticType: Type
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@37
+    element: <testLibrary>::@extensionType::A::@method::foo
+      type: void Function<U>(T, U)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@41
+          defaultType: dynamic
+    rightBracket: >
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -902,9 +940,9 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements2
+      statements
         ExpressionStatement
-          expression2: TypeLiteral
+          expression: TypeLiteral
             type: NamedType
               name: T
               element: #E0 T
@@ -912,7 +950,7 @@ MethodDeclaration
             staticType: Type
           semicolon: ;
         ExpressionStatement
-          expression2: TypeLiteral
+          expression: TypeLiteral
             type: NamedType
               name: U
               element: #E1 U

@@ -4723,7 +4723,44 @@ class C<E> {
 
     var node = result.findNode.methodDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  staticKeyword: static
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@26
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@31
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@24
+    element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: T
@@ -4740,19 +4777,6 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    requiredPositionalFormalParameters
-      RegularFormalParameter
-        type: NamedType
-          name: T
-          element: #E0 T
-          type: T
-        name: x
-        declaredFragment: <testLibraryFragment> x@31
-          element: isPublic
-            type: T
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -4765,7 +4789,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: NullLiteral
+    expression: NullLiteral
       literal: null
       staticType: Null
     semicolon: ;
@@ -5840,7 +5864,43 @@ class D extends C {
 
     var node = result.findNode.methodDeclaration('f<T>(T y)');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@61
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: y
+        declaredFragment: <testLibraryFragment> y@66
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@59
+    element: <testLibrary>::@class::D::@method::f
+      type: T Function<T>(T)
+V1: MethodDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -5856,19 +5916,6 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    requiredPositionalFormalParameters
-      RegularFormalParameter
-        type: NamedType
-          name: T
-          element: #E0 T
-          type: T
-        name: y
-        declaredFragment: <testLibraryFragment> y@66
-          element: isPublic
-            type: T
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -5881,7 +5928,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: NullLiteral
+    expression: NullLiteral
       literal: null
       staticType: Null
     semicolon: ;

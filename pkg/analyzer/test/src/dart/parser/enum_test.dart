@@ -189,6 +189,18 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -822,6 +834,18 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -987,6 +1011,18 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      GetterDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -995,7 +1031,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1018,6 +1054,19 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      GetterDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1027,7 +1076,7 @@ EnumDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -1050,6 +1099,19 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1082,6 +1144,20 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1269,6 +1345,26 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
+      OperatorDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        operator: +
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1277,14 +1373,6 @@ EnumDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: other
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -1292,7 +1380,7 @@ EnumDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -2077,11 +2165,11 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
-      MethodDeclaration
+      SetterDeclaration
         augmentKeyword: augment
-        propertyKeyword: set
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -2089,7 +2177,16 @@ EnumDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2120,12 +2217,12 @@ EnumDeclaration
     leftBracket: {
     semicolon: ;
     members2
-      MethodDeclaration
+      SetterDeclaration
         augmentKeyword: augment
-        modifierKeyword: static
-        propertyKeyword: set
+        staticKeyword: static
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -2133,7 +2230,17 @@ EnumDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

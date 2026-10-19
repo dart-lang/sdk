@@ -204,7 +204,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          GetterDeclaration
             metadata
               Annotation
                 atSign: @
@@ -212,11 +212,25 @@ CompilationUnit
                   name: int
                 name: SimpleIdentifier
                   token: int
-            propertyKeyword: get
+            getKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          MethodDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: int
+            propertyKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -238,7 +252,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             metadata
               Annotation
                 atSign: @
@@ -247,20 +261,33 @@ CompilationUnit
                 name: SimpleIdentifier
                   token: int
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          MethodDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: int
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -284,7 +311,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             metadata
               Annotation
                 atSign: @
@@ -295,13 +322,27 @@ CompilationUnit
             returnType: NamedType
               name: void
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            returnType: NamedType
+              name: void
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -329,7 +370,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             metadata
               Annotation
                 atSign: @
@@ -338,13 +379,25 @@ CompilationUnit
                 name: SimpleIdentifier
                   token: set
             name: a
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: (
               requiredPositionalFormalParameters
                 RegularFormalParameter
                   name: b
               rightParenthesis: )
-            parameters(v1): FormalParameterList
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        members(v1)
+          MethodDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: set
+            name: a
+            parameters: FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -597,7 +650,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         members2
-          MethodDeclaration
+          MethodDeclaration2
             metadata
               Annotation
                 atSign: @
@@ -635,12 +688,38 @@ CompilationUnit
                       token: a
                   rightParenthesis: ) <synthetic>
             name: <empty> <synthetic>
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: ( <synthetic>
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        members(v1)
+          MethodDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: int
+                    SimpleIdentifier
+                      token: get
+                    SimpleIdentifier
+                      token: a
+                  rightParenthesis: ) <synthetic>
+            name: <empty> <synthetic>
+            parameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }

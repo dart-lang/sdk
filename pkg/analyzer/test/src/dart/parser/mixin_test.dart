@@ -149,6 +149,17 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      GetterDeclaration
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -156,7 +167,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -177,6 +188,18 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -229,10 +252,10 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      MethodDeclaration
-        propertyKeyword: set
+      SetterDeclaration
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -240,7 +263,15 @@ MixinDeclaration
                 name: int
               name: _
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -395,6 +426,18 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      GetterDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -403,7 +446,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -424,6 +467,19 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      GetterDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -433,7 +489,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -485,6 +541,19 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -515,6 +584,20 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      MethodDeclaration2
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -664,6 +747,26 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      OperatorDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        operator: +
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    members(v1)
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -672,14 +775,6 @@ MixinDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: other
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -687,7 +782,7 @@ MixinDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -893,11 +988,11 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      MethodDeclaration
+      SetterDeclaration
         augmentKeyword: augment
-        propertyKeyword: set
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -905,7 +1000,16 @@ MixinDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -934,12 +1038,12 @@ MixinDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      MethodDeclaration
+      SetterDeclaration
         augmentKeyword: augment
-        modifierKeyword: static
-        propertyKeyword: set
+        staticKeyword: static
+        setKeyword: set
         name: foo
-        parameters: FormalParameterList
+        formalParameters: FormalParameterList
           leftParenthesis: (
           requiredPositionalFormalParameters
             RegularFormalParameter
@@ -947,7 +1051,17 @@ MixinDeclaration
                 name: int
               name: x
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    members(v1)
+      MethodDeclaration
+        augmentKeyword: augment
+        modifierKeyword: static
+        propertyKeyword: set
+        name: foo
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

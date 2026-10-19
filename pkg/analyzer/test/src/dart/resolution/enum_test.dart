@@ -234,6 +234,24 @@ CompilationUnit
         leftBracket: {
         semicolon: ;
         members2
+          GetterDeclaration
+            staticKeyword: static
+            returnType: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            getKeyword: get
+            name: values
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+                staticType: int
+              semicolon: ;
+            declaredFragment: <testLibraryFragment> values@52
+              element: <testLibrary>::@enum::A::@getter::values#1
+                type: int Function()
+        members(v1)
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -244,7 +262,7 @@ CompilationUnit
             name: values
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
                 staticType: int
               semicolon: ;
@@ -847,7 +865,26 @@ enum E<T> {
 
     var node = result.findNode.methodDeclaration('get foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: ThrowExpression
+      throwKeyword: throw
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      staticType: Never
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@25
+    element: <testLibrary>::@enum::E::@getter::foo
+      type: T Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -856,9 +893,9 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: ThrowExpression
+    expression: ThrowExpression
       throwKeyword: throw
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       staticType: Never
@@ -924,7 +961,7 @@ enum E<T> {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: int
     element: dart:core::@class::int
@@ -938,7 +975,7 @@ MethodDeclaration
         declaredFragment: <testLibraryFragment> U@27
           defaultType: dynamic
     rightBracket: >
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -960,7 +997,30 @@ MethodDeclaration
           element: isPublic
             type: U
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@23
+    element: <testLibrary>::@enum::E::@method::foo
+      type: int Function<U>(T, U)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@27
+          defaultType: dynamic
+    rightBracket: >
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -983,7 +1043,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -1003,7 +1063,24 @@ enum E {
 
     var node = result.findNode.methodDeclaration('toString()');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: String
+    element: dart:core::@class::String
+    type: String
+  name: toString
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: SimpleStringLiteral
+      literal: 'E'
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> toString@23
+    element: <testLibrary>::@enum::E::@method::toString
+      type: String Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: String
     element: dart:core::@class::String
@@ -1014,7 +1091,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: SimpleStringLiteral
+    expression: SimpleStringLiteral
       literal: 'E'
     semicolon: ;
   declaredFragment: <testLibraryFragment> toString@23
@@ -2696,10 +2773,10 @@ enum E<T> {
 
     var node = result.findNode.methodDeclaration('set foo');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
-  propertyKeyword: set
+SetterDeclaration
+  setKeyword: set
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -2712,7 +2789,17 @@ MethodDeclaration
           element: isPublic
             type: T
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@23
+    element: <testLibrary>::@enum::E::@setter::foo
+      type: void Function(T)
+V1: MethodDeclaration
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
