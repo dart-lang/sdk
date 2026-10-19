@@ -63,6 +63,14 @@ remove them.
 [language version]: https://dart.dev/to/language-version
 [unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
 
+### Libraries
+
+#### `dart:io`
+
+- A validation check is added to `domain` of class `Cookie`, matching the one
+  on `path`. Setting it to a string containing characters ranging from 0x00 to
+  0x1f, 0x7f and above, or 0x3b (";") now throws a `FormatException`.
+
 ## 3.14.0
 
 **Released on:** Unreleased

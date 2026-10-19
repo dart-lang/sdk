@@ -128,6 +128,27 @@ void testValidatePath() {
   }, (e) => e.toString().contains('Invalid character'));
 }
 
+void testValidateDomain() {
+  Cookie cookie = Cookie.fromSetCookieValue(" cname = cval; domain= foo.com ");
+  Expect.equals('foo.com', cookie.domain);
+  cookie.domain = null;
+  Expect.throws<FormatException>(() {
+    cookie.domain = "a.foo.com; Domain=foo.com";
+  }, (e) => e.toString().contains('Invalid character'));
+
+  StringBuffer buffer = StringBuffer();
+  buffer.writeCharCode(0x1f);
+  Expect.throws<FormatException>(() {
+    cookie.domain = buffer.toString();
+  }, (e) => e.toString().contains('Invalid character'));
+
+  buffer.clear();
+  buffer.writeCharCode(0x7f);
+  Expect.throws<FormatException>(() {
+    cookie.domain = buffer.toString();
+  }, (e) => e.toString().contains('Invalid character'));
+}
+
 void testCookieSameSite() {
   Cookie cookie1 = Cookie.fromSetCookieValue(
     "name=cookie_name; Expires=Sat, 01 Apr 2023 00:00:00 GMT; Secure; "
@@ -196,5 +217,6 @@ void main() {
   testCookies();
   testValidateCookieWithDoubleQuotes();
   testValidatePath();
+  testValidateDomain();
   testCookieSameSite();
 }
