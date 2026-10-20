@@ -1368,7 +1368,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -2102,6 +2102,11 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     node.type?.accept2(this);
   }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
 
   @override
   void visitSetterDeclaration(covariant SetterDeclarationImpl node) {

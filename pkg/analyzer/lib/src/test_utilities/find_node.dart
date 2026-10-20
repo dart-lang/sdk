@@ -20,6 +20,8 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression get singleBinaryExpression => _single();
 
+  ClassTypeAlias get singleClassTypeAlias => _single();
+
   ConstructorDeclaration get singleConstructorDeclaration => _single();
 
   ConstructorName get singleConstructorName => _single();
@@ -77,6 +79,10 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression binary(String search) {
     return _node(search, (node) => node is BinaryExpression);
+  }
+
+  ClassTypeAlias classTypeAlias(String search) {
+    return _node(search, (n) => n is ClassTypeAlias);
   }
 
   ConstructorDeclaration constructor(String search) {
@@ -248,6 +254,8 @@ class FindNode2 extends _FindNodeBase {
     ].single;
   }
 
+  ClassTypeAlias2 get singleClassTypeAlias => _single();
+
   CompoundAssignment get singleCompoundAssignment => _single();
 
   ConstructorDeclaration2 get singleConstructorDeclaration => _single();
@@ -346,6 +354,10 @@ class FindNode2 extends _FindNodeBase {
 
   CallInvocation callInvocation(String search) {
     return _node(search, (node) => node is CallInvocation);
+  }
+
+  ClassTypeAlias2 classTypeAlias(String search) {
+    return _node(search, (n) => n is ClassTypeAlias2);
   }
 
   CompoundAssignment compoundAssignment(String search) {
@@ -635,8 +647,6 @@ abstract class _FindNodeBase {
   CatchClause get singleCatchClause => _single();
 
   ClassDeclaration get singleClassDeclaration => _single();
-
-  ClassTypeAlias get singleClassTypeAlias => _single();
 
   Comment get singleComment => _single();
 
@@ -971,10 +981,6 @@ abstract class _FindNodeBase {
 
   ClassDeclaration classDeclaration(String search) {
     return _node(search, (n) => n is ClassDeclaration);
-  }
-
-  ClassTypeAlias classTypeAlias(String search) {
-    return _node(search, (n) => n is ClassTypeAlias);
   }
 
   CollectionElement collectionElement(String search) {

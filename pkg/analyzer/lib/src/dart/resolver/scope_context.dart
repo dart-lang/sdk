@@ -72,8 +72,8 @@ class ScopeContext {
     });
   }
 
-  void visitClassTypeAlias(
-    ClassTypeAliasImpl node, {
+  void visitClassTypeAlias2(
+    ClassTypeAlias2Impl node, {
     required AstVisitor2 visitor,
     void Function(NamedTypeImpl)? visitSuperclass,
   }) {
@@ -82,7 +82,6 @@ class ScopeContext {
     node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
-      node.typeParameterScope = nameScope;
       node.typeParameters?.accept2(visitor);
       node.superclass.visitWithOverride(visitor, visitSuperclass);
       node.withClause.accept2(visitor);

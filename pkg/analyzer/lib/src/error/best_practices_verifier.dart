@@ -274,14 +274,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     _immutableVerifier.checkDeclaration(node, nameToken: node.name);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedFunctionalityVerifier.classTypeAlias(node);
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -1137,14 +1137,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     });
   }
 
-  void _checkForInvalidSealedSuperclass(CompilationUnitMember node) {
+  void _checkForInvalidSealedSuperclass(FragmentDeclaringNode node) {
     bool currentPackageContains(Element element) {
       return _isLibraryInWorkspacePackage(element.library);
     }
 
     // [NamedCompilationUnitMember.declaredElement] is not necessarily a
     // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
-    // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
+    // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias2]. The
     // `declaredElement` of these specific classes is a [ClassElement].
     var element = node.declaredFragment!.element as InterfaceElement;
     // TODO(srawlins): Perhaps replace this with a getter on Element, like

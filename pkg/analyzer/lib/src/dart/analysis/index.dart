@@ -690,10 +690,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    _addSubtypeForClassTypeAlis(node);
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _addSubtypeForClassTypeAlias(node);
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
-    super.visitClassTypeAlias(node);
+    super.visitClassTypeAlias2(node);
   }
 
   @override
@@ -1405,7 +1405,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
+  void _addSubtypeForClassTypeAlias(ClassTypeAlias2 node) {
     _addSubtype(
       node.name.lexeme,
       superclass: node.superclass,

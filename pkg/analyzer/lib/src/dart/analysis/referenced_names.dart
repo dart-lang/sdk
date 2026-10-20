@@ -40,7 +40,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
       addSubtypedName(declaration.extendsClause?.superclass);
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is ClassTypeAlias) {
+    } else if (declaration is ClassTypeAlias2) {
       addSubtypedName(declaration.superclass);
       addSubtypedNames(declaration.withClause.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
@@ -94,7 +94,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias node) {
+  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias2 node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
@@ -208,7 +208,7 @@ class _LocalNameScope {
           scope.add(declaration.name);
         case TopLevelSetterDeclarationImpl():
           scope.add(declaration.name);
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
           scope.add(declaration.name);
         case FunctionTypeAlias2Impl():
           scope.add(declaration.name);
@@ -294,11 +294,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClassTypeAlias(localScope, node);
-      super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias2(node);
     } finally {
       localScope = outerScope;
     }

@@ -297,7 +297,7 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.namePart.typeParameters,
         );
-      case ClassTypeAliasImpl():
+      case ClassTypeAlias2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,

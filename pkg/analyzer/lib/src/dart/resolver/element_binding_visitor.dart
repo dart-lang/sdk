@@ -143,7 +143,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.classes[classIndex++],
           );
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
           _bindClassTypeAlias(
             declaration,
             _libraryFragment.classes[classIndex++],
@@ -549,7 +549,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindClassTypeAlias(
-    ClassTypeAliasImpl node,
+    ClassTypeAlias2Impl node,
     ClassFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;

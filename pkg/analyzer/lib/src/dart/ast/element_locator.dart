@@ -339,7 +339,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitClassTypeAlias(ClassTypeAlias node) {
+  Element? visitClassTypeAlias2(ClassTypeAlias2 node) {
     return node.declaredFragment?.element;
   }
 

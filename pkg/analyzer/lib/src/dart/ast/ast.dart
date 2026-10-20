@@ -7992,27 +7992,97 @@ abstract final class ClassTypeAlias implements TypeAlias {
   WithClause get withClause;
 }
 
+/// A class type alias.
+///
+///     classTypeAlias ::=
+///         classModifiers 'class' name [TypeParameterList]? '='
+///         mixinApplication
+///
+///     classModifiers ::= 'sealed'
+///       | 'abstract'? ('base' | 'interface' | 'final')?
+///       | 'abstract'? 'base'? 'mixin'
+///
+///     mixinApplication ::=
+///         [NamedType] [WithClause] [ImplementsClause]? ';'
+///
+/// The terminating semicolon is represented by the [body], so that every
+/// [InstanceDeclaration] has a body with its explicitly written members, which
+/// is always empty for a class type alias.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ClassTypeAlias2 implements InstanceDeclaration {
+  /// The `abstract` keyword, or `null` if the keyword was absent.
+  Token? get abstractKeyword;
+
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  /// The `base` keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
+
+  @override
+  SemicolonInstanceDeclarationBody get body;
+
+  /// The `class` keyword.
+  Token get classKeyword;
+
+  @override
+  ClassFragment? get declaredFragment;
+
+  /// The `=` separating the name from the definition.
+  Token get equals;
+
+  /// The `final` keyword, or `null` if the keyword was absent.
+  Token? get finalKeyword;
+
+  /// The implements clause, or `null` if there's no implements clause.
+  ImplementsClause? get implementsClause;
+
+  /// The `interface` keyword, or `null` if the keyword was absent.
+  Token? get interfaceKeyword;
+
+  /// The `mixin` keyword, or `null` if the keyword was absent.
+  Token? get mixinKeyword;
+
+  /// The name of the class being declared.
+  Token get name;
+
+  /// The `sealed` keyword, or `null` if the keyword was absent.
+  Token? get sealedKeyword;
+
+  /// The superclass of the class being declared.
+  NamedType get superclass;
+
+  /// The with clause.
+  WithClause get withClause;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('augmentKeyword', isSuper: true),
+    GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('sealedKeyword'),
     GenerateNodeProperty('baseKeyword'),
     GenerateNodeProperty('interfaceKeyword'),
     GenerateNodeProperty('finalKeyword'),
     GenerateNodeProperty('mixinKeyword'),
-    GenerateNodeProperty('typedefKeyword', isSuper: true),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('classKeyword'),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('equals'),
     GenerateNodeProperty('superclass'),
     GenerateNodeProperty('withClause'),
     GenerateNodeProperty('implementsClause'),
-    GenerateNodeProperty('semicolon', isSuper: true),
+    GenerateNodeProperty('body'),
   ],
 )
-final class ClassTypeAliasImpl extends TypeAliasImpl
-    implements TopLevelDeclarationV1OrV2Impl, ClassTypeAlias {
+final class ClassTypeAlias2Impl extends TopLevelDeclarationImpl
+    implements ClassTypeAlias2 {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
   @generated
   @override
   final Token? abstractKeyword;
@@ -8038,6 +8108,14 @@ final class ClassTypeAliasImpl extends TypeAliasImpl
   final Token? mixinKeyword;
 
   @generated
+  @override
+  final Token classKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
   TypeParameterListImpl? _typeParameters;
 
   @generated
@@ -8053,39 +8131,398 @@ final class ClassTypeAliasImpl extends TypeAliasImpl
   @generated
   ImplementsClauseImpl? _implementsClause;
 
+  @generated
+  SemicolonInstanceDeclarationBodyImpl _body;
+
   @override
   ClassFragmentImpl? declaredFragment;
 
-  Scope? typeParameterScope;
+  @V1Ast()
+  ClassTypeAliasImpl? _v1Projection;
 
   @generated
   new({
     required super.comment,
     required super.metadata,
-    required super.augmentKeyword,
+    required this.augmentKeyword,
     required this.abstractKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
     required this.mixinKeyword,
-    required super.typedefKeyword,
-    required super.name,
+    required this.classKeyword,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required NamedTypeImpl superclass,
     required WithClauseImpl withClause,
     required ImplementsClauseImpl? implementsClause,
-    required super.semicolon,
+    required SemicolonInstanceDeclarationBodyImpl body,
   }) : _typeParameters = typeParameters,
        _superclass = superclass,
        _withClause = withClause,
-       _implementsClause = implementsClause {
-    _becomeParentOf12(typeParameters);
-    _becomeParentOf12(superclass);
-    _becomeParentOf12(withClause);
-    _becomeParentOf12(implementsClause);
+       _implementsClause = implementsClause,
+       _body = body {
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(superclass);
+    _becomeParentOf2(withClause);
+    _becomeParentOf2(implementsClause);
+    _becomeParentOf2(body);
   }
+
+  @generated
+  @override
+  SemicolonInstanceDeclarationBodyImpl get body => _body;
+
+  @generated
+  set body(SemicolonInstanceDeclarationBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (abstractKeyword case var abstractKeyword?) {
+      return abstractKeyword;
+    }
+    if (sealedKeyword case var sealedKeyword?) {
+      return sealedKeyword;
+    }
+    if (baseKeyword case var baseKeyword?) {
+      return baseKeyword;
+    }
+    if (interfaceKeyword case var interfaceKeyword?) {
+      return interfaceKeyword;
+    }
+    if (finalKeyword case var finalKeyword?) {
+      return finalKeyword;
+    }
+    if (mixinKeyword case var mixinKeyword?) {
+      return mixinKeyword;
+    }
+    return classKeyword;
+  }
+
+  @generated
+  @override
+  ImplementsClauseImpl? get implementsClause => _implementsClause;
+
+  @generated
+  set implementsClause(ImplementsClauseImpl? implementsClause) {
+    _implementsClause = _becomeParentOf2(implementsClause);
+  }
+
+  @generated
+  @override
+  NamedTypeImpl get superclass => _superclass;
+
+  @generated
+  set superclass(NamedTypeImpl superclass) {
+    _superclass = _becomeParentOf2(superclass);
+  }
+
+  @generated
+  @override
+  TypeParameterListImpl? get typeParameters => _typeParameters;
+
+  @generated
+  set typeParameters(TypeParameterListImpl? typeParameters) {
+    _typeParameters = _becomeParentOf2(typeParameters);
+  }
+
+  @V1Ast()
+  ClassTypeAliasImpl get v1Projection =>
+      _v1Projection ??= ClassTypeAliasImpl.v1Projection(this);
+
+  @generated
+  @override
+  WithClauseImpl get withClause => _withClause;
+
+  @generated
+  set withClause(WithClauseImpl withClause) {
+    _withClause = _becomeParentOf2(withClause);
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('classKeyword', classKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addToken('equals', equals)
+    ..addNode('superclass', superclass)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('body', body);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ClassTypeAlias2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitClassTypeAlias2(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = null;
+      return;
+    }
+    if (identical(superclass, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'superclass'.");
+    }
+    if (identical(withClause, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'withClause'.");
+    }
+    if (identical(implementsClause, oldNode)) {
+      implementsClause = null;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(typeParameters, oldNode)) {
+      typeParameters = newNode as TypeParameterListImpl?;
+      return;
+    }
+    if (identical(superclass, oldNode)) {
+      superclass = newNode as NamedTypeImpl;
+      return;
+    }
+    if (identical(withClause, oldNode)) {
+      withClause = newNode as WithClauseImpl;
+      return;
+    }
+    if (identical(implementsClause, oldNode)) {
+      implementsClause = newNode as ImplementsClauseImpl?;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as SemicolonInstanceDeclarationBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('ClassTypeAlias2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    typeParameters?.accept2(visitor);
+    superclass.accept2(visitor);
+    withClause.accept2(visitor);
+    implementsClause?.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeParameterListImpl)? visitTypeParameters,
+    void Function(NamedTypeImpl)? visitSuperclass,
+    void Function(WithClauseImpl)? visitWithClause,
+    void Function(ImplementsClauseImpl)? visitImplementsClause,
+    void Function(SemicolonInstanceDeclarationBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (typeParameters case var typeParameters?) {
+      if (visitTypeParameters != null) {
+        visitTypeParameters(typeParameters);
+      } else {
+        typeParameters.accept2(visitor);
+      }
+    }
+    if (visitSuperclass != null) {
+      visitSuperclass(superclass);
+    } else {
+      superclass.accept2(visitor);
+    }
+    if (visitWithClause != null) {
+      visitWithClause(withClause);
+    } else {
+      withClause.accept2(visitor);
+    }
+    if (implementsClause case var implementsClause?) {
+      if (visitImplementsClause != null) {
+        visitImplementsClause(implementsClause);
+      } else {
+        implementsClause.accept2(visitor);
+      }
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ClassTypeAlias2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (superclass._containsOffset(rangeOffset, rangeEnd)) {
+      return superclass;
+    }
+    if (withClause._containsOffset(rangeOffset, rangeEnd)) {
+      return withClause;
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', isSuper: true),
+    GenerateNodeProperty('abstractKeyword'),
+    GenerateNodeProperty('sealedKeyword'),
+    GenerateNodeProperty('baseKeyword'),
+    GenerateNodeProperty('interfaceKeyword'),
+    GenerateNodeProperty('finalKeyword'),
+    GenerateNodeProperty('mixinKeyword'),
+    GenerateNodeProperty('typedefKeyword', isSuper: true),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('equals'),
+    GenerateNodeProperty('superclass'),
+    GenerateNodeProperty('withClause'),
+    GenerateNodeProperty('implementsClause'),
+    GenerateNodeProperty('semicolon', isSuper: true),
+  ],
+)
+@V1Ast('The V2 counterpart is ClassTypeAlias2.')
+final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
+  @generated
+  @override
+  final Token? abstractKeyword;
+
+  @generated
+  @override
+  final Token? sealedKeyword;
+
+  @generated
+  @override
+  final Token? baseKeyword;
+
+  @generated
+  @override
+  final Token? interfaceKeyword;
+
+  @generated
+  @override
+  final Token? finalKeyword;
+
+  @generated
+  @override
+  final Token? mixinKeyword;
+
+  @generated
+  @override
+  final Token equals;
+
+  final ClassTypeAlias2Impl _v1ProjectionOrigin;
+
+  new v1Projection(ClassTypeAlias2Impl origin)
+    : abstractKeyword = origin.abstractKeyword,
+      sealedKeyword = origin.sealedKeyword,
+      baseKeyword = origin.baseKeyword,
+      interfaceKeyword = origin.interfaceKeyword,
+      finalKeyword = origin.finalKeyword,
+      mixinKeyword = origin.mixinKeyword,
+      equals = origin.equals,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+        augmentKeyword: origin.augmentKeyword,
+        typedefKeyword: origin.classKeyword,
+        name: origin.name,
+        semicolon: origin.body.semicolon,
+      ) {
+    _becomeParentOf1(origin.typeParameters);
+    _becomeParentOf1(origin.superclass);
+    _becomeParentOf1(origin.withClause);
+    _becomeParentOf1(origin.implementsClause);
+  }
+
+  @override
+  ClassFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
 
   @generated
   @override
@@ -8120,41 +8557,27 @@ final class ClassTypeAliasImpl extends TypeAliasImpl
     return typedefKeyword;
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  ImplementsClauseImpl? get implementsClause => _implementsClause;
+  ImplementsClauseImpl? get implementsClause =>
+      _v1ProjectionOrigin.implementsClause;
 
-  @generated
-  set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf12(implementsClause);
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  NamedTypeImpl get superclass => _superclass;
+  NamedTypeImpl get superclass => _v1ProjectionOrigin.superclass;
 
-  @generated
-  set superclass(NamedTypeImpl superclass) {
-    _superclass = _becomeParentOf12(superclass);
-  }
-
-  @generated
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
+  TypeParameterListImpl? get typeParameters =>
+      _v1ProjectionOrigin.typeParameters;
 
-  @generated
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf12(typeParameters);
-  }
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  WithClauseImpl get withClause => _v1ProjectionOrigin.withClause;
 
   @generated
   @override
-  WithClauseImpl get withClause => _withClause;
-
-  @generated
-  set withClause(WithClauseImpl withClause) {
-    _withClause = _becomeParentOf12(withClause);
-  }
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -8176,24 +8599,9 @@ final class ClassTypeAliasImpl extends TypeAliasImpl
     ..addNode('implementsClause', implementsClause)
     ..addToken('semicolon', semicolon);
 
-  @generated
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 => super._childEntities2
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('sealedKeyword', sealedKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('interfaceKeyword', interfaceKeyword)
-    ..addToken('finalKeyword', finalKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addToken('equals', equals)
-    ..addNode('superclass', superclass)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -8203,48 +8611,20 @@ final class ClassTypeAliasImpl extends TypeAliasImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitClassTypeAlias(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('ClassTypeAlias is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(typeParameters, oldNode)) {
-      typeParameters = null;
-      return;
-    }
-    if (identical(superclass, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'superclass'.");
-    }
-    if (identical(withClause, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'withClause'.");
-    }
-    if (identical(implementsClause, oldNode)) {
-      implementsClause = null;
-      return;
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(typeParameters, oldNode)) {
-      typeParameters = newNode as TypeParameterListImpl?;
-      return;
-    }
-    if (identical(superclass, oldNode)) {
-      superclass = newNode as NamedTypeImpl;
-      return;
-    }
-    if (identical(withClause, oldNode)) {
-      withClause = newNode as WithClauseImpl;
-      return;
-    }
-    if (identical(implementsClause, oldNode)) {
-      implementsClause = newNode as ImplementsClauseImpl?;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
@@ -8262,52 +8642,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    _visitCommentAndAnnotations2(visitor);
-    typeParameters?.accept2(visitor);
-    superclass.accept2(visitor);
-    withClause.accept2(visitor);
-    implementsClause?.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(TypeParameterListImpl)? visitTypeParameters,
-    void Function(NamedTypeImpl)? visitSuperclass,
-    void Function(WithClauseImpl)? visitWithClause,
-    void Function(ImplementsClauseImpl)? visitImplementsClause,
-  }) {
-    _visitCommentAndAnnotations2(visitor);
-    if (typeParameters case var typeParameters?) {
-      if (visitTypeParameters != null) {
-        visitTypeParameters(typeParameters);
-      } else {
-        typeParameters.accept2(visitor);
-      }
-    }
-    if (visitSuperclass != null) {
-      visitSuperclass(superclass);
-    } else {
-      superclass.accept2(visitor);
-    }
-    if (visitWithClause != null) {
-      visitWithClause(withClause);
-    } else {
-      withClause.accept2(visitor);
-    }
-    if (implementsClause case var implementsClause?) {
-      if (visitImplementsClause != null) {
-        visitImplementsClause(implementsClause);
-      } else {
-        implementsClause.accept2(visitor);
-      }
-    }
+    throw StateError('ClassTypeAlias is not in the V2 AST view.');
   }
 
   @generated
@@ -8339,26 +8674,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (superclass._containsOffset(rangeOffset, rangeEnd)) {
-      return superclass;
-    }
-    if (withClause._containsOffset(rangeOffset, rangeEnd)) {
-      return withClause;
-    }
-    if (implementsClause case var implementsClause?) {
-      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
-        return implementsClause;
-      }
-    }
-    return null;
+    throw StateError('ClassTypeAlias is not in the V2 AST view.');
   }
 }
 
@@ -32607,6 +32923,12 @@ sealed class InstanceDeclarationBody implements AstNode {
   NodeList<MemberDeclaration> get members;
 }
 
+sealed class InstanceDeclarationBodyImpl extends AstNodeImpl
+    implements InstanceDeclarationBody {
+  @override
+  NodeListImpl<MemberDeclarationImpl> get members;
+}
+
 /// An expression or non-value form that can receive an instance operation.
 ///
 /// An ordinary expression supplies its value as the receiver. Non-value forms
@@ -51764,6 +52086,113 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   }
 }
 
+/// An instance-declaration body represented by a semicolon.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class SemicolonInstanceDeclarationBody
+    implements InstanceDeclarationBody {
+  /// The semicolon.
+  Token get semicolon;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('semicolon')],
+)
+final class SemicolonInstanceDeclarationBodyImpl
+    extends InstanceDeclarationBodyImpl
+    implements SemicolonInstanceDeclarationBody {
+  @generated
+  @override
+  final Token semicolon;
+
+  @override
+  late final NodeListImpl<MemberDeclarationImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
+  @generated
+  new({required this.semicolon});
+
+  @generated
+  @override
+  Token get beginToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError(
+      'SemicolonInstanceDeclarationBody is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError(
+      'SemicolonInstanceDeclarationBody is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitSemicolonInstanceDeclarationBody(this);
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError(
+      'SemicolonInstanceDeclarationBody is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError(
+      'SemicolonInstanceDeclarationBody is not in the V1 AST view.',
+    );
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
 /// A set or map literal.
 ///
 ///     setOrMapLiteral ::=
@@ -60081,6 +60510,9 @@ enum V1Projection {
     if (node is GenericTypeAlias2Impl) {
       return node.v1Projection;
     }
+    if (node is ClassTypeAlias2Impl) {
+      return node.v1Projection;
+    }
     return node as CompilationUnitMemberImpl;
   }
 
@@ -60152,6 +60584,7 @@ enum V1Projection {
     MethodDeclarationV1OriginImpl() => node._v1Projection,
     TopLevelVariablesDeclarationImpl() => node._v1Projection,
     VariableDeclarationV1OriginImpl() => node._v1Projection,
+    ClassTypeAlias2Impl() => node._v1Projection,
     FunctionTypeAlias2Impl() => node._v1Projection,
     GenericTypeAlias2Impl() => node._v1Projection,
     _ => node._astNodeApi == AstNodeApi.shared ? node : null,
@@ -60204,6 +60637,7 @@ enum V1Projection {
       FieldsDeclarationImpl() => root.v1Projection,
       MethodDeclarationV1OriginImpl() => root.v1Projection,
       TopLevelVariablesDeclarationImpl() => root.v1Projection,
+      ClassTypeAlias2Impl() => root.v1Projection,
       FunctionTypeAlias2Impl() => root.v1Projection,
       GenericTypeAlias2Impl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
@@ -60256,6 +60690,7 @@ enum V1Projection {
       node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
     DotShorthandPropertyAccessImpl() =>
       node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
+    ClassTypeAliasImpl() => node._v1ProjectionOrigin,
     ConstructorDeclarationImpl() => node._v1ProjectionOrigin,
     EnumConstantDeclarationImpl() => node._v1ProjectionOrigin,
     FieldDeclarationImpl() => node._v1ProjectionOrigin,

@@ -414,6 +414,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitExpression(node);
 
   @experimental
+  R? visitInstanceDeclarationBody(InstanceDeclarationBody node) =>
+      visitNode(node);
+
+  @experimental
   R? visitInstanceReceiver(InstanceReceiver node) => visitNamedReceiver(node);
 
   @override
@@ -2121,8 +2125,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitClassTypeAlias(ClassTypeAlias node) {
+  R? visitClassTypeAlias2(ClassTypeAlias2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3159,6 +3164,15 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitSetOrMapLiteral(SetOrMapLiteral node) {
     node.visitChildren2(this);
@@ -4102,8 +4116,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitClassDeclaration(ClassDeclaration node) => null;
 
+  @experimental
   @override
-  R? visitClassTypeAlias(ClassTypeAlias node) => null;
+  R? visitClassTypeAlias2(ClassTypeAlias2 node) => null;
 
   @experimental
   @override
@@ -4673,6 +4688,12 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitScriptTag(ScriptTag node) => null;
+
+  @experimental
+  @override
+  R? visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) => null;
 
   @override
   R? visitSetOrMapLiteral(SetOrMapLiteral node) => null;
@@ -5529,8 +5550,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitClassDeclaration(ClassDeclaration node) => _throw(node);
 
+  @experimental
   @override
-  R? visitClassTypeAlias(ClassTypeAlias node) => _throw(node);
+  R? visitClassTypeAlias2(ClassTypeAlias2 node) => _throw(node);
 
   @experimental
   @override
@@ -6115,6 +6137,12 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitScriptTag(ScriptTag node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) => _throw(node);
 
   @override
   R? visitSetOrMapLiteral(SetOrMapLiteral node) => _throw(node);
@@ -8031,10 +8059,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitClassTypeAlias(ClassTypeAlias node) {
+  T? visitClassTypeAlias2(ClassTypeAlias2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitClassTypeAlias(node);
+    T? result = _baseVisitor.visitClassTypeAlias2(node);
     stopwatch.stop();
     return result;
   }
@@ -9389,6 +9418,17 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitSemicolonInstanceDeclarationBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitSetOrMapLiteral(SetOrMapLiteral node) {
     stopwatch.start();
@@ -10458,8 +10498,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitClassDeclaration(ClassDeclaration node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitClassTypeAlias(ClassTypeAlias node) => visitNode(node);
+  R? visitClassTypeAlias2(ClassTypeAlias2 node) => visitNode(node);
 
   @experimental
   @override
@@ -11065,6 +11106,12 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitScriptTag(ScriptTag node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) => visitNode(node);
 
   @override
   R? visitSetOrMapLiteral(SetOrMapLiteral node) => visitNode(node);

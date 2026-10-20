@@ -25,7 +25,7 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedSubclass(node.withClause?.mixinTypes);
   }
 
-  void classTypeAlias(ClassTypeAlias node) {
+  void classTypeAlias(ClassTypeAlias2 node) {
     _checkForDeprecatedExtend(node.superclass);
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);

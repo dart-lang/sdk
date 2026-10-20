@@ -123,7 +123,7 @@ class TypesBuilder {
     _addFragmentWithClause(fragment, node.withClause);
   }
 
-  void _classTypeAlias(ClassTypeAliasImpl node) {
+  void _classTypeAlias(ClassTypeAlias2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
@@ -153,7 +153,7 @@ class TypesBuilder {
   void _declaration(AstNode node) {
     if (node is ClassDeclarationImpl) {
       _classDeclaration(node);
-    } else if (node is ClassTypeAliasImpl) {
+    } else if (node is ClassTypeAlias2Impl) {
       _classTypeAlias(node);
     } else if (node is EnumDeclarationImpl) {
       _enumDeclaration(node);

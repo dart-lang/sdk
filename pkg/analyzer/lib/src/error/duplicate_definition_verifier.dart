@@ -299,7 +299,7 @@ class DuplicateDefinitionVerifier {
               }
             }
           }
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(

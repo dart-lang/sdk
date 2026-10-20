@@ -39,7 +39,7 @@ const isClassDeclaration = TypeMatcher<ClassDeclaration>();
 
 const isClassMember = TypeMatcher<ClassMember>();
 
-const isClassTypeAlias = TypeMatcher<ClassTypeAlias>();
+const isClassTypeAlias2 = TypeMatcher<ClassTypeAlias2>();
 
 const isCombinator = TypeMatcher<Combinator>();
 

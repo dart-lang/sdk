@@ -86,7 +86,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
         appendName(names.topLevelNames, member.name);
       case TopLevelSetterDeclarationImpl():
         appendName(names.topLevelNames, member.name);
-      case ClassTypeAliasImpl():
+      case ClassTypeAlias2Impl():
         appendName(names.topLevelNames, member.name);
       case FunctionTypeAlias2Impl():
         appendName(names.topLevelNames, member.name);

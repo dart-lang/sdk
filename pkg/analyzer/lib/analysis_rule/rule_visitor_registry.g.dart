@@ -591,7 +591,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addClassTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addClassTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addCombinatorName(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -1131,6 +1132,12 @@ abstract class RuleVisitorRegistry2 {
   void addReturnStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addScriptTag(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addSemicolonInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addSetOrMapLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

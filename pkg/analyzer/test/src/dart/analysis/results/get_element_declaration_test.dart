@@ -103,6 +103,43 @@ class B = A with M;
     expect(node.name.lexeme, 'B');
   }
 
+  test_classTypeAlias_v2() async {
+    var unitResult = await resolveTestCode(r'''
+mixin M {}
+class A {}
+class B = A with M;
+''');
+    var fragment = unitResult.findElement.class_('B').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ClassTypeAlias2
+  classKeyword: class
+  name: B
+  equals: =
+  superclass: NamedType
+    name: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
+  typedefKeyword: class
+  name: B
+  equals: =
+  superclass: NamedType
+    name: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
   test_constructor() async {
     var unitResult = await resolveTestCode(r'''
 class A {

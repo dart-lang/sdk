@@ -489,7 +489,8 @@ abstract class AstVisitor2<R> {
 
   R? visitClassDeclaration(ClassDeclaration node);
 
-  R? visitClassTypeAlias(ClassTypeAlias node);
+  @experimental
+  R? visitClassTypeAlias2(ClassTypeAlias2 node);
 
   @experimental
   R? visitCombinatorName(CombinatorName node);
@@ -888,6 +889,11 @@ abstract class AstVisitor2<R> {
   R? visitReturnStatement(ReturnStatement node);
 
   R? visitScriptTag(ScriptTag node);
+
+  @experimental
+  R? visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  );
 
   R? visitSetOrMapLiteral(SetOrMapLiteral node);
 

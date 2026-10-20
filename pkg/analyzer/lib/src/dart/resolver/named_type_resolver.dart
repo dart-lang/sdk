@@ -40,7 +40,7 @@ class NamedTypeResolver with ScopeHelpers {
   final DiagnosticReporter diagnosticReporter;
 
   /// If not `null`, the element of the [ClassDeclaration], or the
-  /// [ClassTypeAlias] being resolved.
+  /// [ClassTypeAlias2] being resolved.
   InterfaceElementImpl? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
@@ -631,7 +631,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (identical(node, classHierarchy_namedType)) {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         var parent = node.parent2;
-        if (parent is ExtendsClause || parent is ClassTypeAlias) {
+        if (parent is ExtendsClause || parent is ClassTypeAlias2) {
           diagnosticReporter.report(diag.nullableTypeInExtendsClause.at(node));
         } else if (parent is ImplementsClause) {
           diagnosticReporter.report(
@@ -774,7 +774,7 @@ class _ErrorHelper {
     if (parent is ExtendsClause ||
         parent is ImplementsClause ||
         parent is WithClause ||
-        parent is ClassTypeAlias) {
+        parent is ClassTypeAlias2) {
       // Ignored. The error will be reported elsewhere.
       return;
     }

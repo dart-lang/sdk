@@ -463,6 +463,11 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
       node.statements2;
 
   @override
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _declarationNode = node;
+  }
+
+  @override
   void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     if (!identical(immediateChild, node.formalParameters)) {
       _addParameters(node.formalParameters.allFormalParameters);
@@ -517,9 +522,6 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   void visitNode(AstNode node) {
     if (node is SwitchMember) {
       _checkStatements(switchMemberStatementsOf(node));
-    } else if (node is TypeAlias) {
-      _declarationNode = node;
-      return;
     }
     immediateChild = node;
     parentOf(node)?.accept2(this);

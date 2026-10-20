@@ -1407,9 +1407,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    _runSubscriptions(node, _registry._forClassTypeAlias);
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _runSubscriptions(node, _registry._forClassTypeAlias2);
     node.visitChildren2(this);
   }
 
@@ -2451,6 +2452,15 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitScriptTag(ScriptTag node) {
     _runSubscriptions(node, _registry._forScriptTag);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    _runSubscriptions(node, _registry._forSemicolonInstanceDeclarationBody);
     node.visitChildren2(this);
   }
 
@@ -4573,7 +4583,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ClassDeclaration>> _forClassDeclaration = [];
 
-  final List<_Subscription2<ClassTypeAlias>> _forClassTypeAlias = [];
+  final List<_Subscription2<ClassTypeAlias2>> _forClassTypeAlias2 = [];
 
   final List<_Subscription2<CombinatorName>> _forCombinatorName = [];
 
@@ -4958,6 +4968,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ScriptTag>> _forScriptTag = [];
 
+  final List<_Subscription2<SemicolonInstanceDeclarationBody>>
+  _forSemicolonInstanceDeclarationBody = [];
+
   final List<_Subscription2<SetOrMapLiteral>> _forSetOrMapLiteral = [];
 
   final List<_Subscription2<SetterDeclaration>> _forSetterDeclaration = [];
@@ -5283,9 +5296,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addClassTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addClassTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forClassTypeAlias.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forClassTypeAlias2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -6554,6 +6567,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addScriptTag(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forScriptTag.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addSemicolonInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forSemicolonInstanceDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

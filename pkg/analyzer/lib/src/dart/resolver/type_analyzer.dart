@@ -2491,13 +2491,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
 
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitClassTypeAlias(node);
+    elementResolver.visitClassTypeAlias2(node);
     baseOrFinalTypeVerifier.checkElement(
       element: declaredElement,
       nameToken: node.name,
@@ -4374,6 +4374,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
 
   @override
   void visitSetOrMapLiteral(

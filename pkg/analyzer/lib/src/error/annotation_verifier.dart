@@ -143,7 +143,7 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -166,7 +166,7 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case MixinDeclaration parent) {
       declaredElement = parent.declaredFragment!.element;
@@ -193,7 +193,7 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -252,7 +252,7 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case MixinDeclaration parent) {
       declaredElement = parent.declaredFragment!.element;
@@ -465,7 +465,7 @@ class AnnotationVerifier {
     if (parent is ClassDeclaration) {
       classElement = parent.declaredFragment?.element;
       superElement = classElement?.supertype?.element;
-    } else if (parent is ClassTypeAlias) {
+    } else if (parent is ClassTypeAlias2) {
       classElement = parent.declaredFragment?.element;
       superElement = classElement?.supertype?.element;
     } else {

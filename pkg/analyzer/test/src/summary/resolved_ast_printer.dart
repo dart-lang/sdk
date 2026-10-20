@@ -381,12 +381,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    if (_view == _AstView.v2) {
-      _writeClassTypeAliasAsClassTypeAlias2(node);
-      return;
-    }
-
     _sink.writeln('ClassTypeAlias');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _sink.writeln('ClassTypeAlias2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -2279,6 +2283,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    _sink.writeln('SemicolonInstanceDeclarationBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _sink.writeln('SetOrMapLiteral');
     _sink.withIndent(() {
@@ -2738,15 +2752,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Statement(statement);
     }
 
-    // TODO(scheglov): Remove when class type aliases are parsed as
-    // ClassTypeAlias2, which has a distinct V1 projection.
-    if (node is ClassTypeAlias) {
-      _withInlineV1ChildEntities(false, () => writeNode(node));
-      _sink.writeWithIndent('V1: ');
-      _withView(_AstView.v1, () => _acceptInView(node));
-      return;
-    }
-
     if (v1 == null || identical(v1, node)) {
       writeNode(node);
       return;
@@ -2919,31 +2924,6 @@ Expected parent: (${parent.runtimeType}) $parent
     } finally {
       _view = previousView;
     }
-  }
-
-  /// Writes a class type alias [node] as it will be printed once class type
-  /// aliases are parsed as `ClassTypeAlias2`.
-  // TODO(scheglov): Remove when class type aliases are parsed as
-  // ClassTypeAlias2.
-  void _writeClassTypeAliasAsClassTypeAlias2(ClassTypeAlias node) {
-    node as ClassTypeAliasImpl;
-    _sink.writeln('ClassTypeAlias2');
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        switch (entity.name) {
-          case 'typedefKeyword':
-            _writeNamedChildEntity(node, entity, name: 'classKeyword');
-          case 'semicolon':
-            _sink.writelnWithIndent('body: SemicolonInstanceDeclarationBody');
-            _sink.withIndent(() {
-              _writeNamedChildEntity(node, entity);
-            });
-          default:
-            _writeNamedChildEntity(node, entity);
-        }
-      }
-      _writeDeclaredFragment(node.declaredFragment);
-    });
   }
 
   void _writeDeclaredFragment(Fragment? fragment) {
@@ -3299,8 +3279,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasClassTypeAliases(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3671,16 +3650,6 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a declaration list with a [ClassTypeAlias], which
-  /// will differ from its V1 projection once class type aliases are parsed as
-  /// `ClassTypeAlias2`.
-  // TODO(scheglov): Remove when class type aliases are parsed as
-  // ClassTypeAlias2.
-  static bool _hasClassTypeAliases(Object value) {
-    return value is List<AstNode> &&
-        value.any((node) => node is ClassTypeAlias);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

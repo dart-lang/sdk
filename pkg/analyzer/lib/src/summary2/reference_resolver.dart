@@ -74,8 +74,8 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
-    _scopeContext.visitClassTypeAlias(node, visitor: this);
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
+    _scopeContext.visitClassTypeAlias2(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
@@ -342,6 +342,11 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     _visitFormalParameter(node);
   }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
 
   @override
   void visitSetterDeclaration(covariant SetterDeclarationImpl node) {

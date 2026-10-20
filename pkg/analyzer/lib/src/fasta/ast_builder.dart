@@ -2689,10 +2689,10 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(
-      ClassTypeAliasImpl(
+      ClassTypeAlias2Impl(
         comment: comment,
         metadata: metadata,
-        typedefKeyword: classKeyword,
+        classKeyword: classKeyword,
         name: name,
         typeParameters: typeParameters,
         equals: equalsToken,
@@ -2706,7 +2706,7 @@ class AstBuilder extends StackListener {
         superclass: superclass,
         withClause: withClause,
         implementsClause: implementsClause,
-        semicolon: semicolon,
+        body: SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon),
       ),
     );
   }

@@ -583,7 +583,7 @@ class _InfoBuilder {
     for (var declaration in unit.declarations2) {
       if (declaration is ClassDeclaration) {
         classDeclarations.add(_buildClass(declaration));
-      } else if (declaration is ClassTypeAlias) {
+      } else if (declaration is ClassTypeAlias2) {
         classTypeAliases.add(_buildClassTypeAlias(declaration));
       } else if (declaration is EnumDeclarationImpl) {
         enums.add(_buildEnum(declaration));
@@ -675,7 +675,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoClassTypeAlias _buildClassTypeAlias(ClassTypeAlias node) {
+  _InfoClassTypeAlias _buildClassTypeAlias(ClassTypeAlias2 node) {
     return _InfoClassTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,

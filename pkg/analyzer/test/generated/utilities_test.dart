@@ -373,7 +373,7 @@ class B<U> = B0 with N implements J;
 ''');
     var destination = parseResult.findNode.classTypeAlias('A<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<ClassTypeAlias>(
+    _assertReplacementForChildren<ClassTypeAlias2>(
       destination: destination,
       source: parseResult.findNode.classTypeAlias('B<U>'),
       childAccessors: [
@@ -384,7 +384,7 @@ class B<U> = B0 with N implements J;
         (node) => node.withClause,
       ],
     );
-    _assertRemovalForNullableChild<ClassTypeAlias>(
+    _assertRemovalForNullableChild<ClassTypeAlias2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );

@@ -79,7 +79,7 @@ class InheritanceOverrideVerifier {
           reportInterfaceConflicts: _reportInterfaceConflicts,
           targetForElement: _targetForElement,
         );
-      } else if (declaration is ClassTypeAliasImpl) {
+      } else if (declaration is ClassTypeAlias2Impl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
@@ -259,7 +259,7 @@ class _ClassVerifier {
   final InterfaceElementImpl classElement;
   final InterfaceFragmentImpl classFragment;
 
-  final CompilationUnitMember node;
+  final AstNode node;
   final Token classNameToken;
   final List<AnnotatedNode> members;
   final ImplementsClause? implementsClause;

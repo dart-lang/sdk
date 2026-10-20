@@ -123,7 +123,7 @@ class ElementResolver {
 
   void visitClassDeclaration(ClassDeclaration node) {}
 
-  void visitClassTypeAlias(ClassTypeAlias node) {}
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {}
 
   void visitCommentReference(CommentReferenceImpl node) {
     _commentReferenceResolver.resolve(node);

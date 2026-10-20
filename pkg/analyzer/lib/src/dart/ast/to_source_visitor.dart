@@ -266,7 +266,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -282,7 +282,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.superclass);
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
-    sink.write(';');
+    _visitNode(node.body);
   }
 
   @override
@@ -1566,6 +1566,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitScriptTag(ScriptTag node) {
     sink.write(node.scriptTag.lexeme);
+  }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    sink.write(';');
   }
 
   @override

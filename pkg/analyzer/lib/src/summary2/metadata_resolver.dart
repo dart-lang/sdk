@@ -85,7 +85,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
   }
@@ -286,6 +286,11 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
       functionTypedSuffix.formalParameters.accept2(this);
     }
   }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
 
   @override
   void visitSetterDeclaration(covariant SetterDeclarationImpl node) {

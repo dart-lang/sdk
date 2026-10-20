@@ -628,7 +628,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -658,7 +658,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       );
       _checkForWrongTypeParameterVarianceInSuperinterfaces(element);
     });
-    super.visitClassTypeAlias(node);
+    super.visitClassTypeAlias2(node);
   }
 
   @override
@@ -6336,7 +6336,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// See [diag.mixinClassDeclaresNonTrivialGenerativeConstructor],
   /// [diag.mixinInheritsFromNotObject].
   void _checkForMixinClassErrorCodes(
-    CompilationUnitMember node,
+    FragmentDeclaringNode node,
     List<AnnotatedNode> members,
     NamedType? superclass,
     WithClause? withClause,
