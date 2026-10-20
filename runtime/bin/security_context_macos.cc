@@ -16,6 +16,7 @@
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
 
+#include "bin/certificate_distrust.h"
 #include "bin/secure_socket_filter.h"
 
 namespace dart {
@@ -286,9 +287,12 @@ static void TrustEvaluateHandler(Dart_Port dest_port_id,
   // Perform the certificate verification.
   OSStatus status = SecTrustGetTrustResult(trust.get(), &trust_result);
 
+  // SecTrust can supply intermediates and anchors absent from the peer's
+  // certificate list. Check its evaluated path before reporting success.
   postReply(reply_port_id,
             status == noErr && (trust_result == kSecTrustResultProceed ||
-                                trust_result == kSecTrustResultUnspecified),
+                                trust_result == kSecTrustResultUnspecified) &&
+                CertificateDistrust::CheckTrust(trust.get()) == X509_V_OK,
             leaf_cert);
 }
 

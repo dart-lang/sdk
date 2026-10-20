@@ -65,6 +65,13 @@ remove them.
 
 ### Libraries
 
+#### `dart:io`
+
+- TLS certificate verification now rejects chains containing eight explicitly
+  distrusted public keys, including on macOS and iOS and when using custom
+  trusted certificates. Explicit overrides through `onBadCertificate` and
+  `HttpClient.badCertificateCallback` retain their existing behavior.
+
 #### `dart:math`
 
 - Added `imul32(int a, int b)` for 32-bit signed wrapping multiplication.

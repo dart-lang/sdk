@@ -14,6 +14,7 @@
 
 #include "platform/globals.h"
 
+#include "bin/certificate_distrust.h"
 #include "bin/directory.h"
 #include "bin/file.h"
 #include "bin/secure_socket_filter.h"
@@ -27,6 +28,11 @@ const char* SSLCertContext::root_certs_file_ = nullptr;
 const char* SSLCertContext::root_certs_cache_ = nullptr;
 bool SSLCertContext::long_ssl_cert_evaluation_ = false;
 bool SSLCertContext::bypass_trusting_system_roots_ = false;
+
+static int VerifyCertificateChain(X509_STORE_CTX* store_ctx, void* arg) {
+  return CertificateDistrust::VerifyChain(store_ctx,
+                                        SSLCertContext::CertificateCallback);
+}
 
 int SSLCertContext::CertificateCallback(int preverify_ok,
                                         X509_STORE_CTX* store_ctx) {
@@ -821,6 +827,7 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSLFilter::InitializeLibrary();
   SSL_CTX* ctx = SSL_CTX_new(TLS_method());
   SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, SSLCertContext::CertificateCallback);
+  SSL_CTX_set_cert_verify_callback(ctx, VerifyCertificateChain, nullptr);
   SSL_CTX_set_keylog_callback(ctx, SSLCertContext::KeyLogCallback);
   // If we change the minimum protocol version here, then the documentation
   // for `SecurityContext.minimumTlsProtocolVersion` must also be changed.
