@@ -38,13 +38,13 @@ class C {
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: C
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       ConstructorDeclaration2
         typeName: C
         formalParameters: FormalParameterList
@@ -54,20 +54,12 @@ ClassDeclaration
         initializers
           ConstructorFieldInitializer
             fieldName2: <empty> <synthetic>
-            fieldName(v1): SimpleIdentifier
-              token: <empty> <synthetic>
             equals: = <synthetic>
             expression2: ReceiverPropertyExtraction
               receiver: ThisExpression
                 thisKeyword: this
               operator: .
               name: <empty> <synthetic>
-            expression(v1): PropertyAccess
-              target: ThisExpression
-                thisKeyword: this
-              operator: .
-              propertyName: SimpleIdentifier
-                token: <empty> <synthetic>
         body: BlockFunctionBody
           block: Block
             leftBracket: { <synthetic>
@@ -83,7 +75,14 @@ ClassDeclaration
             name: null
         body: EmptyFunctionBody
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    members
       ConstructorDeclaration
         typeName: SimpleIdentifier
           token: C

@@ -25,7 +25,24 @@ augment class A<T> {}
 ''');
     var node = result.findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@27
+            defaultType: null
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@25
+V1: ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
   namePart: NameWithTypeParameters
@@ -54,7 +71,16 @@ augment class A {}
 ''');
     var node = result.findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
   namePart: NameWithTypeParameters
@@ -73,7 +99,24 @@ augment class A<T> {}
 ''');
     var node = result.findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@30
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
   namePart: NameWithTypeParameters
@@ -104,7 +147,28 @@ void f(A<int> a) {}
 ''');
     var node = result.findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@30
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@33
+            defaultType: null
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
   namePart: NameWithTypeParameters
@@ -137,7 +201,32 @@ augment class A<T, U, V> {}
 ''');
     var node = result.findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@30
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@33
+            defaultType: null
+        TypeParameter
+          name: V
+          declaredFragment: <testLibraryFragment> V@36
+            defaultType: null
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
   namePart: NameWithTypeParameters
@@ -174,7 +263,24 @@ augment class A<T> {}
 ''');
     var node = result.findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  augmentKeyword: augment
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@33
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
   namePart: NameWithTypeParameters

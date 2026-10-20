@@ -42,11 +42,11 @@ CompilationUnit
           EnumConstantDeclaration2
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -755,11 +755,11 @@ CompilationUnit
           EnumConstantDeclaration2
             name: <empty> <synthetic>
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1403,11 +1403,11 @@ CompilationUnit
           EnumConstantDeclaration2
             name: a
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2116,11 +2116,11 @@ CompilationUnit
           EnumConstantDeclaration2
             name: a
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2804,11 +2804,11 @@ CompilationUnit
       body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3350,11 +3350,11 @@ CompilationUnit
           EnumConstantDeclaration2
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3990,11 +3990,11 @@ CompilationUnit
       body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4562,11 +4562,11 @@ CompilationUnit
       body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5137,11 +5137,11 @@ CompilationUnit
           EnumConstantDeclaration2
             name: a
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
