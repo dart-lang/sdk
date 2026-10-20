@@ -17,7 +17,7 @@ import 'dart:async'
 import 'dart:convert' show Converter;
 import 'dart:core' hide Symbol;
 import 'dart:core' as core show Symbol;
-import 'dart:math' show Random;
+import 'dart:math' show Random, imul32;
 import 'dart:typed_data' show Uint8List;
 
 part 'async_cast.dart';
@@ -723,9 +723,9 @@ abstract final class SystemHash {
   /// <https://github.com/skeeto/hash-prospector>.
   static int smear(int x) {
     x ^= x >>> 16;
-    x = (x * 0x21f0aaad) & 0xFFFFFFFF;
+    x = imul32(x, 0x21f0aaad).toUnsigned(32);
     x ^= x >>> 15;
-    x = (x * 0xd35a2d97) & 0xFFFFFFFF;
+    x = imul32(x, 0xd35a2d97).toUnsigned(32);
     x ^= x >>> 15;
     return x;
   }
