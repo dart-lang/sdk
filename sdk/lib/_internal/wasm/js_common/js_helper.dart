@@ -88,41 +88,6 @@ extension JSAnyToExternRef on JSAny? {
 @pragma('wasm:entry-point')
 bool isDartNull(WasmExternRef? ref) => ref.isNull || isJSUndefined(ref);
 
-class JSArrayIteratorAdapter<T> implements Iterator<T> {
-  final JSArray array;
-  int index = -1;
-
-  JSArrayIteratorAdapter(this.array);
-
-  @override
-  bool moveNext() {
-    index++;
-    int length = array.length;
-    if (index > length) {
-      throw 'Iterator out of bounds';
-    }
-    return index < length;
-  }
-
-  @override
-  T get current => dartifyRaw(array[index].toExternRef) as T;
-}
-
-/// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]
-/// interface.
-class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T>
-    implements HideEfficientLengthIterable<T> {
-  final JSArray array;
-
-  JSArrayIterableAdapter(this.array);
-
-  @override
-  Iterator<T> get iterator => JSArrayIteratorAdapter<T>(array);
-
-  @override
-  int get length => array.length;
-}
-
 Object jsObjectToDartObject(WasmExternRef? ref) =>
     unsafeCastOpaque<Object>(ref.internalize());
 
