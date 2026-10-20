@@ -1039,7 +1039,23 @@ augment mixin A<T> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@27
+          defaultType: null
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@25
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -1067,7 +1083,15 @@ augment mixin A {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -1085,7 +1109,23 @@ augment mixin A<T> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@30
+          defaultType: dynamic
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -1113,7 +1153,27 @@ augment mixin A<T, U> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@30
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@33
+          defaultType: null
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -1145,7 +1205,23 @@ augment mixin A<T> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@33
+          defaultType: dynamic
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A

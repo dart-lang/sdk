@@ -27,7 +27,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -50,7 +57,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -73,7 +87,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -96,7 +117,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody

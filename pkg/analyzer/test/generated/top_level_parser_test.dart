@@ -6173,6 +6173,13 @@ mixin A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6190,6 +6197,18 @@ mixin A implements B {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6212,6 +6231,26 @@ mixin A implements B<T>, C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: T
+              rightBracket: >
+          NamedType
+            name: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6243,12 +6282,24 @@ mixin A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: Z
+          name: SimpleIdentifier
+            token: Z
+      mixinKeyword: mixin
+      name: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: Z
       mixinKeyword: mixin
@@ -6267,6 +6318,18 @@ mixin A on B {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6289,6 +6352,26 @@ mixin A on B, C<T> {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: C
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: T
+              rightBracket: >
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6319,6 +6402,23 @@ mixin A on B implements C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6354,12 +6454,12 @@ mixin A {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           FieldsDeclaration
             type: NamedType
               name: int
@@ -6445,7 +6545,14 @@ CompilationUnit
                   rightOperand: SimpleIdentifier
                     token: v
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      body: BlockClassBody
+        leftBracket: {
+        members
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -6524,6 +6631,16 @@ mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      documentationComment: Comment
+        tokens
+          /// Doc
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       documentationComment: Comment
         tokens

@@ -1166,10 +1166,10 @@ CompilationUnit
           EnumConstantDeclaration2
             name: <empty> <synthetic>
         rightBracket: }
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1861,10 +1861,10 @@ CompilationUnit
           EnumConstantDeclaration2
             name: a
         rightBracket: } <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2559,10 +2559,10 @@ CompilationUnit
           EnumConstantDeclaration2
             name: a
         rightBracket: }
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3133,10 +3133,10 @@ CompilationUnit
       body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4353,10 +4353,10 @@ CompilationUnit
       body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4925,10 +4925,10 @@ CompilationUnit
       body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5547,10 +5547,10 @@ CompilationUnit
           EnumConstantDeclaration2
             name: a
         rightBracket: } <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

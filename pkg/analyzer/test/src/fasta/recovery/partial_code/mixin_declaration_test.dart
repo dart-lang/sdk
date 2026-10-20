@@ -29,6 +29,25 @@ mixin A extend class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extend
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -63,7 +82,7 @@ mixin A extend const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -71,7 +90,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -121,7 +140,7 @@ mixin A extend enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -129,7 +148,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -180,6 +199,18 @@ mixin A extend
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extend
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -207,7 +238,7 @@ mixin A extend final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -215,7 +246,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -264,7 +295,7 @@ mixin A extend int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -272,7 +303,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -322,7 +353,7 @@ mixin A extend void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -330,7 +361,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -379,7 +410,7 @@ mixin A extend int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -387,7 +418,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -436,6 +467,18 @@ mixin A extend mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extend
+        superclassConstraints
+          NamedType
+            name: mixin
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -463,7 +506,7 @@ mixin A extend set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -471,7 +514,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -528,7 +571,7 @@ mixin A extend typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -536,7 +579,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -613,7 +656,7 @@ mixin A extend var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -621,7 +664,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -665,6 +708,25 @@ mixin A extends class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extends
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -699,7 +761,7 @@ mixin A extends const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -707,7 +769,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -757,7 +819,7 @@ mixin A extends enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -765,7 +827,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -816,6 +878,18 @@ mixin A extends
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extends
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -843,7 +917,7 @@ mixin A extends final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -851,7 +925,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -900,7 +974,7 @@ mixin A extends int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -908,7 +982,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -958,7 +1032,7 @@ mixin A extends void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -966,7 +1040,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1015,7 +1089,7 @@ mixin A extends int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -1023,7 +1097,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -1072,6 +1146,18 @@ mixin A extends mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extends
+        superclassConstraints
+          NamedType
+            name: mixin
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1099,7 +1185,7 @@ mixin A extends set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -1107,7 +1193,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -1164,7 +1250,7 @@ mixin A extends typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -1172,7 +1258,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -1249,7 +1335,7 @@ mixin A extends var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -1257,7 +1343,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1299,6 +1385,25 @@ mixin A implements class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1331,7 +1436,7 @@ mixin A implements const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1339,7 +1444,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1387,7 +1492,7 @@ mixin A implements enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1395,7 +1500,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -1444,6 +1549,18 @@ mixin A implements
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1469,7 +1586,7 @@ mixin A implements final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1477,7 +1594,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1524,7 +1641,7 @@ mixin A implements int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1532,7 +1649,7 @@ CompilationUnit
         interfaces
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1580,7 +1697,7 @@ mixin A implements void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1588,7 +1705,7 @@ CompilationUnit
         interfaces
           NamedType
             name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1635,7 +1752,7 @@ mixin A implements int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1643,7 +1760,7 @@ CompilationUnit
         interfaces
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -1690,6 +1807,18 @@ mixin A implements mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: mixin
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1715,7 +1844,7 @@ mixin A implements set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1723,7 +1852,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -1778,7 +1907,7 @@ mixin A implements typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1786,7 +1915,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -1861,7 +1990,7 @@ mixin A implements var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1869,7 +1998,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1910,6 +2039,25 @@ mixin A implements {} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1941,7 +2089,7 @@ mixin A implements {} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -1949,7 +2097,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -1996,7 +2144,7 @@ mixin A implements {} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2004,7 +2152,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     EnumDeclaration2
@@ -2052,6 +2200,18 @@ mixin A implements {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -2076,7 +2236,7 @@ mixin A implements {} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2084,7 +2244,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -2131,7 +2291,7 @@ mixin A implements {} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2139,7 +2299,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -2190,7 +2350,7 @@ mixin A implements {} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2198,7 +2358,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -2249,7 +2409,7 @@ mixin A implements {} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2257,7 +2417,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelGetterDeclaration
@@ -2306,6 +2466,24 @@ mixin A implements {} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -2336,7 +2514,7 @@ mixin A implements {} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2344,7 +2522,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelSetterDeclaration
@@ -2398,7 +2576,7 @@ mixin A implements {} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2406,7 +2584,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     GenericTypeAlias2
@@ -2480,7 +2658,7 @@ mixin A implements {} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2488,7 +2666,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -2530,6 +2708,27 @@ mixin A implements B, class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -2564,7 +2763,7 @@ mixin A implements B, const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2574,7 +2773,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -2624,7 +2823,7 @@ mixin A implements B, enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2634,7 +2833,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -2685,6 +2884,20 @@ mixin A implements B,
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -2712,7 +2925,7 @@ mixin A implements B, final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2722,7 +2935,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -2771,7 +2984,7 @@ mixin A implements B, int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2781,7 +2994,7 @@ CompilationUnit
             name: B
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -2831,7 +3044,7 @@ mixin A implements B, void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2841,7 +3054,7 @@ CompilationUnit
             name: B
           NamedType
             name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -2890,7 +3103,7 @@ mixin A implements B, int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2900,7 +3113,7 @@ CompilationUnit
             name: B
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -2949,6 +3162,20 @@ mixin A implements B, mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: mixin
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -2976,7 +3203,7 @@ mixin A implements B, set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -2986,7 +3213,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -3043,7 +3270,7 @@ mixin A implements B, typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3053,7 +3280,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -3130,7 +3357,7 @@ mixin A implements B, var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3140,7 +3367,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -3183,6 +3410,27 @@ mixin A implements B, {} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -3216,7 +3464,7 @@ mixin A implements B, {} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3226,7 +3474,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -3275,7 +3523,7 @@ mixin A implements B, {} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3285,7 +3533,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     EnumDeclaration2
@@ -3335,6 +3583,20 @@ mixin A implements B, {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -3361,7 +3623,7 @@ mixin A implements B, {} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3371,7 +3633,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -3420,7 +3682,7 @@ mixin A implements B, {} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3430,7 +3692,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -3483,7 +3745,7 @@ mixin A implements B, {} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3493,7 +3755,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -3546,7 +3808,7 @@ mixin A implements B, {} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3556,7 +3818,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelGetterDeclaration
@@ -3607,6 +3869,26 @@ mixin A implements B, {} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -3639,7 +3921,7 @@ mixin A implements B, {} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3649,7 +3931,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelSetterDeclaration
@@ -3705,7 +3987,7 @@ mixin A implements B, {} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3715,7 +3997,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     GenericTypeAlias2
@@ -3791,7 +4073,7 @@ mixin A implements B, {} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       implementsClause: ImplementsClause
@@ -3801,7 +4083,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -3871,6 +4153,13 @@ mixin const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: a
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: a
@@ -3891,10 +4180,10 @@ mixin enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -3938,6 +4227,13 @@ mixin
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: <empty> <synthetic>
@@ -3958,10 +4254,10 @@ mixin final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4003,10 +4299,10 @@ mixin int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -4049,10 +4345,10 @@ mixin void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -4098,10 +4394,10 @@ mixin int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -4142,6 +4438,19 @@ mixin mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: <empty> <synthetic>
@@ -4168,10 +4477,10 @@ mixin set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -4221,10 +4530,10 @@ mixin typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -4294,10 +4603,10 @@ mixin var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4333,6 +4642,20 @@ mixin A class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -4359,10 +4682,10 @@ mixin A const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4404,10 +4727,10 @@ mixin A enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -4450,6 +4773,13 @@ mixin A
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -4469,10 +4799,10 @@ mixin A final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4514,10 +4844,10 @@ mixin A int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -4563,10 +4893,10 @@ mixin A void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -4612,10 +4942,10 @@ mixin A int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -4659,6 +4989,19 @@ mixin A mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -4684,10 +5027,10 @@ mixin A set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -4736,10 +5079,10 @@ mixin A typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -4808,10 +5151,10 @@ mixin A var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4848,6 +5191,25 @@ mixin A on class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -4880,7 +5242,7 @@ mixin A on const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -4888,7 +5250,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4936,7 +5298,7 @@ mixin A on enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -4944,7 +5306,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -4993,6 +5355,18 @@ mixin A on
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -5018,7 +5392,7 @@ mixin A on final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5026,7 +5400,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -5073,7 +5447,7 @@ mixin A on int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5081,7 +5455,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -5129,7 +5503,7 @@ mixin A on void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5137,7 +5511,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -5184,7 +5558,7 @@ mixin A on int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5192,7 +5566,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -5239,6 +5613,18 @@ mixin A on mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: mixin
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -5264,7 +5650,7 @@ mixin A on set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5272,7 +5658,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -5327,7 +5713,7 @@ mixin A on typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5335,7 +5721,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -5410,7 +5796,7 @@ mixin A on var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5418,7 +5804,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -5459,6 +5845,25 @@ mixin A on {} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -5490,7 +5895,7 @@ mixin A on {} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5498,7 +5903,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -5545,7 +5950,7 @@ mixin A on {} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5553,7 +5958,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     EnumDeclaration2
@@ -5601,6 +6006,18 @@ mixin A on {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -5625,7 +6042,7 @@ mixin A on {} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5633,7 +6050,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -5680,7 +6097,7 @@ mixin A on {} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5688,7 +6105,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -5739,7 +6156,7 @@ mixin A on {} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5747,7 +6164,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -5798,7 +6215,7 @@ mixin A on {} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5806,7 +6223,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelGetterDeclaration
@@ -5855,6 +6272,24 @@ mixin A on {} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -5885,7 +6320,7 @@ mixin A on {} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5893,7 +6328,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelSetterDeclaration
@@ -5947,7 +6382,7 @@ mixin A on {} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -5955,7 +6390,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     GenericTypeAlias2
@@ -6029,7 +6464,7 @@ mixin A on {} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6037,7 +6472,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -6080,6 +6515,25 @@ mixin A on implements B {} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: implements
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6113,7 +6567,7 @@ mixin A on implements B {} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6121,7 +6575,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -6170,7 +6624,7 @@ mixin A on implements B {} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6178,7 +6632,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     EnumDeclaration2
@@ -6228,6 +6682,18 @@ mixin A on implements B {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: implements
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6254,7 +6720,7 @@ mixin A on implements B {} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6262,7 +6728,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -6311,7 +6777,7 @@ mixin A on implements B {} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6319,7 +6785,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -6372,7 +6838,7 @@ mixin A on implements B {} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6380,7 +6846,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -6433,7 +6899,7 @@ mixin A on implements B {} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6441,7 +6907,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelGetterDeclaration
@@ -6492,6 +6958,24 @@ mixin A on implements B {} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: implements
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6524,7 +7008,7 @@ mixin A on implements B {} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6532,7 +7016,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelSetterDeclaration
@@ -6588,7 +7072,7 @@ mixin A on implements B {} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6596,7 +7080,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     GenericTypeAlias2
@@ -6672,7 +7156,7 @@ mixin A on implements B {} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6680,7 +7164,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: implements
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -6722,6 +7206,27 @@ mixin A on B, class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6756,7 +7261,7 @@ mixin A on B, const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6766,7 +7271,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -6816,7 +7321,7 @@ mixin A on B, enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6826,7 +7331,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -6877,6 +7382,20 @@ mixin A on B,
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -6904,7 +7423,7 @@ mixin A on B, final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6914,7 +7433,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -6963,7 +7482,7 @@ mixin A on B, int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -6973,7 +7492,7 @@ CompilationUnit
             name: B
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -7023,7 +7542,7 @@ mixin A on B, void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7033,7 +7552,7 @@ CompilationUnit
             name: B
           NamedType
             name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -7082,7 +7601,7 @@ mixin A on B, int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7092,7 +7611,7 @@ CompilationUnit
             name: B
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -7141,6 +7660,20 @@ mixin A on B, mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: mixin
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -7168,7 +7701,7 @@ mixin A on B, set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7178,7 +7711,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -7235,7 +7768,7 @@ mixin A on B, typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7245,7 +7778,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -7322,7 +7855,7 @@ mixin A on B, var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7332,7 +7865,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -7375,6 +7908,27 @@ mixin A on B, {} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -7408,7 +7962,7 @@ mixin A on B, {} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7418,7 +7972,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -7467,7 +8021,7 @@ mixin A on B, {} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7477,7 +8031,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     EnumDeclaration2
@@ -7527,6 +8081,20 @@ mixin A on B, {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -7553,7 +8121,7 @@ mixin A on B, {} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7563,7 +8131,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -7612,7 +8180,7 @@ mixin A on B, {} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7622,7 +8190,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -7675,7 +8243,7 @@ mixin A on B, {} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7685,7 +8253,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -7738,7 +8306,7 @@ mixin A on B, {} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7748,7 +8316,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelGetterDeclaration
@@ -7799,6 +8367,26 @@ mixin A on B, {} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -7831,7 +8419,7 @@ mixin A on B, {} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7841,7 +8429,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelSetterDeclaration
@@ -7897,7 +8485,7 @@ mixin A on B, {} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7907,7 +8495,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     GenericTypeAlias2
@@ -7983,7 +8571,7 @@ mixin A on B, {} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -7993,7 +8581,7 @@ CompilationUnit
             name: B
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -8037,6 +8625,30 @@ mixin A on B implements class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -8074,7 +8686,7 @@ mixin A on B implements const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8087,7 +8699,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -8140,7 +8752,7 @@ mixin A on B implements enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8153,7 +8765,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     EnumDeclaration2
@@ -8207,6 +8819,23 @@ mixin A on B implements
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -8237,7 +8866,7 @@ mixin A on B implements final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8250,7 +8879,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -8302,7 +8931,7 @@ mixin A on B implements int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8315,7 +8944,7 @@ CompilationUnit
         interfaces
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -8368,7 +8997,7 @@ mixin A on B implements void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8381,7 +9010,7 @@ CompilationUnit
         interfaces
           NamedType
             name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -8433,7 +9062,7 @@ mixin A on B implements int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8446,7 +9075,7 @@ CompilationUnit
         interfaces
           NamedType
             name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -8498,6 +9127,23 @@ mixin A on B implements mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: mixin
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -8528,7 +9174,7 @@ mixin A on B implements set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8541,7 +9187,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -8601,7 +9247,7 @@ mixin A on B implements typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8614,7 +9260,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -8694,7 +9340,7 @@ mixin A on B implements var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8707,7 +9353,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -8753,6 +9399,30 @@ mixin A on B implements {} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -8789,7 +9459,7 @@ mixin A on B implements {} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8802,7 +9472,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -8854,7 +9524,7 @@ mixin A on B implements {} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8867,7 +9537,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     EnumDeclaration2
@@ -8920,6 +9590,23 @@ mixin A on B implements {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -8949,7 +9636,7 @@ mixin A on B implements {} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -8962,7 +9649,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -9014,7 +9701,7 @@ mixin A on B implements {} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -9027,7 +9714,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -9083,7 +9770,7 @@ mixin A on B implements {} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -9096,7 +9783,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -9152,7 +9839,7 @@ mixin A on B implements {} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -9165,7 +9852,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelGetterDeclaration
@@ -9219,6 +9906,29 @@ mixin A on B implements {} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -9254,7 +9964,7 @@ mixin A on B implements {} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -9267,7 +9977,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelSetterDeclaration
@@ -9326,7 +10036,7 @@ mixin A on B implements {} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -9339,7 +10049,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     GenericTypeAlias2
@@ -9418,7 +10128,7 @@ mixin A on B implements {} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: A
       onClause: MixinOnClause
@@ -9431,7 +10141,7 @@ CompilationUnit
         interfaces
           NamedType
             name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration

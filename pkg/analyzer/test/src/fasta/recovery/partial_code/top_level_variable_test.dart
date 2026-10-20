@@ -328,10 +328,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -880,10 +880,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1472,10 +1472,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2086,10 +2086,10 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2694,10 +2694,10 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3342,10 +3342,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4004,10 +4004,10 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4510,6 +4510,13 @@ final mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -5048,10 +5055,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5634,10 +5641,10 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -6194,10 +6201,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -6757,10 +6764,10 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -7288,10 +7295,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -7843,10 +7850,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -9096,10 +9103,10 @@ CompilationUnit
           initializer: ParsedUnqualifiedName
             name: b
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

@@ -963,10 +963,10 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2164,10 +2164,10 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

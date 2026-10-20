@@ -3500,12 +3500,12 @@ mixin C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -3518,7 +3518,14 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
