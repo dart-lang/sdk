@@ -23,7 +23,14 @@ augment extension E {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
@@ -40,7 +47,20 @@ augment extension E<T> {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
@@ -65,7 +85,18 @@ augment extension E on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
@@ -87,7 +118,13 @@ augment extension {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   body: BlockClassBody
@@ -104,16 +141,16 @@ extension E on int {
 ''');
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
     onKeyword: on
     extendedType: NamedType
       name: int
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       GetterDeclaration
         returnType: NamedType
           name: int
@@ -124,7 +161,17 @@ ExtensionDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -147,16 +194,16 @@ extension E on int {
 ''');
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
     onKeyword: on
     extendedType: NamedType
       name: int
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         returnType: NamedType
           name: void
@@ -168,7 +215,17 @@ ExtensionDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -192,16 +249,16 @@ extension E on int {
 ''');
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
     onKeyword: on
     extendedType: NamedType
       name: int
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       SetterDeclaration
         setKeyword: set
         name: foo
@@ -217,7 +274,17 @@ ExtensionDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         propertyKeyword: set
         name: foo
@@ -243,7 +310,16 @@ extension E on int;
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -265,7 +341,16 @@ extension E on int;
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -284,13 +369,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       FieldsDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -303,7 +388,14 @@ ExtensionDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -328,13 +420,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       FieldsDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -348,7 +440,14 @@ ExtensionDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -374,13 +473,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       GetterDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -392,7 +491,14 @@ ExtensionDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -415,13 +521,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       GetterDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -434,7 +540,14 @@ ExtensionDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -458,13 +571,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         augmentKeyword: augment
         returnType: NamedType
@@ -477,7 +590,14 @@ ExtensionDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -501,13 +621,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         augmentKeyword: augment
         staticKeyword: static
@@ -521,7 +641,14 @@ ExtensionDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -546,7 +673,25 @@ extension E on (int, int) {}
 
     var node = parseResult.findNode.extensionDeclaration('extension E');
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension @0
+  name: E @10
+  onClause: ExtensionOnClause
+    onKeyword: on @12
+    extendedType: RecordTypeAnnotation
+      leftParenthesis: ( @15
+      positionalFields
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int @16
+        RecordTypeAnnotationPositionalField
+          type: NamedType
+            name: int @21
+      rightParenthesis: ) @24
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @26
+    rightBracket: } @27
+V1: ExtensionDeclaration
   extensionKeyword: extension @0
   name: E @10
   onClause: ExtensionOnClause
@@ -574,13 +719,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       OperatorDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -600,7 +745,14 @@ ExtensionDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -632,7 +784,17 @@ extension const A() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -655,7 +817,17 @@ extension const A() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -677,7 +849,17 @@ extension const A on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -700,7 +882,17 @@ extension const A on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -722,7 +914,17 @@ extension const A.name() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -745,7 +947,17 @@ extension const A.name() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -767,7 +979,17 @@ extension A() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -790,7 +1012,17 @@ extension A() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -812,7 +1044,17 @@ extension A.name() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -835,7 +1077,17 @@ extension A.name() on int {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -857,7 +1109,22 @@ extension A on int {
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody2
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: A
   onClause: ExtensionOnClause
@@ -866,12 +1133,7 @@ ExtensionDeclaration
       name: int
   body: BlockClassBody
     leftBracket: {
-    members2
-      PrimaryConstructorBody2
-        thisKeyword: this
-        body: EmptyFunctionBody
-          semicolon: ;
-    members(v1)
+    members
       PrimaryConstructorBody
         thisKeyword: this
         body: EmptyFunctionBody
@@ -887,13 +1149,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       SetterDeclaration
         augmentKeyword: augment
         setKeyword: set
@@ -910,7 +1172,14 @@ ExtensionDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -937,13 +1206,13 @@ augment extension E {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleExtensionDeclaration, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   name: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       SetterDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -961,7 +1230,14 @@ ExtensionDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
