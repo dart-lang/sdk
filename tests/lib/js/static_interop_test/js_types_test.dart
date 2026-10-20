@@ -20,12 +20,6 @@ extension type JSSet._(JSObject _) implements JSObject, JSIterable<JSNumber> {
   external JSSet(JSArray<JSNumber> contents);
 }
 
-@JS('Error')
-extension type JSError._(JSObject _) implements JSObject {
-  external JSError(String message);
-  external String get message;
-}
-
 @JS()
 external void eval(String code);
 
@@ -1017,23 +1011,6 @@ void syncTests() {
   final errorWithStack = JSError('foo');
   JSError.captureStackTrace(errorWithStack);
   Expect.notEquals('', errorWithStack.stack);
-
-  Expect.isTrue(JSError('foo').toDart is Error);
-  Expect.equals('foo', JSError('foo').toDart.toString());
-  Expect.equals(
-    erroWithStack.stack,
-    errorWithStack.toDart.stackTrace.toString(),
-  );
-  {
-    try {
-      errorWithStack.throwLikeDart();
-    } catch (error, stack) {
-      Expect.equals(errorWithStack.stack, stack.toString());
-    }
-  }
-
-  Expect.equals('Invalid argument(s): foo', ArgumentError('foo').toJS.message);
-  Expect.equals('foo', Exception('foo').toJS.message);
 }
 
 @JS()

@@ -2500,61 +2500,6 @@ extension ListOfNullableBoolToJSArray on List<bool?> {
   external JSArray<JSBoolean?> get toJS;
 }
 
-/// Conversions from {JSError] to [Error].
-extension JSErrorToError on JSError {
-  /// Returns a Dart [Error] wrapping this error object.
-  ///
-  /// This should only be used for [JSError]s that the user isn't expected to
-  /// catch (that is, those that represent programming errors). Other exceptions
-  /// should be rethrown as dedicated Dart types that extend [Exception] so the
-  /// user can catch them based on type.
-  WrappedJSError get toDart => new WrappedJSError._(this);
-
-  /// Throws the result of [toDart] with a Dart stack trace that matches the JS
-  /// stack trace.
-  Never throwLikeDart() {
-    var error = toDart;
-    Error.throwWithStackTrace(error, error.stackTrace);
-  }
-}
-
-/// An error object that wraps a [JSError] and exposes the Dart [Error]
-/// interface.
-final class WrappedJSError implements Error {
-  /// The wrapped error.
-  final JSError jsError;
-
-  @override
-  StackTrace get stackTrace => StackTrace.fromString(jsError.stack);
-
-  WrappedJSError._(this.jsError);
-
-  String toString() => jsError.message;
-}
-
-/// Conversion from [Error] to [JSError].
-extension ErrorToJSError on Error {
-  /// Converts [this] to a [JSError] by cloning it.
-  ///
-  /// For native Dart exceptions, this attaches this exception object as the
-  /// [JSError.cause], translated to JS using
-  /// [ObjectToJSBoxedDartObject.toJSBox]. For exceptions that came from JS
-  /// using [JSError.toDart], this returns the original [JSError].
-  JSError get toJS => switch (this) {
-    WrappedJSError error => error.jsError,
-    _ => JSError(this.toString(), cause: this.toJSBox),
-  };
-}
-
-/// Conversion from [Exception] to [JSError].
-extension ExceptionToJSError on Exception {
-  /// Converts [this] to a [JSError] by cloning it.
-  ///
-  /// This attaches this exception object as the [JSError.cause], translated to
-  /// JS using [ObjectToJSBoxedDartObject.toJSBox].
-  JSError get toJS => JSError(this.toString(), cause: this.toJSBox);
-}
-
 /// General-purpose JavaScript operators.
 ///
 /// Indexing operators (`[]`, `[]=`) should be declared through operator
