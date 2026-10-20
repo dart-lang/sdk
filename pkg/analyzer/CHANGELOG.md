@@ -1,4 +1,4 @@
-## 14.6.0-dev
+## 14.6.0
 
 * Added the `enabledExperiments` parameter to `AnalysisContextCollection`
   to override experiments from analysis options files.
