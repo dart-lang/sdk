@@ -121,51 +121,39 @@ class DartdocDirectiveInfo {
   /// Macro directives are replaced with the body of the corresponding template.
   ///
   /// Youtube and animation directives are replaced with markdown hyperlinks.
-  Documentation processDartdoc(String comment, {bool includeSummary = false}) {
-    // TODO(dantup): In LSP, we often want only the summary. Consider
-    //  accepting a `bool includeFull = true` and processing forwards to avoid
-    //  processing/running regexes for every additional line.
+  ///
+  /// If [includeFull] is `false`, only lines in the summary are processed and
+  /// [Documentation.full] is `null`. [Documentation.summary] is only populated
+  /// if [includeSummary] is `true`.
+  Documentation processDartdoc(
+    String comment, {
+    bool includeSummary = false,
+    bool includeFull = true,
+  }) {
+    assert(includeSummary || includeFull);
     List<String> lines = _stripDelimiters(comment);
-    var firstBlankLine = lines.length;
-    for (int i = lines.length - 1; i >= 0; i--) {
-      String line = lines[i];
-      if (line.isEmpty) {
-        // Because we're iterating from the last line to the first, the last
-        // blank line we find is the first.
-        firstBlankLine = i;
-      } else {
-        var match = macroRegExp.firstMatch(line);
-        if (match != null) {
-          var name = match[1]!;
-          var value = templateMap[name];
-          if (value != null) {
-            lines[i] = value;
-          }
-          continue;
-        }
+    int? firstBlankLine;
 
-        match = videoRegExp.firstMatch(line);
-        if (match != null) {
-          var uri = match[2];
-          if (uri != null && uri.isNotEmpty) {
-            String label = uri;
-            if (label.startsWith('https://')) {
-              label = label.substring('https://'.length);
-            }
-            lines[i] = '[$label]($uri)';
-          }
-          continue;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      lines[i] = _processLine(line);
+      if (line.isEmpty) {
+        firstBlankLine ??= i;
+
+        // If we don't need the full comment, we can exit early.
+        if (!includeFull) {
+          break;
         }
       }
     }
-    if (includeSummary) {
-      var full = lines.join('\n');
-      var summary = firstBlankLine == lines.length
-          ? full
-          : lines.getRange(0, firstBlankLine).join('\n').trim();
-      return DocumentationWithSummary(full: full, summary: summary);
-    }
-    return Documentation(full: lines.join('\n'));
+    firstBlankLine ??= lines.length;
+
+    return Documentation(
+      full: includeFull ? lines.join('\n') : null,
+      summary: includeSummary
+          ? lines.getRange(0, firstBlankLine).join('\n').trim()
+          : null,
+    );
   }
 
   bool _isWhitespace(String comment, int index, bool includeEol) {
@@ -175,6 +163,31 @@ class DartdocDirectiveInfo {
       return true;
     }
     return false;
+  }
+
+  /// Replaces macro, youtube and animation directives in [line].
+  String _processLine(String line) {
+    if (line.isEmpty) return line;
+
+    var match = macroRegExp.firstMatch(line);
+    if (match != null) {
+      var name = match[1]!;
+      return templateMap[name] ?? line;
+    }
+
+    match = videoRegExp.firstMatch(line);
+    if (match != null) {
+      var uri = match[2];
+      if (uri != null && uri.isNotEmpty) {
+        String label = uri;
+        if (label.startsWith('https://')) {
+          label = label.substring('https://'.length);
+        }
+        return '[$label]($uri)';
+      }
+    }
+
+    return line;
   }
 
   int _skipWhitespaceBackward(
@@ -296,16 +309,11 @@ class DartdocDirectiveInfo {
 }
 
 /// A representation of the documentation for an element.
+///
+/// Each of [full] and [summary] is `null` if it was not requested.
 class Documentation {
-  String full;
+  String? full;
+  final String? summary;
 
-  new({required this.full});
-}
-
-/// A representation of the documentation for an element that includes a
-/// summary.
-class DocumentationWithSummary extends Documentation {
-  final String summary;
-
-  new({required super.full, required this.summary});
+  new({this.full, this.summary});
 }

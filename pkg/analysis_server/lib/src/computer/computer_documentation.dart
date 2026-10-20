@@ -25,13 +25,21 @@ class DartDocumentationComputer {
   /// [computeForTargets] which are split out for operations like Code
   /// Completion that might need to compute docs for a large number of elements
   /// and can lazily (via `/resolve`) compute the final docs.
-  Documentation? compute(Element sourceElement, {bool includeSummary = false}) {
+  Documentation? compute(
+    Element sourceElement, {
+    required bool includeSummary,
+    required bool includeFull,
+  }) {
     var elements = computeDocumentedElement(sourceElement);
     if (elements == null) {
       return null;
     }
 
-    return computeForTargets(elements, includeSummary: includeSummary);
+    return computeForTargets(
+      elements,
+      includeSummary: includeSummary,
+      includeFull: includeFull,
+    );
   }
 
   /// Given a [sourceElement], computes the element whose documentation should be
@@ -86,10 +94,12 @@ class DartDocumentationComputer {
   /// Computes the final documentation given the precomputed target [elements].
   ///
   /// This resolves documentation macros, adds "Copied from..." suffixes, and if
-  /// [includeSummary] computes the summary doc.
+  /// [includeSummary] computes the summary doc and [includeFull] computes the
+  /// full doc.
   Documentation? computeForTargets(
     DocumentationTargets elements, {
     required bool includeSummary,
+    required bool includeFull,
   }) {
     var (:targetElement, :documentedElement) = elements;
 
@@ -100,13 +110,16 @@ class DartDocumentationComputer {
     var result = dartdocInfo.processDartdoc(
       rawDoc,
       includeSummary: includeSummary,
+      includeFull: includeFull,
     );
 
+    var full = result.full;
     var documentedElementClass = documentedElement.enclosingElement;
-    if (documentedElementClass != null &&
+    if (full != null &&
+        documentedElementClass != null &&
         documentedElementClass != targetElement.enclosingElement) {
       var documentedClass = documentedElementClass.displayName;
-      result.full = '${result.full}\n\nCopied from `$documentedClass`.';
+      result.full = '$full\n\nCopied from `$documentedClass`.';
     }
 
     return result;
@@ -122,12 +135,14 @@ class DartDocumentationComputer {
       return null;
     }
 
+    var wantSummary = preference == DocumentationPreference.summary;
     var doc = compute(
       element,
-      includeSummary: preference == DocumentationPreference.summary,
+      includeSummary: wantSummary,
+      includeFull: !wantSummary,
     );
 
-    return doc is DocumentationWithSummary ? doc.summary : doc?.full;
+    return wantSummary ? doc?.summary : doc?.full;
   }
 
   /// Lazily iterates through elements that might supply documentation for

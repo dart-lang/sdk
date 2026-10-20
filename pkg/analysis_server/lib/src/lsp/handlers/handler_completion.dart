@@ -32,7 +32,6 @@ import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
@@ -628,17 +627,16 @@ class CompletionHandler
             // If we didn't compute resolution info, docs will be inlined, so
             // we should finish computing them (replace templates, etc).
             if (resolutionInfo == null) {
+              var onlySummary =
+                  preferredDocumentation == DocumentationPreference.summary;
               var doc = completionRequest.documentationComputer
                   .computeForTargets(
                     docElements,
-                    includeSummary:
-                        preferredDocumentation ==
-                        DocumentationPreference.summary,
+                    includeSummary: onlySummary,
+                    includeFull: !onlySummary,
                   );
 
-              var rawDoc = doc is DocumentationWithSummary
-                  ? doc.summary
-                  : doc?.full;
+              var rawDoc = onlySummary ? doc?.summary : doc?.full;
               cleanedDoc = cleanDartdoc(rawDoc);
             }
           }
