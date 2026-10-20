@@ -1032,6 +1032,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.typedefAugmentation,
   diag.typedefInClass,
   diag.unawaitedReturnInTryBlock,
+  diag.uncheckedInstantiationOfNullableValue,
   diag.uncheckedInvocationOfNullableValue,
   diag.uncheckedMethodInvocationOfNullableValue,
   diag.uncheckedOperatorInvocationOfNullableValue,

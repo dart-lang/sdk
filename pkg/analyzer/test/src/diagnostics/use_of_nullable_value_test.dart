@@ -1320,6 +1320,391 @@ m() {
 ''');
   }
 
+  test_functionInstantiation_nonNullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T) x) {
+  x<int>;
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T)? x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)?
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_notPromotableField() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final T Function<T>(T)? foo;
+//                        ^^^
+// [context 1] 'foo' refers to a public property so it couldn't be promoted.
+  A(this.foo);
+}
+
+m(A a) {
+  if (a.foo != null) {
+    a.foo<int>;
+//  ^^^^^
+// [diag.uncheckedInstantiationOfNullableValue][context 1] The function can't be unconditionally instantiated because it can be 'null'.
+  }
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::m::@formalParameter::a
+        type: A
+      staticType: A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      invokeType: T Function<T>(T)? Function()
+      type: T Function<T>(T)?
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::m::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: T Function<T>(T)?
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_parenthesized_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  T foo<T>(T t) => t;
+}
+
+m(A? a) {
+  (a?.foo)<int>;
+//^^^^^^^^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::a
+          type: A?
+        staticType: A?
+      operator: ?.
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::A::@method::foo
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)?
+    rightParenthesis: )
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::m::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@class::A::@method::foo
+        staticType: T Function<T>(T)
+      staticType: T Function<T>(T)?
+    rightParenthesis: )
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_promoted() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T)? x) {
+  if (x != null) {
+    x<int>;
+  }
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_typeParameter_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<F extends T Function<T>(T)>(F? x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: F?
+    staticType: F?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: F?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_typeParameter_nullableBound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<F extends T Function<T>(T)?>(F x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: F
+    staticType: F
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: F
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
   test_getter_nullable_nonNullableExtension() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension E on int {

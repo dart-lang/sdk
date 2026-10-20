@@ -18269,6 +18269,13 @@ CompileTimeErrorCode:
     problemMessage: "A nullable expression can't be used in a spread."
     correctionMessage: "Try checking that the value isn't 'null' before using it in a spread, or use a null-aware spread."
     hasPublishedDocs: true
+  uncheckedInstantiationOfNullableValue:
+    type: compileTimeError
+    parameters: none
+    sharedName: uncheckedUseOfNullableValue
+    problemMessage: "The function can't be unconditionally instantiated because it can be 'null'."
+    correctionMessage: "Try adding a null check ('!')."
+    hasPublishedDocs: true
   uncheckedInvocationOfNullableValue:
     type: compileTimeError
     parameters: none
