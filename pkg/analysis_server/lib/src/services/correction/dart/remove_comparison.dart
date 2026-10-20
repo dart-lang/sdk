@@ -279,12 +279,9 @@ class RemoveComparison extends ResolvedCorrectionProducer {
 }
 
 extension on AstNode? {
-  NodeList<AstNode>? get containerElements {
-    if (this is ListLiteral) {
-      return elements;
-    } else if (this is SetOrMapLiteral) {
-      return elements;
-    }
-    return null;
-  }
+  NodeList<AstNode>? get containerElements => switch (this) {
+    ListLiteral() => elements,
+    SetOrMapLiteral() => elements,
+    _ => null,
+  };
 }

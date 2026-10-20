@@ -335,8 +335,8 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   const uint8_t* kernel_buffer = isolate_group_data->kernel_buffer().get();
   intptr_t kernel_buffer_size = isolate_group_data->kernel_buffer_size();
-  if (!isolate_run_app_snapshot && kernel_buffer == nullptr &&
-      !Dart_IsKernelIsolate(isolate)) {
+  if (!isolate_run_app_snapshot && !flags->modular_aot_mode &&
+      kernel_buffer == nullptr && !Dart_IsKernelIsolate(isolate)) {
     if (!dfe.CanUseDartFrontend()) {
       const char* format = "Dart frontend unavailable to compile script %s.";
       intptr_t len = snprintf(nullptr, 0, format, script_uri) + 1;
@@ -372,7 +372,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     kernel_buffer = application_kernel_buffer;
     kernel_buffer_size = application_kernel_buffer_size;
   }
-  if (kernel_buffer != nullptr) {
+  if (!flags->modular_aot_mode && kernel_buffer != nullptr) {
     Dart_Handle uri = Dart_NewStringFromCString(script_uri);
     CHECK_RESULT(uri);
     Dart_Handle resolved_script_uri = DartUtils::ResolveScript(uri);
@@ -441,6 +441,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     const uint8_t* snapshot_text = nullptr;
     snapshot->SetBuffers(&snapshot_data, &snapshot_text);
     result = Dart_LoadModuleSnapshot(snapshot_data, snapshot_text);
+    CHECK_RESULT(result);
+  }
+  if (flags->modular_aot_mode) {
+    result = Dart_LoadModuleSnapshot(app_snapshot_data, app_snapshot_text);
     CHECK_RESULT(result);
   }
 
@@ -777,7 +781,7 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
   bool isolate_run_app_snapshot = false;
   const uint8_t* snapshot_data = core_snapshot_data;
   const uint8_t* snapshot_text = core_snapshot_text;
-  if ((app_snapshot_data != nullptr) &&
+  if ((app_snapshot_data != nullptr) && !flags->modular_aot_mode &&
       (is_main_isolate || ((app_script_uri != nullptr) &&
                            (strcmp(script_uri, app_script_uri) == 0)))) {
     isolate_run_app_snapshot = true;
@@ -799,7 +803,8 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
     }
   }
 
-  if (kernel_buffer == nullptr && !isolate_run_app_snapshot) {
+  if (kernel_buffer == nullptr && !isolate_run_app_snapshot &&
+      !flags->modular_aot_mode) {
     dfe.ReadScript(script_uri, app_snapshot, &kernel_buffer,
                    &kernel_buffer_size, /*decode_uri=*/true);
   }
@@ -1371,6 +1376,8 @@ void main(int argc, char** argv) {
 
   Loader::InitOnce();
 
+  const bool modular_aot = !Options::load_module_snapshots().is_empty();
+
   auto try_load_snapshots_lambda = [&](void) -> void {
     if (app_snapshot == nullptr) {
       // For testing purposes we add a flag to debug-mode to use the
@@ -1381,7 +1388,8 @@ void main(int argc, char** argv) {
           Snapshot::TryReadAppSnapshot(script_name, force_load_from_memory);
     }
     if (app_snapshot != nullptr && app_snapshot->IsJITorAOT()) {
-      if (app_snapshot->IsAOT() && !Dart_IsPrecompiledRuntime()) {
+      if (app_snapshot->IsAOT() && !Dart_IsPrecompiledRuntime() &&
+          !modular_aot) {
         Syslog::PrintErr(
             "%s is an AOT snapshot and should be run with 'dartaotruntime'\n",
             script_name);
@@ -1416,7 +1424,7 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
-  if (!Options::load_module_snapshots().is_empty()) {
+  if (modular_aot) {
     vm_options.AddArgument("--modular_aot");
   }
   if (Options::gen_snapshot_kind() == kAppJIT) {

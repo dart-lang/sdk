@@ -225,6 +225,7 @@ class CoreTypesUtil {
   final Procedure wasmF64FromDouble;
   final Procedure isDartNullTarget;
   final Procedure throwArgumentNullErrorTarget;
+  final Procedure throwAsCheckError;
 
   // Dart value to JS converters.
   final Procedure toJSBoolean;
@@ -738,6 +739,11 @@ class CoreTypesUtil {
       throwArgumentNullErrorTarget = coreTypes.index.getTopLevelProcedure(
         'dart:_error_utils',
         '_throwArgumentNullError',
+      ),
+      throwAsCheckError = coreTypes.index.getProcedure(
+        'dart:core',
+        '_TypeError',
+        '_throwAsCheckError',
       );
 
   DartType get nonNullableObjectType =>
@@ -855,7 +861,7 @@ class CoreTypesUtil {
       //      if (v == v2) {
       //        return v2;
       //      } else {
-      //        throw;
+      //        throw TypeError;
       //      }
       CachedExpression expressionCache = CachedExpression.fromValue(
         cosmeticName: '#vardouble',
@@ -879,8 +885,14 @@ class CoreTypesUtil {
                 Arguments(ExpressionList(resultCache.createRead())),
               ),
               resultCache.createRead(),
-              Throw(
-                StringLiteral('Expected integer value, but was not integer.'),
+              StaticInvocation(
+                throwAsCheckError,
+                Arguments(
+                  ExpressionList(
+                    expressionCache.createRead(),
+                    TypeLiteral(erasedType),
+                  ),
+                ),
               ),
               coreTypes.intNonNullableRawType,
             ),

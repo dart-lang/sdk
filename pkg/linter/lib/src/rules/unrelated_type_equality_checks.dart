@@ -93,7 +93,6 @@ extension on DartType {
     // TODO(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
     // See: https://github.com/dart-lang/linter/issues/3868
     if (this is! InterfaceType) return false;
-    var element = this.element;
     if (element.name != 'Int32' && element.name != 'Int64') return false;
     var uri = element.library.uri;
     if (!uri.isScheme('package')) return false;

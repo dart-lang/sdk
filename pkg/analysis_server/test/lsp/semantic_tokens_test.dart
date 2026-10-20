@@ -2022,6 +2022,90 @@ class!] MyClass {}
     await _initializeAndVerifyTokensInRange(content, expected);
   }
 
+  Future<void> test_range_precedingComments_atEof() async {
+    var content = '''
+class A {}
+
+[!// EOF comment in range
+!]
+// EOF comment after range
+''';
+
+    var expected = [Token('// EOF comment in range', .comment)];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_range_precedingComments_inRangeAndPastRangeEnd() async {
+    var content = '''
+class A {}
+
+[!// Comment 1 in range
+// Comment 2 in range
+!]
+// Comment 3 after range
+// Comment 4 after range
+class B {}
+''';
+
+    var expected = [
+      Token('// Comment 1 in range', .comment),
+      Token('// Comment 2 in range', .comment),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_range_statementInsideMethod() async {
+    var content = '''
+class A {
+  void foo() {
+    var x = 1;
+    [!print(x);!]
+    var y = 2;
+  }
+}
+''';
+
+    var expected = [Token('print', .function), Token('x', .variable)];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
+  Future<void> test_range_subtreesSkipped_multipleDeclarations() async {
+    var content = '''
+// Comment A
+class A {
+  void methodA() {
+    print('a');
+  }
+}
+
+// Comment B
+class B {
+  [!void methodB() {
+    print('b');
+  }!]
+}
+
+// Comment C
+class C {
+  void methodC() {
+    print('c');
+  }
+}
+''';
+
+    var expected = [
+      Token('void', .keyword, [.void_]),
+      Token('methodB', .method, [.declaration, .instance]),
+      Token('print', .function),
+      Token("'b'", .string),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   Future<void> test_record_fields() async {
     failTestOnErrorDiagnostic = false; // Unresolved symbols.
 

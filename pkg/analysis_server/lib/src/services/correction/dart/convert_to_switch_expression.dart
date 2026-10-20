@@ -655,10 +655,8 @@ final class _SwitchTypeReturn extends _SwitchType {
 }
 
 extension on Statement {
-  bool get isThrowExpressionStatement {
-    if (this is! ExpressionStatement) return false;
-    return expression is ThrowExpression;
-  }
+  bool get isThrowExpressionStatement =>
+      this is ExpressionStatement && expression is ThrowExpression;
 }
 
 extension on List<SwitchPatternCase> {

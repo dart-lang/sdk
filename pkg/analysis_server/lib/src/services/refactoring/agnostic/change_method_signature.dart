@@ -1333,30 +1333,22 @@ extension on AstNode {
       return parent;
     }
 
-    switch (this) {
-      case ConstructorDeclaration():
-      case FunctionDeclaration():
-      case MethodDeclaration():
-      case PrimaryConstructorDeclaration():
-        return this;
-    }
-
-    return null;
+    return switch (this) {
+      ConstructorDeclaration() ||
+      FunctionDeclaration() ||
+      MethodDeclaration() ||
+      PrimaryConstructorDeclaration() => this,
+      _ => null,
+    };
   }
 
-  FormalParameterList? get formalParameterList {
-    switch (this) {
-      case ConstructorDeclaration():
-        return parameters;
-      case FunctionDeclaration():
-        return functionExpression.parameters;
-      case MethodDeclaration():
-        return parameters;
-      case PrimaryConstructorDeclaration():
-        return formalParameters;
-    }
-    return null;
-  }
+  FormalParameterList? get formalParameterList => switch (this) {
+    ConstructorDeclaration() => parameters,
+    FunctionDeclaration() => functionExpression.parameters,
+    MethodDeclaration() => parameters,
+    PrimaryConstructorDeclaration() => formalParameters,
+    _ => null,
+  };
 }
 
 extension _FormalParameterListExtension on FormalParameterList {

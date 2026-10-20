@@ -29,7 +29,9 @@ void main() async {
 
   final endRss = ProcessInfo.currentRss;
   final allocatedBytes = (endRss - startRss);
-  final limit = 10 * 1024 * 1024;
+  // Must be high enough to avoid triggering for new-gen or old-gen growth
+  // steps.
+  final limit = 32 * 1024 * 1024;
   Expect.isTrue(
     allocatedBytes < limit,
     'expected VM RSS growth to be below ${limit} but got ${allocatedBytes}',

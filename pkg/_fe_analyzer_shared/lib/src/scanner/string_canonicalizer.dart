@@ -71,8 +71,8 @@ void clearStringCanonicalizationCache() {
 /// Will prune the string canonicalization if it's current memory consumption
 /// is estimated to be larger than [allowGrowthTo].
 ///
-/// An attempt is made to keep most frequently used strings in the cache while
-/// maintaining the memory limit.
+/// An attempt is made to keep strings that are used repeatedly in the cache
+/// while maintaining the memory limit.
 void pruneStringCanonicalizationCache([int allowGrowthTo = 5 * 1024 * 1024]) {
   _canonicalizer.pruneTo(allowGrowthTo);
 }
@@ -316,51 +316,44 @@ class _StringCanonicalizer {
       return;
     }
 
-    // Find all [_StringNode]s, sort them by usage and insert remaining nodes
-    // into a new cache until we've reached half of the [allowGrowthTo] -
-    // leaving some space before we'll have to prune again next time.
-
-    final List<_StringNode> stringNodes = new List<_StringNode>.filled(
-      _stringCount,
-      new _StringNode('dummy', /* next = */ null),
-    );
-    int writeIndex = 0;
-    for (int i = 0; i < _nodes.length; ++i) {
-      _Node? node = _nodes[i];
-      while (node != null) {
-        final _Node? nextNode = node.next;
-        if (node is _StringNode) {
-          stringNodes[writeIndex++] = node;
-          node.next = null;
+    // Remove all [_Utf8Node]s, and divide the usage counts of [_StringNode]s
+    // by two, removing those that reach zero. Repeat until we're within half
+    // of [allowGrowthTo], leaving some space before we'll have to prune again.
+    //
+    // This is done in place: sorting all nodes by usage, and building a new
+    // smaller table that has to grow again, made each pruning expensive.
+    do {
+      for (int i = 0; i < _nodes.length; i++) {
+        _Node? previous = null;
+        _Node? node = _nodes[i];
+        while (node != null) {
+          final _Node? next = node.next;
+          bool keep = false;
+          if (node is _StringNode) {
+            node.usageCount >>= 1;
+            keep = node.usageCount > 0;
+            if (!keep) {
+              _stringCount--;
+              _estimatedStringMemoryConsumption -=
+                  node.estimatedMemoryConsumption;
+            }
+          } else {
+            _utf8StringCount--;
+          }
+          if (keep) {
+            previous = node;
+          } else {
+            _count--;
+            node.next = null;
+            if (previous == null) {
+              _nodes[i] = next;
+            } else {
+              previous.next = next;
+            }
+          }
+          node = next;
         }
-        node = nextNode;
       }
-    }
-    stringNodes.sort((_StringNode a, _StringNode b) {
-      return b.usageCount - a.usageCount;
-    });
-
-    int sum = 0;
-    int lastIndex = 0;
-    for (int i = 0; i < stringNodes.length; ++i) {
-      final _StringNode node = stringNodes[i];
-      sum += node.estimatedMemoryConsumption;
-      if (sum >= (allowGrowthTo ~/ 2) || node.usageCount < 2) {
-        lastIndex = i;
-        break;
-      }
-    }
-
-    final int newSize = (1 << lastIndex.bitLength);
-    initializeWithSize(newSize);
-    for (int i = lastIndex; i >= 0; --i) {
-      final _StringNode newNode = stringNodes[i];
-      final int index = newNode.hash & (_size - 1);
-      newNode.next = _nodes[index];
-      _nodes[index] = newNode;
-      _count++;
-      _stringCount++;
-      _estimatedStringMemoryConsumption += newNode.estimatedMemoryConsumption;
-    }
+    } while (_estimatedStringMemoryConsumption > allowGrowthTo ~/ 2);
   }
 }

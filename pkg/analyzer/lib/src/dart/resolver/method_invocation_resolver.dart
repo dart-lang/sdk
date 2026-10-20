@@ -775,21 +775,6 @@ class MethodInvocationResolver with ScopeHelpers {
     InvocationTarget? target;
     if (element is InternalExecutableElement) {
       target = InvocationTargetExecutableElement(element);
-      node.resolution = ExecutableInvocationResolutionImpl(
-        element: element,
-        invokeType: element.type,
-        type: element.returnType,
-      );
-      if (candidate is MultiplyDefinedElement) {
-        node.resolution = InvalidInvocationResolutionImpl(
-          candidates: [candidate],
-          recovery: FunctionCallInvocationResolutionImpl(
-            invokeType: element.type,
-            type: element.returnType,
-          ),
-          type: element.returnType,
-        );
-      }
     } else if (callFunctionType != null) {
       target = InvocationTargetFunctionTypedExpression(callFunctionType);
     }

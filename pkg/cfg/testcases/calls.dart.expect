@@ -126,23 +126,23 @@ B0 = EntryBlock()
 --- M.m1
 B0 = EntryBlock()
   Parameter(this)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- getter M.m2
 B0 = EntryBlock()
   Parameter(this)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- setter M.m3
 B0 = EntryBlock()
   Parameter(this)
   Parameter(value)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- M.abstractSuperCalls
 B0 = EntryBlock()
   Parameter(this)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- E.
 B0 = EntryBlock()

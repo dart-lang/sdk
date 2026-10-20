@@ -301,9 +301,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       typeArgumentTypes = const <TypeImpl>[];
     } else {
       var typeParameters = rawType.typeParameters;
-      rawType = getFreshTypeParameters(
-        typeParameters,
-      ).applyToFunctionType(rawType);
+      rawType = getFreshTypeParameters(typeParameters)
+          .applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(
         rawType.typeParameters,
         rawType,
@@ -316,6 +315,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         isConst: _isConst,
         diagnosticReporter: typeAnalyzer.diagnosticReporter,
         errorEntity: _errorEntity,
+        invocationTarget: target,
         genericMetadataIsEnabled: typeAnalyzer.genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled:
             typeAnalyzer.inferenceUsingBoundsIsEnabled,
@@ -760,25 +760,14 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
     required super.target,
   }) : super._();
 
-  Element? get _invokedElement => switch (node.resolution) {
-    ExecutableInvocationResolutionImpl(:var element) => element,
-    InvalidInvocationResolutionImpl(
-      recovery: ExecutableInvocationResolutionImpl(:var element),
-    ) =>
-      element,
+  Element? get _invokedElement => switch (target) {
+    InvocationTargetExecutableElement(:var element) => element,
     _ => null,
   };
 
   @override
   bool get _isIdentical {
-    var invokedFunction = switch (node.resolution) {
-      ExecutableInvocationResolutionImpl(:var element) => element,
-      InvalidInvocationResolutionImpl(
-        recovery: ExecutableInvocationResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var invokedFunction = _invokedElement;
     return invokedFunction is TopLevelFunctionElementImpl &&
         invokedFunction.isDartCoreIdentical &&
         node.argumentList.arguments2.length == 2;
@@ -817,11 +806,15 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
   @override
   TypeImpl _refineReturnType(TypeImpl returnType) {
     if (_receiverType case var receiverType?) {
-      return typeAnalyzer.typeSystem
-          .refineNumericInvocationType(receiverType, _invokedElement, [
-            for (var argument in node.argumentList.arguments2)
-              argument.argumentExpression2.typeOrThrow,
-          ], returnType);
+      return typeAnalyzer.typeSystem.refineNumericInvocationType(
+        receiverType,
+        _invokedElement,
+        [
+          for (var argument in node.argumentList.arguments2)
+            argument.argumentExpression2.typeOrThrow,
+        ],
+        returnType,
+      );
     }
     return returnType;
   }

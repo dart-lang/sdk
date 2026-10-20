@@ -4960,19 +4960,13 @@ extension on Element? {
   /// the method / function's parameters. If this element is a variable and the
   /// variable's type is a function type, then return the parameters from the
   /// function type.
-  List<FormalParameterElement>? getParameters() {
-    if (this is GetterElement) {
-      return returnType.ifTypeOrNull<FunctionType>()?.formalParameters;
-    } else if (this is ExecutableElement) {
-      return formalParameters;
-    } else if (this is VariableElement) {
-      var type = this.type;
-      if (type is FunctionType) {
-        return type.formalParameters;
-      }
-    }
-    return null;
-  }
+  List<FormalParameterElement>? getParameters() => switch (this) {
+    GetterElement() =>
+      returnType.ifTypeOrNull<FunctionType>()?.formalParameters,
+    ExecutableElement() => formalParameters,
+    VariableElement(:FunctionType type) => type.formalParameters,
+    _ => null,
+  };
 }
 
 extension on AstNode {

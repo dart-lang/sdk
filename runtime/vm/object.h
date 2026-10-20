@@ -1682,6 +1682,7 @@ class Class : public Object {
     return current_functions();
   }
   void SetFunctions(const Array& value) const;
+  void BuildFunctionsHashTable(const Array& functions_array) const;
   void AddFunction(const Function& function) const;
   intptr_t FindFunctionIndex(const Function& needle) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
@@ -2065,32 +2066,69 @@ class Class : public Object {
     kConstructor,
     kFactory,
   };
+
+ public:
   using ConstBit = BitField<uint32_t, bool>;
+  static constexpr intptr_t kConstBitPos = ConstBit::shift();
+
   using ImplementedBit = BitField<uint32_t, bool, ConstBit::kNextBit>;
+  static constexpr intptr_t kImplementedBitPos = ImplementedBit::shift();
+
   using ClassFinalizedBits = BitField<uint32_t,
                                       UntaggedClass::ClassFinalizedState,
                                       ImplementedBit::kNextBit,
                                       2>;
+  static constexpr intptr_t kClassFinalizedBitsPos =
+      ClassFinalizedBits::shift();
+  static constexpr intptr_t kClassFinalizedBitsSize =
+      ClassFinalizedBits::bitsize();
+
   using ClassLoadingBits = BitField<uint32_t,
                                     UntaggedClass::ClassLoadingState,
                                     ClassFinalizedBits::kNextBit,
                                     2>;
+  static constexpr intptr_t kClassLoadingBitsPos = ClassLoadingBits::shift();
+  static constexpr intptr_t kClassLoadingBitsSize = ClassLoadingBits::bitsize();
+
   using AbstractBit = BitField<uint32_t, bool, ClassLoadingBits::kNextBit>;
+  static constexpr intptr_t kAbstractBitPos = AbstractBit::shift();
+
   using SynthesizedClassBit = BitField<uint32_t, bool, AbstractBit::kNextBit>;
   using FieldsMarkedNullableBit =
       BitField<uint32_t, bool, SynthesizedClassBit::kNextBit>;
+
   using EnumBit = BitField<uint32_t, bool, FieldsMarkedNullableBit::kNextBit>;
+  static constexpr intptr_t kEnumBitPos = EnumBit::shift();
+
   using TransformedMixinApplicationBit =
       BitField<uint32_t, bool, EnumBit::kNextBit>;
+  static constexpr intptr_t kTransformedMixinApplicationBitPos =
+      TransformedMixinApplicationBit::shift();
+
   using IsAllocatedBit =
       BitField<uint32_t, bool, TransformedMixinApplicationBit::kNextBit>;
+
   using IsLoadedBit = BitField<uint32_t, bool, IsAllocatedBit::kNextBit>;
+  static constexpr intptr_t kIsLoadedBitPos = IsLoadedBit::shift();
+
   using HasPragmaBit = BitField<uint32_t, bool, IsLoadedBit::kNextBit>;
+  static constexpr intptr_t kHasPragmaBitPos = HasPragmaBit::shift();
+
   using SealedBit = BitField<uint32_t, bool, HasPragmaBit::kNextBit>;
+  static constexpr intptr_t kSealedBitPos = SealedBit::shift();
+
   using MixinClassBit = BitField<uint32_t, bool, SealedBit::kNextBit>;
+  static constexpr intptr_t kMixinClassBitPos = MixinClassBit::shift();
+
   using BaseClassBit = BitField<uint32_t, bool, MixinClassBit::kNextBit>;
+  static constexpr intptr_t kBaseClassBitPos = BaseClassBit::shift();
+
   using InterfaceClassBit = BitField<uint32_t, bool, BaseClassBit::kNextBit>;
+  static constexpr intptr_t kInterfaceClassBitPos = InterfaceClassBit::shift();
+
   using FinalBit = BitField<uint32_t, bool, InterfaceClassBit::kNextBit>;
+  static constexpr intptr_t kFinalBitPos = FinalBit::shift();
+
   // Whether instances of the class cannot be sent across ports.
   //
   // Will be true iff
@@ -2098,10 +2136,14 @@ class Class : public Object {
   //    - super class / super interface classes are marked as unsendable.
   //    - class has native fields.
   using IsIsolateUnsendableBit = BitField<uint32_t, bool, FinalBit::kNextBit>;
+  static constexpr intptr_t kIsIsolateUnsendableBitPos =
+      IsIsolateUnsendableBit::shift();
+
   // True if this class has `@pragma('vm:isolate-unsendable')` annotation or
   // base class or implemented interfaces has this bit.
   using IsIsolateUnsendableDueToPragmaBit =
       BitField<uint32_t, bool, IsIsolateUnsendableBit::kNextBit>;
+
   // Will be set to 1 for the following classes:
   //
   // 1. Deeply immutable class.
@@ -2113,6 +2155,9 @@ class Class : public Object {
   // See also ImmutableBit in raw_object.h.
   using IsDeeplyImmutableBit =
       BitField<uint32_t, bool, IsIsolateUnsendableDueToPragmaBit::kNextBit>;
+  static constexpr intptr_t kIsDeeplyImmutableBitPos =
+      IsDeeplyImmutableBit::shift();
+
   // This class is a subtype of Future.
   using IsFutureSubtypeBit =
       BitField<uint32_t, bool, IsDeeplyImmutableBit::kNextBit>;
@@ -2127,6 +2172,7 @@ class Class : public Object {
   using IsDeclaredInBytecodeBit =
       BitField<uint32_t, bool, HasDynamicallyExtendableSubtypesBit::kNextBit>;
 
+ private:
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
   const char* GenerateUserVisibleName() const;
@@ -4371,6 +4417,8 @@ class Function : public Object {
   friend class Type;            // To adjust parent_function.
   friend class Precompiler;     // To access closure data.
   friend class ProgramVisitor;  // For set_parameter_types/names.
+  friend class module_snapshot::
+      FunctionDeserializationCluster;  // For set_implicit_closure_function.
 };
 
 class ClosureData : public Object {
@@ -4945,18 +4993,31 @@ class Field : public Object {
   friend class Interpreter;      // Access to bit field.
   friend class StoreFieldInstr;  // Generated code access to bit field.
 
+ public:
   using ConstBit = BitField<decltype(UntaggedField::kind_bits_), bool>;
+  static constexpr intptr_t kConstBitPos = ConstBit::shift();
+
   using StaticBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, ConstBit::kNextBit>;
+  static constexpr intptr_t kStaticBitPos = StaticBit::shift();
+
   using FinalBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, StaticBit::kNextBit>;
+  static constexpr intptr_t kFinalBitPos = FinalBit::shift();
+
   using HasNontrivialInitializerBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, FinalBit::kNextBit>;
+  static constexpr intptr_t kHasNontrivialInitializerBitPos =
+      HasNontrivialInitializerBit::shift();
+
   using UnboxedBit = BitField<decltype(UntaggedField::kind_bits_),
                               bool,
                               HasNontrivialInitializerBit::kNextBit>;
+  static constexpr intptr_t kUnboxedBitPos = UnboxedBit::shift();
+
   using ReflectableBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, UnboxedBit::kNextBit>;
+
   using InitializerChangedAfterInitializationBit =
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
@@ -4965,29 +5026,48 @@ class Field : public Object {
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
                InitializerChangedAfterInitializationBit::kNextBit>;
+  static constexpr intptr_t kHasPragmaBitPos = HasPragmaBit::shift();
+
   using CovariantBit = BitField<decltype(UntaggedField::kind_bits_),
                                 bool,
                                 HasPragmaBit::kNextBit>;
+  static constexpr intptr_t kCovariantBitPos = CovariantBit::shift();
+
   using GenericCovariantImplBit = BitField<decltype(UntaggedField::kind_bits_),
                                            bool,
                                            CovariantBit::kNextBit>;
+  static constexpr intptr_t kGenericCovariantImplBitPos =
+      GenericCovariantImplBit::shift();
+
   using IsLateBit = BitField<decltype(UntaggedField::kind_bits_),
                              bool,
                              GenericCovariantImplBit::kNextBit>;
+  static constexpr intptr_t kIsLateBitPos = IsLateBit::shift();
+
   using IsExtensionMemberBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, IsLateBit::kNextBit>;
+  static constexpr intptr_t kIsExtensionMemberBitPos =
+      IsExtensionMemberBit::shift();
+
   using IsExtensionTypeMemberBit = BitField<decltype(UntaggedField::kind_bits_),
                                             bool,
                                             IsExtensionMemberBit::kNextBit>;
+  static constexpr intptr_t kIsExtensionTypeMemberBitPos =
+      IsExtensionTypeMemberBit::shift();
+
   using NeedsLoadGuardBit = BitField<decltype(UntaggedField::kind_bits_),
                                      bool,
                                      IsExtensionTypeMemberBit::kNextBit>;
   using HasInitializerBit = BitField<decltype(UntaggedField::kind_bits_),
                                      bool,
                                      NeedsLoadGuardBit::kNextBit>;
+  static constexpr intptr_t kHasInitializerBitPos = HasInitializerBit::shift();
+
   using SharedBit = BitField<decltype(UntaggedField::kind_bits_),
                              bool,
                              HasInitializerBit::kNextBit>;
+  static constexpr intptr_t kSharedBitPos = SharedBit::shift();
+
   using NoSanitizeThreadBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
   using HasDeeplyImmutableTypeBit =
@@ -5002,6 +5082,7 @@ class Field : public Object {
                                           bool,
                                           IsDynamicallyCallableBit::kNextBit>;
 
+ private:
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
 
