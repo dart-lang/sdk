@@ -25,6 +25,9 @@ dart2js/deferred_with_csp_nonce_test: SkipByDesign # Requires dom
 internal/html_mocks_with_static_interop_test: SkipByDesign # Browser test
 internal/object_members_test: SkipByDesign # Browser test
 
+[ $runtime != d8 ]
+d8_timer_ticks_test: SkipByDesign # Tests d8 preamble fake clock
+
 [ $browser ]
 native/*: Skip
 
