@@ -101,7 +101,7 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedMixin(node.withClause);
   }
 
-  void mixinDeclaration(MixinDeclaration node) {
+  void mixinDeclaration(MixinDeclaration2 node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     // Not technically "implementing," but is similar enough for
     // `@Deprecated.implement` and `@Deprecated.subclass`.

@@ -49,7 +49,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
       addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is ExtensionTypeDeclaration) {
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is MixinDeclaration) {
+    } else if (declaration is MixinDeclaration2) {
       addSubtypedNames(declaration.onClause?.superclassConstraints);
       addSubtypedNames(declaration.implementsClause?.interfaces);
     }
@@ -196,7 +196,7 @@ class _LocalNameScope {
           scope.add(declaration.name);
         case ExtensionTypeDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           scope.add(declaration.name);
         case TopLevelFunctionDeclarationImpl():
           scope.add(declaration.name);

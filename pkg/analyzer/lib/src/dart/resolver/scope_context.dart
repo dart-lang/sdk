@@ -393,8 +393,8 @@ class ScopeContext {
     });
   }
 
-  void visitMixinDeclaration(
-    MixinDeclarationImpl node, {
+  void visitMixinDeclaration2(
+    MixinDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;

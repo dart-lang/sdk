@@ -163,7 +163,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.extensionTypes[extensionTypeIndex++],
           );
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           _bindMixinDeclaration(
             declaration,
             _libraryFragment.mixins[mixinIndex++],
@@ -845,7 +845,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMixinDeclaration(
-    MixinDeclarationImpl node,
+    MixinDeclaration2Impl node,
     MixinFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -867,7 +867,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.onClause?.accept2(this);
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members2, memberFragments);
+    _bindMembers(node.body.members, memberFragments);
   }
 
   void _bindTopLevelFunctionDeclaration(

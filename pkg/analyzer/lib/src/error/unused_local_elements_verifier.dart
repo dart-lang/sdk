@@ -867,11 +867,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration2(node);
   }
 
   @override

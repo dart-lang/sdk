@@ -1159,7 +1159,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.baseKeyword, suffix: ' ');

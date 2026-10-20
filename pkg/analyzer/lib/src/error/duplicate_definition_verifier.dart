@@ -265,7 +265,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(

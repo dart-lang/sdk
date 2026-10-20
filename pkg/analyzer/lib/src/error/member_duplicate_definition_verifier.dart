@@ -529,8 +529,8 @@ class MemberDuplicateDefinitionVerifier {
     );
   }
 
-  void _checkMixin(MixinDeclarationImpl node) {
-    _checkClassMembers(node.declaredFragment!, node.body.members2);
+  void _checkMixin(MixinDeclaration2Impl node) {
+    _checkClassMembers(node.declaredFragment!, node.body.members);
   }
 
   void _checkUnit(CompilationUnitImpl node) {
@@ -544,7 +544,7 @@ class MemberDuplicateDefinitionVerifier {
           _checkEnum(node);
         case ExtensionTypeDeclarationImpl():
           _checkExtensionType(node);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           _checkMixin(node);
         case ClassTypeAlias2Impl():
         case TopLevelFunctionDeclarationImpl():
@@ -572,9 +572,9 @@ class MemberDuplicateDefinitionVerifier {
         case ExtensionTypeDeclarationImpl():
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.body.members2);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.body.members2);
+          _checkClassStatic(fragment, declaration.body.members);
         case ClassTypeAlias2Impl():
         case TopLevelFunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():

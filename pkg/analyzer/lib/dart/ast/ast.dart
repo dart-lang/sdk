@@ -282,6 +282,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodReferenceExpression,
         MissingDotShorthandContextResolution,
         MixinDeclaration,
+        MixinDeclaration2,
         MixinOnClause,
         NameExpression,
         NameWithTypeParameters,

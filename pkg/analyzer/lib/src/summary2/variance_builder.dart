@@ -46,7 +46,7 @@ class VarianceBuilder {
             _functionTypeAlias(node);
           } else if (node is GenericTypeAlias2Impl) {
             _genericTypeAlias(node);
-          } else if (node is MixinDeclarationImpl) {
+          } else if (node is MixinDeclaration2Impl) {
             _typeParameters(node.typeParameters);
           }
         }

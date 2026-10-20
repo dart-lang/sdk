@@ -57,6 +57,8 @@ class FindNode extends _FindNodeBase {
 
   MethodInvocation get singleMethodInvocation => _single();
 
+  MixinDeclaration get singleMixinDeclaration => _single();
+
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
 
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
@@ -167,6 +169,14 @@ class FindNode extends _FindNodeBase {
 
   MethodInvocation methodInvocation(String search) {
     return _node(search, (n) => n is MethodInvocation);
+  }
+
+  MixinDeclaration mixin(String search) {
+    return _node(search, (n) => n is MixinDeclaration);
+  }
+
+  MixinDeclaration mixinDeclaration(String search) {
+    return _node(search, (n) => n is MixinDeclaration);
   }
 
   PostfixExpression postfixExpression(String search) {
@@ -332,6 +342,8 @@ class FindNode2 extends _FindNodeBase {
   LogicalOr get singleLogicalOr => _single();
 
   MethodDeclaration2 get singleMethodDeclaration => _single();
+
+  MixinDeclaration2 get singleMixinDeclaration => _single();
 
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
@@ -506,6 +518,14 @@ class FindNode2 extends _FindNodeBase {
 
   MethodDeclaration2 methodDeclaration(String search) {
     return _node(search, (n) => n is MethodDeclaration2);
+  }
+
+  MixinDeclaration2 mixin(String search) {
+    return _node(search, (n) => n is MixinDeclaration2);
+  }
+
+  MixinDeclaration2 mixinDeclaration(String search) {
+    return _node(search, (n) => n is MixinDeclaration2);
   }
 
   NullAssertionExpression nullAssertion(String search) {
@@ -785,8 +805,6 @@ abstract class _FindNodeBase {
   MapPattern get singleMapPattern => _single();
 
   MapPatternEntry get singleMapPatternEntry => _single();
-
-  MixinDeclaration get singleMixinDeclaration => _single();
 
   MixinOnClause get singleMixinOnClause => _single();
 
@@ -1264,14 +1282,6 @@ abstract class _FindNodeBase {
 
   MapPatternEntry mapPatternEntry(String search) {
     return _node(search, (n) => n is MapPatternEntry);
-  }
-
-  MixinDeclaration mixin(String search) {
-    return _node(search, (n) => n is MixinDeclaration);
-  }
-
-  MixinDeclaration mixinDeclaration(String search) {
-    return _node(search, (n) => n is MixinDeclaration);
   }
 
   NamedArgument namedArgument(String search) {

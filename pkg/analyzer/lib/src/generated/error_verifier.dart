@@ -1751,7 +1751,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     // TODO(scheglov): Verify for all mixin errors.
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
@@ -1789,12 +1789,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingClassMembers(declaredFragment);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members2,
+        node.body.members,
       );
       _checkForMainFunction1(declaredFragment, node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces(element);
       //      _checkForBadFunctionUse(node);
-      super.visitMixinDeclaration(node);
+      super.visitMixinDeclaration2(node);
     });
   }
 
@@ -6306,7 +6306,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForMixinAugmentationModifierMismatch(
-    MixinDeclarationImpl node,
+    MixinDeclaration2Impl node,
     MixinFragmentImpl declaredFragment,
   ) {
     var element = declaredFragment.element;

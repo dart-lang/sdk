@@ -161,7 +161,7 @@ class LibraryAnalyzer {
           e.parent2 is CompilationUnit ||
           e.parent2 is InstanceDeclarationBody ||
           e.parent2 is ExtensionDeclaration2 ||
-          e.parent2 is MixinDeclaration;
+          e.parent2 is MixinDeclaration2;
     });
 
     return performance.run('resolve', (performance) {

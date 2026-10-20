@@ -168,7 +168,7 @@ class AnnotationVerifier {
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (node.parent2 case MixinDeclaration parent) {
+    } else if (node.parent2 case MixinDeclaration2 parent) {
       declaredElement = parent.declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -254,7 +254,7 @@ class AnnotationVerifier {
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (node.parent2 case MixinDeclaration parent) {
+    } else if (node.parent2 case MixinDeclaration2 parent) {
       declaredElement = parent.declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -650,7 +650,7 @@ class AnnotationVerifier {
         declaredElement = classDeclaration.declaredFragment?.element;
       case EnumDeclaration2 enumDeclaration:
         declaredElement = enumDeclaration.declaredFragment?.element;
-      case MixinDeclaration mixinDeclaration:
+      case MixinDeclaration2 mixinDeclaration:
         declaredElement = mixinDeclaration.declaredFragment?.element;
       default:
         reportError();

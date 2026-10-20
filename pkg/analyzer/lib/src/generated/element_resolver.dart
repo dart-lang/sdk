@@ -232,7 +232,7 @@ class ElementResolver {
 
   void visitLibraryDirective(LibraryDirective node) {}
 
-  void visitMixinDeclaration(MixinDeclaration node) {}
+  void visitMixinDeclaration2(MixinDeclaration2 node) {}
 
   void visitPartDirective(PartDirective node) {}
 

@@ -2597,7 +2597,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endMixinDeclaration(Token beginToken, Token endToken) {
-    debugEvent("MixinDeclaration");
+    debugEvent("MixinDeclaration2");
 
     var builder = _classLikeBuilder as _MixinDeclarationBuilder;
     declarations.add(builder.build());
@@ -7201,19 +7201,19 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.implementsClause,
   });
 
-  MixinDeclarationImpl build() {
-    ClassBodyImpl body;
+  MixinDeclaration2Impl build() {
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return MixinDeclarationImpl(
+    return MixinDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

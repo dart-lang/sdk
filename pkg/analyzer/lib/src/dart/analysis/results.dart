@@ -85,7 +85,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
-      } else if (node is MixinDeclaration) {
+      } else if (node is MixinDeclaration2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -363,6 +363,9 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     } else if (!useV2 && declaration is ExtensionDeclaration2Impl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MixinDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
     }
 
     return ElementDeclarationResultImpl(
@@ -543,6 +546,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     } else if (!useV2 && declaration is ExtensionDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MixinDeclaration2Impl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     }

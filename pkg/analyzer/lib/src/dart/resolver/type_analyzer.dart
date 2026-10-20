@@ -1456,7 +1456,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is EnumDeclaration2 ||
           node is ExtensionDeclaration2 ||
           node is ExtensionTypeDeclaration ||
-          node is MixinDeclaration ||
+          node is MixinDeclaration2 ||
           node is TopLevelFunctionDeclaration ||
           node is TopLevelGetterDeclaration ||
           node is TopLevelSetterDeclaration ||
@@ -1474,7 +1474,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       EnumDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
-      MixinDeclarationImpl() => parent.declaredFragment!.element,
+      MixinDeclaration2Impl() => parent.declaredFragment!.element,
       _ => null,
     };
     if (enclosingElement == null) {
@@ -3733,7 +3733,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
 
@@ -3743,7 +3743,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitMixinDeclaration(node);
+      elementResolver.visitMixinDeclaration2(node);
     });
 
     baseOrFinalTypeVerifier.checkElement(

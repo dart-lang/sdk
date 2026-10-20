@@ -327,7 +327,7 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.typeParameters,
         );
-      case MixinDeclarationImpl():
+      case MixinDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,

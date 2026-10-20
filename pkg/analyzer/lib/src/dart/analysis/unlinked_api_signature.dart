@@ -48,7 +48,7 @@ class _UnitApiSignatureComputer {
           _addExtension(declaration);
         case ExtensionTypeDeclarationImpl():
           _addNode(declaration);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           _addMixin(declaration);
         case TopLevelFunctionDeclarationImpl():
           _addTokens(
@@ -184,9 +184,9 @@ class _UnitApiSignatureComputer {
     signature.addBool(node.invokesSuperSelf);
   }
 
-  void _addMixin(MixinDeclarationImpl node) {
+  void _addMixin(MixinDeclaration2Impl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members2, false);
+    _addClassMembers(node.body.members, false);
     signature.addStringList(node.superInvokedNames);
   }
 
@@ -268,7 +268,7 @@ class _UnitApiSignatureComputer {
   }
 }
 
-extension on MixinDeclaration {
+extension on MixinDeclaration2 {
   List<String> get superInvokedNames {
     var names = <String>{};
     var collector = MixinSuperInvokedNamesCollector(names);

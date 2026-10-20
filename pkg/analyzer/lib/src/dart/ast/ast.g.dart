@@ -762,7 +762,8 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitMethodDeclaration2(MethodDeclaration2 node);
 
-  R? visitMixinDeclaration(MixinDeclaration node);
+  @experimental
+  R? visitMixinDeclaration2(MixinDeclaration2 node);
 
   R? visitMixinOnClause(MixinOnClause node);
 

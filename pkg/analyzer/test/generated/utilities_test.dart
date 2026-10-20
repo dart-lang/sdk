@@ -1351,7 +1351,7 @@ mixin B<U> on B0 implements J {
 ''');
     var destination = parseResult.findNode.mixinDeclaration('A<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<MixinDeclaration>(
+    _assertReplacementForChildren<MixinDeclaration2>(
       destination: destination,
       source: parseResult.findNode.mixinDeclaration('B<U>'),
       childAccessors: [
@@ -1361,7 +1361,7 @@ mixin B<U> on B0 implements J {
         (node) => node.body,
       ],
     );
-    _assertRemovalForNullableChild<MixinDeclaration>(
+    _assertRemovalForNullableChild<MixinDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );

@@ -222,8 +222,8 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    _scopeContext.visitMixinDeclaration(node, visitor: this);
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
+    _scopeContext.visitMixinDeclaration2(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 

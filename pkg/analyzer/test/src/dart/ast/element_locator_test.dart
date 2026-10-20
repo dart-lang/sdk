@@ -666,7 +666,7 @@ void main() {
     var result = await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 ''');
-    var node = result.findNode.singleMixinDeclaration;
+    var node = result.findNodeV1.singleMixinDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@mixin::A

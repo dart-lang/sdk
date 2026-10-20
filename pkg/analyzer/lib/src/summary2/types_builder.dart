@@ -181,7 +181,7 @@ class TypesBuilder {
       _genericTypeAlias(node);
     } else if (node is MethodDeclarationV1OriginImpl) {
       _methodDeclaration(node);
-    } else if (node is MixinDeclarationImpl) {
+    } else if (node is MixinDeclaration2Impl) {
       _mixinDeclaration(node);
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
@@ -342,7 +342,7 @@ class TypesBuilder {
     }
   }
 
-  void _mixinDeclaration(MixinDeclarationImpl node) {
+  void _mixinDeclaration(MixinDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 

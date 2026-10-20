@@ -1123,9 +1123,9 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     _addSubtypeForMixinDeclaration(node);
-    super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration2(node);
   }
 
   @override
@@ -1416,12 +1416,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given mixin as a subclass of its direct superclasses.
-  void _addSubtypeForMixinDeclaration(MixinDeclarationImpl node) {
+  void _addSubtypeForMixinDeclaration(MixinDeclaration2Impl node) {
     _addSubtype(
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members2,
+      memberNodes: node.body.members,
     );
   }
 

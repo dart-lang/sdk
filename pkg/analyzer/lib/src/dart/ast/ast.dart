@@ -40737,7 +40737,38 @@ abstract final class MixinDeclaration implements CompilationUnitMember {
   TypeParameterList? get typeParameters;
 }
 
+/// The declaration of a mixin.
+///
+///     mixinDeclaration ::=
+///         'base'? 'mixin' name [TypeParameterList]? [MixinOnClause]?
+///         [ImplementsClause]? memberedDeclarationBody
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class MixinDeclaration2 implements InstanceDeclaration {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  /// The `base` keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
+
+  @override
+  MixinFragment? get declaredFragment;
+
+  /// The `implements` clause, or `null` if there is none.
+  ImplementsClause? get implementsClause;
+
+  /// The `mixin` keyword.
+  Token get mixinKeyword;
+
+  /// The name of the mixin.
+  Token get name;
+
+  /// The `on` clause, or `null` if there is none.
+  MixinOnClause? get onClause;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('baseKeyword'),
@@ -40749,9 +40780,9 @@ abstract final class MixinDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('body'),
   ],
 )
-final class MixinDeclarationImpl extends CompilationUnitMemberImpl
+final class MixinDeclaration2Impl extends TopLevelDeclarationImpl
     with AstNodeWithNameScopeMixin
-    implements TopLevelDeclarationV1OrV2Impl, MixinDeclaration {
+    implements MixinDeclaration2 {
   @generated
   @override
   final Token? augmentKeyword;
@@ -40778,12 +40809,15 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @generated
-  ClassBodyImpl _body;
+  InstanceDeclarationBodyImpl _body;
 
   @override
   MixinFragmentImpl? declaredFragment;
 
   Scope? bodyScope;
+
+  @V1Ast()
+  MixinDeclarationImpl? _v1Projection;
 
   @generated
   new({
@@ -40796,24 +40830,24 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     required TypeParameterListImpl? typeParameters,
     required MixinOnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
-    required ClassBodyImpl body,
+    required InstanceDeclarationBodyImpl body,
   }) : _typeParameters = typeParameters,
        _onClause = onClause,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf12(typeParameters);
-    _becomeParentOf12(onClause);
-    _becomeParentOf12(implementsClause);
-    _becomeParentOf12(body);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(onClause);
+    _becomeParentOf2(implementsClause);
+    _becomeParentOf2(body);
   }
 
   @generated
   @override
-  ClassBodyImpl get body => _body;
+  InstanceDeclarationBodyImpl get body => _body;
 
   @generated
-  set body(ClassBodyImpl body) {
-    _body = _becomeParentOf12(body);
+  set body(InstanceDeclarationBodyImpl body) {
+    _body = _becomeParentOf2(body);
   }
 
   @generated
@@ -40840,7 +40874,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf12(implementsClause);
+    _implementsClause = _becomeParentOf2(implementsClause);
   }
 
   @generated
@@ -40849,7 +40883,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set onClause(MixinOnClauseImpl? onClause) {
-    _onClause = _becomeParentOf12(onClause);
+    _onClause = _becomeParentOf2(onClause);
   }
 
   @generated
@@ -40858,21 +40892,21 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf12(typeParameters);
+    _typeParameters = _becomeParentOf2(typeParameters);
   }
 
+  @V1Ast()
+  MixinDeclarationImpl get v1Projection =>
+      _v1Projection ??= MixinDeclarationImpl.v1Projection(this);
+
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('onClause', onClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addNode('body', body);
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -40889,12 +40923,14 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('MixinDeclaration2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMixinDeclaration(this);
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMixinDeclaration2(this);
 
   @generated
   @override
@@ -40933,7 +40969,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
       return;
     }
     if (identical(body, oldNode)) {
-      body = newNode as ClassBodyImpl;
+      body = newNode as InstanceDeclarationBodyImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -40943,11 +40979,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    typeParameters?.accept(visitor);
-    onClause?.accept(visitor);
-    implementsClause?.accept(visitor);
-    body.accept(visitor);
+    throw StateError('MixinDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -40973,7 +41005,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(MixinOnClauseImpl)? visitOnClause,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
-    void Function(ClassBodyImpl)? visitBody,
+    void Function(InstanceDeclarationBodyImpl)? visitBody,
   }) {
     _visitCommentAndAnnotations2(visitor);
     if (typeParameters case var typeParameters?) {
@@ -41008,28 +41040,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (onClause case var onClause?) {
-      if (onClause._containsOffset(rangeOffset, rangeEnd)) {
-        return onClause;
-      }
-    }
-    if (implementsClause case var implementsClause?) {
-      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
-        return implementsClause;
-      }
-    }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
-    }
-    return null;
+    throw StateError('MixinDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -41057,6 +41068,206 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
       return body;
     }
     return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('baseKeyword'),
+    GenerateNodeProperty('mixinKeyword'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('onClause'),
+    GenerateNodeProperty('implementsClause'),
+    GenerateNodeProperty('body'),
+  ],
+)
+@V1Ast('The V2 counterpart is MixinDeclaration2.')
+final class MixinDeclarationImpl extends CompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
+    implements MixinDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? baseKeyword;
+
+  @generated
+  @override
+  final Token mixinKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  final MixinDeclaration2Impl _v1ProjectionOrigin;
+
+  late final ClassBodyImpl _v1Body = _becomeParentOf1(
+    V1Projection.toV1ClassBody(_v1ProjectionOrigin.body),
+  );
+
+  new v1Projection(MixinDeclaration2Impl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      baseKeyword = origin.baseKeyword,
+      mixinKeyword = origin.mixinKeyword,
+      name = origin.name,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(origin.typeParameters);
+    _becomeParentOf1(origin.onClause);
+    _becomeParentOf1(origin.implementsClause);
+    _v1Body;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ClassBodyImpl get body => _v1Body;
+
+  @override
+  MixinFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token get endToken => _v1ProjectionOrigin.endToken;
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (baseKeyword case var baseKeyword?) {
+      return baseKeyword;
+    }
+    return mixinKeyword;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ImplementsClauseImpl? get implementsClause =>
+      _v1ProjectionOrigin.implementsClause;
+
+  @override
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
+
+  @override
+  set nameScope(Scope? nameScope) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  MixinOnClauseImpl? get onClause => _v1ProjectionOrigin.onClause;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeParameterListImpl? get typeParameters =>
+      _v1ProjectionOrigin.typeParameters;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('onClause', onClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('body', body);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('MixinDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    typeParameters?.accept(visitor);
+    onClause?.accept(visitor);
+    implementsClause?.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('MixinDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (onClause case var onClause?) {
+      if (onClause._containsOffset(rangeOffset, rangeEnd)) {
+        return onClause;
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('MixinDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -61398,6 +61609,9 @@ enum V1Projection {
     if (node is ExtensionDeclaration2Impl) {
       return node.v1Projection;
     }
+    if (node is MixinDeclaration2Impl) {
+      return node.v1Projection;
+    }
     return node as CompilationUnitMemberImpl;
   }
 
@@ -61472,6 +61686,7 @@ enum V1Projection {
     ClassTypeAlias2Impl() => node._v1Projection,
     EnumDeclaration2Impl() => node._v1Projection,
     ExtensionDeclaration2Impl() => node._v1Projection,
+    MixinDeclaration2Impl() => node._v1Projection,
     BlockInstanceDeclarationBodyImpl() => node._v1Projection,
     SemicolonInstanceDeclarationBodyImpl() => node._v1Projection,
     BlockEnumDeclarationBodyImpl() => node._v1Projection,
@@ -61531,6 +61746,7 @@ enum V1Projection {
       ClassTypeAlias2Impl() => root.v1Projection,
       EnumDeclaration2Impl() => root.v1Projection,
       ExtensionDeclaration2Impl() => root.v1Projection,
+      MixinDeclaration2Impl() => root.v1Projection,
       FunctionTypeAlias2Impl() => root.v1Projection,
       GenericTypeAlias2Impl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
@@ -61588,6 +61804,7 @@ enum V1Projection {
     EnumConstantDeclarationImpl() => node._v1ProjectionOrigin,
     EnumDeclarationImpl() => node._v1ProjectionOrigin,
     ExtensionDeclarationImpl() => node._v1ProjectionOrigin,
+    MixinDeclarationImpl() => node._v1ProjectionOrigin,
     BlockClassBodyImpl() => node._v1ProjectionOrigin,
     EmptyClassBodyImpl() => node._v1ProjectionOrigin,
     FieldDeclarationImpl() => node._v1ProjectionOrigin,

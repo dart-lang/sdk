@@ -159,7 +159,7 @@ const isMethodDeclaration2 = TypeMatcher<MethodDeclaration2>();
 
 const isMethodReferenceExpression = TypeMatcher<MethodReferenceExpression>();
 
-const isMixinDeclaration = TypeMatcher<MixinDeclaration>();
+const isMixinDeclaration2 = TypeMatcher<MixinDeclaration2>();
 
 const isMixinOnClause = TypeMatcher<MixinOnClause>();
 

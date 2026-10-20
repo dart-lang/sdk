@@ -62,7 +62,7 @@ void computeSimplyBounded(Linker linker) {
     } else if (node2 is FunctionTypeAlias2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is MixinDeclarationImpl) {
+    } else if (node2 is MixinDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
     } else {
@@ -143,7 +143,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           _collectTypedefRhsTypes(node),
         );
-      } else if (node is MixinDeclaration) {
+      } else if (node is MixinDeclaration2) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,

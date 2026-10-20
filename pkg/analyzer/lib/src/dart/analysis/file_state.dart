@@ -1039,7 +1039,7 @@ class FileState {
           }
         case ExtensionTypeDeclarationImpl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           topLevelDeclarations.add(declaration.name.lexeme);
         case TopLevelFunctionDeclarationImpl():
           topLevelDeclarations.add(declaration.name.lexeme);

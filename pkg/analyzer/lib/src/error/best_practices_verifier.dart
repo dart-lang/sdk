@@ -637,7 +637,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
 
     _enclosingClass = element;
@@ -649,7 +649,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     try {
       _immutableVerifier.checkDeclaration(node, nameToken: node.name);
       _checkForInvalidSealedSuperclass(node);
-      super.visitMixinDeclaration(node);
+      super.visitMixinDeclaration2(node);
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;

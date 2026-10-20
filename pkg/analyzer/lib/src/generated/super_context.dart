@@ -52,7 +52,7 @@ class SuperContext {
         inDefaultValue = false;
       } else if (node is ClassDeclaration ||
           node is EnumDeclaration2 ||
-          node is MixinDeclaration) {
+          node is MixinDeclaration2) {
         return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;

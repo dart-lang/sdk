@@ -122,7 +122,7 @@ class InheritanceOverrideVerifier {
           reportInterfaceConflicts: _reportInterfaceConflicts,
           targetForElement: _targetForElement,
         );
-      } else if (declaration is MixinDeclarationImpl) {
+      } else if (declaration is MixinDeclaration2Impl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
@@ -137,7 +137,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members2,
+          members: declaration.body.members,
           onClause: declaration.onClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,

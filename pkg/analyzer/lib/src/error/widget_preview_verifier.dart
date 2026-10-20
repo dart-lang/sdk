@@ -108,7 +108,7 @@ class WidgetPreviewVerifier {
       EnumDeclaration2 declaration => declaration.namePart.typeName,
       ExtensionDeclaration2 declaration => declaration.name,
       ExtensionTypeDeclaration declaration => declaration.namePart.typeName,
-      MixinDeclaration declaration => declaration.name,
+      MixinDeclaration2 declaration => declaration.name,
       _ => null,
     };
     if (nameToken == null) return false;

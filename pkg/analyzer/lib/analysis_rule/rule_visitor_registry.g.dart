@@ -955,7 +955,8 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addMethodDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addMixinDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addMixinDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addMixinOnClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

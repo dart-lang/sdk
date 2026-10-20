@@ -705,6 +705,64 @@ mixin M {}
     expect(node.name.lexeme, 'M');
   }
 
+  test_mixin_v2() async {
+    var unitResult = await resolveTestCode(r'''
+mixin M on Object {
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.mixin('M').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  onClause: MixinOnClause
+    onKeyword: on
+    superclassConstraints
+      NamedType
+        name: Object
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  onClause: MixinOnClause
+    onKeyword: on
+    superclassConstraints
+      NamedType
+        name: Object
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
   test_operator() async {
     var unitResult = await resolveTestCode(r'''
 class C {

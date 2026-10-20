@@ -289,7 +289,7 @@ class DartdocDirectiveInfo {
           ...declaration.body.constants,
           ...declaration.body.members,
         ],
-        MixinDeclaration() => declaration.body.members2,
+        MixinDeclaration2() => declaration.body.members,
         ExtensionDeclaration2() => declaration.body.members,
         ExtensionTypeDeclaration() => declaration.body.members2,
         _ => null,

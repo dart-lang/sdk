@@ -1872,7 +1872,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 

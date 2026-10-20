@@ -591,7 +591,7 @@ class _InfoBuilder {
         extensions.add(_buildExtension(declaration));
       } else if (declaration is ExtensionTypeDeclaration) {
         extensionTypes.add(_buildExtensionType(declaration));
-      } else if (declaration is MixinDeclarationImpl) {
+      } else if (declaration is MixinDeclaration2Impl) {
         mixinDeclarations.add(_buildMixin(declaration));
       } else if (declaration is TopLevelFunctionDeclarationImpl) {
         topLevelFunctions.add(_buildTopLevelFunction(declaration));
@@ -1065,13 +1065,13 @@ class _InfoBuilder {
     );
   }
 
-  _InfoMixinDeclaration _buildMixin(MixinDeclarationImpl node) {
+  _InfoMixinDeclaration _buildMixin(MixinDeclaration2Impl node) {
     return _InfoMixinDeclaration(
       data: _buildInterfaceData(
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members2,
+        members: node.body.members,
       ),
     );
   }

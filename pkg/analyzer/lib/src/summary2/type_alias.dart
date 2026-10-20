@@ -113,7 +113,7 @@ class _Finder {
             if (visited.add(typeNode)) {
               genericTypeAlias(typeNode);
             }
-          } else if (typeNode is MixinDeclaration) {
+          } else if (typeNode is MixinDeclaration2) {
             if (visited.add(typeNode)) {
               _typeParameterList(typeNode.typeParameters);
             }
