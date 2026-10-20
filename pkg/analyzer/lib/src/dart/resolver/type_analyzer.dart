@@ -1451,7 +1451,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var parent = node.parent2;
 
     if (parent is CompilationUnit) {
-      return node is ClassDeclaration ||
+      return node is ClassDeclaration2 ||
           node is Directive ||
           node is EnumDeclaration2 ||
           node is ExtensionDeclaration2 ||
@@ -1470,7 +1470,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     // The visit methods of these declarations set only the enclosing
     // instance element before visiting their members.
     InstanceElementImpl? enclosingElement = switch (parent) {
-      ClassDeclarationImpl() => parent.declaredFragment!.element,
+      ClassDeclaration2Impl() => parent.declaredFragment!.element,
       EnumDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionTypeDeclaration2Impl() => parent.declaredFragment!.element,
@@ -2472,7 +2472,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
 
@@ -2482,7 +2482,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(declaredElement, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitClassDeclaration(node);
+      elementResolver.visitClassDeclaration2(node);
     });
 
     baseOrFinalTypeVerifier.checkElement(

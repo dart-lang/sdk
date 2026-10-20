@@ -48,7 +48,7 @@ class A<T> {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T> {}'));
-    expect(node, isClassDeclaration);
+    expect(node, isClassDeclaration2);
   }
 
   void test_searchWithin_constructor_afterName_beforeParameters() {

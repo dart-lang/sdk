@@ -22,6 +22,19 @@ main() {
 @reflectiveTest
 class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
   @V1Ast('Tests the V1 projection.')
+  test_classDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A extends Object {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'class A extends Object {void foo() {}}',
+      result.findNodeV1.singleClassDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
   test_classTypeAlias() async {
     var result = await resolveTestCodeWithDiagnostics('''
 mixin M {}

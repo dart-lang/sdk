@@ -1675,7 +1675,7 @@ library myLib;
     var node = await coveringNode('''
 ^class A {}
 ''');
-    node as ClassDeclaration;
+    node as ClassDeclaration2;
   }
 
   Future<void> test_atBOF_atComment() async {
@@ -1732,7 +1732,7 @@ class C {
   void b() {}
 }
 ''');
-    node as ClassBody;
+    node as BlockInstanceDeclarationBody;
   }
 
   Future<void> test_between_colonAndIdentifier_namedExpression() async {

@@ -581,7 +581,7 @@ class _InfoBuilder {
     var topLevelVariable = <_InfoTopLevelVariable>[];
     var typeAliases = <_InfoTypeAlias>[];
     for (var declaration in unit.declarations2) {
-      if (declaration is ClassDeclaration) {
+      if (declaration is ClassDeclaration2) {
         classDeclarations.add(_buildClass(declaration));
       } else if (declaration is ClassTypeAlias2) {
         classTypeAliases.add(_buildClassTypeAlias(declaration));
@@ -663,14 +663,14 @@ class _InfoBuilder {
     );
   }
 
-  _InfoClassDeclaration _buildClass(ClassDeclaration node) {
+  _InfoClassDeclaration _buildClass(ClassDeclaration2 node) {
     return _InfoClassDeclaration(
       data: _buildInterfaceData(
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members2,
+        members: node.body.members,
       ),
     );
   }

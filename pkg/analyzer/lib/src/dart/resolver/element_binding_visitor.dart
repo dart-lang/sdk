@@ -138,7 +138,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           _bindClassDeclaration(
             declaration,
             _libraryFragment.classes[classIndex++],
@@ -512,7 +512,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindClassDeclaration(
-    ClassDeclarationImpl node,
+    ClassDeclaration2Impl node,
     ClassFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -545,7 +545,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.implementsClause?.accept2(this);
     node.nativeClause?.accept2(this);
 
-    _bindMembers(node.body.members2, memberFragments);
+    _bindMembers(node.body.members, memberFragments);
   }
 
   void _bindClassTypeAlias(

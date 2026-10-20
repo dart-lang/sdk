@@ -79,7 +79,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     var element = node.declaredFragment?.element;
     if (element != null) {
       if (element.metadata.hasJS) {
@@ -90,7 +90,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
     var enclosingClassOld = _enclosingClass;
     try {
       _enclosingClass = node.declaredFragment?.element;
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       _enclosingClass = enclosingClassOld;
     }
@@ -734,11 +734,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
   }
 
   @override
@@ -915,7 +915,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
     switch (node.parent2) {
-      case ClassDeclarationImpl():
+      case ClassDeclaration2Impl():
       case EnumDeclaration2Impl():
         for (var parameter in node.formalParameters.allFormalParameters) {
           var element = parameter.declaredFragment!.element;

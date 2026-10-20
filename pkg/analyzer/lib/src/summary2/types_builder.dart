@@ -101,7 +101,7 @@ class TypesBuilder {
     );
   }
 
-  void _classDeclaration(ClassDeclarationImpl node) {
+  void _classDeclaration(ClassDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
@@ -151,7 +151,7 @@ class TypesBuilder {
   }
 
   void _declaration(AstNode node) {
-    if (node is ClassDeclarationImpl) {
+    if (node is ClassDeclaration2Impl) {
       _classDeclaration(node);
     } else if (node is ClassTypeAlias2Impl) {
       _classTypeAlias(node);
@@ -520,7 +520,7 @@ class TypesBuilder {
   }
 }
 
-/// Performs mixins inference in a [ClassDeclaration].
+/// Performs mixins inference in a [ClassDeclaration2].
 class _MixinInference {
   final InterfaceElementImpl element;
   final TypeSystemImpl typeSystem;

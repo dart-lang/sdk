@@ -265,12 +265,12 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    _scopeContext.visitClassDeclaration(node, visitor: this);
+    _scopeContext.visitClassDeclaration2(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
@@ -1235,7 +1235,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
           diagnosticCode = diag.mixinWithNonClassSuperclass;
         }
       case ExtendsClause():
-        if (declaration is ClassDeclaration) {
+        if (declaration is ClassDeclaration2) {
           diagnosticCode = declaration.withClause == null
               ? diag.extendsNonClass
               : diag.mixinWithNonClassSuperclass;

@@ -20,6 +20,8 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression get singleBinaryExpression => _single();
 
+  ClassDeclaration get singleClassDeclaration => _single();
+
   ClassTypeAlias get singleClassTypeAlias => _single();
 
   ConstructorDeclaration get singleConstructorDeclaration => _single();
@@ -87,6 +89,10 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression binary(String search) {
     return _node(search, (node) => node is BinaryExpression);
+  }
+
+  ClassDeclaration classDeclaration(String search) {
+    return _node(search, (n) => n is ClassDeclaration);
   }
 
   ClassTypeAlias classTypeAlias(String search) {
@@ -274,12 +280,12 @@ class FindNode2 extends _FindNodeBase {
 
   CallInvocation get singleCallInvocation => _single();
 
+  ClassDeclaration2 get singleClassDeclaration => _single();
+
   /// The only member of a class-like or enum body.
   AnnotatedNode get singleClassMember {
-    return [
-      for (var body in _nodes<ClassBody>()) ...body.members2,
-      for (var body in _nodes<InstanceDeclarationBody>()) ...body.members,
-    ].single;
+    return [for (var body in _nodes<InstanceDeclarationBody>()) ...body.members]
+        .single;
   }
 
   ClassTypeAlias2 get singleClassTypeAlias => _single();
@@ -390,6 +396,10 @@ class FindNode2 extends _FindNodeBase {
 
   CallInvocation callInvocation(String search) {
     return _node(search, (node) => node is CallInvocation);
+  }
+
+  ClassDeclaration2 classDeclaration(String search) {
+    return _node(search, (n) => n is ClassDeclaration2);
   }
 
   ClassTypeAlias2 classTypeAlias(String search) {
@@ -701,8 +711,6 @@ abstract class _FindNodeBase {
   CastPattern get singleCastPattern => _single();
 
   CatchClause get singleCatchClause => _single();
-
-  ClassDeclaration get singleClassDeclaration => _single();
 
   Comment get singleComment => _single();
 
@@ -1025,10 +1033,6 @@ abstract class _FindNodeBase {
 
   CatchClauseParameter catchClauseParameter(String search) {
     return _node(search, (n) => n is CatchClauseParameter);
-  }
-
-  ClassDeclaration classDeclaration(String search) {
-    return _node(search, (n) => n is ClassDeclaration);
   }
 
   CollectionElement collectionElement(String search) {

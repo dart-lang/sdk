@@ -39,7 +39,7 @@ class NamedTypeResolver with ScopeHelpers {
   @override
   final DiagnosticReporter diagnosticReporter;
 
-  /// If not `null`, the element of the [ClassDeclaration], or the
+  /// If not `null`, the element of the [ClassDeclaration2], or the
   /// [ClassTypeAlias2] being resolved.
   InterfaceElementImpl? enclosingClass;
 

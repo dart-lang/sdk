@@ -491,7 +491,8 @@ abstract class AstVisitor2<R> {
 
   R? visitCatchClauseParameter(CatchClauseParameter node);
 
-  R? visitClassDeclaration(ClassDeclaration node);
+  @experimental
+  R? visitClassDeclaration2(ClassDeclaration2 node);
 
   @experimental
   R? visitClassTypeAlias2(ClassTypeAlias2 node);

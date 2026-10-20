@@ -36,7 +36,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
   }
 
   for (var declaration in unit.declarations2) {
-    if (declaration is ClassDeclaration) {
+    if (declaration is ClassDeclaration2) {
       addSubtypedName(declaration.extendsClause?.superclass);
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
@@ -79,10 +79,10 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory forClass(_LocalNameScope enclosing, ClassDeclarationImpl node) {
+  factory forClass(_LocalNameScope enclosing, ClassDeclaration2Impl node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (var member in node.body.members2) {
+    for (var member in node.body.members) {
       if (member is FieldsDeclarationImpl) {
         for (var field in member.fields) {
           scope.add(field.name);
@@ -188,7 +188,7 @@ class _LocalNameScope {
     _LocalNameScope scope = _LocalNameScope(null);
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
         case EnumDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
@@ -283,11 +283,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClass(localScope, node);
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       localScope = outerScope;
     }

@@ -2672,8 +2672,9 @@ class C {
 }
 ''');
     var node =
-        (parseResult.findNode.singleClassDeclaration.body as BlockClassBody)
-            .members2
+        (parseResult.findNode.singleClassDeclaration.body
+                as BlockInstanceDeclarationBody)
+            .members
             .first;
     assertParsedNodeText(node, r'''
 MethodDeclaration2

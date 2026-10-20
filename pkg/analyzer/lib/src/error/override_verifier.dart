@@ -22,9 +22,9 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
   new(this._errorReporter);
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     _currentClass = node.declaredFragment?.element;
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
     _currentClass = null;
   }
 

@@ -40,7 +40,7 @@ class _UnitApiSignatureComputer {
     signature.addInt(unit.declarations2.length);
     for (var declaration in unit.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           _addClass(declaration);
         case EnumDeclaration2Impl():
           _addEnum(declaration);
@@ -81,12 +81,12 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addClass(ClassDeclarationImpl node) {
+  void _addClass(ClassDeclaration2Impl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    bool hasConstConstructor = node.body.members2.any(
+    bool hasConstConstructor = node.body.members.any(
       (m) => m is ConstructorDeclaration2Impl && m.constKeyword != null,
     );
-    _addClassMembers(node.body.members2, hasConstConstructor);
+    _addClassMembers(node.body.members, hasConstConstructor);
   }
 
   void _addClassMembers(List<AnnotatedNode> members, bool hasConstConstructor) {

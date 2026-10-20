@@ -91,7 +91,7 @@ s@30
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 ''');
-    var node = result.findNode.classDeclaration('class');
+    var node = result.findNodeV1.classDeclaration('class');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A
@@ -328,7 +328,7 @@ void main(@Class() parameter) {}
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
 ''');
-    var node = result.findNode.classDeclaration('A');
+    var node = result.findNodeV1.classDeclaration('A');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A

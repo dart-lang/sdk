@@ -1409,9 +1409,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    _runSubscriptions(node, _registry._forClassDeclaration);
+  void visitClassDeclaration2(ClassDeclaration2 node) {
+    _runSubscriptions(node, _registry._forClassDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -4598,7 +4599,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<CatchClauseParameter>> _forCatchClauseParameter =
       [];
 
-  final List<_Subscription2<ClassDeclaration>> _forClassDeclaration = [];
+  final List<_Subscription2<ClassDeclaration2>> _forClassDeclaration2 = [];
 
   final List<_Subscription2<ClassTypeAlias2>> _forClassTypeAlias2 = [];
 
@@ -5324,9 +5325,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addClassDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forClassDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forClassDeclaration2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

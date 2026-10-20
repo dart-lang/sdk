@@ -284,7 +284,7 @@ class DartdocDirectiveInfo {
       result.extractTemplate(rawText);
 
       var members = switch (declaration) {
-        ClassDeclaration() => declaration.body.members2,
+        ClassDeclaration2() => declaration.body.members,
         EnumDeclaration2() => [
           ...declaration.body.constants,
           ...declaration.body.members,

@@ -1323,7 +1323,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
-    debugEvent("ClassDeclaration");
+    debugEvent("ClassDeclaration2");
 
     var builder = _classLikeBuilder as _ClassDeclarationBuilder;
     declarations.add(builder.build());
@@ -6921,19 +6921,19 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.nativeClause,
   });
 
-  ClassDeclarationImpl build() {
-    ClassBodyImpl body;
+  ClassDeclaration2Impl build() {
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return ClassDeclarationImpl(
+    return ClassDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

@@ -292,7 +292,7 @@ class DefaultTypesBuilder {
 
   _FragmentTypeParameters? _fragmentTypeParameters(AstNode node) {
     switch (node) {
-      case ClassDeclarationImpl():
+      case ClassDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.namePart.typeParameters,

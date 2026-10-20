@@ -1028,7 +1028,7 @@ class FileState {
     var topLevelDeclarations = <String>{};
     for (var declaration in unit.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
         case EnumDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);

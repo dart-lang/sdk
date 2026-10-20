@@ -2131,8 +2131,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitClassDeclaration(ClassDeclaration node) {
+  R? visitClassDeclaration2(ClassDeclaration2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4136,8 +4137,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitCatchClauseParameter(CatchClauseParameter node) => null;
 
+  @experimental
   @override
-  R? visitClassDeclaration(ClassDeclaration node) => null;
+  R? visitClassDeclaration2(ClassDeclaration2 node) => null;
 
   @experimental
   @override
@@ -5583,8 +5585,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitCatchClauseParameter(CatchClauseParameter node) => _throw(node);
 
+  @experimental
   @override
-  R? visitClassDeclaration(ClassDeclaration node) => _throw(node);
+  R? visitClassDeclaration2(ClassDeclaration2 node) => _throw(node);
 
   @experimental
   @override
@@ -8103,10 +8106,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitClassDeclaration(ClassDeclaration node) {
+  T? visitClassDeclaration2(ClassDeclaration2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitClassDeclaration(node);
+    T? result = _baseVisitor.visitClassDeclaration2(node);
     stopwatch.stop();
     return result;
   }
@@ -10559,8 +10563,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitClassDeclaration(ClassDeclaration node) => visitNode(node);
+  R? visitClassDeclaration2(ClassDeclaration2 node) => visitNode(node);
 
   @experimental
   @override

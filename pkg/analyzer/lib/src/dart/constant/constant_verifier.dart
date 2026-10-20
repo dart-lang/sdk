@@ -1761,9 +1761,9 @@ extension on Expression {
         if (declaration is FieldsDeclaration &&
             declaration.staticKeyword == null) {
           var body = declaration.parent2;
-          if (body is BlockClassBody) {
+          if (body is BlockInstanceDeclarationBody) {
             var container = body.parent2;
-            if (container is ClassDeclaration) {
+            if (container is ClassDeclaration2) {
               var enclosingClass = container.declaredFragment!.element;
               if (enclosingClass is ClassElementImpl) {
                 // A field initializer of a class with at least one generative

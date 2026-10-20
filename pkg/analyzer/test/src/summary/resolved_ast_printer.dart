@@ -191,19 +191,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    // TODO(scheglov): Remove when classes are parsed as
-    // ClassDeclaration2.
-    if (_view == _AstView.v2 && node.parent2 is ClassDeclaration) {
-      _sink.writeln('BlockInstanceDeclarationBody');
-      _sink.withIndent(() {
-        for (var entity in (node as AstNodeImpl).namedChildEntities2) {
-          var name = entity.name == 'members2' ? 'members' : entity.name;
-          _writeNamedChildEntity(node, entity, name: name);
-        }
-      });
-      return;
-    }
-
     _sink.writeln('BlockClassBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -401,20 +388,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    // TODO(scheglov): Remove when classes are parsed as
-    // ClassDeclaration2.
-    if (_view == _AstView.v2) {
-      _sink.writeln('ClassDeclaration2');
-      _sink.withIndent(() {
-        for (var entity in (node as AstNodeImpl).namedChildEntities2) {
-          _writeNamedChildEntity(node, entity);
-        }
-        _writeDeclaredFragment(node.declaredFragment);
-      });
-      return;
-    }
-
     _sink.writeln('ClassDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitClassDeclaration2(ClassDeclaration2 node) {
+    _sink.writeln('ClassDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -848,16 +831,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitEmptyClassBody(EmptyClassBody node) {
-    // TODO(scheglov): Remove when classes are parsed as
-    // ClassDeclaration2.
-    if (_view == _AstView.v2 && node.parent2 is ClassDeclaration) {
-      _sink.writeln('SemicolonInstanceDeclarationBody');
-      _sink.withIndent(() {
-        _writeToken('semicolon', node.semicolon);
-      });
-      return;
-    }
-
     _sink.writeln('EmptyClassBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2848,15 +2821,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Statement(statement);
     }
 
-    // TODO(scheglov): Remove when classes are parsed as
-    // ClassDeclaration2, which has a distinct V1 projection.
-    if (node is ClassDeclaration) {
-      _withInlineV1ChildEntities(false, () => writeNode(node));
-      _sink.writeWithIndent('V1: ');
-      _withView(_AstView.v1, () => _acceptInView(node));
-      return;
-    }
-
     if (v1 == null || identical(v1, node)) {
       writeNode(node);
       return;
@@ -3384,8 +3348,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasClassDeclarations(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3756,16 +3719,6 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a declaration list with a [ClassDeclaration],
-  /// which will differ from its V1 projection once classes are parsed as
-  /// `ClassDeclaration2`.
-  // TODO(scheglov): Remove when classes are parsed as
-  // ClassDeclaration2.
-  static bool _hasClassDeclarations(Object value) {
-    return value is List<AstNode> &&
-        value.any((node) => node is ClassDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

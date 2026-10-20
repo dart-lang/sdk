@@ -599,7 +599,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addCatchClauseParameter(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addClassDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addClassTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);

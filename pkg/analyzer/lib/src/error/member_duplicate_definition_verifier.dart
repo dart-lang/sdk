@@ -37,10 +37,10 @@ class MemberDuplicateDefinitionVerifier {
     this.context,
   );
 
-  void _checkClass(ClassDeclarationImpl node) {
+  void _checkClass(ClassDeclaration2Impl node) {
     _checkClassMembers(
       node.declaredFragment!,
-      node.body.members2,
+      node.body.members,
       primaryConstructor: node.namePart.tryCast(),
     );
   }
@@ -536,7 +536,7 @@ class MemberDuplicateDefinitionVerifier {
   void _checkUnit(CompilationUnitImpl node) {
     for (var node in node.declarations2) {
       switch (node) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           _checkClass(node);
         case ExtensionDeclaration2Impl():
           _checkExtension(node);
@@ -562,9 +562,9 @@ class MemberDuplicateDefinitionVerifier {
   void _checkUnitStatic(CompilationUnitImpl node) {
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.body.members2);
+          _checkClassStatic(fragment, declaration.body.members);
         case EnumDeclaration2Impl():
           _checkEnumStatic(declaration);
         case ExtensionDeclaration2Impl():

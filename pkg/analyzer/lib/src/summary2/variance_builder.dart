@@ -38,7 +38,7 @@ class VarianceBuilder {
         for (var node in linkingUnit.node.declarations2) {
           if (node is ClassTypeAlias2Impl) {
             _typeParameters(node.typeParameters);
-          } else if (node is ClassDeclarationImpl) {
+          } else if (node is ClassDeclaration2Impl) {
             _typeParameters(node.namePart.typeParameters);
           } else if (node is EnumDeclaration2Impl) {
             _typeParameters(node.namePart.typeParameters);

@@ -95,7 +95,7 @@ class WidgetPreviewVerifier {
     return parameters.any((e) => e.isRequired);
   }
 
-  /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration]
+  /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration2]
   /// that has a private name.
   bool _isPrivateContext({required String? name, required AstNode node}) {
     if (name != null && name.isPrivateName) return true;
@@ -104,7 +104,7 @@ class WidgetPreviewVerifier {
     if (parent == null) return false;
 
     var nameToken = switch (parent) {
-      ClassDeclaration declaration => declaration.namePart.typeName,
+      ClassDeclaration2 declaration => declaration.namePart.typeName,
       EnumDeclaration2 declaration => declaration.namePart.typeName,
       ExtensionDeclaration2 declaration => declaration.name,
       ExtensionTypeDeclaration2 declaration => declaration.namePart.typeName,
@@ -126,8 +126,8 @@ class WidgetPreviewVerifier {
       return true;
     }
 
-    if (node.parent2 case BlockClassBody body) {
-      if (body.parent2 is ClassDeclaration) {
+    if (node.parent2 case BlockInstanceDeclarationBody body) {
+      if (body.parent2 is ClassDeclaration2) {
         return true;
       }
     }
@@ -153,7 +153,7 @@ class WidgetPreviewVerifier {
     required FormalParameterList parameters,
   }) {
     if (isExternal) return false;
-    if (parentDeclaration is! ClassDeclaration) return false;
+    if (parentDeclaration is! ClassDeclaration2) return false;
 
     var element = parentDeclaration.declaredFragment?.element;
     if (element is! ClassElement) return false;

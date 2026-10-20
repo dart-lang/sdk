@@ -84,6 +84,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         CatchClauseParameter,
         ClassBody,
         ClassDeclaration,
+        ClassDeclaration2,
         ClassMember,
         ClassNamePart,
         ClassTypeAlias,

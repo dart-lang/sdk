@@ -258,10 +258,10 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       ).unit;
       if (className != null) {
         for (var declaration in unit.declarations2) {
-          if (declaration is ClassDeclaration &&
+          if (declaration is ClassDeclaration2 &&
               declaration.namePart.typeName.lexeme == className) {
-            if (declaration.body case BlockClassBody body) {
-              for (var member in body.members2) {
+            if (declaration.body case BlockInstanceDeclarationBody body) {
+              for (var member in body.members) {
                 if (member is ConstructorDeclaration2) {
                   if (member.name!.lexeme == name) {
                     return member.offset;
@@ -318,7 +318,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         throwIfDiagnostics: false,
       ).unit;
       for (var declaration in unit.declarations2) {
-        if (declaration is ClassDeclaration &&
+        if (declaration is ClassDeclaration2 &&
             declaration.namePart.typeName.lexeme == className) {
           return declaration.offset;
         }

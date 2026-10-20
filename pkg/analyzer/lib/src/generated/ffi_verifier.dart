@@ -114,7 +114,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   bool inCompound = false;
 
   /// Subclass of `Struct` or `Union` we are currently visiting, or `null`.
-  ClassDeclaration? compound;
+  ClassDeclaration2? compound;
 
   /// The `Void` type from `dart:ffi`, or `null` if unresolved.
   InterfaceTypeImpl? ffiVoidType;
@@ -264,7 +264,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     inCompound = false;
     compound = null;
     // Only the Allocator, Opaque and Struct class may be extended.
@@ -369,7 +369,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         }
       }
     }
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
     inCompound = false;
   }
 
@@ -1218,11 +1218,11 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     return _PrimitiveDartType.none;
   }
 
-  void _validateAbiSpecificIntegerAnnotation(ClassDeclarationImpl node) {
+  void _validateAbiSpecificIntegerAnnotation(ClassDeclaration2Impl node) {
     if ((node.namePart.typeParameters?.length ?? 0) != 0 ||
-        node.body.members2.length != 1 ||
-        node.body.members2.single is! ConstructorDeclaration2 ||
-        (node.body.members2.single as ConstructorDeclaration2).constKeyword ==
+        node.body.members.length != 1 ||
+        node.body.members.single is! ConstructorDeclaration2 ||
+        (node.body.members.single as ConstructorDeclaration2).constKeyword ==
             null) {
       _diagnosticReporter.report(
         diag.abiSpecificIntegerInvalid.at(node.namePart.typeName),

@@ -43,13 +43,13 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
 
   void appendTopLevelName(TopLevelDeclarationV1OrV2Impl member) {
     switch (member) {
-      case ClassDeclarationImpl():
+      case ClassDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl constructor) {
           appendDeclaringFormalParameterNames(constructor);
         }
-        member.body.members2.forEach(appendClassMemberName);
+        member.body.members.forEach(appendClassMemberName);
       case EnumDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart

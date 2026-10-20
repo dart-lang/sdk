@@ -550,7 +550,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -568,7 +568,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForAugmentationExtendsClauseAlreadyPresent(node, declaredFragment);
       _checkForClassAugmentationModifierMismatch(declaredFragment, node);
 
-      List<AnnotatedNode> members = node.body.members2;
+      List<AnnotatedNode> members = node.body.members;
       if (!element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
           node.namePart.typeName,
@@ -623,7 +623,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         diagnosticSource: _currentUnit.source,
       ).checkStaticGetters(element.getters);
 
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     });
   }
 
@@ -3084,7 +3084,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForAugmentationExtendsClauseAlreadyPresent(
-    ClassDeclarationImpl node,
+    ClassDeclaration2Impl node,
     ClassFragmentImpl declaredFragment,
   ) {
     if (node.augmentKeyword == null) {
@@ -3774,7 +3774,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   void _checkForClassAugmentationModifierMismatch(
     ClassFragmentImpl declaredFragment,
-    ClassDeclarationImpl node,
+    ClassDeclaration2Impl node,
   ) {
     var element = declaredFragment.element;
 
@@ -6363,7 +6363,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           }
         }
       }
-      if (node is ClassDeclarationImpl) {
+      if (node is ClassDeclaration2Impl) {
         if (node.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
           if (primaryConstructor

@@ -35,7 +35,7 @@ const isCascadeExpression = TypeMatcher<CascadeExpression>();
 
 const isCatchClause = TypeMatcher<CatchClause>();
 
-const isClassDeclaration = TypeMatcher<ClassDeclaration>();
+const isClassDeclaration2 = TypeMatcher<ClassDeclaration2>();
 
 const isClassMember = TypeMatcher<ClassMember>();
 
