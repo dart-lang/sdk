@@ -1620,9 +1620,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    _runSubscriptions(node, _registry._forEnumConstantDeclaration);
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
+    _runSubscriptions(node, _registry._forEnumConstantDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -4651,8 +4652,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<EnumConstantArguments>> _forEnumConstantArguments =
       [];
 
-  final List<_Subscription2<EnumConstantDeclaration>>
-  _forEnumConstantDeclaration = [];
+  final List<_Subscription2<EnumConstantDeclaration2>>
+  _forEnumConstantDeclaration2 = [];
 
   final List<_Subscription2<EnumDeclaration>> _forEnumDeclaration = [];
 
@@ -5545,12 +5546,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addEnumConstantDeclaration(
+  void addEnumConstantDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forEnumConstantDeclaration.add(
+    _forEnumConstantDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

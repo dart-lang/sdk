@@ -981,8 +981,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
+  void visitEnumConstantDeclaration2(
+    covariant EnumConstantDeclaration2Impl node,
   ) {
     var declaredFragment = node.declaredFragment!;
 
@@ -991,7 +991,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       fragment: declaredFragment,
       errorToken: node.name,
     );
-    _requiredParametersVerifier.visitEnumConstantDeclaration(node);
+    _requiredParametersVerifier.visitEnumConstantDeclaration2(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     node.visitChildrenWithHooks(
       this,
@@ -2797,7 +2797,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkEnumConstantSameAsEnclosing(EnumConstantDeclarationImpl node) {
+  void _checkEnumConstantSameAsEnclosing(EnumConstantDeclaration2Impl node) {
     if (node.name.lexeme == _enclosingInstanceElement?.name) {
       diagnosticReporter.report(
         diag.enumConstantSameNameAsEnclosing.at(node.name),

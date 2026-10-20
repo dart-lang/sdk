@@ -142,6 +142,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         EnumBody,
         EnumConstantArguments,
         EnumConstantDeclaration,
+        EnumConstantDeclaration2,
         EnumDeclaration,
         ExecutableInvocationResolution,
         ExecutableTearOffResolution,

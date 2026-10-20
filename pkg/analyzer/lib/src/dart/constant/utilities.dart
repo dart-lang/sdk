@@ -165,10 +165,10 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
+  void visitEnumConstantDeclaration2(
+    covariant EnumConstantDeclaration2Impl node,
   ) {
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
 
     var element = node.declaredFragment!.element;
     constantsToCompute.add(element);

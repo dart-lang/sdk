@@ -558,7 +558,8 @@ class AnnotationVerifier {
     var parent = node.parent2;
     if (parent is! Declaration &&
         parent is! TopLevelDeclaration &&
-        parent is! MemberDeclaration) {
+        parent is! MemberDeclaration &&
+        parent is! EnumConstantDeclaration2) {
       // This is reported by `_checkKinds`.
       return;
     }
@@ -632,7 +633,7 @@ class AnnotationVerifier {
     switch (node.parent2) {
       case ConstructorDeclaration2 constructorDeclaration:
         containedDeclaration = constructorDeclaration;
-      case EnumConstantDeclaration enumConstant:
+      case EnumConstantDeclaration2 enumConstant:
         containedDeclaration = enumConstant;
       case FieldsDeclaration fieldDeclaration:
         containedDeclaration = fieldDeclaration;
@@ -675,7 +676,9 @@ class AnnotationVerifier {
   Element? _declaredElement(AstNode node) {
     return switch (node) {
       Declaration(:var declaredFragment) => declaredFragment?.element,
-      (TopLevelDeclaration() || MemberDeclaration()) &&
+      (TopLevelDeclaration() ||
+              MemberDeclaration() ||
+              EnumConstantDeclaration2()) &&
           FragmentDeclaringNode(:var declaredFragment) =>
         declaredFragment?.element,
       _ => null,

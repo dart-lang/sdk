@@ -4227,7 +4227,7 @@ class AstBuilder extends StackListener {
     debugEvent("EnumElement");
     var argumentList = pop() as ArgumentListImpl?;
     var tmpConstructor = pop() as ConstructorReference2Impl?;
-    var constant = pop() as EnumConstantDeclarationImpl;
+    var constant = pop() as EnumConstantDeclaration2Impl;
 
     if (!enableEnhancedEnums &&
         (argumentList != null ||
@@ -4260,7 +4260,7 @@ class AstBuilder extends StackListener {
 
     // Replace the constant to include arguments.
     if (argumentList != null) {
-      constant = EnumConstantDeclarationImpl(
+      constant = EnumConstantDeclaration2Impl(
         comment: constant.documentationComment,
         metadata: constant.metadata,
         augmentKeyword: augmentToken,
@@ -4281,7 +4281,7 @@ class AstBuilder extends StackListener {
     debugEvent("EnumElements");
     var builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    var constants = popTypedList2<EnumConstantDeclarationImpl>(elementsCount);
+    var constants = popTypedList2<EnumConstantDeclaration2Impl>(elementsCount);
     builder.constants.addAll(constants);
 
     if (optional(';', elementsEndToken)) {
@@ -4647,7 +4647,7 @@ class AstBuilder extends StackListener {
       }
 
       push(
-        EnumConstantDeclarationImpl(
+        EnumConstantDeclaration2Impl(
           comment: comment,
           metadata: metadata,
           augmentKeyword: augmentKeyword,
@@ -7009,7 +7009,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
   final WithClauseImpl? withClause;
   final ImplementsClauseImpl? implementsClause;
-  final List<EnumConstantDeclarationImpl> constants = [];
+  final List<EnumConstantDeclaration2Impl> constants = [];
   Token? semicolon;
 
   new({
@@ -7034,7 +7034,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     } else {
       body = BlockEnumBodyImpl(
         leftBracket: leftBracket,
-        constants: constants,
+        constants2: constants,
         semicolon: semicolon,
         members2: members,
         rightBracket: rightBracket,

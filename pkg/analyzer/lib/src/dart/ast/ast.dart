@@ -4360,7 +4360,11 @@ abstract final class BlockEnumBody implements EnumBody {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('constants'),
+    GenerateNodeProperty(
+      'constants2',
+      v1Name: 'constants',
+      v1Projection: V1Projection.enumConstant,
+    ),
     GenerateNodeProperty('semicolon'),
     GenerateNodeProperty(
       'members2',
@@ -4377,8 +4381,16 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   final Token leftBracket;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
+  final NodeListImpl<EnumConstantDeclaration2Impl> constants2 =
+      NodeListImpl._();
+
+  @generated
+  @V1Ast('The V2 counterpart is constants2.')
+  @override
+  late final NodeListImpl<EnumConstantDeclarationImpl> constants =
+      _V1ProjectedNodeListImpl(constants2, V1Projection.toV1EnumConstant);
 
   @generated
   @override
@@ -4404,12 +4416,12 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @generated
   new({
     required this.leftBracket,
-    required List<EnumConstantDeclarationImpl> constants,
+    required List<EnumConstantDeclaration2Impl> constants2,
     required this.semicolon,
     required List<ClassMemberV1OrV2Impl> members2,
     required this.rightBracket,
   }) {
-    this.constants._initialize(this, constants);
+    this.constants2._initializeProjected(this, constants2);
     this.members2._initializeProjected(this, members2);
   }
 
@@ -4439,7 +4451,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('leftBracket', leftBracket)
-    ..addNodeList('constants', constants)
+    ..addNodeList('constants2', constants2)
     ..addToken('semicolon', semicolon)
     ..addNodeList('members2', members2)
     ..addToken('rightBracket', rightBracket);
@@ -4457,9 +4469,9 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (constants.containsChild(oldNode)) {
+    if (constants2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'constants' because NodeList cannot be resized.",
+        "Cannot remove child 'constants2' because NodeList cannot be resized.",
       );
     }
     if (members2.containsChild(oldNode)) {
@@ -4473,7 +4485,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (constants.replaceChild(oldNode, newNode)) {
+    if (constants2.replaceChild(oldNode, newNode)) {
       return;
     }
     if (members2.replaceChild(oldNode, newNode)) {
@@ -4494,7 +4506,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    constants.accept2(visitor);
+    constants2.accept2(visitor);
     members2.accept2(visitor);
   }
 
@@ -4507,13 +4519,13 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<EnumConstantDeclarationImpl>)? visitConstants,
+    void Function(NodeListImpl<EnumConstantDeclaration2Impl>)? visitConstants2,
     void Function(NodeListImpl<ClassMemberV1OrV2Impl>)? visitMembers2,
   }) {
-    if (visitConstants != null) {
-      visitConstants(constants);
+    if (visitConstants2 != null) {
+      visitConstants2(constants2);
     } else {
-      constants.accept2(visitor);
+      constants2.accept2(visitor);
     }
     if (visitMembers2 != null) {
       visitMembers2(members2);
@@ -4540,7 +4552,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (constants._elementContainingRange(rangeOffset, rangeEnd)
+    if (constants2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -16354,8 +16366,13 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   @override
   final Token semicolon;
 
+  @V1Ast('The V2 counterpart is constants2.')
   @override
   late final NodeListImpl<EnumConstantDeclarationImpl> constants =
+      NodeListImpl._().._initialize(this, null);
+
+  @override
+  late final NodeListImpl<EnumConstantDeclaration2Impl> constants2 =
       NodeListImpl._().._initialize(this, null);
 
   @V1Ast('The V2 counterpart is members2.')
@@ -16609,7 +16626,12 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
+  @V1Ast('The V2 counterpart is constants2.')
   NodeList<EnumConstantDeclaration> get constants;
+
+  /// The enumeration constants being declared.
+  @experimental
+  NodeList<EnumConstantDeclaration2> get constants2;
 
   /// The members declared in the body in the V1 AST view.
   ///
@@ -16627,8 +16649,12 @@ sealed class EnumBody implements AstNode {
 }
 
 sealed class EnumBodyImpl extends AstNodeImpl implements EnumBody {
+  @V1Ast('The V2 counterpart is constants2.')
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants;
+
+  @override
+  NodeListImpl<EnumConstantDeclaration2Impl> get constants2;
 
   @V1Ast('The V2 counterpart is members2.')
   @override
@@ -16911,16 +16937,46 @@ abstract final class EnumConstantDeclaration implements Declaration {
   Token get name;
 }
 
+/// The declaration of an enum constant.
+///
+///     enumConstantDeclaration ::=
+///         metadata name enumConstantArguments?
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class EnumConstantDeclaration2
+    implements AnnotatedNode, FragmentDeclaringNode {
+  /// The explicit arguments (there are always implicit `index` and `name`
+  /// leading arguments) to the invoked constructor, or `null` if this constant
+  /// doesn't provide any explicit arguments.
+  EnumConstantArguments? get arguments;
+
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  /// The constructor that's invoked by this enum constant.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved, or if the
+  /// constructor couldn't be resolved.
+  ConstructorElement? get constructorElement;
+
+  @override
+  FieldFragment? get declaredFragment;
+
+  /// The name of the constant.
+  Token get name;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty('arguments'),
   ],
 )
-final class EnumConstantDeclarationImpl extends DeclarationImpl
+final class EnumConstantDeclaration2Impl extends AnnotatedNodeImpl
     with FlowAnalysisRootImpl
-    implements EnumConstantDeclaration {
+    implements EnumConstantDeclaration2 {
   @generated
   @override
   final Token? augmentKeyword;
@@ -16938,6 +16994,9 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   InternalConstructorElement? constructorElement;
 
+  @V1Ast()
+  EnumConstantDeclarationImpl? _v1Projection;
+
   @generated
   new({
     required super.comment,
@@ -16946,7 +17005,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     required this.name,
     required EnumConstantArgumentsImpl? arguments,
   }) : _arguments = arguments {
-    _becomeParentOf12(arguments);
+    _becomeParentOf2(arguments);
   }
 
   @generated
@@ -16955,7 +17014,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @generated
   set arguments(EnumConstantArgumentsImpl? arguments) {
-    _arguments = _becomeParentOf12(arguments);
+    _arguments = _becomeParentOf2(arguments);
   }
 
   @generated
@@ -16976,13 +17035,18 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     return name;
   }
 
+  @V1Ast()
+  EnumConstantDeclarationImpl get v1Projection =>
+      _v1Projection ??= EnumConstantDeclarationImpl.v1Projection(this);
+
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('name', name)
-    ..addNode('arguments', arguments);
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -16994,14 +17058,15 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitEnumConstantDeclaration(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('EnumConstantDeclaration2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitEnumConstantDeclaration(this);
+      visitor.visitEnumConstantDeclaration2(this);
 
   @generated
   @override
@@ -17027,8 +17092,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    arguments?.accept(visitor);
+    throw StateError('EnumConstantDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -17064,15 +17128,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (arguments case var arguments?) {
-      if (arguments._containsOffset(rangeOffset, rangeEnd)) {
-        return arguments;
-      }
-    }
-    return null;
+    throw StateError('EnumConstantDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -17087,6 +17143,142 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
       }
     }
     return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('arguments'),
+  ],
+)
+@V1Ast('The V2 counterpart is EnumConstantDeclaration2.')
+final class EnumConstantDeclarationImpl extends DeclarationImpl
+    implements EnumConstantDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  final EnumConstantDeclaration2Impl _v1ProjectionOrigin;
+
+  new v1Projection(EnumConstantDeclaration2Impl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      name = origin.name,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(origin.arguments);
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  EnumConstantArgumentsImpl? get arguments => _v1ProjectionOrigin.arguments;
+
+  @override
+  InternalConstructorElement? get constructorElement =>
+      _v1ProjectionOrigin.constructorElement;
+
+  @override
+  FieldFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token get endToken => _v1ProjectionOrigin.endToken;
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    return name;
+  }
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('name', name)
+    ..addNode('arguments', arguments);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitEnumConstantDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('EnumConstantDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    arguments?.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('EnumConstantDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (arguments case var arguments?) {
+      if (arguments._containsOffset(rangeOffset, rangeEnd)) {
+        return arguments;
+      }
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('EnumConstantDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -59827,6 +60019,9 @@ enum V1Projection {
   /// Project a [CombinatorNameImpl] child to a V1 identifier.
   combinatorName,
 
+  /// Project an [EnumConstantDeclaration2Impl] child to the V1 enum constant.
+  enumConstant,
+
   /// Project an [ExpressionImpl] child to the V1 expression view.
   expression,
 
@@ -59890,6 +60085,13 @@ enum V1Projection {
   }
 
   @V1Ast()
+  static EnumConstantDeclarationImpl toV1EnumConstant(
+    EnumConstantDeclaration2Impl node,
+  ) {
+    return node.v1Projection;
+  }
+
+  @V1Ast()
   static ExpressionImpl toV1Expression(ExpressionImpl node) {
     return _toV1Expression(node, createIfAbsent: true)!;
   }
@@ -59944,6 +60146,7 @@ enum V1Projection {
     LocalVariablesDeclarationStatementImpl() => node._v1StatementProjection,
     FunctionDeclarationV1OriginImpl() => node._v1Projection,
     ConstructorDeclaration2Impl() => node._v1Projection,
+    EnumConstantDeclaration2Impl() => node._v1Projection,
     PrimaryConstructorBody2Impl() => node._v1Projection,
     FieldsDeclarationImpl() => node._v1Projection,
     MethodDeclarationV1OriginImpl() => node._v1Projection,
@@ -59996,6 +60199,7 @@ enum V1Projection {
       LocalVariablesDeclarationStatementImpl() => root.v1StatementProjection,
       FunctionDeclarationV1OriginImpl() => root.v1Projection,
       ConstructorDeclaration2Impl() => root.v1Projection,
+      EnumConstantDeclaration2Impl() => root.v1Projection,
       PrimaryConstructorBody2Impl() => root.v1Projection,
       FieldsDeclarationImpl() => root.v1Projection,
       MethodDeclarationV1OriginImpl() => root.v1Projection,
@@ -60053,6 +60257,7 @@ enum V1Projection {
     DotShorthandPropertyAccessImpl() =>
       node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
     ConstructorDeclarationImpl() => node._v1ProjectionOrigin,
+    EnumConstantDeclarationImpl() => node._v1ProjectionOrigin,
     FieldDeclarationImpl() => node._v1ProjectionOrigin,
     PrimaryConstructorBodyImpl() => node._v1ProjectionOrigin,
     FunctionDeclarationImpl() => node._v1ProjectionOrigin,

@@ -353,7 +353,7 @@ class MemberDuplicateDefinitionVerifier {
     var elementContext = _getElementContext(firstFragment);
     var staticScope = elementContext.staticScope;
 
-    for (var constant in node.body.constants) {
+    for (var constant in node.body.constants2) {
       var constantFragment = constant.declaredFragment!;
       var constantGetter = constantFragment.element.getter!;
       _checkDuplicateIdentifier(

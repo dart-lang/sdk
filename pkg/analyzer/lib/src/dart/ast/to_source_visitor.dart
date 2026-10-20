@@ -127,7 +127,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
     sink.write(' {');
-    _visitNodeList(node.constants, separator: ', ');
+    _visitNodeList(node.constants2, separator: ', ');
     _visitToken(node.semicolon);
     _visitNodeList(node.members2, prefix: ' ', separator: ' ');
     sink.write('}');
@@ -529,7 +529,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.name);

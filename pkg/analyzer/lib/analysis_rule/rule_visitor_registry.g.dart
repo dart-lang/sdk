@@ -697,7 +697,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addEnumConstantArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addEnumConstantDeclaration(
+  @experimental
+  void addEnumConstantDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

@@ -109,7 +109,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   void visitEmptyEnumBody(EmptyEnumBody node) {}
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     node.metadata.accept2(this);
   }
 

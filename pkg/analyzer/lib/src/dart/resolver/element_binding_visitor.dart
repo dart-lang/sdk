@@ -582,7 +582,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindEnumConstant(
-    EnumConstantDeclarationImpl node,
+    EnumConstantDeclaration2Impl node,
     FieldFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -628,7 +628,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.withClause?.accept2(this);
     node.implementsClause?.accept2(this);
 
-    for (var constant in node.body.constants) {
+    for (var constant in node.body.constants2) {
       _bindEnumConstant(constant, memberFragments.nextField());
     }
 

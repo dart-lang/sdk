@@ -570,7 +570,8 @@ abstract class AstVisitor2<R> {
 
   R? visitEnumConstantArguments(EnumConstantArguments node);
 
-  R? visitEnumConstantDeclaration(EnumConstantDeclaration node);
+  @experimental
+  R? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node);
 
   R? visitEnumDeclaration(EnumDeclaration node);
 

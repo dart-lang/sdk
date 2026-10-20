@@ -912,7 +912,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var constructorElement = node.constructorElement;
     if (constructorElement != null) {
       int offset;
@@ -936,7 +936,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       );
     }
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override

@@ -112,7 +112,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         }
       }
     } else if (fragment is FieldFragment) {
-      if (node is EnumConstantDeclaration) {
+      if (node is EnumConstantDeclaration2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -351,6 +351,9 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is EnumConstantDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
     }
 
     return ElementDeclarationResultImpl(
@@ -519,6 +522,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is EnumConstantDeclaration2Impl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     }

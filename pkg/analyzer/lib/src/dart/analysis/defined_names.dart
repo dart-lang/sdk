@@ -56,7 +56,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
             case PrimaryConstructorDeclarationImpl constructor) {
           appendDeclaringFormalParameterNames(constructor);
         }
-        for (var constant in member.body.constants) {
+        for (var constant in member.body.constants2) {
           appendName(names.classMemberNames, constant.name);
         }
         member.body.members2.forEach(appendClassMemberName);

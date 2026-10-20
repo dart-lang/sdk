@@ -50,7 +50,7 @@ class ConstantEvaluationConfiguration {
   /// A similar issue happens for enum values, which are desugared into
   /// synthetic [ConstructorInvocation], which never had any offsets.
   /// So, we remember that any errors should be reported at the corresponding
-  /// [EnumConstantDeclaration]s.
+  /// [EnumConstantDeclaration2]s.
   void addErrorNode({
     required AstNode? fromElement,
     required AstNode? fromAst,

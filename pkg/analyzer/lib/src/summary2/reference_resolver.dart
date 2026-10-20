@@ -60,7 +60,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
 
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
-    node.constants.accept2(this);
+    node.constants2.accept2(this);
     node.members2.accept2(this);
   }
 
@@ -109,7 +109,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitEmptyFunctionBody(EmptyFunctionBody node) {}
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {}
 
   @override
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {

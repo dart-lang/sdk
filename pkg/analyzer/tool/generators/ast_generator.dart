@@ -1734,6 +1734,7 @@ class _Property {
       _V1ProjectionKind.collectionElement =>
         'V1Projection.toV1CollectionElement',
       _V1ProjectionKind.combinatorName => 'V1Projection.toV1CombinatorName',
+      _V1ProjectionKind.enumConstant => 'V1Projection.toV1EnumConstant',
       _V1ProjectionKind.expression => 'V1Projection.toV1Expression',
       _V1ProjectionKind.localVariables => 'V1Projection.toV1LocalVariables',
       _V1ProjectionKind.recordLiteralField =>
@@ -1766,6 +1767,7 @@ class _Property {
       _V1ProjectionKind.classMember ||
       _V1ProjectionKind.collectionElement ||
       _V1ProjectionKind.combinatorName ||
+      _V1ProjectionKind.enumConstant ||
       _V1ProjectionKind.expression ||
       _V1ProjectionKind.localVariables ||
       _V1ProjectionKind.recordLiteralField ||
@@ -1869,6 +1871,7 @@ enum _V1ProjectionKind {
   classMember,
   collectionElement,
   combinatorName,
+  enumConstant,
   expression,
   localVariables,
   recordLiteralField,

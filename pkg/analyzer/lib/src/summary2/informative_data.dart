@@ -707,7 +707,7 @@ class _InfoBuilder {
     FormalParameterList? formalParameters,
     Expression? constantInitializer,
     NodeList<ConstructorInitializer>? constructorInitializers,
-    NodeList<EnumConstantDeclaration>? enumConstants,
+    NodeList<EnumConstantDeclaration2>? enumConstants,
     TypeAnnotation? aliasedType,
     EnumConstantArguments? enumConstantArguments,
   }) {
@@ -797,7 +797,7 @@ class _InfoBuilder {
         primaryConstructor: node.namePart.tryCast(),
         members: node.body.members2,
         fields: [
-          ...node.body.constants.map(_buildEnumConstant),
+          ...node.body.constants2.map(_buildEnumConstant),
           for (var declaration
               in node.body.members2.whereType<FieldsDeclaration>())
             for (var field in declaration.fields)
@@ -807,7 +807,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration node) {
+  _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration2 node) {
     var codeOffset = node.offset;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,

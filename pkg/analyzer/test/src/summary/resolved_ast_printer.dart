@@ -840,13 +840,20 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _checkChildrenEntitiesLinking(node);
-    // TODO(scheglov): Remove when enum constants are parsed as
-    // EnumConstantDeclaration2.
-    _sink.writeln(
-      _view == _AstView.v2
-          ? 'EnumConstantDeclaration2'
-          : 'EnumConstantDeclaration',
-    );
+    _sink.writeln('EnumConstantDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('constructorElement', node.constructorElement);
+        _writeDeclaredFragment(node.declaredFragment);
+      }
+    });
+  }
+
+  @override
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
+    _checkChildrenEntitiesLinking(node);
+    _sink.writeln('EnumConstantDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
@@ -2715,21 +2722,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     } else if (node case MemberDeclarationImpl declaration) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1ClassMember(declaration);
+    } else if (node case EnumConstantDeclaration2Impl declaration) {
+      // ignore: analyzer_v1_ast_use
+      v1 = declaration.v1Projection;
     } else if (node case ExpressionImpl expression) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Expression(expression);
     } else if (node case StatementImpl statement) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Statement(statement);
-    }
-
-    // TODO(scheglov): Remove when enum constants are parsed as
-    // EnumConstantDeclaration2, which has a distinct V1 projection.
-    if (node is EnumConstantDeclaration) {
-      _withInlineV1ChildEntities(false, () => writeNode(node));
-      _sink.writeWithIndent('V1: ');
-      _withView(_AstView.v1, () => _acceptInView(node));
-      return;
     }
 
     if (v1 == null || identical(v1, node)) {
@@ -3229,15 +3230,6 @@ Expected parent: (${parent.runtimeType}) $parent
     }
 
     var entities2 = node.namedChildEntities2.toList();
-    // TODO(scheglov): Remove when enum bodies have constants2.
-    if (node is EnumBody) {
-      entities2 = [
-        for (var entity in entities2)
-          entity.name == 'constants'
-              ? ChildEntity('constants2', entity.value)
-              : entity,
-      ];
-    }
     var entities =
         !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
         ? <ChildEntity>[]
@@ -3268,8 +3260,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasEnumConstants(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3640,16 +3631,6 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a non-empty list of [EnumConstantDeclaration]s,
-  /// which will differ from its V1 projection once enum constants are parsed
-  /// as `EnumConstantDeclaration2`.
-  // TODO(scheglov): Remove when enum constants are parsed as
-  // EnumConstantDeclaration2.
-  static bool _hasEnumConstants(Object value) {
-    return value is List<AstNode> &&
-        value.any((node) => node is EnumConstantDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

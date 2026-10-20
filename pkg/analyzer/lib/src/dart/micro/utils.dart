@@ -502,7 +502,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var constructorElement = node.constructorElement;
     if (constructorElement != null && constructorElement == element) {
       int offset;

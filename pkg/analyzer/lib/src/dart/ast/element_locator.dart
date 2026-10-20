@@ -379,7 +379,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       return parent.element;
     } else if (parent is EnumConstantArguments) {
       var parent2 = parent.parent2;
-      if (parent2 is EnumConstantDeclaration) {
+      if (parent2 is EnumConstantDeclaration2) {
         return parent2.constructorElement;
       }
     } else if (parent is RedirectingConstructorInvocation) {

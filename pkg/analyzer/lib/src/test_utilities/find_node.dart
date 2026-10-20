@@ -28,6 +28,8 @@ class FindNode extends _FindNodeBase {
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
 
+  EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
+
   FieldDeclaration get singleFieldDeclaration => _single();
 
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
@@ -99,6 +101,10 @@ class FindNode extends _FindNodeBase {
 
   DotShorthandPropertyAccess dotShorthandPropertyAccess(String search) {
     return _node(search, (n) => n is DotShorthandPropertyAccess);
+  }
+
+  EnumConstantDeclaration enumConstantDeclaration(String search) {
+    return _node(search, (n) => n is EnumConstantDeclaration);
   }
 
   ExtensionOverride extensionOverride(String search) {
@@ -259,6 +265,8 @@ class FindNode2 extends _FindNodeBase {
 
   DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
 
+  EnumConstantDeclaration2 get singleEnumConstantDeclaration => _single();
+
   Field2 get singleField => _single();
 
   FieldsDeclaration get singleFieldsDeclaration => _single();
@@ -370,6 +378,10 @@ class FindNode2 extends _FindNodeBase {
 
   DotShorthandNameExpression dotShorthandNameExpression(String search) {
     return _node(search, (node) => node is DotShorthandNameExpression);
+  }
+
+  EnumConstantDeclaration2 enumConstantDeclaration(String search) {
+    return _node(search, (n) => n is EnumConstantDeclaration2);
   }
 
   ExtensionOverride2 extensionOverride2(String search) {
@@ -655,8 +667,6 @@ abstract class _FindNodeBase {
   EmptyFunctionBody get singleEmptyFunctionBody => _single();
 
   EmptyStatement get singleEmptyStatement => _single();
-
-  EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
 
   EnumDeclaration get singleEnumDeclaration => _single();
 
@@ -1035,10 +1045,6 @@ abstract class _FindNodeBase {
 
   EmptyStatement emptyStatement(String search) {
     return _node(search, (n) => n is EmptyStatement);
-  }
-
-  EnumConstantDeclaration enumConstantDeclaration(String search) {
-    return _node(search, (n) => n is EnumConstantDeclaration);
   }
 
   EnumDeclaration enumDeclaration(String search) {

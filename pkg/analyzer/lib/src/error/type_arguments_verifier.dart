@@ -135,7 +135,7 @@ class TypeArgumentsVerifier {
     );
   }
 
-  void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
+  void checkEnumConstantDeclaration(EnumConstantDeclaration2Impl node) {
     var constructorElement = node.constructorElement;
     if (constructorElement == null) {
       return;

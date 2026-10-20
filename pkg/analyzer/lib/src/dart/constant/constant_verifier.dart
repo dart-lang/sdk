@@ -259,8 +259,8 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  visitEnumConstantDeclaration(covariant EnumConstantDeclarationImpl node) {
-    super.visitEnumConstantDeclaration(node);
+  visitEnumConstantDeclaration2(covariant EnumConstantDeclaration2Impl node) {
+    super.visitEnumConstantDeclaration2(node);
 
     var argumentList = node.arguments?.argumentList;
     if (argumentList != null) {

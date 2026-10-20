@@ -80,7 +80,7 @@ const isEmptyFunctionBody = TypeMatcher<EmptyFunctionBody>();
 
 const isEmptyStatement = TypeMatcher<EmptyStatement>();
 
-const isEnumConstantDeclaration = TypeMatcher<EnumConstantDeclaration>();
+const isEnumConstantDeclaration2 = TypeMatcher<EnumConstantDeclaration2>();
 
 const isEnumDeclaration = TypeMatcher<EnumDeclaration>();
 

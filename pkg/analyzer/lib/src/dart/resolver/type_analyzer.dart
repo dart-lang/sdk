@@ -2917,8 +2917,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
+  void visitEnumConstantDeclaration2(
+    covariant EnumConstantDeclaration2Impl node,
   ) {
     node.documentationComment?.accept2(this);
     node.metadata.accept2(this);
@@ -3014,7 +3014,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       );
     }
 
-    elementResolver.visitEnumConstantDeclaration(node);
+    elementResolver.visitEnumConstantDeclaration2(node);
   }
 
   @override
@@ -6065,11 +6065,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       }
     } else if (nameNode is EnumConstantArguments) {
       var parent = nameNode.parent2;
-      if (parent is EnumConstantDeclaration) {
+      if (parent is EnumConstantDeclaration2) {
         var declaredElement = parent.declaredFragment!.element;
         name = declaredElement.type.getDisplayString();
       }
-    } else if (nameNode is EnumConstantDeclaration) {
+    } else if (nameNode is EnumConstantDeclaration2) {
       var declaredElement = nameNode.declaredFragment!.element;
       name = declaredElement.type.getDisplayString();
     } else if (nameNode is DotShorthandConstructorInvocation2) {

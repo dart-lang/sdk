@@ -227,7 +227,7 @@ enum E {
   one
 }
 ''');
-    var node = result.findNode.enumConstantDeclaration('one');
+    var node = result.findNodeV1.enumConstantDeclaration('one');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@enum::E::@field::one

@@ -1467,7 +1467,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       // Build fields for all enum constants.
       var valuesElements = <UnqualifiedNameExpressionImpl>[];
       var valuesNames = <String>{};
-      for (var constant in node.body.constants) {
+      for (var constant in node.body.constants2) {
         var nameToken = constant.name;
         var name = nameToken.lexeme;
         var field = FieldFragmentImpl(name: _getFragmentName(nameToken))

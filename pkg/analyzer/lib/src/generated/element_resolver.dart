@@ -183,7 +183,7 @@ class ElementResolver {
     }
   }
 
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {}
 
   void visitEnumDeclaration(EnumDeclaration node) {}
 

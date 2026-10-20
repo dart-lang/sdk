@@ -196,7 +196,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     usedElements.addElement(node.constructorElement?.baseElement);
 
     var argumentList = node.arguments?.argumentList;
@@ -204,7 +204,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       _addParametersForArguments(argumentList);
     }
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override
@@ -775,11 +775,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitFieldElement(declaredElement);
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override

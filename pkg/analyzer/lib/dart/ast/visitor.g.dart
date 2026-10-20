@@ -2334,8 +2334,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  R? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4216,8 +4217,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitEnumConstantArguments(EnumConstantArguments node) => null;
 
+  @experimental
   @override
-  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) => null;
+  R? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) => null;
 
   @override
   R? visitEnumDeclaration(EnumDeclaration node) => null;
@@ -5647,8 +5649,10 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitEnumConstantArguments(EnumConstantArguments node) => _throw(node);
 
+  @experimental
   @override
-  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) => _throw(node);
+  R? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) =>
+      _throw(node);
 
   @override
   R? visitEnumDeclaration(EnumDeclaration node) => _throw(node);
@@ -8306,10 +8310,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  T? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitEnumConstantDeclaration(node);
+    T? result = _baseVisitor.visitEnumConstantDeclaration2(node);
     stopwatch.stop();
     return result;
   }
@@ -10575,8 +10580,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitEnumConstantArguments(EnumConstantArguments node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitEnumConstantDeclaration(EnumConstantDeclaration node) =>
+  R? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) =>
       visitNode(node);
 
   @override
