@@ -2358,7 +2358,7 @@ EnumDeclaration
         declaredFragment: <testLibraryFragment> v@27
     semicolon: ;
     members2
-      PrimaryConstructorBody
+      PrimaryConstructorBody2
         thisKeyword: this
         colon: :
         initializers
@@ -2393,7 +2393,7 @@ EnumDeclaration
                   staticType: bool
                 semicolon: ;
             rightBracket: }
-      PrimaryConstructorBody
+      PrimaryConstructorBody2
         thisKeyword: this
         colon: :
         initializers
@@ -2442,6 +2442,61 @@ EnumDeclaration
                   staticType: bool
                 semicolon: ;
             rightBracket: }
+    members(v1)
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: SimpleIdentifier
+              token: x
+              element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: y
+                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
+                token: x
+                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              element: <null>
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: PrefixExpression
+                  operator: !
+                  operand: SimpleIdentifier
+                    token: y
+                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                    staticType: bool
+                  element: <null>
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@5
 ''');
@@ -2458,7 +2513,7 @@ enum E(int a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
@@ -2469,6 +2524,14 @@ PrimaryConstructorBody
           invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -2493,7 +2556,7 @@ enum E {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
@@ -2504,6 +2567,14 @@ PrimaryConstructorBody
           invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -2533,7 +2604,7 @@ enum A/*(bool x, int y)*/ {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -2544,10 +2615,6 @@ PrimaryConstructorBody
         name: x
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
-        staticType: InvalidType
-      condition(v1): SimpleIdentifier
-        token: x
-        element: <null>
         staticType: InvalidType
       rightParenthesis: )
   body: BlockFunctionBody
@@ -2560,7 +2627,26 @@ PrimaryConstructorBody
             resolution: InvalidNamedReadResolution
               recoveryElement: <null>
             staticType: InvalidType
-          expression(v1): SimpleIdentifier
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
+        token: x
+        element: <null>
+        staticType: InvalidType
+      rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
             token: y
             element: <null>
             staticType: InvalidType
@@ -2579,7 +2665,7 @@ enum A({final x = false}) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -2592,7 +2678,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool
@@ -2612,7 +2708,7 @@ enum A(final bool a) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -2625,7 +2721,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: a
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
         staticType: bool
@@ -2646,7 +2752,7 @@ enum A(this.x) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -2659,7 +2765,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: x
         element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
         staticType: bool

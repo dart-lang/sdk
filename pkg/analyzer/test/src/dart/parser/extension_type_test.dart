@@ -4277,6 +4277,11 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
+      PrimaryConstructorBody2
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    members(v1)
       PrimaryConstructorBody
         thisKeyword: this
         body: EmptyFunctionBody

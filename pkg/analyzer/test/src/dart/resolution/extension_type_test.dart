@@ -4715,7 +4715,7 @@ ExtensionTypeDeclaration
   body: BlockClassBody
     leftBracket: {
     members2
-      PrimaryConstructorBody
+      PrimaryConstructorBody2
         thisKeyword: this
         colon: :
         initializers
@@ -4751,7 +4751,7 @@ ExtensionTypeDeclaration
                   staticType: bool
                 semicolon: ;
             rightBracket: }
-      PrimaryConstructorBody
+      PrimaryConstructorBody2
         thisKeyword: this
         colon: :
         initializers
@@ -4794,6 +4794,57 @@ ExtensionTypeDeclaration
                   staticType: bool
                 semicolon: ;
             rightBracket: }
+    members(v1)
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: SimpleIdentifier
+              token: it
+              element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: it
+                  element: <testLibrary>::@extensionType::A::@getter::it
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition: PrefixExpression
+              operator: !
+              operand: SimpleIdentifier
+                token: it
+                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                staticType: bool
+              element: <null>
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ExpressionStatement
+                expression: SimpleIdentifier
+                  token: it
+                  element: <testLibrary>::@extensionType::A::@getter::it
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
 ''');
@@ -4809,7 +4860,7 @@ extension type A(int it) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
@@ -4820,6 +4871,14 @@ PrimaryConstructorBody
           invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -4840,7 +4899,7 @@ extension type A({bool it = false}) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -4853,7 +4912,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4872,7 +4941,7 @@ extension type A(bool it) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -4885,7 +4954,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4908,7 +4987,7 @@ extension type A(int it) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
@@ -4922,10 +5001,6 @@ PrimaryConstructorBody
               invokeType: int Function()
               type: int
             staticType: int
-          expression(v1): SimpleIdentifier
-            token: it
-            element: <testLibrary>::@extensionType::A::@getter::it
-            staticType: int
           semicolon: ;
         ExpressionStatement
           expression2: UnqualifiedNameExpression
@@ -4934,7 +5009,22 @@ PrimaryConstructorBody
               element: <testLibrary>::@extensionType::A::@method::foo
               type: void Function()
             staticType: void Function()
-          expression(v1): SimpleIdentifier
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: it
+            element: <testLibrary>::@extensionType::A::@getter::it
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
             token: foo
             element: <testLibrary>::@extensionType::A::@method::foo
             staticType: void Function()

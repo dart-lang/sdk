@@ -4681,7 +4681,7 @@ class A(final int x) {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -4695,7 +4695,17 @@ PrimaryConstructorBody
         rightOperand: IntegerLiteral
           literal: 0
         binaryOperator: greaterThan
-      condition(v1): BinaryExpression
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: BinaryExpression
         leftOperand: SimpleIdentifier
           token: x
         operator: >
@@ -4718,7 +4728,7 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
@@ -4726,6 +4736,17 @@ PrimaryConstructorBody
       statements2
         ExpressionStatement
           expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
       rightBracket: }
@@ -4743,7 +4764,15 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
+  documentationComment: Comment
+    tokens
+      /// foo
+      /// bar
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
   documentationComment: Comment
     tokens
       /// foo
@@ -4764,16 +4793,26 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
     ConstructorFieldInitializer
       fieldName2: x
-      fieldName(v1): SimpleIdentifier
-        token: x
       equals: =
       expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: x
+      equals: =
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -4790,12 +4829,19 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
       expression: ParsedUnqualifiedName
         name: deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
   thisKeyword: this
@@ -4813,7 +4859,12 @@ augment class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
+  augmentKeyword: augment
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
   augmentKeyword: augment
   thisKeyword: this
   body: EmptyFunctionBody
@@ -4832,7 +4883,11 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
   thisKeyword: this
   body: EmptyFunctionBody
     semicolon: ;

@@ -2014,6 +2014,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    // TODO(scheglov): Remove when primary constructor bodies are parsed as
+    // PrimaryConstructorBody2.
+    if (_view == _AstView.v2) {
+      _sink.writeln('PrimaryConstructorBody2');
+      _sink.withIndent(() {
+        for (var entity in (node as AstNodeImpl).namedChildEntities2) {
+          _writeNamedChildEntity(node, entity);
+        }
+      });
+      return;
+    }
+
     _sink.writeln('PrimaryConstructorBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2709,6 +2721,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Statement(statement);
     }
 
+    // TODO(scheglov): Remove when primary constructor bodies are parsed as
+    // PrimaryConstructorBody2, which has a distinct V1 projection.
+    if (node is PrimaryConstructorBody) {
+      _withInlineV1ChildEntities(false, () => writeNode(node));
+      _sink.writeWithIndent('V1: ');
+      _withView(_AstView.v1, () => _acceptInView(node));
+      return;
+    }
+
     if (v1 == null || identical(v1, node)) {
       writeNode(node);
       return;
@@ -3236,7 +3257,8 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          !_sameChildEntityValue(entity2.value, entity.value)) {
+          (!_sameChildEntityValue(entity2.value, entity.value) ||
+              _hasPrimaryConstructorBodies(entity2.value))) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3607,6 +3629,16 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
+  }
+
+  /// Whether [value] is a member list with a [PrimaryConstructorBody], which
+  /// will differ from its V1 projection once primary constructor bodies are
+  /// parsed as `PrimaryConstructorBody2`.
+  // TODO(scheglov): Remove when primary constructor bodies are parsed as
+  // PrimaryConstructorBody2.
+  static bool _hasPrimaryConstructorBodies(Object value) {
+    return value is List<AstNode> &&
+        value.any((node) => node is PrimaryConstructorBody);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

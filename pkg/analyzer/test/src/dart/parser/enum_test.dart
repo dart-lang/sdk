@@ -2295,7 +2295,11 @@ enum E() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
   thisKeyword: this
   body: EmptyFunctionBody
     semicolon: ;
