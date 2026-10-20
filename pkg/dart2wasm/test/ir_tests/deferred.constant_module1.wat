@@ -63,12 +63,12 @@
     block $label0 (result (ref $#Closure-0-1))
       global.get $"InstantiationConstant(globalH1Foo<int>)"
       br_on_non_null $label0
-      i32.const 51
+      i32.const 50
       i32.const 0
       block $label1 (result (ref $#Closure-1-1))
         global.get $"globalH1Foo tear-off"
         br_on_non_null $label1
-        i32.const 51
+        i32.const 50
         i32.const 0
         global.get $global0
         global.get $global2

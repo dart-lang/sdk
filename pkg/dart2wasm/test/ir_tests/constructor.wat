@@ -181,7 +181,7 @@
     global.get $"\", \""
     local.get $onlyUsedInSubBody
     local.set $var4
-    i32.const 59
+    i32.const 95
     local.get $var4
     struct.new $BoxedInt
     array.new_fixed $Array<Object?> 6
@@ -245,7 +245,7 @@
     global.get $"\", \""
     local.get $onlyUsedInSubBody
     local.set $var4
-    i32.const 59
+    i32.const 95
     local.get $var4
     struct.new $BoxedInt
     array.new_fixed $Array<Object?> 6
@@ -343,7 +343,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 180
+    i32.const 171
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType
@@ -407,7 +407,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 177
+    i32.const 191
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType
@@ -436,7 +436,7 @@
     i32.const 9
     i32.const 0
     i32.const 0
-    i32.const 190
+    i32.const 185
     local.get $var0
     array.new_fixed $Array<_Type> 1
     struct.new $_InterfaceType

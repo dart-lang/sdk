@@ -25,7 +25,7 @@
   )
   (@binaryen.inline 0)
   (func $sinkInt (param $var0 i64)
-    i32.const 60
+    i32.const 93
     local.get $var0
     struct.new $BoxedInt
     call $print
@@ -44,7 +44,7 @@
   )
   (@binaryen.inline 0)
   (func $testMaxIntDouble
-    i32.const 60
+    i32.const 93
     call $"intA implicit getter"
     struct.new $BoxedInt
     i32.const 100
@@ -77,17 +77,17 @@
       call $"numIntA implicit getter"
       local.tee $var0
       struct.get $#Top $#classId
-      i32.const 60
+      i32.const 93
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
       struct.get $#Top $#classId
-      i32.const 60
+      i32.const 93
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 60
+        i32.const 93
         local.get $var0
         ref.cast $BoxedInt
         struct.get $BoxedInt $value
@@ -140,7 +140,7 @@
   )
   (@binaryen.inline 0)
   (func $testMinIntDouble
-    i32.const 60
+    i32.const 93
     call $"intA implicit getter"
     struct.new $BoxedInt
     i32.const 100
@@ -173,17 +173,17 @@
       call $"numIntA implicit getter"
       local.tee $var0
       struct.get $#Top $#classId
-      i32.const 60
+      i32.const 93
       i32.ne
       call $"numIntB implicit getter"
       local.tee $var1
       struct.get $#Top $#classId
-      i32.const 60
+      i32.const 93
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 60
+        i32.const 93
         local.get $var0
         ref.cast $BoxedInt
         struct.get $BoxedInt $value

@@ -6,9 +6,9 @@
   (type $JavaScriptStack <...>)
   (tag $WebAssembly.JSTag (import "WebAssembly" "JSTag") (param externref))
   (tag $tag0 (param (ref $#Top) (ref $#Top)))
-  (global $"WasmArray<WasmI16>[742]" (ref $Array<WasmI16>) <...>)
+  (global $"WasmArray<WasmI16>[875]" (ref $Array<WasmI16>) <...>)
   (global $"WasmArray<WasmI32>[250]" (ref $Array<WasmI32>) <...>)
-  (global $"WasmArray<WasmI32>[742]" (ref $Array<WasmI32>) <...>)
+  (global $"WasmArray<WasmI32>[875]" (ref $Array<WasmI32>) <...>)
   (global $"\"Caught Error\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught JSAny\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught Object\"" (ref $JSExternWrapper) <...>)
@@ -52,17 +52,17 @@
               local.get $var0
               i32.add
               local.tee $var0
-              i32.const 742
+              i32.const 875
               i32.ge_u
               br_if $label5
               drop
-              global.get $"WasmArray<WasmI32>[742]"
+              global.get $"WasmArray<WasmI32>[875]"
               local.get $var0
               array.get $Array<WasmI32>
               i32.const 68
               i32.eq
               if
-                global.get $"WasmArray<WasmI16>[742]"
+                global.get $"WasmArray<WasmI16>[875]"
                 local.get $var0
                 array.get_u $Array<WasmI16>
                 br $label5

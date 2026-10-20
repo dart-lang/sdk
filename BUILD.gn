@@ -179,6 +179,7 @@ group("dart2wasm") {
 
 group("dart2wasm_dev") {
   deps = [
+    "utils/dart2wasm:dart2wasm_dev_platform",
     "utils/dart2wasm:dart2wasm_dev_snapshot",
     "utils/dart2wasm:wasm_dev_rt",
   ]
