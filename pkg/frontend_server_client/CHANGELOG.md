@@ -1,4 +1,5 @@
-## 4.2.0-wip
+## 4.2.0
+
 - Support the DDC library bundle format and allow Frontend Server-driven hot
   reload, hot restart, and expression compilation.
 - Add helpers for app bootstrapping.
