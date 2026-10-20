@@ -769,6 +769,43 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     nullSafetyDeadCodeVerifier.visitNode(node);
   }
 
+  /// Reports a write to [target] if it is a final local variable that might
+  /// already be assigned.
+  ///
+  /// Must be invoked at the point of the store, after the assigned value is
+  /// analyzed, because the value itself can assign the variable, as in
+  /// `x = (x = 1)`.
+  void checkWriteOfAssignedFinalLocalVariable(
+    AssignmentTargetImpl target, {
+    bool isWrittenRepeatedly = false,
+  }) {
+    if (target is! UnqualifiedNameAssignmentTargetImpl) return;
+    if (flowAnalysis.flow == null) return;
+    var element = target.scopeLookupResult?.getter;
+    if (element is! PromotableElementImpl) return;
+
+    // Queried for every variable, not only final ones, so that the flow
+    // analysis testing data has the state of every written variable.
+    var assigned = flowAnalysis.isDefinitelyAssigned(target, element);
+    var unassigned = flowAnalysis.isDefinitelyUnassigned(target, element);
+
+    if (element.isFinal) {
+      if (element.isLate) {
+        if (isWrittenRepeatedly || assigned) {
+          diagnosticReporter.report(
+            diag.lateFinalLocalAlreadyAssigned.at(target),
+          );
+        }
+      } else if (isWrittenRepeatedly || !unassigned) {
+        diagnosticReporter.report(
+          diag.assignmentToFinalLocal
+              .withArguments(variableName: element.name!)
+              .at(target),
+        );
+      }
+    }
+  }
+
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
     SyntacticEntity errorEntity,

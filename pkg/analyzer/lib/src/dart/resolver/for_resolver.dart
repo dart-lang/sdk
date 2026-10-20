@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -173,9 +172,10 @@ class ForResolver {
       target = forEachParts.target;
       var write = _typeAnalyzer.resolveUnqualifiedNameAssignmentTarget(target);
       target.write = write;
-      AssignmentExpressionShared(
-        typeAnalyzer: _typeAnalyzer,
-      ).checkFinalTargetAlreadyAssigned(target, isWrittenRepeatedly: true);
+      _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(
+        target,
+        isWrittenRepeatedly: true,
+      );
 
       valueType = switch (write) {
         VariableWriteResolutionImpl(:var element) =>

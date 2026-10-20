@@ -24,14 +24,10 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 class AssignmentExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
-  final AssignmentExpressionShared _assignmentShared;
 
   new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
-      _typePropertyResolver = typeAnalyzer.typePropertyResolver,
-      _assignmentShared = AssignmentExpressionShared(
-        typeAnalyzer: typeAnalyzer,
-      );
+      _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 
   DiagnosticReporter get _diagnosticReporter =>
       _typeAnalyzer.diagnosticReporter;
@@ -174,7 +170,7 @@ class AssignmentExpressionResolver {
       node.value,
       whyNotPromoted: whyNotPromoted,
     );
-    _assignmentShared.checkFinalTargetAlreadyAssigned(node.target);
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(node.target);
 
     var flow = _typeAnalyzer.flowAnalysis.flow;
     if (flow == null) return;
@@ -385,7 +381,7 @@ class AssignmentExpressionResolver {
       valueType,
       whyNotPromoted: whyNotPromoted,
     );
-    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(target);
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
@@ -478,7 +474,7 @@ class AssignmentExpressionResolver {
       valueType,
       whyNotPromoted: whyNotPromoted,
     );
-    _assignmentShared.checkFinalTargetAlreadyAssigned(node.target);
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(node.target);
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
@@ -1004,60 +1000,6 @@ class AssignmentExpressionResolver {
       return InvalidTypeImpl.instance;
     }
     return read.type;
-  }
-}
-
-class AssignmentExpressionShared {
-  final TypeAnalyzer _typeAnalyzer;
-
-  new({required this._typeAnalyzer});
-
-  DiagnosticReporter get _errorReporter => _typeAnalyzer.diagnosticReporter;
-
-  /// Reports a write to [target] if it is a final local variable that might
-  /// already be assigned.
-  ///
-  /// Must be invoked at the point of the store, after the assigned value is
-  /// analyzed, because the value itself can assign the variable, as in
-  /// `x = (x = 1)`.
-  void checkFinalTargetAlreadyAssigned(
-    AssignmentTargetImpl target, {
-    bool isWrittenRepeatedly = false,
-  }) {
-    if (target is! UnqualifiedNameAssignmentTargetImpl) return;
-    if (_typeAnalyzer.flowAnalysis.flow == null) return;
-    var element = target.scopeLookupResult?.getter;
-    if (element is PromotableElementImpl) {
-      _checkFinalAlreadyAssigned(
-        target,
-        element,
-        isWrittenRepeatedly: isWrittenRepeatedly,
-      );
-    }
-  }
-
-  void _checkFinalAlreadyAssigned(
-    AstNode node,
-    PromotableElementImpl element, {
-    required bool isWrittenRepeatedly,
-  }) {
-    var flowAnalysis = _typeAnalyzer.flowAnalysis;
-    var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
-    var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
-
-    if (element.isFinal) {
-      if (element.isLate) {
-        if (isWrittenRepeatedly || assigned) {
-          _errorReporter.report(diag.lateFinalLocalAlreadyAssigned.at(node));
-        }
-      } else if (isWrittenRepeatedly || !unassigned) {
-        _errorReporter.report(
-          diag.assignmentToFinalLocal
-              .withArguments(variableName: element.name!)
-              .at(node),
-        );
-      }
-    }
   }
 }
 

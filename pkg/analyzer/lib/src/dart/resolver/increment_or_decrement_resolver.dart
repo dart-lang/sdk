@@ -24,15 +24,11 @@ class IncrementOrDecrementResolver {
   final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionResolver _assignmentResolver;
-  final AssignmentExpressionShared _assignmentShared;
 
   new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver,
       _assignmentResolver = AssignmentExpressionResolver(
-        typeAnalyzer: typeAnalyzer,
-      ),
-      _assignmentShared = AssignmentExpressionShared(
         typeAnalyzer: typeAnalyzer,
       );
 
@@ -233,7 +229,7 @@ class IncrementOrDecrementResolver {
     required TypeImpl writeAcceptedType,
     required InternalVariableElement? variableElement,
   }) {
-    _assignmentShared.checkFinalTargetAlreadyAssigned(node.target);
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(node.target);
 
     if (identical(readType, NeverTypeImpl.instance)) {
       node.operatorResultType = NeverTypeImpl.instance;
