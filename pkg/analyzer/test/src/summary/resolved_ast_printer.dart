@@ -42,6 +42,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   final Map<Token, String> _tokenIdMap = Map.identity();
 
+  /// The V1 parents of shared nodes, requested bottom-up before any V1 child
+  /// entities are read.
+  ///
+  /// Reading V1 child entities can establish V1 parent links, so checking
+  /// parents top-down cannot detect a link that is established only by a V1
+  /// getter. Clients that reach a shared node through V2 and then ask for its
+  /// V1 parent depend on the link existing without that getter.
+  final Map<AstNode, AstNode?> _bottomUpV1Parents = Map.identity();
+
   new({
     required this._sink,
     required this._elementPrinter,
@@ -2658,6 +2667,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   void writeNode(AstNode node) {
+    _recordBottomUpV1Parents(node);
     var view = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
         ? _AstView.v1
         : _AstView.v2;
@@ -2679,6 +2689,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   /// Writes [node] and its V1 compatibility view when the V2 root has a
   /// distinct projection.
   void writeNodeWithV1Projection(AstNode node) {
+    _recordBottomUpV1Parents(node);
     AstNode? v1;
     if (node case TopLevelDeclarationImpl declaration) {
       // ignore: analyzer_v1_ast_use
@@ -2749,6 +2760,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   /// Check that the actual parent of [child] is [parent].
   void _checkParentOfChild(AstNode parent, AstNode child) {
+    if (_view == _AstView.v1 && _bottomUpV1Parents.containsKey(child)) {
+      var bottomUpParent = _bottomUpV1Parents[child];
+      if (!identical(bottomUpParent, parent)) {
+        fail('''
+Wrong bottom-up V1 parent.
+Child: (${child.runtimeType}) $child
+Bottom-up parent: (${bottomUpParent.runtimeType}) $bottomUpParent
+Expected parent: (${parent.runtimeType}) $parent
+''');
+      }
+    }
+
     var actualParent = _viewParent(child);
     if (actualParent == null) {
       fail('''
@@ -2804,6 +2827,29 @@ Expected parent: (${parent.runtimeType}) $parent
       }, node),
       _ => false,
     };
+  }
+
+  /// Requests the V1 parents of the shared nodes under [root], reaching them
+  /// only through V2, so that [_checkParentOfChild] can compare them with the
+  /// parents seen top-down.
+  void _recordBottomUpV1Parents(AstNode root) {
+    if (root is! AstNodeImpl || root.astNodeApi == AstNodeApi.v1) {
+      return;
+    }
+
+    void recordChildren(AstNode node) {
+      for (var entity in node.childEntities2) {
+        if (entity is AstNodeImpl) {
+          if (entity.astNodeApi == AstNodeApi.shared) {
+            // ignore: analyzer_v1_ast_use
+            _bottomUpV1Parents.putIfAbsent(entity, () => entity.parent);
+          }
+          recordChildren(entity);
+        }
+      }
+    }
+
+    recordChildren(root);
   }
 
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {

@@ -19267,7 +19267,11 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
   final ExtensionOverride2Impl _origin;
 
-  new v1Projection(this._origin);
+  new v1Projection(this._origin) {
+    _becomeParentOf1(_origin.importPrefix);
+    _becomeParentOf1(_origin.typeArguments);
+    _becomeParentOf1(_origin.argumentList);
+  }
 
   @DoNotGenerate(reason: 'Preserves V1 parent links')
   @override
