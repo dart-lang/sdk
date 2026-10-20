@@ -75,7 +75,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
     required DocImportScope? docImportScope,
-    required bool strictInference,
     required bool strictCasts,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
@@ -100,7 +99,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       libraryFragment,
       scopeContext,
       diagnosticReporter,
-      strictInference: strictInference,
       strictCasts: strictCasts,
       typeSystemOperations: typeSystemOperations,
     );

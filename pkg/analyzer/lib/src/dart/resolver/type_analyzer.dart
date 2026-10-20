@@ -1353,7 +1353,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       context,
       staticType,
       diagnosticReporter: diagnosticReporter,
-      errorNode: expression,
+      expression: expression,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: analysisOptions.strictInference,
@@ -5145,7 +5145,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       errorEntity: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-      strictInference: analysisOptions.strictInference,
       typeSystemOperations: flowAnalysis.typeOperations,
       dataForTesting: inferenceHelper.dataForTesting,
     );
@@ -5197,7 +5196,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         context,
         callMethodType,
         diagnosticReporter: diagnosticReporter,
-        errorNode: expression,
+        expression: expression,
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,

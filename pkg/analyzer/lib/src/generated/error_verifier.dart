@@ -5012,7 +5012,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             variableType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: diagnosticReporter,
-            errorNode: node.iterable2,
+            expression: node.iterable2,
             genericMetadataIsEnabled: true,
             inferenceUsingBoundsIsEnabled: _featureSet.isEnabled(
               Feature.inference_using_bounds,

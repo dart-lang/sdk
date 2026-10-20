@@ -123,7 +123,6 @@ class AstResolver {
       nameScope: nameScope,
       docImportScope: docImportScope,
       diagnosticListener: diagnosticListener,
-      strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
       dataForTesting: testingData != null
           ? TypeConstraintGenerationDataForTesting()

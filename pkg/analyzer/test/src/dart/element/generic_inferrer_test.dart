@@ -367,7 +367,6 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       errorEntity: NullLiteralImpl(literal: KeywordToken(Keyword.NULL, 0)),
       genericMetadataIsEnabled: true,
       inferenceUsingBoundsIsEnabled: true,
-      strictInference: false,
       strictCasts: false,
       typeSystemOperations: typeSystemOperations,
       dataForTesting: null,

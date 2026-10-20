@@ -661,7 +661,6 @@ class _MixinInference {
       inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
         Feature.inference_using_bounds,
       ),
-      strictInference: false,
       strictCasts: false,
       typeSystemOperations: typeSystemOperations,
     );

@@ -128,7 +128,7 @@ class InvocationInferenceHelper {
         contextType,
         tearOffType,
         diagnosticReporter: _diagnosticReporter,
-        errorNode: expression,
+        expression: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled:
             _typeAnalyzer.inferenceUsingBoundsIsEnabled,

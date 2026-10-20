@@ -34,7 +34,6 @@ class NamedTypeResolver with ScopeHelpers {
   final TypeSystemImpl typeSystem;
   final TypeSystemOperations typeSystemOperations;
   final bool strictCasts;
-  final bool strictInference;
 
   @override
   final DiagnosticReporter diagnosticReporter;
@@ -58,7 +57,6 @@ class NamedTypeResolver with ScopeHelpers {
     this._libraryFragment,
     this._scopeContext,
     this.diagnosticReporter, {
-    required this.strictInference,
     required this.strictCasts,
     required this.typeSystemOperations,
   }) : typeSystem = libraryElement.typeSystem;
@@ -419,7 +417,6 @@ class NamedTypeResolver with ScopeHelpers {
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
           inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
-          strictInference: strictInference,
           strictCasts: strictCasts,
           typeSystemOperations: typeSystemOperations,
           dataForTesting: dataForTesting,
