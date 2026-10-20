@@ -1530,7 +1530,7 @@ package:analyzer/dart/ast/ast.dart:
   CompilationUnit (class extends Object implements AstNode, FragmentDeclaringNode, abstract, final):
     beginToken (getter: Token)
     declarations (getter: NodeList<CompilationUnitMember>)
-    declarations2 (getter: NodeList<AnnotatedNode>, experimental)
+    declarations2 (getter: NodeList<TopLevelDeclaration>, experimental)
     declaredFragment (getter: LibraryFragment?)
     directives (getter: NodeList<Directive>)
     endToken (getter: Token)

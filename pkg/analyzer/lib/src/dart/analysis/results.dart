@@ -42,6 +42,35 @@ int? _getFragmentNameOffset(Fragment fragment) {
   return nameOffset;
 }
 
+/// Returns the V1 view of [declaration], a declaration in the V2 AST view.
+AstNode _toV1Declaration(AstNode declaration) {
+  if (declaration is TopLevelDeclarationImpl) {
+    // ignore: analyzer_v1_ast_use
+    return V1Projection.toV1CompilationUnitMember(declaration);
+  }
+  if (declaration is FunctionDeclarationV1OriginImpl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is VariableDeclarationV1OriginImpl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is MethodDeclarationV1OriginImpl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is ConstructorDeclaration2Impl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is EnumConstantDeclaration2Impl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  return declaration;
+}
+
 abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
@@ -333,45 +362,8 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = V1Projection.toV1CompilationUnitMember(declaration);
-    } else if (!useV2 && declaration is VariableDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is FunctionTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is EnumConstantDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ClassTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is EnumDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ExtensionDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is MixinDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ExtensionTypeDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ClassDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
+    if (!useV2) {
+      declaration = _toV1Declaration(declaration);
     }
 
     return ElementDeclarationResultImpl(
@@ -524,45 +516,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = V1Projection.toV1CompilationUnitMember(declaration);
-    } else if (!useV2 && declaration is VariableDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is FunctionTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is EnumConstantDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ClassTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is EnumDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ExtensionDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is MixinDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ExtensionTypeDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is ClassDeclaration2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
+    if (!useV2) {
+      declaration = _toV1Declaration(declaration);
     }
 
     return ElementDeclarationResultImpl(

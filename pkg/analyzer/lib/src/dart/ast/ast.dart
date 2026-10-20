@@ -9958,13 +9958,10 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
   @V1Ast('The V2 counterpart is declarations2.')
   NodeList<CompilationUnitMember> get declarations;
 
-  /// The top-level declarations exposed by the V2 AST view.
-  ///
-  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
-  /// is in progress. Each entry is either a V2 [TopLevelDeclaration] or a V1
-  /// [CompilationUnitMember] whose V2 representation is not yet available.
+  /// The top-level declarations contained in this compilation unit in the V2
+  /// AST view.
   @experimental
-  NodeList<AnnotatedNode> get declarations2;
+  NodeList<TopLevelDeclaration> get declarations2;
 
   /// The fragment associated with this compilation unit.
   ///
@@ -10055,8 +10052,7 @@ final class CompilationUnitImpl extends AstNodeImpl
 
   final NodeListImpl<DirectiveImpl> _directives = NodeListImpl._();
 
-  final NodeListImpl<TopLevelDeclarationV1OrV2Impl> _declarations2 =
-      NodeListImpl._();
+  final NodeListImpl<TopLevelDeclarationImpl> _declarations2 = NodeListImpl._();
 
   @V1Ast('The V2 counterpart is declarations2.')
   late final NodeListImpl<CompilationUnitMemberImpl> _declarations =
@@ -10102,7 +10098,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     required this.beginToken,
     required this._scriptTag,
     required List<DirectiveImpl>? directives,
-    required List<TopLevelDeclarationV1OrV2Impl>? declarations2,
+    required List<TopLevelDeclarationImpl>? declarations2,
     required this.endToken,
     required this.featureSet,
     required this.lineInfo,
@@ -10119,8 +10115,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
 
   @override
-  NodeListImpl<TopLevelDeclarationV1OrV2Impl> get declarations2 =>
-      _declarations2;
+  NodeListImpl<TopLevelDeclarationImpl> get declarations2 => _declarations2;
 
   @override
   NodeListImpl<DirectiveImpl> get directives => _directives;
@@ -58337,16 +58332,9 @@ final class ThrowExpressionImpl extends ExpressionImpl
 abstract final class TopLevelDeclaration implements AnnotatedNode {}
 
 sealed class TopLevelDeclarationImpl extends AnnotatedNodeImpl
-    implements TopLevelDeclarationV1OrV2Impl, TopLevelDeclaration {
+    implements TopLevelDeclaration {
   new({required super.comment, required super.metadata});
 }
-
-/// A temporary marker interface for declarations in
-/// [CompilationUnitImpl.declarations2].
-///
-/// This unifies V1 declarations that have not yet been migrated with V2
-/// [TopLevelDeclaration]s.
-sealed class TopLevelDeclarationV1OrV2Impl implements AnnotatedNodeImpl {}
 
 /// A top-level function declaration.
 @experimental
@@ -61995,38 +61983,23 @@ enum V1Projection {
   }
 
   @V1Ast()
-  static CompilationUnitMemberImpl toV1CompilationUnitMember(AstNodeImpl node) {
-    if (node is FunctionDeclarationV1OriginImpl) {
-      return node.v1Projection;
-    }
-    if (node is TopLevelVariablesDeclarationImpl) {
-      return node.v1Projection;
-    }
-    if (node is FunctionTypeAlias2Impl) {
-      return node.v1Projection;
-    }
-    if (node is GenericTypeAlias2Impl) {
-      return node.v1Projection;
-    }
-    if (node is ClassTypeAlias2Impl) {
-      return node.v1Projection;
-    }
-    if (node is EnumDeclaration2Impl) {
-      return node.v1Projection;
-    }
-    if (node is ExtensionDeclaration2Impl) {
-      return node.v1Projection;
-    }
-    if (node is MixinDeclaration2Impl) {
-      return node.v1Projection;
-    }
-    if (node is ClassDeclaration2Impl) {
-      return node.v1Projection;
-    }
-    if (node is ExtensionTypeDeclaration2Impl) {
-      return node.v1Projection;
-    }
-    return node as CompilationUnitMemberImpl;
+  static CompilationUnitMemberImpl toV1CompilationUnitMember(
+    TopLevelDeclarationImpl node,
+  ) {
+    return switch (node) {
+      ClassDeclaration2Impl() => node.v1Projection,
+      ClassTypeAlias2Impl() => node.v1Projection,
+      EnumDeclaration2Impl() => node.v1Projection,
+      ExtensionDeclaration2Impl() => node.v1Projection,
+      ExtensionTypeDeclaration2Impl() => node.v1Projection,
+      FunctionTypeAlias2Impl() => node.v1Projection,
+      GenericTypeAlias2Impl() => node.v1Projection,
+      MixinDeclaration2Impl() => node.v1Projection,
+      TopLevelFunctionDeclarationImpl() => node.v1Projection,
+      TopLevelGetterDeclarationImpl() => node.v1Projection,
+      TopLevelSetterDeclarationImpl() => node.v1Projection,
+      TopLevelVariablesDeclarationImpl() => node.v1Projection,
+    };
   }
 
   @V1Ast()

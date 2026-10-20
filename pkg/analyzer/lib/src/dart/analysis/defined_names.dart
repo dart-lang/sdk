@@ -41,7 +41,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     }
   }
 
-  void appendTopLevelName(TopLevelDeclarationV1OrV2Impl member) {
+  void appendTopLevelName(TopLevelDeclarationImpl member) {
     switch (member) {
       case ClassDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);

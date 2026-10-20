@@ -302,8 +302,8 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
-        } else if (declaration is TopLevelVariableDeclaration) {
-          for (var variable in declaration.variables.variables) {
+        } else if (declaration is TopLevelVariablesDeclaration) {
+          for (var variable in declaration.variables) {
             if (variable.name.lexeme == name) {
               return variable.offset;
             }

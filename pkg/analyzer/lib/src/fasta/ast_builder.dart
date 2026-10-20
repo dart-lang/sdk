@@ -54,7 +54,7 @@ class AstBuilder extends StackListener {
   final Uri fileUri;
   ScriptTagImpl? scriptTag;
   final List<DirectiveImpl> directives = [];
-  final List<TopLevelDeclarationV1OrV2Impl> declarations = [];
+  final List<TopLevelDeclarationImpl> declarations = [];
   final List<AstNodeImpl> invalidNodes = [];
 
   @override
