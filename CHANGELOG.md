@@ -63,6 +63,15 @@ remove them.
 [language version]: https://dart.dev/to/language-version
 [unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
 
+### Libraries
+
+#### `dart:math`
+
+- Added `imul32(int a, int b)` for 32-bit signed wrapping multiplication.
+  For more details, see SDK issue [#64491][].
+
+[#64491]: https://github.com/dart-lang/sdk/issues/64491
+
 ### Tools
 
 #### Analyzer

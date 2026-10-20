@@ -68,6 +68,9 @@ num pow(num x, num exponent) {
   return _doublePow(xDouble, exponentDouble);
 }
 
+@patch
+int imul32(int a, int b) => (a * b).toSigned(32);
+
 int _intPow(int base, int exponent) {
   // Exponentiation by squaring.
   int result = 1;
