@@ -107,9 +107,9 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     var element = node.declaredFragment!.element;
-    if (node.typeName2 case var typeName?) {
+    if (node.typeName case var typeName?) {
       if (typeName.lexeme == element.enclosingElement.name) {
         _useIdentifierElement(element.enclosingElement);
       }
@@ -129,7 +129,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
         );
       }
     }
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -196,7 +196,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     usedElements.addElement(node.constructorElement?.baseElement);
 
     var argumentList = node.arguments?.argumentList;
@@ -204,7 +204,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       _addParametersForArguments(argumentList);
     }
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override
@@ -742,13 +742,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     if (node.name != null) {
       var declaredElement = node.declaredFragment!.element;
       _visitConstructorElement(declaredElement);
     }
 
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -775,19 +775,19 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitFieldElement(declaredElement);
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration2(node);
   }
 
   @override
@@ -867,11 +867,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration2(node);
   }
 
   @override
@@ -916,7 +916,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   ) {
     switch (node.parent2) {
       case ClassDeclarationImpl():
-      case EnumDeclarationImpl():
+      case EnumDeclaration2Impl():
         for (var parameter in node.formalParameters.allFormalParameters) {
           var element = parameter.declaredFragment!.element;
           if (element is FieldFormalParameterElementImpl &&

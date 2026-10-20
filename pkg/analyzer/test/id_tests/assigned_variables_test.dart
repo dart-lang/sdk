@@ -88,10 +88,10 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _handlePossibleTopLevelDeclaration(
       node,
-      () => super.visitConstructorDeclaration(node),
+      () => super.visitConstructorDeclaration2(node),
     );
   }
 

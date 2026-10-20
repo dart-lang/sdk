@@ -2,36 +2,30 @@
 [![package publisher](https://img.shields.io/pub/publisher/frontend_server_client.svg)](https://pub.dev/packages/frontend_server_client/publisher)
 
 This package provides a client interface around the frontend_server compiler
-which ships with the Dart SDK.
+which ships with the Dart SDK. It is highly dependent on the SDK's version and
+thus should only be used within the SDK or for specific tools that need to
+interact with our compilers.
 
-## SDK Versioning Policy
+## Version restrictions
 
-This package keeps a relatively tight version constraint on the SDK to allow for
-breaking changes in the frontend_server binary itself.
+Every SDK artifact discovered by or passed to `package:frontend_server_client`
+needs to have come from the same build, and the version of
+`package:frontend_server_client` being used must support that SDK version.
 
-Specifically, releases of this package will have an upper bound of less than the
-next _minor_ (middle) version number of the latest stable SDK. There are no
-requirements for the lower bound (other than the package must pass tests on that
-SDK).
+## Serving DDC apps
 
-The effect of this policy is that breaking changes will be allowed to the
-frontend_server binary, but only in _minor_ SDK version releases.
+To serve an app compiled by DDC in its library bundle format, use
+`DartDevcFrontendServerClient`, `DdcLibraryBundleSdkAssets`, and
+`generateDdcLibraryBundle*`:
 
-**Note**: This also means that when a new stable SDK is released, this package
-will also need a new version published on pub before users can get a valid
-version solve.
-
-### Working with dev SDK releases
-
-By default, when you do a pub get/upgrade, a constraint like `<2.9.0` will
-actually allow dev releases of `2.9.0` if the current SDK is a dev release. It
-emits a warning when it does this, but will happily allow it.
-
-- This means that we don't have to publish versions that explicitly allow dev
-  releases. We will be notified of breakages by our bots if a dev release does
-  break us, and can release a patch.
-
-If we need to depend on some new feature from a dev release, the min sdk
-constraint should be bumped to that version but the max sdk constraint should
-_not_ be changed. So for example we will have constraints like
-`>=2.9.0-dev.1 <2.9.0`.
+- Start `DartDevcFrontendServerClient` with `dartdevcModuleFormat: 'ddc'` and
+  `canaryFeatures: true`.
+- `sdkRoot` in both `DartDevcFrontendServerClient.start` and
+  `DdcLibraryBundleSdkAssets.load` default to the running SDK's directory but
+  must be overridden for AoT-compiled apps.
+- Call `DdcLibraryBundleSdkAssets.load` from your package root. `dart_sdk.js` is
+  compiled on first use and cached in `.dart_tool/frontend_server_client`.
+- To use a prebuilt `dart_sdk.js` instead, pass its path to
+  `DdcLibraryBundleSdkAssets.load` via `sdkJsPath`. Compile it with `sdkRoot`'s
+  DDC using `--modules=ddc --canary`, and place its source map at
+  `<sdkJsPath>.map`.

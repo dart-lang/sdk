@@ -1871,13 +1871,13 @@ intptr_t SemiSpace::AbandonRemainingTLABLocked(Thread* thread) {
   uword end = thread->true_end();
   ASSERT(top != 0);
   ASSERT(end >= top);
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
+  thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
+#endif
   thread->set_top(0);
   thread->set_end(0);
   thread->set_true_end(0);
   AddFreeLocked(top, end - top);
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-  thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
-#endif
 
   // Wrong. Need to remember starting top.
   return Utils::Maximum((uword)0, Scavenger::kTlabSize - (end - top));

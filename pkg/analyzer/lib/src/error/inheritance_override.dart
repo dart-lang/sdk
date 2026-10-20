@@ -79,7 +79,7 @@ class InheritanceOverrideVerifier {
           reportInterfaceConflicts: _reportInterfaceConflicts,
           targetForElement: _targetForElement,
         );
-      } else if (declaration is ClassTypeAliasImpl) {
+      } else if (declaration is ClassTypeAlias2Impl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
@@ -100,7 +100,7 @@ class InheritanceOverrideVerifier {
           reportInterfaceConflicts: _reportInterfaceConflicts,
           targetForElement: _targetForElement,
         );
-      } else if (declaration is EnumDeclarationImpl) {
+      } else if (declaration is EnumDeclaration2Impl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
@@ -115,14 +115,14 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members2,
+          members: declaration.body.members,
           primaryConstructor: declaration.namePart.tryCast(),
           withClause: declaration.withClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
           targetForElement: _targetForElement,
         );
-      } else if (declaration is MixinDeclarationImpl) {
+      } else if (declaration is MixinDeclaration2Impl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
@@ -137,7 +137,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members2,
+          members: declaration.body.members,
           onClause: declaration.onClause,
           interfaceElementState: interfaceElementState(fragment.element),
           reportInterfaceConflicts: _reportInterfaceConflicts,
@@ -236,14 +236,24 @@ class InheritanceOverrideVerifier {
 
   /// Returns names of members that the given class must override because of
   /// `@mustBeOverridden`.
+  ///
+  /// The names are recorded for the fragment, which is shared by both AST
+  /// views of the declaration.
   static List<Name> missingMustBeOverriddenNames(CompilationUnitMember node) {
-    return _missingMustBeOverriddenNames[node]?.toList() ?? const [];
+    var fragment = node.declaredFragment;
+    if (fragment == null) return const [];
+    return _missingMustBeOverriddenNames[fragment]?.toList() ?? const [];
   }
 
   /// Returns names of inherited abstract members that the given class must
   /// override.
+  ///
+  /// The names are recorded for the fragment, which is shared by both AST
+  /// views of the declaration.
   static List<Name> missingOverrideNames(CompilationUnitMember node) {
-    return _missingOverrideNames[node]?.toList() ?? const [];
+    var fragment = node.declaredFragment;
+    if (fragment == null) return const [];
+    return _missingOverrideNames[fragment]?.toList() ?? const [];
   }
 }
 
@@ -259,7 +269,7 @@ class _ClassVerifier {
   final InterfaceElementImpl classElement;
   final InterfaceFragmentImpl classFragment;
 
-  final CompilationUnitMember node;
+  final AstNode node;
   final Token classNameToken;
   final List<AnnotatedNode> members;
   final ImplementsClause? implementsClause;
@@ -960,7 +970,7 @@ class _ClassVerifier {
       return;
     }
 
-    _missingOverrideNames[node] = elements
+    _missingOverrideNames[classFragment] = elements
         .map(Name.forElement)
         .nonNulls
         .toSet();
@@ -1130,7 +1140,8 @@ class _ClassVerifier {
       return;
     }
 
-    _missingMustBeOverriddenNames[node] = notOverriddenNames.keys.toSet();
+    _missingMustBeOverriddenNames[classFragment] = notOverriddenNames.keys
+        .toSet();
     var namesForError = notOverriddenNames.values
         .map((name) {
           if (name.endsWith('=')) {

@@ -165,7 +165,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
       // Check and report cycles.
@@ -190,8 +192,8 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         );
       }
     }
-    _validateDefaultValues(node.parameters);
-    super.visitConstructorDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -257,8 +259,8 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  visitEnumConstantDeclaration(covariant EnumConstantDeclarationImpl node) {
-    super.visitEnumConstantDeclaration(node);
+  visitEnumConstantDeclaration2(covariant EnumConstantDeclaration2Impl node) {
+    super.visitEnumConstantDeclaration2(node);
 
     var argumentList = node.arguments?.argumentList;
     if (argumentList != null) {
@@ -405,12 +407,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var element = node.declaration?.declaredFragment?.element;
     if (element is ConstructorElementImpl && element.isConst) {
       _validateConstructorInitializers(node.initializers);
     }
-    super.visitPrimaryConstructorBody(node);
+    super.visitPrimaryConstructorBody2(node);
   }
 
   @override

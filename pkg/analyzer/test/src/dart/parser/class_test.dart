@@ -186,6 +186,21 @@ augment class A = B with M;
     assertParsedNodeText(parseResult.findNode.unit, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      augmentKeyword: augment
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       augmentKeyword: augment
       typedefKeyword: class
@@ -4681,7 +4696,7 @@ class A(final int x) {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -4695,7 +4710,17 @@ PrimaryConstructorBody
         rightOperand: IntegerLiteral
           literal: 0
         binaryOperator: greaterThan
-      condition(v1): BinaryExpression
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: BinaryExpression
         leftOperand: SimpleIdentifier
           token: x
         operator: >
@@ -4718,7 +4743,7 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
@@ -4726,6 +4751,17 @@ PrimaryConstructorBody
       statements2
         ExpressionStatement
           expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
       rightBracket: }
@@ -4743,7 +4779,15 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
+  documentationComment: Comment
+    tokens
+      /// foo
+      /// bar
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
   documentationComment: Comment
     tokens
       /// foo
@@ -4764,16 +4808,26 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
     ConstructorFieldInitializer
       fieldName2: x
-      fieldName(v1): SimpleIdentifier
-        token: x
       equals: =
       expression2: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: x
+      equals: =
+      expression: IntegerLiteral
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
@@ -4790,12 +4844,19 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
       expression: ParsedUnqualifiedName
         name: deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
   thisKeyword: this
@@ -4813,7 +4874,12 @@ augment class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
+  augmentKeyword: augment
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
   augmentKeyword: augment
   thisKeyword: this
   body: EmptyFunctionBody
@@ -4832,7 +4898,11 @@ class A() {
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
   thisKeyword: this
   body: EmptyFunctionBody
     semicolon: ;
@@ -5229,7 +5299,27 @@ mixin M {}
 
     var node = parseResult.findNode.classTypeAlias('class C');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  classKeyword: class @0
+  name: C @6
+  equals: = @8
+  superclass: NamedType
+    name: Object @10
+  withClause: WithClause
+    withKeyword: with @17
+    mixinTypes
+      NamedType
+        name: M @22
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @24
+    interfaces
+      NamedType
+        name: A @35
+      NamedType
+        name: B @50
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ; @51
+V1: ClassTypeAlias
   typedefKeyword: class @0
   name: C @6
   equals: = @8
@@ -5260,7 +5350,24 @@ mixin class A = Object with M;
 
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  documentationComment: Comment
+    tokens
+      /// text
+  mixinKeyword: mixin
+  classKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
@@ -5288,7 +5395,24 @@ base class A = Object with M;
 
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  documentationComment: Comment
+    tokens
+      /// text
+  baseKeyword: base
+  classKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
@@ -5316,7 +5440,24 @@ final class A = Object with M;
 
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  documentationComment: Comment
+    tokens
+      /// text
+  finalKeyword: final
+  classKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
@@ -5344,7 +5485,24 @@ interface class A = Object with M;
 
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  documentationComment: Comment
+    tokens
+      /// text
+  interfaceKeyword: interface
+  classKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
@@ -5372,7 +5530,24 @@ sealed class A = Object with M;
 
     var node = parseResult.findNode.classTypeAlias('class A');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  documentationComment: Comment
+    tokens
+      /// text
+  sealedKeyword: sealed
+  classKeyword: class
+  name: A
+  equals: =
+  superclass: NamedType
+    name: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
   documentationComment: Comment
     tokens
       /// text
@@ -5399,7 +5574,20 @@ class C = A Function() with M;
 ''');
     var node = parseResult.findNode.classTypeAlias('class');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  classKeyword: class
+  name: C
+  equals: =
+  superclass: NamedType
+    name: identifier <synthetic>
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
   typedefKeyword: class
   name: C
   equals: =
@@ -5423,7 +5611,22 @@ class C = Object with A, (int, int), B;
 
     var node = parseResult.findNode.classTypeAlias('class C');
     assertParsedNodeText(node, r'''
-ClassTypeAlias
+ClassTypeAlias2
+  classKeyword: class @0
+  name: C @6
+  equals: = @8
+  superclass: NamedType
+    name: Object @10
+  withClause: WithClause
+    withKeyword: with @17
+    mixinTypes
+      NamedType
+        name: A @22
+      NamedType
+        name: B @37
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ; @38
+V1: ClassTypeAlias
   typedefKeyword: class @0
   name: C @6
   equals: = @8

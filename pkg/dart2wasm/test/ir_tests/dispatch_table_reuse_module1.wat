@@ -7,7 +7,7 @@
   (type $WasmListBase <...>)
   (type $_Type <...>)
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 12 funcref)
-  (table $M.dispatch0 (import "M" "dispatch0") 690 funcref)
+  (table $M.dispatch0 (import "M" "dispatch0") 702 funcref)
   (elem $M.cross-module-funcs-0
     (set 0 (ref.func $runTest)))
   (@binaryen.inline 0)
@@ -84,19 +84,19 @@
         ref.cast $Object
         local.tee $var2
         struct.get $Object $#classId
-        i32.const 114
+        i32.const 115
         i32.eq
         if
           local.get $var2
           local.get $var5
-          i32.const 549
+          i32.const 629
           call_indirect $M.dispatch0 (param (ref $Object) i64)
         else
           local.get $var2
           local.get $var5
           local.get $var2
           struct.get $Object $#classId
-          i32.const 435
+          i32.const 514
           i32.add
           call_indirect $M.dispatch0 (param (ref $Object) i64)
         end

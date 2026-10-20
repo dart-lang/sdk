@@ -208,7 +208,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -217,7 +217,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           var identifier = member.name;
           if (identifier != null) {
             var declaredFragment = member.declaredFragment!;
@@ -265,7 +265,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -299,7 +299,7 @@ class DuplicateDefinitionVerifier {
               }
             }
           }
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(

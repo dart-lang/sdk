@@ -1030,16 +1030,16 @@ class FileState {
       switch (declaration) {
         case ClassDeclarationImpl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           var name = declaration.name;
           if (name != null) {
             topLevelDeclarations.add(name.lexeme);
           }
         case ExtensionTypeDeclarationImpl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           topLevelDeclarations.add(declaration.name.lexeme);
         case TopLevelFunctionDeclarationImpl():
           topLevelDeclarations.add(declaration.name.lexeme);
@@ -1051,7 +1051,7 @@ class FileState {
           for (var variable in declaration.variables) {
             topLevelDeclarations.add(variable.name.lexeme);
           }
-        case ClassTypeAliasImpl() ||
+        case ClassTypeAlias2Impl() ||
             FunctionTypeAlias2Impl() ||
             GenericTypeAlias2Impl():
           break;

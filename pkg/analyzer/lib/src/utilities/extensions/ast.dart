@@ -56,7 +56,7 @@ extension AstNodeExtension on AstNode {
         case FunctionExpression():
           return node;
         case LocalFunctionDeclaration() ||
-            ConstructorDeclaration() ||
+            ConstructorDeclaration2() ||
             GetterDeclaration() ||
             MethodDeclaration2() ||
             OperatorDeclaration() ||
@@ -93,7 +93,7 @@ extension AstNodeExtension on AstNode {
       if (node is LocalFunctionDeclaration) {
         return node.declaredFragment?.element;
       }
-      if (node is ConstructorDeclaration) {
+      if (node is ConstructorDeclaration2) {
         return node.declaredFragment?.element;
       }
       if (node is MethodDeclarationV1OriginImpl) {
@@ -250,12 +250,13 @@ extension AstNodeNullableExtension on AstNode? {
     var self = this;
     return switch (self) {
       BlockClassBody() => self.members2,
-      BlockEnumBody() => self.members2,
+      BlockEnumDeclarationBody() => self.members,
+      BlockInstanceDeclarationBody() => self.members,
       ClassDeclarationImpl() => self.body.members2,
-      EnumDeclaration() => self.body.members2,
-      ExtensionDeclaration() => self.body.members2,
+      EnumDeclaration2() => self.body.members,
+      ExtensionDeclaration2() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members2,
-      MixinDeclaration() => self.body.members2,
+      MixinDeclaration2() => self.body.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }

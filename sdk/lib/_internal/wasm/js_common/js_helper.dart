@@ -611,7 +611,7 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     _ => () {
       // Assert that we've handled everything in the range.
       assert(refType! >= 0 && refType >= ExternRefType.unknown);
-      throw 'Unhandled dartifyRaw type case: $refType';
+      throwReachabilityError('Unhandled dartifyRaw type case');
     }(),
   };
 }

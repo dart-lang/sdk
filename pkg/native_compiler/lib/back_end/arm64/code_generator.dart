@@ -667,22 +667,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
       if (pendingReg == invalidReg) {
         pendingReg = reg;
       } else {
-        // TODO: support large offsets
-        _asm.stp(pendingReg, reg, RegOffsetAddress(stackPointerReg, offset));
+        _asm.stp(pendingReg, reg, _asm.pairAddress(stackPointerReg, offset));
         pendingReg = invalidReg;
         offset += 2 * wordSize;
       }
     }
     if (pendingReg != invalidReg) {
-      // TODO: support large offsets
-      _asm.str(pendingReg, RegOffsetAddress(stackPointerReg, offset));
+      _asm.str(pendingReg, _asm.address(stackPointerReg, offset));
       offset += wordSize;
     }
     int numArgs = instr.inputCount;
     if (instr is DynamicCall && !instr.hasTypeArguments) {
       // Reserve extra slot to pass default type arguments (in case target method is generic).
       // TODO: pass type arguments on register.
-      _asm.str(nullReg, RegOffsetAddress(stackPointerReg, offset));
+      _asm.str(nullReg, _asm.address(stackPointerReg, offset));
       offset += wordSize;
       ++numArgs;
     }

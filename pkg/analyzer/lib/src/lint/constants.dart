@@ -144,7 +144,7 @@ extension AstNodeExtension on AstNode {
   }
 }
 
-extension ConstructorDeclarationExtension on ConstructorDeclaration {
+extension ConstructorDeclaration2Extension on ConstructorDeclaration2 {
   bool get canBeConst {
     var element = declaredFragment!.element;
 
@@ -153,7 +153,7 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
       return false;
     }
 
-    var self = this as ConstructorDeclarationImpl;
+    var self = this as ConstructorDeclaration2Impl;
     if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers2)) {
       return false;
     }
@@ -167,6 +167,14 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
       temporaryConstConstructorElements[element] = null;
       self.constKeyword = oldKeyword;
     }
+  }
+}
+
+@V1Ast('The V2 counterpart is ConstructorDeclaration2Extension.')
+extension ConstructorDeclarationExtension on ConstructorDeclaration {
+  bool get canBeConst {
+    var self = this as ConstructorDeclarationImpl;
+    return self.v1ProjectionOrigin.canBeConst;
   }
 }
 

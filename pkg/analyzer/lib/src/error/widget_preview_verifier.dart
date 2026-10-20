@@ -53,13 +53,13 @@ class WidgetPreviewVerifier {
       // First, check that the preview application is happening in a supported
       // context.
       _ when !_isSupportedParent(node: parent) => false,
-      ConstructorDeclaration() => _isValidConstructorPreviewApplication(
+      ConstructorDeclaration2() => _isValidConstructorPreviewApplication(
         declaration: parent,
         name: parent.name?.lexeme,
         parentDeclaration: parent.parent2?.parent2,
         isExternal: parent.externalKeyword != null,
         isFactory: parent.factoryKeyword != null,
-        parameters: parent.parameters,
+        parameters: parent.formalParameters,
       ),
       TopLevelFunctionDeclaration() => _isValidFunctionPreviewApplication(
         declaration: parent,
@@ -67,7 +67,7 @@ class WidgetPreviewVerifier {
       MethodDeclaration2() => _isValidMethodPreviewApplication(
         declaration: parent,
       ),
-      PrimaryConstructorBody(:var declaration?) =>
+      PrimaryConstructorBody2(:var declaration?) =>
         _isValidConstructorPreviewApplication(
           declaration: parent,
           name: parent.declaration?.constructorName?.name.lexeme,
@@ -105,10 +105,10 @@ class WidgetPreviewVerifier {
 
     var nameToken = switch (parent) {
       ClassDeclaration declaration => declaration.namePart.typeName,
-      EnumDeclaration declaration => declaration.namePart.typeName,
-      ExtensionDeclaration declaration => declaration.name,
+      EnumDeclaration2 declaration => declaration.namePart.typeName,
+      ExtensionDeclaration2 declaration => declaration.name,
       ExtensionTypeDeclaration declaration => declaration.namePart.typeName,
-      MixinDeclaration declaration => declaration.name,
+      MixinDeclaration2 declaration => declaration.name,
       _ => null,
     };
     if (nameToken == null) return false;

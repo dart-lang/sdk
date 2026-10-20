@@ -143,7 +143,7 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -166,9 +166,9 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (node.parent2 case MixinDeclaration parent) {
+    } else if (node.parent2 case MixinDeclaration2 parent) {
       declaredElement = parent.declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -193,7 +193,7 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -235,7 +235,7 @@ class AnnotationVerifier {
       // result, and the parser has already reported it.
       var isValidFunction =
           parameterList.parent2 is MethodDeclarationV1OriginImpl ||
-          parameterList.parent2 is ConstructorDeclaration ||
+          parameterList.parent2 is ConstructorDeclaration2 ||
           parameterList.parent2 is TopLevelFunctionDeclaration ||
           parameterList.parent2 is TopLevelGetterDeclaration ||
           parameterList.parent2 is TopLevelSetterDeclaration;
@@ -252,9 +252,9 @@ class AnnotationVerifier {
     Element? declaredElement;
     if (node.parent2
         case ClassDeclaration(:var declaredFragment) ||
-            ClassTypeAlias(:var declaredFragment)) {
+            ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (node.parent2 case MixinDeclaration parent) {
+    } else if (node.parent2 case MixinDeclaration2 parent) {
       declaredElement = parent.declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
@@ -347,14 +347,14 @@ class AnnotationVerifier {
           );
         }
       }
-    } else if (parent is ConstructorDeclaration) {
+    } else if (parent is ConstructorDeclaration2) {
       var element = parent.declaredFragment!.element;
       if (element.isPrivate || element.enclosingElement.isPrivate) {
         _diagnosticReporter.report(
           diag.invalidInternalAnnotation.at(node.nameEntity),
         );
       }
-    } else if (parent is PrimaryConstructorBody) {
+    } else if (parent is PrimaryConstructorBody2) {
       var element = parent.declaration?.declaredFragment?.element;
       if (element != null) {
         if (element.isPrivate || element.enclosingElement.isPrivate) {
@@ -405,13 +405,13 @@ class AnnotationVerifier {
   /// `@literal` annotation.
   void _checkLiteral(Annotation node) {
     var parent = node.parent2;
-    if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclaration2) {
       if (parent.constKeyword == null) {
         _diagnosticReporter.report(
           diag.invalidLiteralAnnotation.at(node.nameEntity),
         );
       }
-    } else if (parent is PrimaryConstructorBody) {
+    } else if (parent is PrimaryConstructorBody2) {
       if (parent.declaration?.constKeyword == null) {
         _diagnosticReporter.report(
           diag.invalidLiteralAnnotation.at(node.nameEntity),
@@ -465,7 +465,7 @@ class AnnotationVerifier {
     if (parent is ClassDeclaration) {
       classElement = parent.declaredFragment?.element;
       superElement = classElement?.supertype?.element;
-    } else if (parent is ClassTypeAlias) {
+    } else if (parent is ClassTypeAlias2) {
       classElement = parent.declaredFragment?.element;
       superElement = classElement?.supertype?.element;
     } else {
@@ -558,7 +558,8 @@ class AnnotationVerifier {
     var parent = node.parent2;
     if (parent is! Declaration &&
         parent is! TopLevelDeclaration &&
-        parent is! MemberDeclaration) {
+        parent is! MemberDeclaration &&
+        parent is! EnumConstantDeclaration2) {
       // This is reported by `_checkKinds`.
       return;
     }
@@ -597,7 +598,7 @@ class AnnotationVerifier {
       }
     } else {
       Element? declaredElement;
-      if (parent is PrimaryConstructorBody) {
+      if (parent is PrimaryConstructorBody2) {
         declaredElement = parent.declaration?.declaredFragment?.element;
       } else {
         declaredElement = _declaredElement(parent);
@@ -630,9 +631,9 @@ class AnnotationVerifier {
 
     AstNode? containedDeclaration;
     switch (node.parent2) {
-      case ConstructorDeclaration constructorDeclaration:
+      case ConstructorDeclaration2 constructorDeclaration:
         containedDeclaration = constructorDeclaration;
-      case EnumConstantDeclaration enumConstant:
+      case EnumConstantDeclaration2 enumConstant:
         containedDeclaration = enumConstant;
       case FieldsDeclaration fieldDeclaration:
         containedDeclaration = fieldDeclaration;
@@ -647,9 +648,9 @@ class AnnotationVerifier {
     switch (containedDeclaration.parent2?.parent2) {
       case ClassDeclaration classDeclaration:
         declaredElement = classDeclaration.declaredFragment?.element;
-      case EnumDeclaration enumDeclaration:
+      case EnumDeclaration2 enumDeclaration:
         declaredElement = enumDeclaration.declaredFragment?.element;
-      case MixinDeclaration mixinDeclaration:
+      case MixinDeclaration2 mixinDeclaration:
         declaredElement = mixinDeclaration.declaredFragment?.element;
       default:
         reportError();
@@ -675,7 +676,9 @@ class AnnotationVerifier {
   Element? _declaredElement(AstNode node) {
     return switch (node) {
       Declaration(:var declaredFragment) => declaredFragment?.element,
-      (TopLevelDeclaration() || MemberDeclaration()) &&
+      (TopLevelDeclaration() ||
+              MemberDeclaration() ||
+              EnumConstantDeclaration2()) &&
           FragmentDeclaringNode(:var declaredFragment) =>
         declaredFragment?.element,
       _ => null,
@@ -805,7 +808,7 @@ class AnnotationVerifier {
           return [element, ?element.field];
         }
         return [?element];
-      case PrimaryConstructorBody(:var declaration):
+      case PrimaryConstructorBody2(:var declaration):
         return [?declaration?.declaredFragment?.element];
       case TopLevelVariablesDeclaration(:var variables):
         return [

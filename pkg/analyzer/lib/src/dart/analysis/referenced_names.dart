@@ -40,16 +40,16 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
       addSubtypedName(declaration.extendsClause?.superclass);
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is ClassTypeAlias) {
+    } else if (declaration is ClassTypeAlias2) {
       addSubtypedName(declaration.superclass);
       addSubtypedNames(declaration.withClause.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is EnumDeclaration) {
+    } else if (declaration is EnumDeclaration2) {
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is ExtensionTypeDeclaration) {
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is MixinDeclaration) {
+    } else if (declaration is MixinDeclaration2) {
       addSubtypedNames(declaration.onClause?.superclassConstraints);
       addSubtypedNames(declaration.implementsClause?.interfaces);
     }
@@ -94,7 +94,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias node) {
+  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias2 node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
@@ -102,10 +102,10 @@ class _LocalNameScope {
 
   factory forConstructor(
     _LocalNameScope enclosing,
-    ConstructorDeclaration node,
+    ConstructorDeclaration2 node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addFormalParameters(node.parameters);
+    scope.addFormalParameters(node.formalParameters);
     return scope;
   }
 
@@ -190,13 +190,13 @@ class _LocalNameScope {
       switch (declaration) {
         case ClassDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           scope.add(declaration.name);
         case ExtensionTypeDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           scope.add(declaration.name);
         case TopLevelFunctionDeclarationImpl():
           scope.add(declaration.name);
@@ -208,7 +208,7 @@ class _LocalNameScope {
           scope.add(declaration.name);
         case TopLevelSetterDeclarationImpl():
           scope.add(declaration.name);
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
           scope.add(declaration.name);
         case FunctionTypeAlias2Impl():
           scope.add(declaration.name);
@@ -294,11 +294,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClassTypeAlias(localScope, node);
-      super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias2(node);
     } finally {
       localScope = outerScope;
     }
@@ -331,11 +331,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forConstructor(localScope, node);
-      super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration2(node);
     } finally {
       localScope = outerScope;
     }

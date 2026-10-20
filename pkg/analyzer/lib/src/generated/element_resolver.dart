@@ -123,13 +123,13 @@ class ElementResolver {
 
   void visitClassDeclaration(ClassDeclaration node) {}
 
-  void visitClassTypeAlias(ClassTypeAlias node) {}
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {}
 
   void visitCommentReference(CommentReferenceImpl node) {
     _commentReferenceResolver.resolve(node);
   }
 
-  void visitConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
     var redirectedNode = node.factoryRedirectionTarget;
     if (redirectedNode != null) {
@@ -183,9 +183,9 @@ class ElementResolver {
     }
   }
 
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {}
 
-  void visitEnumDeclaration(EnumDeclaration node) {}
+  void visitEnumDeclaration2(EnumDeclaration2 node) {}
 
   void visitExportDirective(ExportDirectiveImpl node) {
     var exportElement = node.libraryExport;
@@ -197,7 +197,7 @@ class ElementResolver {
     }
   }
 
-  void visitExtensionDeclaration(ExtensionDeclaration node) {}
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {}
 
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
 
@@ -232,7 +232,7 @@ class ElementResolver {
 
   void visitLibraryDirective(LibraryDirective node) {}
 
-  void visitMixinDeclaration(MixinDeclaration node) {}
+  void visitMixinDeclaration2(MixinDeclaration2 node) {}
 
   void visitPartDirective(PartDirective node) {}
 
@@ -339,9 +339,11 @@ class ElementResolver {
       argumentList,
       element,
       enclosingConstructorFormalParameterList:
-          node.parent2.tryCast<ConstructorDeclarationImpl>()?.parameters ??
           node.parent2
-              .tryCast<PrimaryConstructorBodyImpl>()
+              .tryCast<ConstructorDeclaration2Impl>()
+              ?.formalParameters ??
+          node.parent2
+              .tryCast<PrimaryConstructorBody2Impl>()
               ?.declaration
               ?.formalParameters,
     );

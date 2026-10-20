@@ -135,7 +135,7 @@ class TypeArgumentsVerifier {
     );
   }
 
-  void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
+  void checkEnumConstantDeclaration(EnumConstantDeclaration2Impl node) {
     var constructorElement = node.constructorElement;
     if (constructorElement == null) {
       return;
@@ -734,7 +734,7 @@ class TypeArgumentsVerifier {
   /// super-bounded types are allowed.
   bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
     switch (namedType.parent2) {
-      case ClassTypeAlias _:
+      case ClassTypeAlias2 _:
       case ExtendsClause _:
       case GenericTypeAlias2 _:
       case ImplementsClause _:

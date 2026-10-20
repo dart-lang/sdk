@@ -394,7 +394,23 @@ V1: TopLevelVariableDeclaration
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+      TypeParameter
+        varianceKeyword: out
+        name: U
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   typeParameters: TypeParameterList
@@ -423,7 +439,20 @@ MixinDeclaration
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   typeParameters: TypeParameterList
@@ -447,7 +476,20 @@ MixinDeclaration
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   typeParameters: TypeParameterList

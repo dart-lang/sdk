@@ -123,7 +123,7 @@ class TypesBuilder {
     _addFragmentWithClause(fragment, node.withClause);
   }
 
-  void _classTypeAlias(ClassTypeAliasImpl node) {
+  void _classTypeAlias(ClassTypeAlias2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
@@ -153,11 +153,11 @@ class TypesBuilder {
   void _declaration(AstNode node) {
     if (node is ClassDeclarationImpl) {
       _classDeclaration(node);
-    } else if (node is ClassTypeAliasImpl) {
+    } else if (node is ClassTypeAlias2Impl) {
       _classTypeAlias(node);
-    } else if (node is EnumDeclarationImpl) {
+    } else if (node is EnumDeclaration2Impl) {
       _enumDeclaration(node);
-    } else if (node is ExtensionDeclarationImpl) {
+    } else if (node is ExtensionDeclaration2Impl) {
       _extensionDeclaration(node);
     } else if (node is ExtensionTypeDeclarationImpl) {
       _extensionTypeDeclaration(node);
@@ -181,7 +181,7 @@ class TypesBuilder {
       _genericTypeAlias(node);
     } else if (node is MethodDeclarationV1OriginImpl) {
       _methodDeclaration(node);
-    } else if (node is MixinDeclarationImpl) {
+    } else if (node is MixinDeclaration2Impl) {
       _mixinDeclaration(node);
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
@@ -194,7 +194,7 @@ class TypesBuilder {
     }
   }
 
-  void _enumDeclaration(EnumDeclarationImpl node) {
+  void _enumDeclaration(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
@@ -206,7 +206,7 @@ class TypesBuilder {
     _addFragmentWithClause(fragment, node.withClause);
   }
 
-  void _extensionDeclaration(ExtensionDeclarationImpl node) {
+  void _extensionDeclaration(ExtensionDeclaration2Impl node) {
     if (node.onClause case var onClause?) {
       var fragment = node.declaredFragment!;
       if (fragment.previousFragment == null) {
@@ -342,7 +342,7 @@ class TypesBuilder {
     }
   }
 
-  void _mixinDeclaration(MixinDeclarationImpl node) {
+  void _mixinDeclaration(MixinDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 

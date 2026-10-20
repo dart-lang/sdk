@@ -93,7 +93,6 @@ class ModuleSnapshot : public AllStatic {
     kInts,
     kDoubles,
     kRecords,
-    kInstantiatedClosures,
     kTypeParameters,
     kInterfaceTypes,
     kFunctionTypes,
@@ -925,7 +924,11 @@ class ClosureDeserializationCluster : public DeserializationCluster {
           ((length == 1) && UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
                                 length_and_flags)));
       if (length > 0) {
-        closure->untag()->data()[0] = Object::empty_type_arguments().ptr();
+        // TODO(alexmarkov): use sentinel for uninitialized type arguments.
+        ObjectPtr type_args = d.ReadRef();
+        closure->untag()->data()[0] = type_args == Object::sentinel().ptr()
+                                          ? Object::empty_type_arguments().ptr()
+                                          : type_args;
       }
     }
   }
@@ -2235,10 +2238,6 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) SetDeserializationCluster();
     case ModuleSnapshot::kRecords:
       return new (Z) RecordDeserializationCluster();
-    case ModuleSnapshot::kInstantiatedClosures:
-      // return new (Z) InstantiatedClosureDeserializationCluster();
-      UNIMPLEMENTED();
-      return nullptr;
     case ModuleSnapshot::kTypeParameters:
       return new (Z) TypeParametersDeserializationCluster();
     case ModuleSnapshot::kInterfaceTypes:

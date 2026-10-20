@@ -275,11 +275,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var fragment = node.declaredFragment!;
     _namedTypeResolver.enclosingClass = fragment.element;
 
-    _scopeContext.visitClassTypeAlias(
+    _scopeContext.visitClassTypeAlias2(
       node,
       visitor: this,
       visitSuperclass: (superclass) {
@@ -308,8 +308,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    _scopeContext.visitConstructorDeclaration(node, visitor: this);
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
+    _scopeContext.visitConstructorDeclaration2(node, visitor: this);
   }
 
   @override
@@ -397,21 +399,18 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
   void visitEmptyFunctionBody(covariant EmptyFunctionBodyImpl node) {
     node.localVariableInfo = _localVariableInfo;
     super.visitEmptyFunctionBody(node);
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    _scopeContext.visitEnumDeclaration(node, visitor: this);
+    _scopeContext.visitEnumDeclaration2(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
@@ -430,15 +429,15 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitExtendsClause(covariant ExtendsClauseImpl node) {
     _resolveType(
-      declaration: node.parent2 as Declaration?,
+      declaration: node.parent2 as AnnotatedNode?,
       clause: node,
       namedType: node.superclass,
     );
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    _scopeContext.visitExtensionDeclaration(node, visitor: this);
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
+    _scopeContext.visitExtensionDeclaration2(node, visitor: this);
   }
 
   @override
@@ -603,7 +602,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitImplementsClause(covariant ImplementsClauseImpl node) {
     _resolveImplementsClause(
-      declaration: node.parent2 as Declaration,
+      declaration: node.parent2 as AnnotatedNode,
       clause: node,
     );
   }
@@ -679,14 +678,14 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    _scopeContext.visitMixinDeclaration(node, visitor: this);
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
+    _scopeContext.visitMixinDeclaration2(node, visitor: this);
   }
 
   @override
   void visitMixinOnClause(covariant MixinOnClauseImpl node) {
     _resolveMixinOnClause(
-      declaration: node.parent2 as Declaration,
+      declaration: node.parent2 as AnnotatedNode,
       clause: node,
     );
   }
@@ -764,8 +763,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    _scopeContext.visitPrimaryConstructorBody(node, visitor: this);
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
+    _scopeContext.visitPrimaryConstructorBody2(node, visitor: this);
   }
 
   @override
@@ -805,6 +806,14 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       }
     }
   }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
 
   @override
   void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
@@ -991,7 +1000,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   @override
   void visitWithClause(covariant WithClauseImpl node) {
-    _resolveWithClause(declaration: node.parent2 as Declaration?, clause: node);
+    _resolveWithClause(
+      declaration: node.parent2 as AnnotatedNode?,
+      clause: node,
+    );
   }
 
   List<BindPatternVariableElementImpl> _computeDeclaredPatternVariables(
@@ -1151,7 +1163,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   void _resolveImplementsClause({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required ImplementsClauseImpl? clause,
   }) {
     if (clause == null) return;
@@ -1164,7 +1176,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   void _resolveMixinOnClause({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required MixinOnClauseImpl clause,
   }) {
     _resolveTypes(
@@ -1177,7 +1189,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   /// Resolves the given [namedType], reports errors if the resulting type
   /// is not valid in the context of the [declaration] and [clause].
   void _resolveType({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required AstNode? clause,
     required NamedTypeImpl namedType,
   }) {
@@ -1219,7 +1231,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     LocatableDiagnostic? diagnosticCode;
     switch (clause) {
       case null:
-        if (declaration is ClassTypeAlias) {
+        if (declaration is ClassTypeAlias2) {
           diagnosticCode = diag.mixinWithNonClassSuperclass;
         }
       case ExtendsClause():
@@ -1260,7 +1272,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   /// @param dynamicTypeError the error to produce if the type name is "dynamic"
   /// @return an array containing all of the types that were resolved.
   void _resolveTypes({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required AstNode clause,
     required NodeList<NamedTypeImpl> namedTypes,
   }) {
@@ -1274,7 +1286,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   void _resolveWithClause({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required WithClauseImpl? clause,
   }) {
     if (clause == null) return;

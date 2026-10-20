@@ -373,7 +373,7 @@ class B<U> = B0 with N implements J;
 ''');
     var destination = parseResult.findNode.classTypeAlias('A<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<ClassTypeAlias>(
+    _assertReplacementForChildren<ClassTypeAlias2>(
       destination: destination,
       source: parseResult.findNode.classTypeAlias('B<U>'),
       childAccessors: [
@@ -384,7 +384,7 @@ class B<U> = B0 with N implements J;
         (node) => node.withClause,
       ],
     );
-    _assertRemovalForNullableChild<ClassTypeAlias>(
+    _assertRemovalForNullableChild<ClassTypeAlias2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
@@ -483,10 +483,10 @@ class B {
   B.named(int b);
 }
 ''');
-    _assertReplacementForChildren<ConstructorDeclaration>(
+    _assertReplacementForChildren<ConstructorDeclaration2>(
       destination: parseResult.findNode.constructor('A.named'),
       source: parseResult.findNode.constructor('B.named'),
-      childAccessors: [(node) => node.body, (node) => node.parameters],
+      childAccessors: [(node) => node.body, (node) => node.formalParameters],
     );
     _assertAnnotatedNode(parseResult.findNode.constructor('A.named'));
   }
@@ -501,7 +501,7 @@ class B {
   factory B() = R;
 }
 ''');
-    _assertReplacementForChildren<ConstructorDeclaration>(
+    _assertReplacementForChildren<ConstructorDeclaration2>(
       destination: parseResult.findNode.constructor('factory A'),
       source: parseResult.findNode.constructor('factory B'),
       childAccessors: [(node) => node.factoryRedirectionTarget!],
@@ -656,7 +656,7 @@ enum E {
 enum E1<T> with M1 implements I1 {one, two}
 enum E2<U> with M2 implements I2 {one, two}
 ''');
-    _assertReplacementForChildren<EnumDeclaration>(
+    _assertReplacementForChildren<EnumDeclaration2>(
       destination: parseResult.findNode.enumDeclaration('enum E1'),
       source: parseResult.findNode.enumDeclaration('enum E2'),
       childAccessors: [
@@ -739,7 +739,7 @@ extension F<U> on double {}
 ''');
     var destination = parseResult.findNode.extensionDeclaration('E<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<ExtensionDeclaration>(
+    _assertReplacementForChildren<ExtensionDeclaration2>(
       destination: destination,
       source: parseResult.findNode.extensionDeclaration('F<U>'),
       childAccessors: [
@@ -747,7 +747,7 @@ extension F<U> on double {}
         (node) => node.typeParameters!,
       ],
     );
-    _assertRemovalForNullableChild<ExtensionDeclaration>(
+    _assertRemovalForNullableChild<ExtensionDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
@@ -1351,7 +1351,7 @@ mixin B<U> on B0 implements J {
 ''');
     var destination = parseResult.findNode.mixinDeclaration('A<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<MixinDeclaration>(
+    _assertReplacementForChildren<MixinDeclaration2>(
       destination: destination,
       source: parseResult.findNode.mixinDeclaration('B<U>'),
       childAccessors: [
@@ -1361,7 +1361,7 @@ mixin B<U> on B0 implements J {
         (node) => node.body,
       ],
     );
-    _assertRemovalForNullableChild<MixinDeclaration>(
+    _assertRemovalForNullableChild<MixinDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );

@@ -20,11 +20,21 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression get singleBinaryExpression => _single();
 
+  ClassTypeAlias get singleClassTypeAlias => _single();
+
+  ConstructorDeclaration get singleConstructorDeclaration => _single();
+
   ConstructorName get singleConstructorName => _single();
 
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
+
+  EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
+
+  EnumDeclaration get singleEnumDeclaration => _single();
+
+  ExtensionDeclaration get singleExtensionDeclaration => _single();
 
   FieldDeclaration get singleFieldDeclaration => _single();
 
@@ -47,7 +57,11 @@ class FindNode extends _FindNodeBase {
 
   MethodInvocation get singleMethodInvocation => _single();
 
+  MixinDeclaration get singleMixinDeclaration => _single();
+
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
+
+  PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
   PropertyAccess get singlePropertyAccess => _single();
 
@@ -73,6 +87,18 @@ class FindNode extends _FindNodeBase {
     return _node(search, (node) => node is BinaryExpression);
   }
 
+  ClassTypeAlias classTypeAlias(String search) {
+    return _node(search, (n) => n is ClassTypeAlias);
+  }
+
+  ConstructorDeclaration constructor(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration);
+  }
+
+  ConstructorDeclaration constructorDeclaration(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration);
+  }
+
   ConstructorName constructorName(String search) {
     return _node(search, (n) => n is ConstructorName);
   }
@@ -87,6 +113,18 @@ class FindNode extends _FindNodeBase {
 
   DotShorthandPropertyAccess dotShorthandPropertyAccess(String search) {
     return _node(search, (n) => n is DotShorthandPropertyAccess);
+  }
+
+  EnumConstantDeclaration enumConstantDeclaration(String search) {
+    return _node(search, (n) => n is EnumConstantDeclaration);
+  }
+
+  EnumDeclaration enumDeclaration(String search) {
+    return _node(search, (n) => n is EnumDeclaration);
+  }
+
+  ExtensionDeclaration extensionDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionDeclaration);
   }
 
   ExtensionOverride extensionOverride(String search) {
@@ -131,6 +169,14 @@ class FindNode extends _FindNodeBase {
 
   MethodInvocation methodInvocation(String search) {
     return _node(search, (n) => n is MethodInvocation);
+  }
+
+  MixinDeclaration mixin(String search) {
+    return _node(search, (n) => n is MixinDeclaration);
+  }
+
+  MixinDeclaration mixinDeclaration(String search) {
+    return _node(search, (n) => n is MixinDeclaration);
   }
 
   PostfixExpression postfixExpression(String search) {
@@ -226,11 +272,15 @@ class FindNode2 extends _FindNodeBase {
   AnnotatedNode get singleClassMember {
     return [
       for (var body in _nodes<ClassBody>()) ...body.members2,
-      for (var body in _nodes<EnumBody>()) ...body.members2,
+      for (var body in _nodes<InstanceDeclarationBody>()) ...body.members,
     ].single;
   }
 
+  ClassTypeAlias2 get singleClassTypeAlias => _single();
+
   CompoundAssignment get singleCompoundAssignment => _single();
+
+  ConstructorDeclaration2 get singleConstructorDeclaration => _single();
 
   ConstructorInvocation get singleConstructorInvocation => _single();
 
@@ -244,6 +294,12 @@ class FindNode2 extends _FindNodeBase {
       _single();
 
   DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
+
+  EnumConstantDeclaration2 get singleEnumConstantDeclaration => _single();
+
+  EnumDeclaration2 get singleEnumDeclaration => _single();
+
+  ExtensionDeclaration2 get singleExtensionDeclaration => _single();
 
   Field2 get singleField => _single();
 
@@ -287,9 +343,13 @@ class FindNode2 extends _FindNodeBase {
 
   MethodDeclaration2 get singleMethodDeclaration => _single();
 
+  MixinDeclaration2 get singleMixinDeclaration => _single();
+
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
   OperatorDeclaration get singleOperatorDeclaration => _single();
+
+  PrimaryConstructorBody2 get singlePrimaryConstructorBody => _single();
 
   ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
 
@@ -324,8 +384,20 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is CallInvocation);
   }
 
+  ClassTypeAlias2 classTypeAlias(String search) {
+    return _node(search, (n) => n is ClassTypeAlias2);
+  }
+
   CompoundAssignment compoundAssignment(String search) {
     return _node(search, (node) => node is CompoundAssignment);
+  }
+
+  ConstructorDeclaration2 constructor(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration2);
+  }
+
+  ConstructorDeclaration2 constructorDeclaration(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration2);
   }
 
   ConstructorInvocation constructorInvocation(String search) {
@@ -346,6 +418,18 @@ class FindNode2 extends _FindNodeBase {
 
   DotShorthandNameExpression dotShorthandNameExpression(String search) {
     return _node(search, (node) => node is DotShorthandNameExpression);
+  }
+
+  EnumConstantDeclaration2 enumConstantDeclaration(String search) {
+    return _node(search, (n) => n is EnumConstantDeclaration2);
+  }
+
+  EnumDeclaration2 enumDeclaration(String search) {
+    return _node(search, (n) => n is EnumDeclaration2);
+  }
+
+  ExtensionDeclaration2 extensionDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionDeclaration2);
   }
 
   ExtensionOverride2 extensionOverride2(String search) {
@@ -434,6 +518,14 @@ class FindNode2 extends _FindNodeBase {
 
   MethodDeclaration2 methodDeclaration(String search) {
     return _node(search, (n) => n is MethodDeclaration2);
+  }
+
+  MixinDeclaration2 mixin(String search) {
+    return _node(search, (n) => n is MixinDeclaration2);
+  }
+
+  MixinDeclaration2 mixinDeclaration(String search) {
+    return _node(search, (n) => n is MixinDeclaration2);
   }
 
   NullAssertionExpression nullAssertion(String search) {
@@ -600,8 +692,6 @@ abstract class _FindNodeBase {
 
   ClassDeclaration get singleClassDeclaration => _single();
 
-  ClassTypeAlias get singleClassTypeAlias => _single();
-
   Comment get singleComment => _single();
 
   CommentReference get singleCommentReference => _single();
@@ -611,8 +701,6 @@ abstract class _FindNodeBase {
   Configuration get singleConfiguration => _single();
 
   ConstantPattern get singleConstantPattern => _single();
-
-  ConstructorDeclaration get singleConstructorDeclaration => _single();
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
@@ -634,10 +722,6 @@ abstract class _FindNodeBase {
 
   EmptyStatement get singleEmptyStatement => _single();
 
-  EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
-
-  EnumDeclaration get singleEnumDeclaration => _single();
-
   ExportDirective get singleExportDirective => _single();
 
   ExpressionFunctionBody get singleExpressionFunctionBody => _single();
@@ -645,8 +729,6 @@ abstract class _FindNodeBase {
   ExpressionStatement get singleExpressionStatement => _single();
 
   ExtendsClause get singleExtendsClause => _single();
-
-  ExtensionDeclaration get singleExtensionDeclaration => _single();
 
   ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
@@ -724,8 +806,6 @@ abstract class _FindNodeBase {
 
   MapPatternEntry get singleMapPatternEntry => _single();
 
-  MixinDeclaration get singleMixinDeclaration => _single();
-
   MixinOnClause get singleMixinOnClause => _single();
 
   NamedArgument get singleNamedArgument => _single();
@@ -764,8 +844,6 @@ abstract class _FindNodeBase {
 
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
-
-  PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
   PrimaryConstructorDeclaration get singlePrimaryConstructorDeclaration =>
       _single();
@@ -943,10 +1021,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is ClassDeclaration);
   }
 
-  ClassTypeAlias classTypeAlias(String search) {
-    return _node(search, (n) => n is ClassTypeAlias);
-  }
-
   CollectionElement collectionElement(String search) {
     return _node(search, (n) => n is CollectionElement);
   }
@@ -969,14 +1043,6 @@ abstract class _FindNodeBase {
 
   ConstantPattern constantPattern(String search) {
     return _node(search, (n) => n is ConstantPattern);
-  }
-
-  ConstructorDeclaration constructor(String search) {
-    return _node(search, (n) => n is ConstructorDeclaration);
-  }
-
-  ConstructorDeclaration constructorDeclaration(String search) {
-    return _node(search, (n) => n is ConstructorDeclaration);
   }
 
   ConstructorFieldInitializer constructorFieldInitializer(String search) {
@@ -1025,14 +1091,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is EmptyStatement);
   }
 
-  EnumConstantDeclaration enumConstantDeclaration(String search) {
-    return _node(search, (n) => n is EnumConstantDeclaration);
-  }
-
-  EnumDeclaration enumDeclaration(String search) {
-    return _node(search, (n) => n is EnumDeclaration);
-  }
-
   ExportDirective export(String search) {
     return _node(search, (n) => n is ExportDirective);
   }
@@ -1051,10 +1109,6 @@ abstract class _FindNodeBase {
 
   ExtendsClause extendsClause(String search) {
     return _node(search, (n) => n is ExtendsClause);
-  }
-
-  ExtensionDeclaration extensionDeclaration(String search) {
-    return _node(search, (n) => n is ExtensionDeclaration);
   }
 
   ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
@@ -1228,14 +1282,6 @@ abstract class _FindNodeBase {
 
   MapPatternEntry mapPatternEntry(String search) {
     return _node(search, (n) => n is MapPatternEntry);
-  }
-
-  MixinDeclaration mixin(String search) {
-    return _node(search, (n) => n is MixinDeclaration);
-  }
-
-  MixinDeclaration mixinDeclaration(String search) {
-    return _node(search, (n) => n is MixinDeclaration);
   }
 
   NamedArgument namedArgument(String search) {

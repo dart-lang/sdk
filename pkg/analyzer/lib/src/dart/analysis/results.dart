@@ -77,15 +77,15 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
-      } else if (node is ClassTypeAlias) {
+      } else if (node is ClassTypeAlias2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is EnumDeclaration) {
+      } else if (node is EnumDeclaration2) {
         if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
-      } else if (node is MixinDeclaration) {
+      } else if (node is MixinDeclaration2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -96,8 +96,8 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
       }
     } else if (fragment is ConstructorFragment) {
       var token = switch (node) {
-        ConstructorDeclaration() =>
-          node.name ?? node.typeName2 ?? node.newKeyword ?? node.factoryKeyword,
+        ConstructorDeclaration2() =>
+          node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
         PrimaryConstructorDeclaration() =>
           node.constructorName?.name ?? node.typeName,
         _ => null,
@@ -106,13 +106,13 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         result = node;
       }
     } else if (fragment is ExtensionFragment) {
-      if (node is ExtensionDeclaration) {
+      if (node is ExtensionDeclaration2) {
         if (_hasOffset(node.name ?? node.extensionKeyword)) {
           result = node;
         }
       }
     } else if (fragment is FieldFragment) {
-      if (node is EnumConstantDeclaration) {
+      if (node is EnumConstantDeclaration2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -348,6 +348,24 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is EnumConstantDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ClassTypeAlias2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is EnumDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ExtensionDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MixinDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
     }
 
     return ElementDeclarationResultImpl(
@@ -513,6 +531,24 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is EnumConstantDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ClassTypeAlias2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is EnumDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ExtensionDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is MixinDeclaration2Impl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     }

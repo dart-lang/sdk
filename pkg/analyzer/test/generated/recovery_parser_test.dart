@@ -1036,6 +1036,27 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    ClassTypeAlias2
+      classKeyword: class
+      name: B
+      equals: =
+      superclass: NamedType
+        name: Object
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: A
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     ClassTypeAlias
       typedefKeyword: class
       name: B

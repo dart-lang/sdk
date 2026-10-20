@@ -103,6 +103,43 @@ class B = A with M;
     expect(node.name.lexeme, 'B');
   }
 
+  test_classTypeAlias_v2() async {
+    var unitResult = await resolveTestCode(r'''
+mixin M {}
+class A {}
+class B = A with M;
+''');
+    var fragment = unitResult.findElement.class_('B').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ClassTypeAlias2
+  classKeyword: class
+  name: B
+  equals: =
+  superclass: NamedType
+    name: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ClassTypeAlias
+  typedefKeyword: class
+  name: B
+  equals: =
+  superclass: NamedType
+    name: A
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  semicolon: ;
+''');
+  }
+
   test_constructor() async {
     var unitResult = await resolveTestCode(r'''
 class A {
@@ -193,6 +230,46 @@ class A {}
     expect(result, isNull);
   }
 
+  test_constructor_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class A {
+  A.named(int a);
+}
+''');
+    var fragment = unitResult.findElement.constructor('named').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ConstructorDeclaration2
+  typeName: A
+  period: .
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+      name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_enum() async {
     var unitResult = await resolveTestCode(r'''
 enum MyEnum {a, b, c}
@@ -213,6 +290,65 @@ enum MyEnum {a, b, c}
     expect(node.name.lexeme, 'a');
   }
 
+  test_enum_v2() async {
+    var unitResult = await resolveTestCode(r'''
+enum E {
+  v;
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.enum_('E').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    membersSeparator: ;
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    semicolon: ;
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
   test_extension() async {
     var unitResult = await resolveTestCode(r'''
 extension E on int {}
@@ -221,6 +357,62 @@ extension E on int {}
     var result = await getFragmentDeclaration(fragment);
     var node = result!.node as ExtensionDeclaration;
     expect(node.name!.lexeme, 'E');
+  }
+
+  test_extension_v2() async {
+    var unitResult = await resolveTestCode(r'''
+extension E on int {
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.extension_('E').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
   }
 
   test_field() async {
@@ -511,6 +703,64 @@ mixin M {}
     var result = await getFragmentDeclaration(fragment);
     var node = result!.node as MixinDeclaration;
     expect(node.name.lexeme, 'M');
+  }
+
+  test_mixin_v2() async {
+    var unitResult = await resolveTestCode(r'''
+mixin M on Object {
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.mixin('M').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  onClause: MixinOnClause
+    onKeyword: on
+    superclassConstraints
+      NamedType
+        name: Object
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  onClause: MixinOnClause
+    onKeyword: on
+    superclassConstraints
+      NamedType
+        name: Object
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
   }
 
   test_operator() async {

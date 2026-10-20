@@ -562,8 +562,8 @@ class C extends B {
     var parseResult = parseTestCodeWithDiagnostics(input);
     var class_ = parseResult.unit.declarations2[0] as ClassDeclaration;
     var body = class_.body as BlockClassBody;
-    var constructor = body.members2[0] as ConstructorDeclaration;
-    var parameter = constructor.parameters.allFormalParameters[0];
+    var constructor = body.members2[0] as ConstructorDeclaration2;
+    var parameter = constructor.formalParameters.allFormalParameters[0];
     expect(parameter.isExplicitlyTyped, expected);
   }
 }

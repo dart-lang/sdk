@@ -690,10 +690,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    _addSubtypeForClassTypeAlis(node);
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _addSubtypeForClassTypeAlias(node);
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
-    super.visitClassTypeAlias(node);
+    super.visitClassTypeAlias2(node);
   }
 
   @override
@@ -762,10 +762,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  visitConstructorDeclaration2(covariant ConstructorDeclaration2Impl node) {
     // TODO(fshcheglov): Consider removing the index entry.
     var element = node.declaredFragment!.element;
-    if (node.typeName2 case var typeName?
+    if (node.typeName case var typeName?
         when typeName.lexeme == element.enclosingElement.name) {
       recordRelation(
         element.enclosingElement,
@@ -791,7 +791,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -811,7 +811,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
 
     var kind = switch (node.parent2) {
       ConstructorInvocation() => IndexRelationKind.IS_INVOKED_BY,
-      ConstructorDeclaration() => IndexRelationKind.IS_REFERENCED_BY,
+      ConstructorDeclaration2() => IndexRelationKind.IS_REFERENCED_BY,
       _ => throw StateError('Unexpected ConstructorReference2 parent'),
     };
 
@@ -912,7 +912,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var constructorElement = node.constructorElement;
     if (constructorElement != null) {
       int offset;
@@ -936,19 +936,19 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       );
     }
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _addSubtype(
       node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members2,
+      memberNodes: node.body.members,
     );
 
-    super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration2(node);
   }
 
   @override
@@ -1123,9 +1123,9 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     _addSubtypeForMixinDeclaration(node);
-    super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration2(node);
   }
 
   @override
@@ -1405,7 +1405,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
+  void _addSubtypeForClassTypeAlias(ClassTypeAlias2 node) {
     _addSubtype(
       node.name.lexeme,
       superclass: node.superclass,
@@ -1416,12 +1416,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given mixin as a subclass of its direct superclasses.
-  void _addSubtypeForMixinDeclaration(MixinDeclarationImpl node) {
+  void _addSubtypeForMixinDeclaration(MixinDeclaration2Impl node) {
     _addSubtype(
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members2,
+      memberNodes: node.body.members,
     );
   }
 

@@ -704,7 +704,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       }
       diagnosticReporter.report(
         locatableDiagnostic.atSourceRange(switch (errorNode) {
-          ConstructorDeclaration() => errorNode.errorRange,
+          ConstructorDeclaration2() => errorNode.errorRange,
           BlockFunctionBody() => errorNode.block.leftBracket.sourceRange,
           _ => errorNode.sourceRange,
         }),
@@ -1453,17 +1453,17 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (parent is CompilationUnit) {
       return node is ClassDeclaration ||
           node is Directive ||
-          node is EnumDeclaration ||
-          node is ExtensionDeclaration ||
+          node is EnumDeclaration2 ||
+          node is ExtensionDeclaration2 ||
           node is ExtensionTypeDeclaration ||
-          node is MixinDeclaration ||
+          node is MixinDeclaration2 ||
           node is TopLevelFunctionDeclaration ||
           node is TopLevelGetterDeclaration ||
           node is TopLevelSetterDeclaration ||
           node is TopLevelVariablesDeclaration;
     }
 
-    if (parent is ClassBody || parent is EnumBody) {
+    if (parent is ClassBody || parent is InstanceDeclarationBody) {
       parent = parent!.parent2;
     }
 
@@ -1471,10 +1471,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     // instance element before visiting their members.
     InstanceElementImpl? enclosingElement = switch (parent) {
       ClassDeclarationImpl() => parent.declaredFragment!.element,
-      EnumDeclarationImpl() => parent.declaredFragment!.element,
-      ExtensionDeclarationImpl() => parent.declaredFragment!.element,
+      EnumDeclaration2Impl() => parent.declaredFragment!.element,
+      ExtensionDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
-      MixinDeclarationImpl() => parent.declaredFragment!.element,
+      MixinDeclaration2Impl() => parent.declaredFragment!.element,
       _ => null,
     };
     if (enclosingElement == null) {
@@ -2247,7 +2247,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitBlockEnumBody(BlockEnumBody node) {
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.visitChildren2(this);
   }
 
@@ -2269,6 +2269,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     } finally {
       _bodyContext = oldBodyContext;
     }
+  }
+
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    node.visitChildren2(this);
   }
 
   @override
@@ -2491,13 +2496,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
 
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitClassTypeAlias(node);
+    elementResolver.visitClassTypeAlias2(node);
     baseOrFinalTypeVerifier.checkElement(
       element: declaredElement,
       nameToken: node.name,
@@ -2632,7 +2637,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var returnType = element.type.returnType;
@@ -2646,7 +2653,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         // Enter flow analysis at the formal parameter list, because the
         // parameters are visited before the initializers and the body, and
         // their default values may contain expressions.
-        var enterOffset = node.parameters.offset;
+        var enterOffset = node.formalParameters.offset;
         flowAnalysis.flowAnalysisRoot_enter(
           node,
           element.formalParameters,
@@ -2663,7 +2670,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         // any expressions in their default values are analyzed as part of this
         // declaration's flow analysis. (Otherwise `visitFormalParameterList`
         // would have to establish a flow analysis region of its own.)
-        node.parameters.accept2(this);
+        node.formalParameters.accept2(this);
 
         node.initializers.accept2(this);
         node.factoryRedirectionTarget?.accept2(this);
@@ -2681,7 +2688,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
             returnType is DynamicType ? null : returnType,
           ),
         );
-        elementResolver.visitConstructorDeclaration(node);
+        elementResolver.visitConstructorDeclaration2(node);
 
         if (node.factoryKeyword != null) {
           checkForBodyMayCompleteNormally(body: node.body, errorNode: node);
@@ -2889,9 +2896,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
   TypeImpl visitEmptyFunctionBody(
     EmptyFunctionBody node, {
     TypeImpl? imposedType,
@@ -2915,8 +2919,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
+  void visitEnumConstantDeclaration2(
+    covariant EnumConstantDeclaration2Impl node,
   ) {
     node.documentationComment?.accept2(this);
     node.metadata.accept2(this);
@@ -3012,18 +3016,18 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       );
     }
 
-    elementResolver.visitEnumConstantDeclaration(node);
+    elementResolver.visitEnumConstantDeclaration2(node);
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     //
     // Continue the enum resolution.
     //
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitEnumDeclaration(node);
+      elementResolver.visitEnumDeclaration2(node);
     });
   }
 
@@ -3082,11 +3086,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitExtensionDeclaration(node);
+      elementResolver.visitExtensionDeclaration2(node);
     });
   }
 
@@ -3729,7 +3733,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
 
@@ -3739,7 +3743,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitMixinDeclaration(node);
+      elementResolver.visitMixinDeclaration2(node);
     });
 
     baseOrFinalTypeVerifier.checkElement(
@@ -4048,7 +4052,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var primaryConstructorDeclaration = node.declaration;
     if (primaryConstructorDeclaration == null) {
       diagnosticReporter.report(
@@ -4372,6 +4378,14 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
+
+  @override
   void visitSetOrMapLiteral(
     SetOrMapLiteral node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4486,7 +4500,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     // recovery type must not be used to authorize superclass dispatch.
     node.legacyStaticType =
         !isThisAccessible ||
-            node.thisOrAncestorOfType2<ExtensionDeclaration>() != null
+            node.thisOrAncestorOfType2<ExtensionDeclaration2>() != null
         ? InvalidTypeImpl.instance
         : unpromotedThisType ?? InvalidTypeImpl.instance;
   }
@@ -6061,11 +6075,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       }
     } else if (nameNode is EnumConstantArguments) {
       var parent = nameNode.parent2;
-      if (parent is EnumConstantDeclaration) {
+      if (parent is EnumConstantDeclaration2) {
         var declaredElement = parent.declaredFragment!.element;
         name = declaredElement.type.getDisplayString();
       }
-    } else if (nameNode is EnumConstantDeclaration) {
+    } else if (nameNode is EnumConstantDeclaration2) {
       var declaredElement = nameNode.declaredFragment!.element;
       name = declaredElement.type.getDisplayString();
     } else if (nameNode is DotShorthandConstructorInvocation2) {

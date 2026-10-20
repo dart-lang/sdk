@@ -128,14 +128,14 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -714,14 +714,14 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -963,10 +963,10 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1276,14 +1276,14 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -1875,14 +1875,14 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -2164,10 +2164,10 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

@@ -65,6 +65,12 @@ remove them.
 
 ### Libraries
 
+#### `dart:core`
+
+- Added `double.maxSafeInteger` (`9007199254740991`, `2^53 - 1`) and
+  `double.minSafeInteger` (`-9007199254740991`, `-(2^53 - 1)`).
+  For more details, see SDK issue [#64491][].
+
 #### `dart:math`
 
 - Added `imul32(int a, int b)` for 32-bit signed wrapping multiplication.

@@ -30,7 +30,11 @@ mixin EditableArgumentsMixin {
   String? getDocumentation(ResolvedUnitResult result, Element element) {
     var dartDocInfo = getDartdocDirectiveInfoFor(result);
     var dartDocComputer = DartDocumentationComputer(dartDocInfo);
-    var dartDoc = dartDocComputer.compute(element);
+    var dartDoc = dartDocComputer.compute(
+      element,
+      includeFull: true,
+      includeSummary: false,
+    );
 
     return dartDoc?.full;
   }

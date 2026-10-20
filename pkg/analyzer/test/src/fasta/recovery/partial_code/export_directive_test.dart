@@ -97,6 +97,17 @@ CompilationUnit
         literal: ''
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -356,6 +367,13 @@ CompilationUnit
         literal: ''
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -647,6 +665,17 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -982,6 +1011,13 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -1329,6 +1365,17 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1696,6 +1743,13 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -2053,6 +2107,17 @@ CompilationUnit
               token: B
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2416,6 +2481,13 @@ CompilationUnit
               token: B
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -2753,6 +2825,17 @@ CompilationUnit
               token: A
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3084,6 +3167,13 @@ CompilationUnit
               token: A
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -3438,6 +3528,17 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3847,6 +3948,13 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -4188,6 +4296,17 @@ CompilationUnit
         literal: "" <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -4455,6 +4574,13 @@ CompilationUnit
         literal: "" <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -4750,6 +4876,17 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -5085,6 +5222,13 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -5432,6 +5576,17 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -5799,6 +5954,13 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -6156,6 +6318,17 @@ CompilationUnit
               token: B
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -6519,6 +6692,13 @@ CompilationUnit
               token: B
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -6889,6 +7069,17 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -7298,6 +7489,13 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -7663,6 +7861,17 @@ CompilationUnit
               token: A
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -7994,6 +8203,13 @@ CompilationUnit
               token: A
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -8288,6 +8504,17 @@ CompilationUnit
         literal: 'a.dart'
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -8547,6 +8774,13 @@ CompilationUnit
         literal: 'a.dart'
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M

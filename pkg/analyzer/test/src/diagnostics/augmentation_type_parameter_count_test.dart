@@ -455,7 +455,24 @@ augment enum A<T> {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@26
+            defaultType: null
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@24
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -484,7 +501,16 @@ augment enum A {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@27
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -503,7 +529,24 @@ augment enum A <T>{}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@30
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@27
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -532,7 +575,28 @@ augment enum A<T, U> {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@29
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@32
+            defaultType: null
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@27
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -565,7 +629,24 @@ augment enum A<T> {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@32
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@30
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -594,7 +675,23 @@ augment extension A<T> {}
 ''');
     var node = result.findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@42
+          defaultType: null
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@40
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: A
@@ -622,7 +719,15 @@ augment extension A {}
 ''');
     var node = result.findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@43
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: A
@@ -640,7 +745,23 @@ augment extension A<T> {}
 ''');
     var node = result.findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@45
+          defaultType: dynamic
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@43
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: A
@@ -668,7 +789,27 @@ augment extension A<T, U> {}
 ''');
     var node = result.findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@45
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@48
+          defaultType: null
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@43
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: A
@@ -700,7 +841,23 @@ augment extension A<T> {}
 ''');
     var node = result.findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@48
+          defaultType: dynamic
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@46
+V1: ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: A
@@ -730,7 +887,25 @@ augment extension type A<T> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@53
+            defaultType: null
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@51
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -762,7 +937,17 @@ augment extension type A {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@54
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -784,7 +969,25 @@ augment extension type A<T> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@56
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@54
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -816,7 +1019,29 @@ augment extension type A<T, U> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@56
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@59
+            defaultType: null
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@54
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -852,7 +1077,25 @@ augment extension type A<T> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@59
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@57
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -882,7 +1125,23 @@ augment mixin A<T> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@27
+          defaultType: null
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@25
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -910,7 +1169,15 @@ augment mixin A {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -928,7 +1195,23 @@ augment mixin A<T> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@30
+          defaultType: dynamic
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -956,7 +1239,27 @@ augment mixin A<T, U> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@30
+          defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@33
+          defaultType: null
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@28
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
@@ -988,7 +1291,23 @@ augment mixin A<T> {}
 ''');
     var node = result.findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@33
+          defaultType: dynamic
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A

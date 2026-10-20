@@ -52,7 +52,7 @@ class JsInteropVerifier {
     }
 
     for (var member in declaration.body.members2) {
-      if (member is ConstructorDeclaration) {
+      if (member is ConstructorDeclaration2) {
         // Precondition 2: `_isJSInteropMember` returns `false` for any member
         // that is not `external`, so the CFE never reports a non-external
         // constructor.

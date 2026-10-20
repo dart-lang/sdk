@@ -1336,6 +1336,11 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    node.members.accept2(this);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
@@ -1368,7 +1373,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -1402,7 +1407,9 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var fragmentName = _getFragmentName(node.name) ?? 'new';
     var fragment = ConstructorFragmentImpl(name: fragmentName);
     fragment.isOriginDeclaration = true;
@@ -1415,7 +1422,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         node.initializers.any((e) => e is RedirectingConstructorInvocation);
     fragment.isComplete = node.isComplete;
     fragment.metadata = _buildMetadata(node.metadata);
-    fragment.typeName = node.typeName2?.lexeme;
+    fragment.typeName = node.typeName?.lexeme;
 
     if (_enclosingContext.fragment is EnumFragmentImpl &&
         fragment.isGenerative &&
@@ -1436,7 +1443,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     _buildExecutableElementChildren(
       fragment: fragment,
-      formalParameters: node.parameters,
+      formalParameters: node.formalParameters,
     );
   }
 
@@ -1444,7 +1451,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -1586,7 +1593,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       );
 
       node.namePart.accept2(this);
-      for (var member in node.body.members2) {
+      for (var member in node.body.members) {
         member.accept2(this);
       }
     });
@@ -1608,7 +1615,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -1624,7 +1631,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept2(this);
-      for (var member in node.body.members2) {
+      for (var member in node.body.members) {
         member.accept2(this);
       }
     });
@@ -1865,7 +1872,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -1925,7 +1932,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   void visitPartOfDirective(PartOfDirective node) {}
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     // We copy initializers in [visitPrimaryConstructorDeclaration].
   }
 
@@ -1948,7 +1955,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     fragment.isAugmentation = isAugmentation;
     fragment.isOriginDeclaration = true;
     fragment.isConst =
-        node.constKeyword != null || parent is EnumDeclarationImpl;
+        node.constKeyword != null || parent is EnumDeclaration2Impl;
     fragment.isPrimary = true;
     fragment.isComplete = node.isComplete;
     fragment.typeName = node.typeName.lexeme;
@@ -1958,7 +1965,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     _addChildFragment(fragment);
 
-    if (node.body case var body?) {
+    if (node.body2 case var body?) {
       fragment.metadata = _buildMetadata(body.metadata);
       if (fragment.isConst) {
         fragment.constantInitializers = body.initializers;
@@ -2100,6 +2107,11 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     node.type?.accept2(this);
   }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
 
   @override
   void visitSetterDeclaration(covariant SetterDeclarationImpl node) {

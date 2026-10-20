@@ -628,7 +628,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -658,7 +658,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       );
       _checkForWrongTypeParameterVarianceInSuperinterfaces(element);
     });
-    super.visitClassTypeAlias(node);
+    super.visitClassTypeAlias2(node);
   }
 
   @override
@@ -731,10 +731,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
-    var typeName = node.typeName2;
+    var typeName = node.typeName;
 
     if (node.factoryKeyword != null &&
         typeName != null &&
@@ -746,7 +748,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _checkForConstructorAugmentationModifierMismatch(node, declaredFragment);
     _checkForAugmentationFormalParameters(
       executableFragment: declaredFragment,
-      formalParameterList: node.parameters,
+      formalParameterList: node.formalParameters,
     );
 
     if (declaredFragment.isAugmentation && declaredFragment.isComplete) {
@@ -979,8 +981,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
+  void visitEnumConstantDeclaration2(
+    covariant EnumConstantDeclaration2Impl node,
   ) {
     var declaredFragment = node.declaredFragment!;
 
@@ -989,7 +991,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       fragment: declaredFragment,
       errorToken: node.name,
     );
-    _requiredParametersVerifier.visitEnumConstantDeclaration(node);
+    _requiredParametersVerifier.visitEnumConstantDeclaration2(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     node.visitChildrenWithHooks(
       this,
@@ -1001,7 +1003,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -1042,7 +1044,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       }
 
-      var members = node.body.members2;
+      var members = node.body.members;
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
         element,
@@ -1061,7 +1063,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         diagnosticSource: _currentUnit.source,
       ).checkStaticGetters(element.getters);
 
-      super.visitEnumDeclaration(node);
+      super.visitEnumDeclaration2(node);
     });
   }
 
@@ -1079,14 +1081,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (node.parent2 is! PrimaryConstructorBody) {
+    if (node.parent2 is! PrimaryConstructorBody2) {
       _returnTypeVerifier.verifyExpressionFunctionBody(node);
     }
     super.visitExpressionFunctionBody(node);
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -1110,7 +1112,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingExtensionTypeVariableErrorCodes(element);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members2,
+        node.body.members,
       );
 
       GetterSetterTypesVerifier(
@@ -1126,7 +1128,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           diag.builtInIdentifierAsExtensionName,
         );
       }
-      super.visitExtensionDeclaration(node);
+      super.visitExtensionDeclaration2(node);
     });
   }
 
@@ -1749,7 +1751,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     // TODO(scheglov): Verify for all mixin errors.
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
@@ -1787,12 +1789,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingClassMembers(declaredFragment);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members2,
+        node.body.members,
       );
       _checkForMainFunction1(declaredFragment, node.name);
       _checkForWrongTypeParameterVarianceInSuperinterfaces(element);
       //      _checkForBadFunctionUse(node);
-      super.visitMixinDeclaration(node);
+      super.visitMixinDeclaration2(node);
     });
   }
 
@@ -1862,7 +1864,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var declaredFragment = node.declaration?.declaredFragment;
     if (declaredFragment == null) {
       return;
@@ -1904,12 +1908,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       element,
       () {
         super.visitPrimaryConstructorDeclaration(node);
-        var body = node.body;
+        var body = node.body2;
 
         if (!_checkForConstConstructorWithNonConstSuper(
           element: element,
           factoryKeyword: null,
-          initializers: node.body?.initializers,
+          initializers: node.body2?.initializers,
           implicitErrorRange: node.errorRange,
         )) {
           _checkForConstConstructorWithNonFinalField(
@@ -2155,7 +2159,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
 
     var constructor = node.parentFormalParameterList2.parent2;
-    if (constructor is ConstructorDeclarationImpl &&
+    if (constructor is ConstructorDeclaration2Impl &&
         constructor.isNonRedirectingGenerative) {
       var constructorElement = constructor.declaredFragment!.element;
       if (constructorElement.superConstructor == null) {
@@ -2793,7 +2797,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkEnumConstantSameAsEnclosing(EnumConstantDeclarationImpl node) {
+  void _checkEnumConstantSameAsEnclosing(EnumConstantDeclaration2Impl node) {
     if (node.name.lexeme == _enclosingInstanceElement?.name) {
       diagnosticReporter.report(
         diag.enumConstantSameNameAsEnclosing.at(node.name),
@@ -2935,7 +2939,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   /// Check for errors related to the redirected constructors.
   void _checkForAllRedirectConstructorErrorCodes(
-    ConstructorDeclarationImpl declaration,
+    ConstructorDeclaration2Impl declaration,
   ) {
     var element = declaration.declaredFragment!.element;
 
@@ -4253,7 +4257,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// field initializers, and assert initializers.
   void _checkForConflictingInitializerErrorCodes(
     InterfaceElementImpl enclosingElement,
-    ConstructorDeclaration declaration,
+    ConstructorDeclaration2 declaration,
   ) {
     var element = declaration.declaredFragment!.element;
 
@@ -4356,7 +4360,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// Check that the given primary constructor [body] has a valid combination of
   /// redirecting constructor invocation(s) and super constructor invocation(s).
   void _checkForConflictingPrimaryConstructorInitializers(
-    PrimaryConstructorBodyImpl body,
+    PrimaryConstructorBody2Impl body,
   ) {
     var redirectingConstructorInvocations = body.initializers
         .whereType<RedirectingConstructorInvocationImpl>()
@@ -4579,7 +4583,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForConstructorAugmentationModifierMismatch(
-    ConstructorDeclarationImpl node,
+    ConstructorDeclaration2Impl node,
     ConstructorFragmentImpl declaredFragment,
   ) {
     var element = declaredFragment.element;
@@ -5046,7 +5050,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForEnumInstantiatedToBoundsIsNotWellBounded(
-    EnumDeclaration node,
+    EnumDeclaration2 node,
     EnumElementImpl element,
   ) {
     var valuesFieldType = element.valuesField?.type;
@@ -5065,7 +5069,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForEnumWithNameValues(EnumDeclarationImpl node) {
+  void _checkForEnumWithNameValues(EnumDeclaration2Impl node) {
     if (node.namePart.typeName.lexeme == 'values') {
       diagnosticReporter.report(
         diag.enumWithNameValues.at(node.namePart.typeName),
@@ -5198,7 +5202,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionDeclaresInstanceField(FieldsDeclarationImpl node) {
-    if (node.parent2?.parent2 is! ExtensionDeclaration) {
+    if (node.parent2?.parent2 is! ExtensionDeclaration2) {
       return;
     }
 
@@ -5515,7 +5519,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     return false;
   }
 
-  void _checkForFactoryBodyCompleteness(ConstructorDeclarationImpl node) {
+  void _checkForFactoryBodyCompleteness(ConstructorDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -5556,14 +5560,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkForFieldInitializingFormalRedirectingConstructor(
     FieldFormalParameter parameter,
   ) {
-    // prepare the node that should be a ConstructorDeclaration
+    // prepare the node that should be a ConstructorDeclaration2
     var formalParameterList = parameter.parent2;
     if (formalParameterList is! FormalParameterList) {
       formalParameterList = formalParameterList?.parent2;
     }
     var constructor = formalParameterList?.parent2;
-    // now check whether the node is actually a ConstructorDeclaration
-    if (constructor is ConstructorDeclaration) {
+    // now check whether the node is actually a ConstructorDeclaration2
+    if (constructor is ConstructorDeclaration2) {
       // constructor cannot be a factory
       if (constructor.factoryKeyword != null) {
         diagnosticReporter.report(
@@ -6302,7 +6306,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForMixinAugmentationModifierMismatch(
-    MixinDeclarationImpl node,
+    MixinDeclaration2Impl node,
     MixinFragmentImpl declaredFragment,
   ) {
     var element = declaredFragment.element;
@@ -6332,7 +6336,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// See [diag.mixinClassDeclaresNonTrivialGenerativeConstructor],
   /// [diag.mixinInheritsFromNotObject].
   void _checkForMixinClassErrorCodes(
-    CompilationUnitMember node,
+    FragmentDeclaringNode node,
     List<AnnotatedNode> members,
     NamedType? superclass,
     WithClause? withClause,
@@ -6347,7 +6351,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
       // Check that the class does not have a constructor.
       for (var member in members) {
-        if (member case ConstructorDeclarationImpl constructor) {
+        if (member case ConstructorDeclaration2Impl constructor) {
           if (!constructor.isSynthetic && constructor.isGenerative) {
             if (!constructor.isTrivial) {
               diagnosticReporter.report(
@@ -6371,7 +6375,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                   .withArguments(className: className)
                   .atSourceRange(primaryConstructor.errorRange),
             );
-          } else if (primaryConstructor.body case var body?) {
+          } else if (primaryConstructor.body2 case var body?) {
             if (body.initializers.isNotEmpty) {
               diagnosticReporter.report(
                 diag.mixinClassDeclaresNonTrivialGenerativeConstructor
@@ -6669,7 +6673,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     List<AnnotatedNode> members,
   ) {
     var primaryConstructorBodies = members
-        .whereType<PrimaryConstructorBody>()
+        .whereType<PrimaryConstructorBody2>()
         .toList();
 
     for (var i = 1; i < primaryConstructorBodies.length; i++) {
@@ -6841,7 +6845,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     return false;
   }
 
-  void _checkForNonConstGenerativeEnumConstructor(ConstructorDeclaration node) {
+  void _checkForNonConstGenerativeEnumConstructor(
+    ConstructorDeclaration2 node,
+  ) {
     var element = node.declaredFragment!.element;
 
     if (element.enclosingElement is EnumElement &&
@@ -6957,7 +6963,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   void _checkForNonRedirectingGenerativeConstructorWithPrimary(
     InterfaceElementImpl enclosingElement,
-    ConstructorDeclarationImpl node,
+    ConstructorDeclaration2Impl node,
   ) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
@@ -7104,7 +7110,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     // Primary constructor body is an intention to have a constructor.
     hasGenerativeConstructor |= members
-        .whereType<PrimaryConstructorBodyImpl>()
+        .whereType<PrimaryConstructorBody2Impl>()
         .isNotEmpty;
 
     for (var fieldDeclaration in members.whereType<FieldsDeclaration>()) {
@@ -7229,7 +7235,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   ///
   /// See [diag.recursiveConstructorRedirect].
   void _checkForRecursiveConstructorRedirect(
-    ConstructorDeclaration declaration,
+    ConstructorDeclaration2 declaration,
     ConstructorElementImpl constructorElement,
   ) {
     // we check generative constructor here
@@ -7255,7 +7261,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   ///
   /// See [diag.recursiveFactoryRedirect].
   bool _checkForRecursiveFactoryRedirect(
-    ConstructorDeclaration declaration,
+    ConstructorDeclaration2 declaration,
     ConstructorElementImpl element,
   ) {
     // prepare redirected constructor
@@ -7277,7 +7283,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// Check that the given constructor [declaration] has a valid redirected
   /// constructor.
   void _checkForRedirectingConstructorErrorCodes(
-    ConstructorDeclaration declaration,
+    ConstructorDeclaration2 declaration,
   ) {
     var element = declaration.declaredFragment!.element;
 
@@ -7390,7 +7396,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   ///
   /// See [diag.returnInGenerativeConstructor].
   void _checkForReturnInGenerativeConstructor(
-    ConstructorDeclaration declaration,
+    ConstructorDeclaration2 declaration,
   ) {
     // ignore factory
     if (declaration.factoryKeyword != null) {
@@ -7632,7 +7638,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// [diag.noDefaultSuperConstructorExplicit].
   void _checkForUndefinedConstructorInInitializerImplicitConstructor(
     InterfaceElementImpl enclosingElement,
-    ConstructorDeclaration constructor,
+    ConstructorDeclaration2 constructor,
   ) {
     // Ignore if the constructor is not generative.
     if (constructor.factoryKeyword != null) {
@@ -7647,7 +7653,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     _checkForUndefinedConstructorInInitializerImplicit(
       enclosingElement: enclosingElement,
-      formalParameterList: constructor.parameters,
+      formalParameterList: constructor.formalParameters,
       initializers: constructor.initializers,
       errorRange: constructor.errorRange,
     );
@@ -7784,7 +7790,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         constructor.parent2 is ExtensionTypeDeclaration) {
       return;
     }
-    if (constructor is! ConstructorDeclaration &&
+    if (constructor is! ConstructorDeclaration2 &&
         constructor is! PrimaryConstructorDeclaration) {
       return;
     }
@@ -8314,7 +8320,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void _checkUseOfDefaultValuesInParameters(FormalParameterList node) {
     var defaultValuesAreExpected = () {
       var parent = node.parent2;
-      if (parent is ConstructorDeclarationImpl) {
+      if (parent is ConstructorDeclaration2Impl) {
         var declaredFragment = parent.declaredFragment!;
         var element = declaredFragment.element;
 

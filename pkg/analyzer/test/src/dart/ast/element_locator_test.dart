@@ -104,7 +104,7 @@ class A {
   A.foo();
 }
 ''');
-    var node = result.findNode.constructor('A.foo()');
+    var node = result.findNodeV1.constructor('A.foo()');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::foo
@@ -117,7 +117,7 @@ class A {
   A();
 }
 ''');
-    var node = result.findNode.constructor('A()');
+    var node = result.findNodeV1.constructor('A()');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -227,7 +227,7 @@ enum E {
   one
 }
 ''');
-    var node = result.findNode.enumConstantDeclaration('one');
+    var node = result.findNodeV1.enumConstantDeclaration('one');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@enum::E::@field::one
@@ -249,7 +249,7 @@ dart:core
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension A on int {}
 ''');
-    var node = result.findNode.singleExtensionDeclaration;
+    var node = result.findNodeV1.singleExtensionDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extension::A
@@ -341,7 +341,7 @@ class A {
   A.bar();
 }
 ''');
-    var node = result.findNode.constructor('bar');
+    var node = result.findNodeV1.constructor('bar');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::bar
@@ -354,7 +354,7 @@ class A {
   A();
 }
 ''');
-    var node = result.findNode.constructor('A()').typeName!;
+    var node = result.findNodeV1.constructor('A()').typeName!;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -666,7 +666,7 @@ void main() {
     var result = await resolveTestCodeWithDiagnostics(r'''
 mixin A {}
 ''');
-    var node = result.findNode.singleMixinDeclaration;
+    var node = result.findNodeV1.singleMixinDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@mixin::A
@@ -751,7 +751,7 @@ dart:core::@class::num::@method::+
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A() { this { } }
 ''');
-    var node = result.findNode.singlePrimaryConstructorBody;
+    var node = result.findNodeV1.singlePrimaryConstructorBody;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new

@@ -23,7 +23,20 @@ extension E on int {}
 
     var node = result.findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> E@10
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -48,7 +61,7 @@ extension E on int {
 
     var node = result.findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -57,9 +70,9 @@ ExtensionDeclaration
       name: int
       element: dart:core::@class::int
       type: int
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       FieldsDeclaration
         staticKeyword: static
         type: NamedType
@@ -75,7 +88,20 @@ ExtensionDeclaration
               staticType: int
             declaredFragment: <testLibraryFragment> f@34
         semicolon: ;
-    members(v1)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> E@10
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+  body: BlockClassBody
+    leftBracket: {
+    members
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -107,7 +133,7 @@ extension E on int {
 
     var node = result.findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -116,9 +142,9 @@ ExtensionDeclaration
       name: int
       element: dart:core::@class::int
       type: int
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       GetterDeclaration
         returnType: NamedType
           name: int
@@ -135,7 +161,20 @@ ExtensionDeclaration
         declaredFragment: <testLibraryFragment> g@31
           element: <testLibrary>::@extension::E::@getter::g
             type: int Function()
-    members(v1)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> E@10
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -166,7 +205,7 @@ extension E on int {
 
     var node = result.findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -175,9 +214,9 @@ ExtensionDeclaration
       name: int
       element: dart:core::@class::int
       type: int
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         returnType: NamedType
           name: void
@@ -194,7 +233,20 @@ ExtensionDeclaration
         declaredFragment: <testLibraryFragment> m@28
           element: <testLibrary>::@extension::E::@method::m
             type: void Function()
-    members(v1)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> E@10
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -225,7 +277,7 @@ extension E on int {
 
     var node = result.findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -234,9 +286,9 @@ ExtensionDeclaration
       name: int
       element: dart:core::@class::int
       type: int
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       SetterDeclaration
         setKeyword: set
         name: s
@@ -260,7 +312,20 @@ ExtensionDeclaration
         declaredFragment: <testLibraryFragment> s@27
           element: <testLibrary>::@extension::E::@setter::s
             type: void Function(int)
-    members(v1)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> E@10
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         propertyKeyword: set
         name: s
@@ -295,7 +360,19 @@ extension E on int;
 
     var node = result.findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@10
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -320,7 +397,19 @@ extension E on int;
 
     var node = result.findNode.singleExtensionDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@26
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause

@@ -535,9 +535,19 @@ abstract class RuleVisitorRegistry2 {
 
   void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addBlockEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addBlockInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addBooleanLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -591,7 +601,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addClassTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addClassTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addCombinatorName(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -617,7 +628,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addConstantPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addConstructorDeclaration(
+  @experimental
+  void addConstructorDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -688,20 +700,20 @@ abstract class RuleVisitorRegistry2 {
 
   void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addEnumConstantArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addEnumConstantDeclaration(
+  @experimental
+  void addEnumConstantDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
 
-  void addEnumDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addEnumDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addExportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -714,7 +726,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addExtendsClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addExtensionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addExtensionDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addExtensionOnClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -942,7 +955,8 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addMethodDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addMixinDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addMixinDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addMixinOnClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -1038,7 +1052,8 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addPrimaryConstructorBody(
+  @experimental
+  void addPrimaryConstructorBody2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -1128,6 +1143,18 @@ abstract class RuleVisitorRegistry2 {
   void addReturnStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addScriptTag(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addSemicolonEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addSemicolonInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addSetOrMapLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

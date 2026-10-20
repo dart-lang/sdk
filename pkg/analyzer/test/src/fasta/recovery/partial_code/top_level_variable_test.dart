@@ -99,14 +99,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -328,10 +328,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -608,14 +608,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -880,10 +880,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1180,14 +1180,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -1472,10 +1472,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1794,14 +1794,14 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -2086,10 +2086,10 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2402,14 +2402,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -2694,10 +2694,10 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3026,14 +3026,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -3342,10 +3342,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3688,14 +3688,14 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -4004,10 +4004,10 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4296,6 +4296,17 @@ final enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -4499,6 +4510,13 @@ final mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -4765,14 +4783,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -5037,10 +5055,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5331,14 +5349,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -5623,10 +5641,10 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5924,14 +5942,14 @@ CompilationUnit
         TopLevelVariable
           name: int
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -6183,10 +6201,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -6466,14 +6484,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -6746,10 +6764,10 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -7048,14 +7066,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -7277,10 +7295,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -7557,14 +7575,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -7832,10 +7850,10 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -8781,14 +8799,14 @@ CompilationUnit
           initializer: ParsedUnqualifiedName
             name: b
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         constants
-          EnumConstantDeclaration
+          EnumConstantDeclaration2
             name: v
         rightBracket: }
   declarations(v1)
@@ -9085,10 +9103,10 @@ CompilationUnit
           initializer: ParsedUnqualifiedName
             name: b
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: M
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

@@ -976,6 +976,23 @@ mixin A implements B on C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1006,6 +1023,22 @@ mixin A implements B implements C, D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: C
+          NamedType
+            name: D
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1035,6 +1068,20 @@ mixin A on B on C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: A
@@ -1066,10 +1113,10 @@ mixin UnrelatedMixin on Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: Foo
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1079,7 +1126,7 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    MixinDeclaration
+    MixinDeclaration2
       mixinKeyword: mixin
       name: UnrelatedMixin
       onClause: MixinOnClause
@@ -1087,7 +1134,7 @@ CompilationUnit
         superclassConstraints
           NamedType
             name: Bar
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1131,6 +1178,29 @@ mixin UnrelatedMixin on Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: Foo
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: CurrentlyTypingHere
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: UnrelatedMixin
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: Bar
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: Foo

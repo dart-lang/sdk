@@ -339,7 +339,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitClassTypeAlias(ClassTypeAlias node) {
+  Element? visitClassTypeAlias2(ClassTypeAlias2 node) {
     return node.declaredFragment?.element;
   }
 
@@ -379,7 +379,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       return parent.element;
     } else if (parent is EnumConstantArguments) {
       var parent2 = parent.parent2;
-      if (parent2 is EnumConstantDeclaration) {
+      if (parent2 is EnumConstantDeclaration2) {
         return parent2.constructorElement;
       }
     } else if (parent is RedirectingConstructorInvocation) {
@@ -524,7 +524,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  Element? visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     return node.declaration?.declaredFragment?.element;
   }
 

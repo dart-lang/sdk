@@ -43,7 +43,7 @@ class AstFinder {
   /// Return the declaration of the constructor with the given [constructorName]
   /// in the class with the given [className] in the given compilation [unit].
   /// If constructorName is null, return the default constructor;
-  static ConstructorDeclaration getConstructorInClass(
+  static ConstructorDeclaration2 getConstructorInClass(
     CompilationUnit unit,
     String className,
     String? constructorName,
@@ -51,7 +51,7 @@ class AstFinder {
     ClassDeclaration unitMember = getClass(unit, className);
     var classBody = unitMember.body as BlockClassBody;
     for (var classMember in classBody.members2) {
-      if (classMember is ConstructorDeclaration) {
+      if (classMember is ConstructorDeclaration2) {
         if (classMember.name?.lexeme == constructorName) {
           return classMember;
         }
