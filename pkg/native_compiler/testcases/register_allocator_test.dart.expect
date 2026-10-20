@@ -2096,6 +2096,239 @@ B0 = EntryBlock()
   ParallelMove input(NullConstant(null) -> R0)
   Return(v3)   # RA: (R0)
 
+--- dropdownButtonFormField
+B0 = EntryBlock()
+  v1 = Parameter(items)   # RA: R0 <- ()
+  v2 = Parameter(selectedItemBuilder)   # RA: R1 <- ()
+  Parameter(value)   # RA: R2 <- ()
+  v4 = Parameter(hint)   # RA: R3 <- ()
+  v5 = Parameter(disabledHint)   # RA: R5 <- ()
+  v6 = Parameter(onChanged)   # RA: R6 <- ()
+  v7 = Parameter(onTap)   # RA: R7 <- ()
+  v8 = Parameter(elevation)   # RA: R8 <- ()
+  v9 = Parameter(style)   # RA: R9 <- ()
+  v10 = Parameter(icon)   # RA: R10 <- ()
+  v11 = Parameter(iconDisabledColor)   # RA: R11 <- ()
+  v12 = Parameter(iconEnabledColor)   # RA: R12 <- ()
+  v13 = Parameter(iconSize)   # RA: R13 <- ()
+  v14 = Parameter(isDense)   # RA: R14 <- ()
+  v15 = Parameter(isExpanded)   # RA: R19 <- ()
+  v16 = Parameter(itemHeight)   # RA: R20 <- ()
+  v17 = Parameter(focusColor)   # RA: param[16] <- ()
+  v18 = Parameter(focusNode)   # RA: param[17] <- ()
+  v19 = Parameter(autofocus)   # RA: param[18] <- ()
+  v20 = Parameter(dropdownColor)   # RA: param[19] <- ()
+  Parameter(decoration)   # RA: param[20] <- ()
+  Parameter(autovalidateMode)   # RA: param[21] <- ()
+  v23 = Parameter(menuMaxHeight)   # RA: param[22] <- ()
+  v24 = Parameter(enableFeedback)   # RA: param[23] <- ()
+  v25 = Parameter(alignment)   # RA: param[24] <- ()
+  v26 = Parameter(borderRadius)   # RA: param[25] <- ()
+  v27 = Parameter(padding)   # RA: param[26] <- ()
+  v28 = Parameter(foo)   # RA: param[27] <- ()
+  ParallelMove output(param[27] -> vloc:param[27], param[26] -> vloc:R19, param[25] -> vloc:param[25], param[24] -> vloc:param[24], param[23] -> vloc:param[23], param[22] -> vloc:param[22], param[19] -> vloc:param[19], param[18] -> vloc:param[18], param[17] -> vloc:param[17], param[16] -> vloc:param[16], R20 -> vloc:R12, R19 -> vloc:R0, R14 -> vloc:R11, R13 -> vloc:R10, R12 -> vloc:R9, R11 -> vloc:R8, R10 -> vloc:R7, R9 -> vloc:R6, R8 -> vloc:R5, R7 -> vloc:R4, R6 -> vloc:R3, R5 -> vloc:R2, R3 -> vloc:R1, R1 -> vloc:R13, R0 -> vloc:R14)
+  ParallelMove spill(R14 -> stack[27], R13 -> stack[26], R1 -> stack[14], R2 -> stack[15], R3 -> stack[16], R4 -> stack[17], R5 -> stack[18], R6 -> stack[19], R7 -> stack[20], R8 -> stack[21], R9 -> stack[22], R10 -> stack[23], R11 -> stack[24], R0 -> stack[13], R12 -> stack[25])
+  v29 = AllocateContext()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[14], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[26], stack[27]]}
+  ParallelMove output(R0 -> vloc:R0, stack[27] -> R3)
+  ParallelMove spill(R0 -> stack[28])
+  StoreInstanceField(#context-field:items, v29, v1)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[14], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[26], stack[28]]}
+  ParallelMove output(stack[26] -> R3)
+  StoreInstanceField(#context-field:selectedItemBuilder, v29, v2)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[14], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[14] -> R3)
+  StoreInstanceField(#context-field:hint, v29, v4)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[15] -> R3)
+  StoreInstanceField(#context-field:disabledHint, v29, v5)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[16] -> R3)
+  StoreInstanceField(#context-field:onChanged, v29, v6)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[17] -> R3)
+  StoreInstanceField(#context-field:onTap, v29, v7)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[18] -> R3)
+  StoreInstanceField(#context-field:elevation, v29, v8)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[19] -> R3)
+  StoreInstanceField(#context-field:style, v29, v9)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[20] -> R3)
+  StoreInstanceField(#context-field:icon, v29, v10)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[21], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[21] -> R3)
+  StoreInstanceField(#context-field:iconDisabledColor, v29, v11)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[22], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[22] -> R3)
+  StoreInstanceField(#context-field:iconEnabledColor, v29, v12)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[23], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[23] -> R3)
+  StoreInstanceField(#context-field:iconSize, v29, v13)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[24], stack[25], stack[28]]}
+  ParallelMove output(stack[24] -> R3)
+  StoreInstanceField(#context-field:isDense, v29, v14)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[13], stack[25], stack[28]]}
+  ParallelMove output(stack[13] -> R3)
+  StoreInstanceField(#context-field:isExpanded, v29, v15)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[25], stack[28]]}
+  ParallelMove output(stack[25] -> R3)
+  StoreInstanceField(#context-field:itemHeight, v29, v16)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[16] -> R3)
+  StoreInstanceField(#context-field:focusColor, v29, v17)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[17] -> R3)
+  StoreInstanceField(#context-field:focusNode, v29, v18)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[18] -> R3)
+  StoreInstanceField(#context-field:autofocus, v29, v19)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[19] -> R3)
+  StoreInstanceField(#context-field:dropdownColor, v29, v20)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[22] -> R3)
+  StoreInstanceField(#context-field:menuMaxHeight, v29, v23)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[23] -> R3)
+  StoreInstanceField(#context-field:enableFeedback, v29, v24)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[24] -> R3)
+  StoreInstanceField(#context-field:alignment, v29, v25)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[25] -> R3)
+  StoreInstanceField(#context-field:borderRadius, v29, v26)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[26] -> R3)
+  StoreInstanceField(#context-field:padding, v29, v27)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(param[27] -> R3)
+  StoreInstanceField(#context-field:foo, v29, v28)   # RA: (R0, R3) temps: [R2, R1] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  v80 = AllocateClosure(len:1)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[28]]}
+  ParallelMove output(R0 -> vloc:R2, stack[28] -> R3)
+  StoreInstanceField(#closure-field[0], v80, v29)   # RA: (R2, R3) temps: [R1, R0] SAFEPT{live: [R0, R1, R2], objects: [R2, stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11]]}
+  ParallelMove input(vloc:R2 -> R0)
+  Return(v80)   # RA: (R0)
+
+--- closure FunctionExpression(Null (dynamic field, dynamic state, dynamic effectiveDecoration, bool isEmpty) {
+  foo(builder: dynamic (Object context) {
+    return foo(child: foo(items: items, selectedItemBuilder: selectedItemBuilder, value: state.value, hint: hint, disabledHint: disabledHint, onChanged: onChanged == null ?{dynamic} null : state.didChange, onTap: onTap, elevation: elevation, style: style, icon: icon, iconDisabledColor: iconDisabledColor, iconEnabledColor: iconEnabledColor, iconSize: iconSize, isDense: isDense, isExpanded: isExpanded, itemHeight: itemHeight, focusColor: focusColor, focusNode: focusNode, autofocus: autofocus, dropdownColor: dropdownColor, menuMaxHeight: menuMaxHeight, enableFeedback: enableFeedback, alignment: alignment, borderRadius: borderRadius, inputDecoration: effectiveDecoration.copyWith(errorText: field.errorText), isEmpty: isEmpty, isFocused: foo(context).hasFocus, padding: padding));
+  });
+}) at dropdownButtonFormField
+B0 = EntryBlock()
+  v22 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  v2 = Parameter(field)   # RA: param[1] <- ()
+  v3 = Parameter(state)   # RA: param[2] <- ()
+  v4 = Parameter(effectiveDecoration)   # RA: param[3] <- ()
+  v5 = Parameter(isEmpty)   # RA: param[4] <- ()
+  ParallelMove output(param[4] -> vloc:R4, param[3] -> vloc:R3, param[2] -> vloc:R2, param[1] -> vloc:R1, param[0] -> vloc:R0)
+  v7 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  ParallelMove output(R0 -> stack[0])
+  v8 = AllocateContext()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ParallelMove output(R0 -> vloc:R0, param[1] -> R3)
+  ParallelMove spill(R0 -> stack[1])
+  StoreInstanceField(#context-field:field, v8, v2)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1]]}
+  ParallelMove output(param[2] -> R3)
+  StoreInstanceField(#context-field:state, v8, v3)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1]]}
+  ParallelMove output(param[3] -> R3)
+  StoreInstanceField(#context-field:effectiveDecoration, v8, v4)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1]]}
+  ParallelMove output(param[4] -> R3)
+  StoreInstanceField(#context-field:isEmpty, v8, v5)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[0], stack[1]]}
+  ParallelMove output(stack[0] -> R1)
+  v17 = LoadInstanceField(#context-field:foo, v7)   # RA: R2 <- (R1)
+  ParallelMove output(R2 -> stack[2])
+  v18 = AllocateClosure(len:2)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[2]]}
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
+  StoreInstanceField(#closure-field[0], v18, v7)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[1], stack[2]]}
+  ParallelMove output(stack[1] -> R3)
+  StoreInstanceField(#closure-field[1], v18, v8)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2], objects: [R0, stack[2]]}
+  ParallelMove output(stack[2] -> R1)
+  DynamicCall call(v17, v18)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v22)   # RA: (R0)
+
+--- closure FunctionExpression(dynamic (Object context) {
+  return foo(child: foo(items: items, selectedItemBuilder: selectedItemBuilder, value: state.value, hint: hint, disabledHint: disabledHint, onChanged: onChanged == null ?{dynamic} null : state.didChange, onTap: onTap, elevation: elevation, style: style, icon: icon, iconDisabledColor: iconDisabledColor, iconEnabledColor: iconEnabledColor, iconSize: iconSize, isDense: isDense, isExpanded: isExpanded, itemHeight: itemHeight, focusColor: focusColor, focusNode: focusNode, autofocus: autofocus, dropdownColor: dropdownColor, menuMaxHeight: menuMaxHeight, enableFeedback: enableFeedback, alignment: alignment, borderRadius: borderRadius, inputDecoration: effectiveDecoration.copyWith(errorText: field.errorText), isEmpty: isEmpty, isFocused: foo(context).hasFocus, padding: padding));
+}) at dropdownButtonFormField
+B0 = EntryBlock() dominates:(B19, B22, B18)
+  v16 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  v2 = Parameter(context)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R0, param[0] -> vloc:R1)
+  v4 = LoadInstanceField(#closure-field[0], v1)   # RA: R2 <- (R1)
+  ParallelMove output(R2 -> stack[0])
+  v6 = LoadInstanceField(#closure-field[1], v1)   # RA: R1 <- (R1)
+  ParallelMove output(R1 -> stack[1])
+  v7 = LoadInstanceField(#context-field:foo, v4)   # RA: R3 <- (R2)
+  ParallelMove output(R3 -> stack[2])
+  v8 = LoadInstanceField(#context-field:foo, v4)   # RA: R4 <- (R2)
+  ParallelMove output(R4 -> stack[3])
+  v9 = LoadInstanceField(#context-field:items, v4)   # RA: R5 <- (R2)
+  ParallelMove output(R5 -> stack[4])
+  v10 = LoadInstanceField(#context-field:selectedItemBuilder, v4)   # RA: R6 <- (R2)
+  ParallelMove output(R6 -> stack[5])
+  v11 = LoadInstanceField(#context-field:state, v6)   # RA: R7 <- (R1)
+  v12 = DynamicCall get value(v11)   # RA: R0 <- (R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[2], stack[3], stack[4], stack[5]]}
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  ParallelMove spill(R0 -> stack[6])
+  v13 = LoadInstanceField(#context-field:hint, v4)   # RA: R2 <- (R1)
+  ParallelMove output(R2 -> stack[7])
+  v14 = LoadInstanceField(#context-field:disabledHint, v4)   # RA: R3 <- (R1)
+  ParallelMove output(R3 -> stack[8])
+  v15 = LoadInstanceField(#context-field:onChanged, v4)   # RA: R4 <- (R1)
+  CompareAndBranch ==(v15, v16, true: B18, false: B19)   # RA: (R4, -)
+B18 = TargetBlock() idom:B0
+  ParallelMove input(NullConstant(null) -> R0)
+  Goto(B22)
+B19 = TargetBlock() idom:B0
+  ParallelMove output(stack[1] -> R4)
+  v24 = LoadInstanceField(#context-field:state, v6)   # RA: R5 <- (R4)
+  v25 = DynamicCall get didChange(v24)   # RA: R0 <- (R5) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8]]}
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[9])
+  Goto(B22)
+B22 = JoinBlock(B19, B18) idom:B0
+  v60 = Phi(v25, v16)   # RA: R0 <- (R0, -)
+  ParallelMove output(stack[0] -> R1, R0 -> stack[9])
+  v29 = LoadInstanceField(#context-field:onTap, v4)   # RA: R2 <- (R1)
+  ParallelMove output(R2 -> stack[12])
+  v30 = LoadInstanceField(#context-field:elevation, v4)   # RA: R3 <- (R1)
+  ParallelMove output(R3 -> stack[13])
+  v31 = LoadInstanceField(#context-field:style, v4)   # RA: R4 <- (R1)
+  ParallelMove output(R4 -> stack[14])
+  v32 = LoadInstanceField(#context-field:icon, v4)   # RA: R5 <- (R1)
+  ParallelMove output(R5 -> stack[15])
+  v33 = LoadInstanceField(#context-field:iconDisabledColor, v4)   # RA: R6 <- (R1)
+  ParallelMove output(R6 -> stack[16])
+  v34 = LoadInstanceField(#context-field:iconEnabledColor, v4)   # RA: R7 <- (R1)
+  ParallelMove output(R7 -> stack[17])
+  v35 = LoadInstanceField(#context-field:iconSize, v4)   # RA: R8 <- (R1)
+  ParallelMove output(R8 -> stack[18])
+  v36 = LoadInstanceField(#context-field:isDense, v4)   # RA: R9 <- (R1)
+  ParallelMove output(R9 -> stack[19])
+  v37 = LoadInstanceField(#context-field:isExpanded, v4)   # RA: R10 <- (R1)
+  ParallelMove output(R10 -> stack[20])
+  v38 = LoadInstanceField(#context-field:itemHeight, v4)   # RA: R11 <- (R1)
+  ParallelMove output(R11 -> stack[21])
+  v39 = LoadInstanceField(#context-field:focusColor, v4)   # RA: R12 <- (R1)
+  ParallelMove output(R12 -> stack[22])
+  v40 = LoadInstanceField(#context-field:focusNode, v4)   # RA: R13 <- (R1)
+  ParallelMove output(R13 -> stack[23])
+  v41 = LoadInstanceField(#context-field:autofocus, v4)   # RA: R14 <- (R1)
+  ParallelMove output(R14 -> stack[24])
+  v42 = LoadInstanceField(#context-field:dropdownColor, v4)   # RA: R19 <- (R1)
+  ParallelMove output(R19 -> stack[25])
+  v43 = LoadInstanceField(#context-field:menuMaxHeight, v4)   # RA: R20 <- (R1)
+  ParallelMove output(R20 -> stack[26])
+  v44 = LoadInstanceField(#context-field:enableFeedback, v4)   # RA: R23 <- (R1)
+  ParallelMove output(R23 -> stack[27])
+  v45 = LoadInstanceField(#context-field:alignment, v4)   # RA: R25 <- (R1)
+  ParallelMove output(R25 -> stack[28])
+  v46 = LoadInstanceField(#context-field:borderRadius, v4)   # RA: R0 <- (R1)
+  ParallelMove output(stack[1] -> R0, R0 -> stack[10])
+  v47 = LoadInstanceField(#context-field:effectiveDecoration, v6)   # RA: R1 <- (R0)
+  ParallelMove output(R1 -> stack[11])
+  v48 = LoadInstanceField(#context-field:field, v6)   # RA: R1 <- (R0)
+  v49 = DynamicCall get errorText(v48)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[11], stack[12], stack[13], stack[14], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[26], stack[27], stack[28]]}
+  ParallelMove output(R0 -> vloc:R0, stack[11] -> R1)
+  v50 = DynamicCall copyWith(v47, v49)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[12], stack[13], stack[14], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[26], stack[27], stack[28]]}
+  ParallelMove output(R0 -> vloc:R0, stack[1] -> R1)
+  ParallelMove spill(R0 -> stack[29])
+  v51 = LoadInstanceField(#context-field:isEmpty, v6)   # RA: R1 <- (R1)
+  ParallelMove output(stack[0] -> R2, R1 -> stack[30])
+  v52 = LoadInstanceField(#context-field:foo, v4)   # RA: R3 <- (R2)
+  ParallelMove output(param[1] -> R0)
+  v54 = DynamicCall call(v52, v2)   # RA: R0 <- (R3, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[12], stack[13], stack[14], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[26], stack[27], stack[28], stack[29], stack[30]]}
+  ParallelMove output(R0 -> vloc:R0)
+  v55 = DynamicCall get hasFocus(v54)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[2], stack[3], stack[4], stack[5], stack[6], stack[7], stack[8], stack[9], stack[10], stack[12], stack[13], stack[14], stack[15], stack[16], stack[17], stack[18], stack[19], stack[20], stack[21], stack[22], stack[23], stack[24], stack[25], stack[26], stack[27], stack[28], stack[29], stack[30]]}
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  ParallelMove spill(R0 -> stack[31])
+  v56 = LoadInstanceField(#context-field:padding, v4)   # RA: R1 <- (R1)
+  ParallelMove output(stack[3] -> R2, stack[4] -> R3, stack[5] -> R4, stack[6] -> R5, stack[7] -> R6, stack[8] -> R7, stack[12] -> R9, stack[13] -> R10, stack[14] -> R11, stack[15] -> R12, stack[16] -> R13, stack[17] -> R14, stack[18] -> R19, stack[19] -> R20, stack[20] -> R23, stack[21] -> R25, stack[30] -> R0, stack[9] -> R8)
+  v57 = DynamicCall call(v8, v9, v10, v12, v13, v14, v60, v29, v30, v31, v32, v33, v34, v35, v36, v37, v38, v39, v40, v41, v42, v43, v44, v45, v46, v50, v51, v55, v56)   # RA: R0 <- (R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, stack[22], stack[23], stack[24], stack[25], stack[26], stack[27], stack[28], stack[10], stack[29], R0, stack[31], R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[2]]}
+  ParallelMove output(R0 -> vloc:R0, stack[2] -> R1)
+  v58 = DynamicCall call(v7, v57)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v58)   # RA: (R0)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)
