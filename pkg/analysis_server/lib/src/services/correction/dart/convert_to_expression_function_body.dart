@@ -79,7 +79,11 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     }
 
     var prefix = utils.getNodePrefix(body.parent!);
+    var closureNeedingParentheses = _closureNeedingParentheses(parent);
     await builder.addDartFileEdit(file, (builder) {
+      if (closureNeedingParentheses != null) {
+        builder.addSimpleInsertion(closureNeedingParentheses.offset, '(');
+      }
       builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {
           builder.write('async ');
@@ -119,6 +123,9 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
               ? BeforeCommentWrite.space
               : BeforeCommentWrite.nothing,
         );
+        if (closureNeedingParentheses != null) {
+          builder.write(')');
+        }
         var parent = body.parent;
         if (parent is! FunctionExpression ||
             parent.parent is FunctionDeclaration) {
@@ -126,5 +133,30 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
         }
       });
     });
+  }
+
+  /// Returns [node] if it is a function expression that must be wrapped in
+  /// parentheses once its body becomes an expression body, and `null`
+  /// otherwise.
+  ///
+  /// An expression body extends as far to the right as possible, so if the
+  /// function expression is followed by anything that could continue an
+  /// expression (an argument list, a selector, a cascade section, an operator,
+  /// etc.), then that code would be absorbed into the new body.
+  FunctionExpression? _closureNeedingParentheses(AstNode? node) {
+    if (node is! FunctionExpression || node.parent is FunctionDeclaration) {
+      return null;
+    }
+    return switch (node.endToken.next?.type) {
+      TokenType.COMMA ||
+      TokenType.CLOSE_PAREN ||
+      TokenType.CLOSE_SQUARE_BRACKET ||
+      TokenType.CLOSE_CURLY_BRACKET ||
+      TokenType.SEMICOLON ||
+      TokenType.COLON ||
+      TokenType.EOF ||
+      null => null,
+      _ => node,
+    };
   }
 }
