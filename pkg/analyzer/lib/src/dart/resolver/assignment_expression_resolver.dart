@@ -174,6 +174,7 @@ class AssignmentExpressionResolver {
       node.value,
       whyNotPromoted: whyNotPromoted,
     );
+    _assignmentShared.checkFinalTargetAlreadyAssigned(node.target);
 
     var flow = _typeAnalyzer.flowAnalysis.flow;
     if (flow == null) return;
@@ -345,7 +346,6 @@ class AssignmentExpressionResolver {
         if (resolution case VariableWriteResolutionImpl(:var element)) {
           variableElement = element;
         }
-        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExtensionOverrideAssignmentTargetImpl():
@@ -385,6 +385,7 @@ class AssignmentExpressionResolver {
       valueType,
       whyNotPromoted: whyNotPromoted,
     );
+    _assignmentShared.checkFinalTargetAlreadyAssigned(target);
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
@@ -477,6 +478,7 @@ class AssignmentExpressionResolver {
       valueType,
       whyNotPromoted: whyNotPromoted,
     );
+    _assignmentShared.checkFinalTargetAlreadyAssigned(node.target);
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
@@ -551,7 +553,6 @@ class AssignmentExpressionResolver {
             .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
         target.read = result.read;
         target.write = result.write;
-        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
         return ResolvedReadWriteTarget(
           readType: operatorReadType(result.read, result.write),
           writeAcceptedType: result.write.acceptedType,
@@ -1015,10 +1016,15 @@ class AssignmentExpressionShared {
 
   /// Reports a write to [target] if it is a final local variable that might
   /// already be assigned.
+  ///
+  /// Must be invoked at the point of the store, after the assigned value is
+  /// analyzed, because the value itself can assign the variable, as in
+  /// `x = (x = 1)`.
   void checkFinalTargetAlreadyAssigned(
-    UnqualifiedNameAssignmentTargetImpl target, {
+    AssignmentTargetImpl target, {
     bool isWrittenRepeatedly = false,
   }) {
+    if (target is! UnqualifiedNameAssignmentTargetImpl) return;
     if (_typeAnalyzer.flowAnalysis.flow == null) return;
     var element = target.scopeLookupResult?.getter;
     if (element is PromotableElementImpl) {
