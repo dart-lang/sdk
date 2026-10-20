@@ -31,9 +31,9 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedMixin(node.withClause);
   }
 
-  void constructorDeclaration(ConstructorDeclaration node) {
+  void constructorDeclaration(ConstructorDeclaration2 node) {
     _checkForDeprecatedOptionalSuperParameters(
-      parameters: node.parameters,
+      parameters: node.formalParameters,
       initializers: node.initializers,
       superConstructor: node.declaredFragment?.element.superConstructor,
       errorRange: node.errorRange,
@@ -224,16 +224,16 @@ class DeprecatedFunctionalityVerifier {
   }
 
   void _checkForDeprecatedOptionalRedirectedParameters(
-    ConstructorDeclaration node,
+    ConstructorDeclaration2 node,
   ) {
     if (node.factoryRedirectionTarget?.element
         case var redirectedConstructor?) {
       var SourceRange(offset: errorOffset, length: errorLength) =
           node.errorRange;
-      var positionalArgumentCount = node.parameters.allFormalParameters
+      var positionalArgumentCount = node.formalParameters.allFormalParameters
           .where((p) => p.isPositional)
           .length;
-      var namedArgumentNames = node.parameters.allFormalParameters
+      var namedArgumentNames = node.formalParameters.allFormalParameters
           .where((p) => p.isNamed)
           .map((p) => p.name?.lexeme)
           .nonNulls

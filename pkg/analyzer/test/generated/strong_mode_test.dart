@@ -359,7 +359,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       }
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,
@@ -379,7 +379,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 // [diag.noGenerativeConstructorsInSuperclass] The class 'B' can't extend 'A' because 'A' only has factory constructors (no generative constructors), and 'B' has at least one generative constructor.
    ''');
 
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,
@@ -4144,7 +4144,7 @@ class B<T2, U2> {
 
     var b = result.unit.declarations2[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
-    var bConstructor = classBody.members2[0] as ConstructorDeclaration;
+    var bConstructor = classBody.members2[0] as ConstructorDeclaration2;
     var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;
@@ -4177,7 +4177,7 @@ class B<T2, U2> {
 
     var b = result.unit.declarations2[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
-    var bConstructor = classBody.members2[0] as ConstructorDeclaration;
+    var bConstructor = classBody.members2[0] as ConstructorDeclaration2;
     var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;
@@ -4197,7 +4197,7 @@ class B<T2, U2> {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,
@@ -4359,7 +4359,7 @@ class B<T2, U2> {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,

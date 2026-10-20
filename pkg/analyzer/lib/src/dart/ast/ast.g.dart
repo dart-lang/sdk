@@ -512,7 +512,8 @@ abstract class AstVisitor2<R> {
 
   R? visitConstantPattern(ConstantPattern node);
 
-  R? visitConstructorDeclaration(ConstructorDeclaration node);
+  @experimental
+  R? visitConstructorDeclaration2(ConstructorDeclaration2 node);
 
   R? visitConstructorFieldInitializer(ConstructorFieldInitializer node);
 

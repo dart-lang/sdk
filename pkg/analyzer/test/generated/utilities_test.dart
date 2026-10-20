@@ -483,10 +483,10 @@ class B {
   B.named(int b);
 }
 ''');
-    _assertReplacementForChildren<ConstructorDeclaration>(
+    _assertReplacementForChildren<ConstructorDeclaration2>(
       destination: parseResult.findNode.constructor('A.named'),
       source: parseResult.findNode.constructor('B.named'),
-      childAccessors: [(node) => node.body, (node) => node.parameters],
+      childAccessors: [(node) => node.body, (node) => node.formalParameters],
     );
     _assertAnnotatedNode(parseResult.findNode.constructor('A.named'));
   }
@@ -501,7 +501,7 @@ class B {
   factory B() = R;
 }
 ''');
-    _assertReplacementForChildren<ConstructorDeclaration>(
+    _assertReplacementForChildren<ConstructorDeclaration2>(
       destination: parseResult.findNode.constructor('factory A'),
       source: parseResult.findNode.constructor('factory B'),
       childAccessors: [(node) => node.factoryRedirectionTarget!],

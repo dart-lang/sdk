@@ -129,7 +129,7 @@ class ElementResolver {
     _commentReferenceResolver.resolve(node);
   }
 
-  void visitConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
     var redirectedNode = node.factoryRedirectionTarget;
     if (redirectedNode != null) {
@@ -339,7 +339,9 @@ class ElementResolver {
       argumentList,
       element,
       enclosingConstructorFormalParameterList:
-          node.parent2.tryCast<ConstructorDeclarationImpl>()?.parameters ??
+          node.parent2
+              .tryCast<ConstructorDeclaration2Impl>()
+              ?.formalParameters ??
           node.parent2
               .tryCast<PrimaryConstructorBodyImpl>()
               ?.declaration

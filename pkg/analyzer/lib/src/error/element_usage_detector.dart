@@ -628,7 +628,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
 
-  void constructorDeclaration(ConstructorDeclaration node) {
+  void constructorDeclaration(ConstructorDeclaration2 node) {
     // Check usage of any implicit super-constructor call.
     // There is only an implicit super-constructor if:
     // * this is not a factory constructor,
@@ -737,7 +737,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void formalParameter(FormalParameter node) {
     var parameterList = node.parentFormalParameterList2;
-    if (parameterList.parent2 case ConstructorDeclaration constructor) {
+    if (parameterList.parent2 case ConstructorDeclaration2 constructor) {
       if (constructor.factoryRedirectionTarget?.element
           case var redirectedConstructor?) {
         if (node.isNamed) {

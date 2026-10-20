@@ -56,7 +56,7 @@ extension AstNodeExtension on AstNode {
         case FunctionExpression():
           return node;
         case LocalFunctionDeclaration() ||
-            ConstructorDeclaration() ||
+            ConstructorDeclaration2() ||
             GetterDeclaration() ||
             MethodDeclaration2() ||
             OperatorDeclaration() ||
@@ -93,7 +93,7 @@ extension AstNodeExtension on AstNode {
       if (node is LocalFunctionDeclaration) {
         return node.declaredFragment?.element;
       }
-      if (node is ConstructorDeclaration) {
+      if (node is ConstructorDeclaration2) {
         return node.declaredFragment?.element;
       }
       if (node is MethodDeclarationV1OriginImpl) {

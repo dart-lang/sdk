@@ -100,6 +100,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         Configuration,
         ConstantPattern,
         ConstructorDeclaration,
+        ConstructorDeclaration2,
         ConstructorFieldInitializer,
         ConstructorInitializer,
         ConstructorInvocation,

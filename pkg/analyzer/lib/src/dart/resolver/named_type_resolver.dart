@@ -694,7 +694,7 @@ class NamedTypeResolver with ScopeHelpers {
     var reference = node.parent2;
     if (reference is ConstructorReference2Impl) {
       var declaration = reference.parent2;
-      return declaration is ConstructorDeclarationImpl &&
+      return declaration is ConstructorDeclaration2Impl &&
           identical(declaration.factoryRedirectionTarget, reference);
     }
     return false;

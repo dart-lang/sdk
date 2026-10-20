@@ -102,10 +102,10 @@ class _LocalNameScope {
 
   factory forConstructor(
     _LocalNameScope enclosing,
-    ConstructorDeclaration node,
+    ConstructorDeclaration2 node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addFormalParameters(node.parameters);
+    scope.addFormalParameters(node.formalParameters);
     return scope;
   }
 
@@ -331,11 +331,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forConstructor(localScope, node);
-      super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration2(node);
     } finally {
       localScope = outerScope;
     }

@@ -322,9 +322,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(covariant ConstructorDeclaration2 node) {
     _checkStrictInferenceInParameters(
-      node.parameters,
+      node.formalParameters,
       body: node.body,
       initializers: node.initializers,
     );
@@ -335,7 +335,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     _deprecatedFunctionalityVerifier.constructorDeclaration(node);
 
     try {
-      super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }

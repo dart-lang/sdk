@@ -1153,7 +1153,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     throw StateError('Should not visit top level declarations');
   }
 

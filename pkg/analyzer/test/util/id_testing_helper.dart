@@ -262,7 +262,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
               declaration.namePart.typeName.lexeme == className) {
             if (declaration.body case BlockClassBody body) {
               for (var member in body.members2) {
-                if (member is ConstructorDeclaration) {
+                if (member is ConstructorDeclaration2) {
                   if (member.name!.lexeme == name) {
                     return member.offset;
                   }

@@ -150,8 +150,10 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    super.visitConstructorDeclaration(node);
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
+    super.visitConstructorDeclaration2(node);
     if (node.constKeyword != null) {
       var fragment = node.declaredFragment;
       if (fragment != null) {

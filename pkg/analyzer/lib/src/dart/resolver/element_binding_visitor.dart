@@ -561,14 +561,14 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindConstructorDeclaration(
-    ConstructorDeclarationImpl node,
+    ConstructorDeclaration2Impl node,
     ConstructorFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     node.documentationComment?.accept2(this);
-    _bindFormalParameters(node.parameters, fragment.formalParameters);
+    _bindFormalParameters(node.formalParameters, fragment.formalParameters);
 
     _withElementHolder(ElementHolder(fragment), () {
       for (var initializer in node.initializers) {
@@ -793,7 +793,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   ) {
     for (var member in members) {
       switch (member) {
-        case ConstructorDeclarationImpl():
+        case ConstructorDeclaration2Impl():
           _bindConstructorDeclaration(member, fragments.nextConstructor());
         case GetterDeclarationImpl():
           var fragment = fragments.nextGetter();

@@ -6077,7 +6077,7 @@ class AstBuilder extends StackListener {
     push(modifiers);
   }
 
-  ConstructorDeclarationImpl _buildConstructorDeclaration({
+  ConstructorDeclaration2Impl _buildConstructorDeclaration({
     required Token beginToken,
     required Token endToken,
   }) {
@@ -6165,7 +6165,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var constructor = ConstructorDeclarationImpl(
+    var constructor = ConstructorDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: modifiers?.augmentKeyword,
@@ -6173,10 +6173,10 @@ class AstBuilder extends StackListener {
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
       newKeyword: modifiers?.newKeyword,
-      typeName2: typeName,
+      typeName: typeName,
       period: period,
       name: constructorNameToken,
-      parameters: parameters,
+      formalParameters: parameters,
       separator: separator,
       initializers: initializers,
       factoryRedirectionTarget: factoryRedirectionTarget,
@@ -6185,7 +6185,7 @@ class AstBuilder extends StackListener {
     return constructor;
   }
 
-  ConstructorDeclarationImpl _buildFactoryConstructorDeclaration({
+  ConstructorDeclaration2Impl _buildFactoryConstructorDeclaration({
     required Token beginToken,
     required Token factoryKeyword,
     required Token endToken,
@@ -6258,7 +6258,7 @@ class AstBuilder extends StackListener {
         throw StateError('Unexpected constructor name: $preliminaryName');
     }
 
-    var constructor = ConstructorDeclarationImpl(
+    var constructor = ConstructorDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: modifiers?.augmentKeyword,
@@ -6266,10 +6266,10 @@ class AstBuilder extends StackListener {
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: factoryKeyword,
       newKeyword: null,
-      typeName2: typeName,
+      typeName: typeName,
       period: period,
       name: constructorNameToken,
-      parameters: parameters,
+      formalParameters: parameters,
       separator: separator,
       initializers: [],
       factoryRedirectionTarget: factoryRedirectionTarget,

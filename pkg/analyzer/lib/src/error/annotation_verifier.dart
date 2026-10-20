@@ -235,7 +235,7 @@ class AnnotationVerifier {
       // result, and the parser has already reported it.
       var isValidFunction =
           parameterList.parent2 is MethodDeclarationV1OriginImpl ||
-          parameterList.parent2 is ConstructorDeclaration ||
+          parameterList.parent2 is ConstructorDeclaration2 ||
           parameterList.parent2 is TopLevelFunctionDeclaration ||
           parameterList.parent2 is TopLevelGetterDeclaration ||
           parameterList.parent2 is TopLevelSetterDeclaration;
@@ -347,7 +347,7 @@ class AnnotationVerifier {
           );
         }
       }
-    } else if (parent is ConstructorDeclaration) {
+    } else if (parent is ConstructorDeclaration2) {
       var element = parent.declaredFragment!.element;
       if (element.isPrivate || element.enclosingElement.isPrivate) {
         _diagnosticReporter.report(
@@ -405,7 +405,7 @@ class AnnotationVerifier {
   /// `@literal` annotation.
   void _checkLiteral(Annotation node) {
     var parent = node.parent2;
-    if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclaration2) {
       if (parent.constKeyword == null) {
         _diagnosticReporter.report(
           diag.invalidLiteralAnnotation.at(node.nameEntity),
@@ -630,7 +630,7 @@ class AnnotationVerifier {
 
     AstNode? containedDeclaration;
     switch (node.parent2) {
-      case ConstructorDeclaration constructorDeclaration:
+      case ConstructorDeclaration2 constructorDeclaration:
         containedDeclaration = constructorDeclaration;
       case EnumConstantDeclaration enumConstant:
         containedDeclaration = enumConstant;

@@ -39,7 +39,7 @@ class ConstructorInitializerResolver {
     for (var fragment in element.fragments) {
       var node = _linker.getLinkingNode(fragment);
       switch (node) {
-        case ConstructorDeclarationImpl():
+        case ConstructorDeclaration2Impl():
           var initializerScope = node.formalParameterInitializerScope!;
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
           var astResolver = AstResolver.forLinking(

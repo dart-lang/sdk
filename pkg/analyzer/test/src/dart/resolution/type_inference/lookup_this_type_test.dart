@@ -64,7 +64,7 @@ class C {
   C(int x);
 }
 ''',
-      ['ConstructorDeclarationImpl'],
+      ['ConstructorDeclaration2Impl'],
     );
   }
 
@@ -75,7 +75,7 @@ class C {
   C([int x = 0]);
 }
 ''',
-      ['ConstructorDeclarationImpl'],
+      ['ConstructorDeclaration2Impl'],
     );
   }
 

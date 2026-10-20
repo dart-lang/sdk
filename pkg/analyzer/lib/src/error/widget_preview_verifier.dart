@@ -53,13 +53,13 @@ class WidgetPreviewVerifier {
       // First, check that the preview application is happening in a supported
       // context.
       _ when !_isSupportedParent(node: parent) => false,
-      ConstructorDeclaration() => _isValidConstructorPreviewApplication(
+      ConstructorDeclaration2() => _isValidConstructorPreviewApplication(
         declaration: parent,
         name: parent.name?.lexeme,
         parentDeclaration: parent.parent2?.parent2,
         isExternal: parent.externalKeyword != null,
         isFactory: parent.factoryKeyword != null,
-        parameters: parent.parameters,
+        parameters: parent.formalParameters,
       ),
       TopLevelFunctionDeclaration() => _isValidFunctionPreviewApplication(
         declaration: parent,

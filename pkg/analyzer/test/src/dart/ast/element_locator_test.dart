@@ -104,7 +104,7 @@ class A {
   A.foo();
 }
 ''');
-    var node = result.findNode.constructor('A.foo()');
+    var node = result.findNodeV1.constructor('A.foo()');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::foo
@@ -117,7 +117,7 @@ class A {
   A();
 }
 ''');
-    var node = result.findNode.constructor('A()');
+    var node = result.findNodeV1.constructor('A()');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
@@ -341,7 +341,7 @@ class A {
   A.bar();
 }
 ''');
-    var node = result.findNode.constructor('bar');
+    var node = result.findNodeV1.constructor('bar');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::bar
@@ -354,7 +354,7 @@ class A {
   A();
 }
 ''');
-    var node = result.findNode.constructor('A()').typeName!;
+    var node = result.findNodeV1.constructor('A()').typeName!;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new

@@ -704,7 +704,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       }
       diagnosticReporter.report(
         locatableDiagnostic.atSourceRange(switch (errorNode) {
-          ConstructorDeclaration() => errorNode.errorRange,
+          ConstructorDeclaration2() => errorNode.errorRange,
           BlockFunctionBody() => errorNode.block.leftBracket.sourceRange,
           _ => errorNode.sourceRange,
         }),
@@ -2632,7 +2632,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var returnType = element.type.returnType;
@@ -2646,7 +2648,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         // Enter flow analysis at the formal parameter list, because the
         // parameters are visited before the initializers and the body, and
         // their default values may contain expressions.
-        var enterOffset = node.parameters.offset;
+        var enterOffset = node.formalParameters.offset;
         flowAnalysis.flowAnalysisRoot_enter(
           node,
           element.formalParameters,
@@ -2663,7 +2665,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         // any expressions in their default values are analyzed as part of this
         // declaration's flow analysis. (Otherwise `visitFormalParameterList`
         // would have to establish a flow analysis region of its own.)
-        node.parameters.accept2(this);
+        node.formalParameters.accept2(this);
 
         node.initializers.accept2(this);
         node.factoryRedirectionTarget?.accept2(this);
@@ -2681,7 +2683,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
             returnType is DynamicType ? null : returnType,
           ),
         );
-        elementResolver.visitConstructorDeclaration(node);
+        elementResolver.visitConstructorDeclaration2(node);
 
         if (node.factoryKeyword != null) {
           checkForBodyMayCompleteNormally(body: node.body, errorNode: node);

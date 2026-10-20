@@ -193,6 +193,46 @@ class A {}
     expect(result, isNull);
   }
 
+  test_constructor_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class A {
+  A.named(int a);
+}
+''');
+    var fragment = unitResult.findElement.constructor('named').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ConstructorDeclaration2
+  typeName: A
+  period: .
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+      name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_enum() async {
     var unitResult = await resolveTestCode(r'''
 enum MyEnum {a, b, c}

@@ -10705,26 +10705,118 @@ abstract final class ConstructorDeclaration implements ClassMember {
   Token? get typeName2;
 }
 
+/// A constructor declaration.
+///
+///     constructorDeclaration ::=
+///         constructorSignature [FunctionBody]?
+///       | constructorName formalParameterList ':' 'this'
+///         ('.' [SimpleIdentifier])? arguments
+///
+///     constructorSignature ::=
+///         'external'? constructorName formalParameterList initializerList?
+///       | 'external'? 'factory' factoryName formalParameterList
+///         initializerList?
+///       | 'external'? 'const' constructorName formalParameterList
+///         initializerList?
+///
+///     constructorName ::=
+///         [SimpleIdentifier] ('.' name)?
+///
+///     factoryName ::=
+///         [Identifier] ('.' [SimpleIdentifier])?
+///
+///     initializerList ::=
+///         ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ConstructorDeclaration2
+    implements MemberDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  /// The body of the constructor.
+  FunctionBody get body;
+
+  /// The `const` keyword, or `null` if the constructor isn't a const
+  /// constructor.
+  Token? get constKeyword;
+
+  @override
+  ConstructorFragment? get declaredFragment;
+
+  /// The offset and length to use as an error range for this constructor
+  /// declaration, accounting for named and unnamed constructors.
+  SourceRange get errorRange;
+
+  /// The `external` keyword, or `null` if the keyword was absent.
+  Token? get externalKeyword;
+
+  /// The `factory` keyword, or `null` if the constructor isn't a factory
+  /// constructor.
+  Token? get factoryKeyword;
+
+  /// The constructor to which this factory redirects, or `null` if this isn't
+  /// a redirecting factory constructor.
+  ConstructorReference2? get factoryRedirectionTarget;
+
+  /// The formal parameters of the constructor.
+  FormalParameterList get formalParameters;
+
+  /// The initializers associated with the constructor.
+  NodeList<ConstructorInitializer> get initializers;
+
+  /// Whether this constructor declaration is complete for augmentation
+  /// purposes.
+  ///
+  /// A constructor declaration is complete if it is external, has a body, has a
+  /// redirection or initializer list, or has a field or super formal parameter.
+  bool get isComplete;
+
+  /// The name of the constructor, or `null` if the constructor being declared
+  /// is unnamed.
+  Token? get name;
+
+  /// The `new` keyword, or `null` if the keyword is absent, so either
+  /// [factoryKeyword] is not `null`, or the syntax with [typeName] is used.
+  Token? get newKeyword;
+
+  /// The period before the constructor name, or `null` if the constructor
+  /// being declared is unnamed.
+  Token? get period;
+
+  /// The separator (colon or equals) before the initializer list or
+  /// redirection, or `null` if there are neither initializers nor a
+  /// redirection.
+  Token? get separator;
+
+  /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
+  ///
+  /// Or `null` if the declaration uses [newKeyword] or [factoryKeyword]
+  /// without it.
+  Token? get typeName;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword', tokenGroupId: 0),
     GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
     GenerateNodeProperty('constKeyword', tokenGroupId: 0, isTokenFinal: false),
     GenerateNodeProperty('factoryKeyword', tokenGroupId: 0),
     GenerateNodeProperty('newKeyword', tokenGroupId: 0),
-    GenerateNodeProperty('typeName2'),
+    GenerateNodeProperty('typeName'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('name'),
-    GenerateNodeProperty('parameters'),
-    GenerateNodeProperty('separator', isTokenFinal: false),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('separator'),
     GenerateNodeProperty('initializers'),
     GenerateNodeProperty('factoryRedirectionTarget'),
     GenerateNodeProperty('body'),
   ],
 )
-final class ConstructorDeclarationImpl extends ClassMemberImpl
+final class ConstructorDeclaration2Impl extends MemberDeclarationImpl
     with FlowAnalysisRootImpl
-    implements ClassMemberV1OrV2Impl, ConstructorDeclaration {
+    implements ConstructorDeclaration2 {
   @generated
   @override
   final Token? augmentKeyword;
@@ -10747,7 +10839,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
-  final Token? typeName2;
+  final Token? typeName;
 
   @generated
   @override
@@ -10758,11 +10850,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   final Token? name;
 
   @generated
-  FormalParameterListImpl _parameters;
+  FormalParameterListImpl _formalParameters;
 
   @generated
   @override
-  Token? separator;
+  final Token? separator;
 
   @generated
   @override
@@ -10775,14 +10867,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   FunctionBodyImpl _body;
 
-  @V1Ast()
-  late final SimpleIdentifierImpl? _typeName = switch (typeName2) {
-    var typeName? => _becomeParentOf1(
-      SimpleIdentifierImpl.v1Projection(token: typeName),
-    ),
-    _ => null,
-  };
-
   @override
   ConstructorFragmentImpl? declaredFragment;
 
@@ -10791,9 +10875,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// The fields that are not initialized by the constructor.
   List<FieldElement>? notInitializedFields;
 
-  @DoNotGenerate(
-    reason: 'Wires a V2-only child in a node shared by both AST views',
-  )
+  @V1Ast()
+  ConstructorDeclarationImpl? _v1Projection;
+
+  @generated
   new({
     required super.comment,
     required super.metadata,
@@ -10802,21 +10887,21 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.constKeyword,
     required this.factoryKeyword,
     required this.newKeyword,
-    required this.typeName2,
+    required this.typeName,
     required this.period,
     required this.name,
-    required FormalParameterListImpl parameters,
+    required FormalParameterListImpl formalParameters,
     required this.separator,
     required List<ConstructorInitializerImpl> initializers,
     required ConstructorReference2Impl? factoryRedirectionTarget,
     required FunctionBodyImpl body,
-  }) : _parameters = parameters,
+  }) : _formalParameters = formalParameters,
        _factoryRedirectionTarget = factoryRedirectionTarget,
        _body = body {
-    _becomeParentOf12(parameters);
+    _becomeParentOf2(formalParameters);
     this.initializers._initialize(this, initializers);
     _becomeParentOf2(factoryRedirectionTarget);
-    _becomeParentOf12(body);
+    _becomeParentOf2(body);
   }
 
   @generated
@@ -10825,7 +10910,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   set body(FunctionBodyImpl body) {
-    _body = _becomeParentOf12(body);
+    _body = _becomeParentOf2(body);
   }
 
   @generated
@@ -10836,7 +10921,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @override
   SourceRange get errorRange {
-    var startEntity = typeName2 ?? (newKeyword ?? factoryKeyword)!;
+    var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
     var endEntity = name ?? startEntity;
     return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
@@ -10846,9 +10931,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   ConstructorReference2Impl? get factoryRedirectionTarget =>
       _factoryRedirectionTarget;
 
-  @DoNotGenerate(
-    reason: 'Wires a V2-only child in a node shared by both AST views',
-  )
+  @generated
   set factoryRedirectionTarget(
     ConstructorReference2Impl? factoryRedirectionTarget,
   ) {
@@ -10868,8 +10951,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
         case var result?) {
       return result;
     }
-    if (typeName2 case var typeName2?) {
-      return typeName2;
+    if (typeName case var typeName?) {
+      return typeName;
     }
     if (period case var period?) {
       return period;
@@ -10877,7 +10960,16 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     if (name case var name?) {
       return name;
     }
-    return parameters.beginToken;
+    return formalParameters.beginToken;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
   }
 
   @override
@@ -10887,7 +10979,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     if (factoryRedirectionTarget != null || initializers.isNotEmpty) {
       return true;
     }
-    return parameters.allFormalParameters.any((parameter) {
+    return formalParameters.allFormalParameters.any((parameter) {
       return parameter is FieldFormalParameterImpl ||
           parameter is SuperFormalParameterImpl;
     });
@@ -10904,56 +10996,23 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// and isn't external.
   bool get isTrivial =>
       factoryRedirectionTarget == null &&
-      parameters.allFormalParameters.isEmpty &&
+      formalParameters.allFormalParameters.isEmpty &&
       initializers.isEmpty &&
       body is EmptyFunctionBody &&
       externalKeyword == null;
 
-  @generated
-  @override
-  FormalParameterListImpl get parameters => _parameters;
+  @V1Ast()
+  ConstructorDeclarationImpl get v1Projection =>
+      _v1Projection ??= ConstructorDeclarationImpl.v1Projection(this);
 
   @generated
-  set parameters(FormalParameterListImpl parameters) {
-    _parameters = _becomeParentOf12(parameters);
-  }
-
-  @DoNotGenerate(reason: 'Projects the canonical V2 constructor reference')
-  @Deprecated('Use factoryRedirectionTarget instead.')
   @override
-  @V1Ast('The V2 counterpart is factoryRedirectionTarget.')
-  ConstructorNameImpl? get redirectedConstructor =>
-      _becomeParentOf1(factoryRedirectionTarget?.constructorName);
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
-  @override
-  @V1Ast('The V2 counterpart is typeName2.')
-  SimpleIdentifierImpl? get typeName {
-    var result = _typeName;
-    var fragment = declaredFragment;
-    if (result != null && fragment != null) {
-      result.element = fragment.element.enclosingElement;
-    }
-    return result;
-  }
-
-  @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
-  @Deprecated('Use _childEntities2 instead.')
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('externalKeyword', externalKeyword)
-    ..addToken('constKeyword', constKeyword)
-    ..addToken('factoryKeyword', factoryKeyword)
-    ..addToken('newKeyword', newKeyword)
-    ..addNode('typeName', typeName)
-    ..addToken('period', period)
-    ..addToken('name', name)
-    ..addNode('parameters', parameters)
-    ..addToken('separator', separator)
-    ..addNodeList('initializers', initializers)
-    ..addNode('redirectedConstructor', redirectedConstructor)
-    ..addNode('body', body);
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -10963,10 +11022,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addToken('constKeyword', constKeyword)
     ..addToken('factoryKeyword', factoryKeyword)
     ..addToken('newKeyword', newKeyword)
-    ..addToken('typeName2', typeName2)
+    ..addToken('typeName', typeName)
     ..addToken('period', period)
     ..addToken('name', name)
-    ..addNode('parameters', parameters)
+    ..addNode('formalParameters', formalParameters)
     ..addToken('separator', separator)
     ..addNodeList('initializers', initializers)
     ..addNode('factoryRedirectionTarget', factoryRedirectionTarget)
@@ -10975,20 +11034,23 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitConstructorDeclaration(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ConstructorDeclaration2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitConstructorDeclaration(this);
+      visitor.visitConstructorDeclaration2(this);
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(parameters, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'parameters'.");
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
     }
     if (initializers.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -11008,8 +11070,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(parameters, oldNode)) {
-      parameters = newNode as FormalParameterListImpl;
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
       return;
     }
     if (initializers.replaceChild(oldNode, newNode)) {
@@ -11026,17 +11088,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Visits the legacy ConstructorName projection')
-  @Deprecated('Use visitChildren2 instead.')
-  @override
+  @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    typeName?.accept(visitor);
-    parameters.accept(visitor);
-    initializers.accept(visitor);
-    redirectedConstructor?.accept(visitor);
-    body.accept(visitor);
+    throw StateError('ConstructorDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -11044,7 +11100,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     _visitCommentAndAnnotations2(visitor);
-    parameters.accept2(visitor);
+    formalParameters.accept2(visitor);
     initializers.accept2(visitor);
     factoryRedirectionTarget?.accept2(visitor);
     body.accept2(visitor);
@@ -11059,16 +11115,16 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
     void Function(NodeListImpl<ConstructorInitializerImpl>)? visitInitializers,
     void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
     _visitCommentAndAnnotations2(visitor);
-    if (visitParameters != null) {
-      visitParameters(parameters);
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
     } else {
-      parameters.accept2(visitor);
+      formalParameters.accept2(visitor);
     }
     if (visitInitializers != null) {
       visitInitializers(initializers);
@@ -11089,8 +11145,276 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     }
   }
 
-  @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
-  @Deprecated('Use _childContainingRange2 instead.')
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ConstructorDeclaration2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
+    }
+    if (initializers._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (factoryRedirectionTarget case var factoryRedirectionTarget?) {
+      if (factoryRedirectionTarget._containsOffset(rangeOffset, rangeEnd)) {
+        return factoryRedirectionTarget;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('constKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('factoryKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('newKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('typeName'),
+    GenerateNodeProperty('period'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('parameters'),
+    GenerateNodeProperty('separator'),
+    GenerateNodeProperty('initializers'),
+    GenerateNodeProperty('redirectedConstructor'),
+    GenerateNodeProperty('body'),
+  ],
+)
+@V1Ast('The V2 counterpart is ConstructorDeclaration2.')
+final class ConstructorDeclarationImpl extends ClassMemberImpl
+    implements ConstructorDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  @override
+  final Token? factoryKeyword;
+
+  @generated
+  @override
+  final Token? newKeyword;
+
+  @generated
+  @override
+  final Token? period;
+
+  @generated
+  @override
+  final Token? name;
+
+  @generated
+  @override
+  final Token? separator;
+
+  @generated
+  @override
+  final NodeListImpl<ConstructorInitializerImpl> initializers =
+      NodeListImpl._();
+
+  final ConstructorDeclaration2Impl _v1ProjectionOrigin;
+
+  late final SimpleIdentifierImpl? _v1TypeName = switch (typeName2) {
+    var typeName? => _becomeParentOf1(
+      SimpleIdentifierImpl.v1Projection(token: typeName),
+    ),
+    _ => null,
+  };
+
+  new v1Projection(ConstructorDeclaration2Impl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      externalKeyword = origin.externalKeyword,
+      factoryKeyword = origin.factoryKeyword,
+      newKeyword = origin.newKeyword,
+      period = origin.period,
+      name = origin.name,
+      separator = origin.separator,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(origin.formalParameters);
+    initializers._initialize(this, origin.initializers);
+    _becomeParentOf1(origin.factoryRedirectionTarget?.constructorName);
+    _becomeParentOf1(origin.body);
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  FunctionBodyImpl get body => _v1ProjectionOrigin.body;
+
+  /// The `const` keyword, read from the origin, which can change it
+  /// temporarily to check whether the constructor can be `const`.
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token? get constKeyword => _v1ProjectionOrigin.constKeyword;
+
+  @override
+  ConstructorFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token get endToken => _v1ProjectionOrigin.endToken;
+
+  @override
+  SourceRange get errorRange => _v1ProjectionOrigin.errorRange;
+
+  @override
+  ConstructorReference2Impl? get factoryRedirectionTarget =>
+      _v1ProjectionOrigin.factoryRedirectionTarget;
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (Token.lexicallyFirst(
+          augmentKeyword,
+          externalKeyword,
+          constKeyword,
+          factoryKeyword,
+          newKeyword,
+        )
+        case var result?) {
+      return result;
+    }
+    if (typeName case var typeName?) {
+      return typeName.beginToken;
+    }
+    if (period case var period?) {
+      return period;
+    }
+    if (name case var name?) {
+      return name;
+    }
+    return parameters.beginToken;
+  }
+
+  @override
+  bool get isComplete => _v1ProjectionOrigin.isComplete;
+
+  /// The fields that are not initialized by the constructor.
+  List<FieldElement>? get notInitializedFields =>
+      _v1ProjectionOrigin.notInitializedFields;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  FormalParameterListImpl get parameters =>
+      _v1ProjectionOrigin.formalParameters;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ConstructorNameImpl? get redirectedConstructor =>
+      _becomeParentOf1(factoryRedirectionTarget?.constructorName);
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  SimpleIdentifierImpl? get typeName {
+    var result = _v1TypeName;
+    var fragment = declaredFragment;
+    if (result != null && fragment != null) {
+      result.element = fragment.element.enclosingElement;
+    }
+    return result;
+  }
+
+  @override
+  Token? get typeName2 => _v1ProjectionOrigin.typeName;
+
+  /// The canonical V2 declaration of this projection.
+  ConstructorDeclaration2Impl get v1ProjectionOrigin => _v1ProjectionOrigin;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('factoryKeyword', factoryKeyword)
+    ..addToken('newKeyword', newKeyword)
+    ..addNode('typeName', typeName)
+    ..addToken('period', period)
+    ..addToken('name', name)
+    ..addNode('parameters', parameters)
+    ..addToken('separator', separator)
+    ..addNodeList('initializers', initializers)
+    ..addNode('redirectedConstructor', redirectedConstructor)
+    ..addNode('body', body);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitConstructorDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('ConstructorDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    typeName?.accept(visitor);
+    parameters.accept(visitor);
+    initializers.accept(visitor);
+    redirectedConstructor?.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('ConstructorDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
   @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
@@ -11123,25 +11447,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
-      return parameters;
-    }
-    if (initializers._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    if (factoryRedirectionTarget case var factoryRedirectionTarget?) {
-      if (factoryRedirectionTarget._containsOffset(rangeOffset, rangeEnd)) {
-        return factoryRedirectionTarget;
-      }
-    }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
-    }
-    return null;
+    throw StateError('ConstructorDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -59357,8 +59663,8 @@ enum V1Projection {
   @V1Ast()
   static ClassMemberImpl toV1ClassMember(ClassMemberV1OrV2Impl node) {
     return switch (node) {
-      ConstructorDeclarationImpl() => node,
       PrimaryConstructorBodyImpl() => node,
+      ConstructorDeclaration2Impl() => node.v1Projection,
       FieldsDeclarationImpl() => node.v1Projection,
       MethodDeclarationV1OriginImpl() => node.v1Projection,
     };
@@ -59450,6 +59756,7 @@ enum V1Projection {
     LocalVariablesDeclarationImpl() => node._v1VariableList,
     LocalVariablesDeclarationStatementImpl() => node._v1StatementProjection,
     FunctionDeclarationV1OriginImpl() => node._v1Projection,
+    ConstructorDeclaration2Impl() => node._v1Projection,
     FieldsDeclarationImpl() => node._v1Projection,
     MethodDeclarationV1OriginImpl() => node._v1Projection,
     TopLevelVariablesDeclarationImpl() => node._v1Projection,
@@ -59500,6 +59807,7 @@ enum V1Projection {
       LocalVariablesDeclarationImpl() => root.v1VariableList,
       LocalVariablesDeclarationStatementImpl() => root.v1StatementProjection,
       FunctionDeclarationV1OriginImpl() => root.v1Projection,
+      ConstructorDeclaration2Impl() => root.v1Projection,
       FieldsDeclarationImpl() => root.v1Projection,
       MethodDeclarationV1OriginImpl() => root.v1Projection,
       TopLevelVariablesDeclarationImpl() => root.v1Projection,
@@ -59555,6 +59863,7 @@ enum V1Projection {
       node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
     DotShorthandPropertyAccessImpl() =>
       node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
+    ConstructorDeclarationImpl() => node._v1ProjectionOrigin,
     FieldDeclarationImpl() => node._v1ProjectionOrigin,
     FunctionDeclarationImpl() => node._v1ProjectionOrigin,
     MethodDeclarationImpl() => node._v1ProjectionOrigin,

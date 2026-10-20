@@ -176,7 +176,7 @@ class AstResolver {
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
-  void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void resolveConstructorDeclaration(ConstructorDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 

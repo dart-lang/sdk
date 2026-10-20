@@ -95,14 +95,14 @@ class MemberDuplicateDefinitionVerifier {
 
     for (var member in members) {
       switch (member) {
-        case ConstructorDeclarationImpl():
+        case ConstructorDeclaration2Impl():
           // Augmentations are not declarations, can have multiple.
           if (member.augmentKeyword != null) {
             continue;
           }
 
           // Skip if the typeName is wrong.
-          if (member.typeName2 case var typeName?) {
+          if (member.typeName case var typeName?) {
             if (typeName.lexeme != firstFragment.name) {
               continue;
             }

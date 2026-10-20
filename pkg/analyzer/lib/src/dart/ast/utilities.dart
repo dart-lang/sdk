@@ -228,18 +228,18 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
     if (_startOffset == _endOffset) {
-      var end = node.name?.end ?? node.typeName2?.end;
+      var end = node.name?.end ?? node.typeName?.end;
       if (end != null && _startOffset == end) {
         _foundNode = node;
         return;
       }
     }
 
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -388,6 +388,14 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
       node.statements;
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (!identical(immediateChild, node.parameters)) {
+      _addParameters(node.parameters.allFormalParameters);
+    }
+    _declarationNode = node;
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _declarationNode = node;
   }
@@ -453,6 +461,14 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   @override
   List<Statement> switchMemberStatementsOf(SwitchMember node) =>
       node.statements2;
+
+  @override
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
+    if (!identical(immediateChild, node.formalParameters)) {
+      _addParameters(node.formalParameters.allFormalParameters);
+    }
+    _declarationNode = node;
+  }
 
   @override
   void visitFieldsDeclaration(FieldsDeclaration node) {
@@ -583,13 +599,6 @@ mixin _ScopedNameFinderMixin {
     _addToScope(node.exceptionParameter?.name);
     _addToScope(node.stackTraceParameter?.name);
     visitNode(node);
-  }
-
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!identical(immediateChild, node.parameters)) {
-      _addParameters(node.parameters.allFormalParameters);
-    }
-    _declarationNode = node;
   }
 
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {

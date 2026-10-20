@@ -55,7 +55,7 @@ const isConditionalExpression = TypeMatcher<ConditionalExpression>();
 
 const isConfiguration = TypeMatcher<Configuration>();
 
-const isConstructorDeclaration = TypeMatcher<ConstructorDeclaration>();
+const isConstructorDeclaration2 = TypeMatcher<ConstructorDeclaration2>();
 
 const isConstructorFieldInitializer =
     TypeMatcher<ConstructorFieldInitializer>();

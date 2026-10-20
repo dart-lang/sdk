@@ -1470,9 +1470,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _runSubscriptions(node, _registry._forConstructorDeclaration);
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
+    _runSubscriptions(node, _registry._forConstructorDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -4592,8 +4593,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ConstantPattern>> _forConstantPattern = [];
 
-  final List<_Subscription2<ConstructorDeclaration>>
-  _forConstructorDeclaration = [];
+  final List<_Subscription2<ConstructorDeclaration2>>
+  _forConstructorDeclaration2 = [];
 
   final List<_Subscription2<ConstructorFieldInitializer>>
   _forConstructorFieldInitializer = [];
@@ -5350,12 +5351,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addConstructorDeclaration(
+  void addConstructorDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forConstructorDeclaration.add(
+    _forConstructorDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

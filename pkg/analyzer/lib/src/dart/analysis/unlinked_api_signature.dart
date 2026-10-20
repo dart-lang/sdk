@@ -84,7 +84,7 @@ class _UnitApiSignatureComputer {
   void _addClass(ClassDeclarationImpl node) {
     _addTokens(node.beginToken, node.body.beginToken);
     bool hasConstConstructor = node.body.members2.any(
-      (m) => m is ConstructorDeclarationImpl && m.constKeyword != null,
+      (m) => m is ConstructorDeclaration2Impl && m.constKeyword != null,
     );
     _addClassMembers(node.body.members2, hasConstConstructor);
   }
@@ -92,7 +92,7 @@ class _UnitApiSignatureComputer {
   void _addClassMembers(List<AnnotatedNode> members, bool hasConstConstructor) {
     signature.addInt(members.length);
     for (var member in members) {
-      if (member is ConstructorDeclarationImpl) {
+      if (member is ConstructorDeclaration2Impl) {
         _addConstructorDeclaration(member);
       } else if (member is FieldsDeclaration) {
         _addFieldsDeclaration(member, hasConstConstructor);
@@ -106,9 +106,9 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void _addConstructorDeclaration(ConstructorDeclaration2Impl node) {
     signature.addInt(_kindConstructorDeclaration);
-    _addTokens(node.beginToken, node.parameters.endToken);
+    _addTokens(node.beginToken, node.formalParameters.endToken);
     _addNodeList(node.initializers);
     _addNode(node.factoryRedirectionTarget);
     signature.addBool(node.isComplete);

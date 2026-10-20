@@ -175,7 +175,7 @@ extension ArgumentListExtension on ArgumentList {
   }
 }
 
-extension ConstructorDeclarationExtension on ConstructorDeclaration {
+extension ConstructorDeclarationExtension on ConstructorDeclaration2 {
   bool get isNonRedirectingGenerative {
     // Must be generative.
     if (externalKeyword != null || factoryKeyword != null) {

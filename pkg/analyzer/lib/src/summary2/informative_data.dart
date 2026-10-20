@@ -763,7 +763,7 @@ class _InfoBuilder {
     return collector.offsets.takeAndReset();
   }
 
-  _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration node) {
+  _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration2 node) {
     return _InfoConstructorDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -771,17 +771,17 @@ class _InfoBuilder {
       nameOffset: node.name?.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
       typeParameters: const [],
-      parameters: _buildFormalParameters(node.parameters),
+      parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        formalParameters: node.parameters,
+        formalParameters: node.formalParameters,
         constructorInitializers: node.initializers,
       ),
       newKeywordOffset: node.newKeyword?.offset,
       factoryKeywordOffset: node.factoryKeyword?.offset,
-      typeNameOffset: node.typeName2?.offset,
+      typeNameOffset: node.typeName?.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.typeName2)?.end,
+      nameEnd: (node.name ?? node.typeName)?.end,
       thisKeywordOffset: null,
       primaryHeaderCodeRange: null,
       primaryBodyCodeRange: null,
@@ -1016,7 +1016,7 @@ class _InfoBuilder {
             primaryConstructor,
             body: primaryConstructorBody,
           ),
-        ...members.whereType<ConstructorDeclaration>().map(_buildConstructor),
+        ...members.whereType<ConstructorDeclaration2>().map(_buildConstructor),
       ],
     );
   }

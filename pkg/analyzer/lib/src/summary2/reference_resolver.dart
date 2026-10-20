@@ -88,8 +88,10 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    _scopeContext.visitConstructorDeclaration(
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
+    _scopeContext.visitConstructorDeclaration2(
       node,
       visitor: this,
       visitInitializers: (_) {},

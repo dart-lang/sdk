@@ -354,20 +354,20 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.factoryKeyword, suffix: ' ');
     _visitToken(node.newKeyword, suffix: ' ');
-    if (node.typeName2 != null) {
-      _visitToken(node.typeName2);
+    if (node.typeName != null) {
+      _visitToken(node.typeName);
       _visitToken(node.name, prefix: '.');
     } else {
       _visitToken(node.name);
     }
-    _visitNode(node.parameters);
+    _visitNode(node.formalParameters);
     _visitNodeList(node.initializers, prefix: ' : ', separator: ', ');
     _visitNode(node.factoryRedirectionTarget, prefix: ' = ');
     _visitFunctionBody(node.body);

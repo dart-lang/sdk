@@ -617,7 +617,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addConstantPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addConstructorDeclaration(
+  @experimental
+  void addConstructorDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

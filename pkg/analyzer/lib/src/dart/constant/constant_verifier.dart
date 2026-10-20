@@ -165,7 +165,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
       // Check and report cycles.
@@ -190,8 +192,8 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         );
       }
     }
-    _validateDefaultValues(node.parameters);
-    super.visitConstructorDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override

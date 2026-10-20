@@ -1402,7 +1402,9 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var fragmentName = _getFragmentName(node.name) ?? 'new';
     var fragment = ConstructorFragmentImpl(name: fragmentName);
     fragment.isOriginDeclaration = true;
@@ -1415,7 +1417,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         node.initializers.any((e) => e is RedirectingConstructorInvocation);
     fragment.isComplete = node.isComplete;
     fragment.metadata = _buildMetadata(node.metadata);
-    fragment.typeName = node.typeName2?.lexeme;
+    fragment.typeName = node.typeName?.lexeme;
 
     if (_enclosingContext.fragment is EnumFragmentImpl &&
         fragment.isGenerative &&
@@ -1436,7 +1438,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     _buildExecutableElementChildren(
       fragment: fragment,
-      formalParameters: node.parameters,
+      formalParameters: node.formalParameters,
     );
   }
 

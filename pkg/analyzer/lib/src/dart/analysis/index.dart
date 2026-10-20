@@ -762,10 +762,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  visitConstructorDeclaration2(covariant ConstructorDeclaration2Impl node) {
     // TODO(fshcheglov): Consider removing the index entry.
     var element = node.declaredFragment!.element;
-    if (node.typeName2 case var typeName?
+    if (node.typeName case var typeName?
         when typeName.lexeme == element.enclosingElement.name) {
       recordRelation(
         element.enclosingElement,
@@ -791,7 +791,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -811,7 +811,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
 
     var kind = switch (node.parent2) {
       ConstructorInvocation() => IndexRelationKind.IS_INVOKED_BY,
-      ConstructorDeclaration() => IndexRelationKind.IS_REFERENCED_BY,
+      ConstructorDeclaration2() => IndexRelationKind.IS_REFERENCED_BY,
       _ => throw StateError('Unexpected ConstructorReference2 parent'),
     };
 

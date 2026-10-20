@@ -33,7 +33,7 @@ Element? getElementOfNode(AstNode? node) {
       return MockLibraryImportElement(node.libraryImport!);
     case ImportPrefixReference():
       element = node.element;
-    case ConstructorDeclaration():
+    case ConstructorDeclaration2():
       return node.declaredFragment?.element;
     case PrimaryConstructorDeclaration():
       return node.declaredFragment?.element;
@@ -391,9 +391,9 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  visitConstructorDeclaration2(covariant ConstructorDeclaration2Impl node) {
     var constructorElement = node.declaredFragment?.element;
-    if (node.typeName2 case var typeName?) {
+    if (node.typeName case var typeName?) {
       if (constructorElement?.enclosingElement == element &&
           typeName.lexeme == element.name) {
         references.add(
@@ -408,11 +408,11 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
         var length = name.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       } else {
-        var end = (node.typeName2 ?? node.newKeyword)!.end;
+        var end = (node.typeName ?? node.newKeyword)!.end;
         references.add(MatchInfo(end, 0, MatchKind.DECLARATION));
       }
     }
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -663,7 +663,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   MatchKind _constructorReferenceKind(ConstructorReference2 node) {
     return switch (node.parent2) {
       ConstructorInvocation() => MatchKind.INVOCATION,
-      ConstructorDeclaration() => MatchKind.REFERENCE,
+      ConstructorDeclaration2() => MatchKind.REFERENCE,
       _ => throw StateError(
         'Unexpected ConstructorReference2 parent: ${node.parent2.runtimeType}',
       ),

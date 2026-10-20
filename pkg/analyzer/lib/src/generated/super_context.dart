@@ -56,7 +56,7 @@ class SuperContext {
         return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;
-      } else if (node is ConstructorDeclaration) {
+      } else if (node is ConstructorDeclaration2) {
         if (node.factoryKeyword != null) {
           return SuperContext.static;
         }

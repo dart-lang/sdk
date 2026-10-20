@@ -107,9 +107,9 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     var element = node.declaredFragment!.element;
-    if (node.typeName2 case var typeName?) {
+    if (node.typeName case var typeName?) {
       if (typeName.lexeme == element.enclosingElement.name) {
         _useIdentifierElement(element.enclosingElement);
       }
@@ -129,7 +129,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
         );
       }
     }
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -742,13 +742,13 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     if (node.name != null) {
       var declaredElement = node.declaredFragment!.element;
       _visitConstructorElement(declaredElement);
     }
 
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override

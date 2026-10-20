@@ -94,8 +94,8 @@ class ScopeContext {
     });
   }
 
-  void visitConstructorDeclaration(
-    ConstructorDeclarationImpl node, {
+  void visitConstructorDeclaration2(
+    ConstructorDeclaration2Impl node, {
     required AstVisitor2 visitor,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
     void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
@@ -103,7 +103,7 @@ class ScopeContext {
     var fragment = node.declaredFragment!;
 
     node.metadata.accept2(visitor);
-    node.parameters.accept2(visitor);
+    node.formalParameters.accept2(visitor);
 
     withScope(_constructorInitializerScope(fragment), () {
       node.formalParameterInitializerScope = nameScope;

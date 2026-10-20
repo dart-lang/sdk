@@ -2184,8 +2184,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitConstructorDeclaration(ConstructorDeclaration node) {
+  R? visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4132,8 +4133,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitConstantPattern(ConstantPattern node) => null;
 
+  @experimental
   @override
-  R? visitConstructorDeclaration(ConstructorDeclaration node) => null;
+  R? visitConstructorDeclaration2(ConstructorDeclaration2 node) => null;
 
   @override
   R? visitConstructorFieldInitializer(ConstructorFieldInitializer node) => null;
@@ -5557,8 +5559,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitConstantPattern(ConstantPattern node) => _throw(node);
 
+  @experimental
   @override
-  R? visitConstructorDeclaration(ConstructorDeclaration node) => _throw(node);
+  R? visitConstructorDeclaration2(ConstructorDeclaration2 node) => _throw(node);
 
   @override
   R? visitConstructorFieldInitializer(ConstructorFieldInitializer node) =>
@@ -8104,10 +8107,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitConstructorDeclaration(ConstructorDeclaration node) {
+  T? visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitConstructorDeclaration(node);
+    T? result = _baseVisitor.visitConstructorDeclaration2(node);
     stopwatch.stop();
     return result;
   }
@@ -10479,8 +10483,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitConstantPattern(ConstantPattern node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitConstructorDeclaration(ConstructorDeclaration node) =>
+  R? visitConstructorDeclaration2(ConstructorDeclaration2 node) =>
       visitNode(node);
 
   @override

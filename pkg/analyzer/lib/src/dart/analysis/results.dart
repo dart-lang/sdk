@@ -96,8 +96,8 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
       }
     } else if (fragment is ConstructorFragment) {
       var token = switch (node) {
-        ConstructorDeclaration() =>
-          node.name ?? node.typeName2 ?? node.newKeyword ?? node.factoryKeyword,
+        ConstructorDeclaration2() =>
+          node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
         PrimaryConstructorDeclaration() =>
           node.constructorName?.name ?? node.typeName,
         _ => null,
@@ -348,6 +348,9 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
     }
 
     return ElementDeclarationResultImpl(
@@ -513,6 +516,9 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     } else if (!useV2 && declaration is MethodDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
+      declaration = declaration.v1Projection;
+    } else if (!useV2 && declaration is ConstructorDeclaration2Impl) {
       // ignore: analyzer_v1_ast_use
       declaration = declaration.v1Projection;
     }

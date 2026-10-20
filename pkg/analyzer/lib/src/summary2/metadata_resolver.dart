@@ -97,9 +97,9 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     node.metadata.accept2(this);
-    node.parameters.accept2(this);
+    node.formalParameters.accept2(this);
   }
 
   @override

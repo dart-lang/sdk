@@ -20,6 +20,8 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression get singleBinaryExpression => _single();
 
+  ConstructorDeclaration get singleConstructorDeclaration => _single();
+
   ConstructorName get singleConstructorName => _single();
 
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
@@ -71,6 +73,14 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression binary(String search) {
     return _node(search, (node) => node is BinaryExpression);
+  }
+
+  ConstructorDeclaration constructor(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration);
+  }
+
+  ConstructorDeclaration constructorDeclaration(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration);
   }
 
   ConstructorName constructorName(String search) {
@@ -232,6 +242,8 @@ class FindNode2 extends _FindNodeBase {
 
   CompoundAssignment get singleCompoundAssignment => _single();
 
+  ConstructorDeclaration2 get singleConstructorDeclaration => _single();
+
   ConstructorInvocation get singleConstructorInvocation => _single();
 
   ConstructorTearOff get singleConstructorTearOff => _single();
@@ -326,6 +338,14 @@ class FindNode2 extends _FindNodeBase {
 
   CompoundAssignment compoundAssignment(String search) {
     return _node(search, (node) => node is CompoundAssignment);
+  }
+
+  ConstructorDeclaration2 constructor(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration2);
+  }
+
+  ConstructorDeclaration2 constructorDeclaration(String search) {
+    return _node(search, (n) => n is ConstructorDeclaration2);
   }
 
   ConstructorInvocation constructorInvocation(String search) {
@@ -611,8 +631,6 @@ abstract class _FindNodeBase {
   Configuration get singleConfiguration => _single();
 
   ConstantPattern get singleConstantPattern => _single();
-
-  ConstructorDeclaration get singleConstructorDeclaration => _single();
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
@@ -969,14 +987,6 @@ abstract class _FindNodeBase {
 
   ConstantPattern constantPattern(String search) {
     return _node(search, (n) => n is ConstantPattern);
-  }
-
-  ConstructorDeclaration constructor(String search) {
-    return _node(search, (n) => n is ConstructorDeclaration);
-  }
-
-  ConstructorDeclaration constructorDeclaration(String search) {
-    return _node(search, (n) => n is ConstructorDeclaration);
   }
 
   ConstructorFieldInitializer constructorFieldInitializer(String search) {
