@@ -30,6 +30,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -1563,6 +1564,9 @@ abstract class CommonServerContextManagerCallbacks
 
   new(this.resourceProvider);
 
+  /// The analysis server that created this callback object.
+  AnalysisServer get analysisServer;
+
   @override
   @mustCallSuper
   void afterContextsCreated() {
@@ -1660,6 +1664,11 @@ abstract class CommonServerContextManagerCallbacks
       path,
       errors,
     );
+  }
+
+  @override
+  void scheduleWatchEvent(WatchEvent event) {
+    analysisServer.messageScheduler.add(WatcherMessage(event));
   }
 }
 
