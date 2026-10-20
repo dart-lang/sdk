@@ -887,7 +887,25 @@ augment extension type A<T> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@53
+            defaultType: null
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@51
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -919,7 +937,17 @@ augment extension type A {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@54
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -941,7 +969,25 @@ augment extension type A<T> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@56
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@54
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -973,7 +1019,29 @@ augment extension type A<T, U> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@56
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@59
+            defaultType: null
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@54
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -1009,7 +1077,25 @@ augment extension type A<T> {}
       'augment extension type A',
     );
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@59
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@57
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type

@@ -23,7 +23,21 @@ augment extension type E implements I {}
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: I
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -50,7 +64,7 @@ augment extension type A(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -64,7 +78,16 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -84,7 +107,7 @@ extension type A(int it);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -97,7 +120,14 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -674,7 +704,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -687,16 +717,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         returnType: NamedType
           name: void
@@ -714,7 +737,22 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -746,7 +784,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -759,16 +797,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         staticKeyword: static
         returnType: NamedType
@@ -787,7 +818,22 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         modifierKeyword: static
         returnType: NamedType
@@ -849,7 +895,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -862,16 +908,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       ConstructorDeclaration2
         typeName: A
         period: .
@@ -886,7 +925,22 @@ ExtensionTypeDeclaration
           rightParenthesis: )
         body: EmptyFunctionBody
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       ConstructorDeclaration
         typeName: SimpleIdentifier
           token: A
@@ -914,15 +968,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       ConstructorDeclaration2
         augmentKeyword: augment
         typeName: E
@@ -933,7 +987,16 @@ ExtensionTypeDeclaration
           rightParenthesis: )
         body: EmptyFunctionBody
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       ConstructorDeclaration
         augmentKeyword: augment
         typeName: SimpleIdentifier
@@ -1010,15 +1073,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       FieldsDeclaration
         augmentKeyword: augment
         type: NamedType
@@ -1030,7 +1093,16 @@ ExtensionTypeDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -1057,15 +1129,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       FieldsDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1078,7 +1150,16 @@ ExtensionTypeDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1106,7 +1187,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1119,16 +1200,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       FieldsDeclaration
         constFinalOrVarKeyword: final
         type: NamedType
@@ -1140,7 +1214,22 @@ ExtensionTypeDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -1166,7 +1255,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1179,16 +1268,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       FieldsDeclaration
         staticKeyword: static
         type: NamedType
@@ -1200,7 +1282,22 @@ ExtensionTypeDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       FieldDeclaration
         staticKeyword: static
         fields: VariableDeclarationList
@@ -1226,7 +1323,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1239,16 +1336,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       GetterDeclaration
         returnType: NamedType
           name: int
@@ -1259,7 +1349,22 @@ ExtensionTypeDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         returnType: NamedType
           name: int
@@ -1283,15 +1388,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       GetterDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1303,7 +1408,16 @@ ExtensionTypeDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1329,15 +1443,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       GetterDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1350,7 +1464,16 @@ ExtensionTypeDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1377,7 +1500,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1390,16 +1513,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         returnType: NamedType
           name: void
@@ -1411,7 +1527,22 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -1436,15 +1567,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         augmentKeyword: augment
         returnType: NamedType
@@ -1457,7 +1588,16 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1484,15 +1624,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       MethodDeclaration2
         augmentKeyword: augment
         staticKeyword: static
@@ -1506,7 +1646,16 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1534,15 +1683,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       OperatorDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1562,7 +1711,16 @@ ExtensionTypeDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1595,7 +1753,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1608,16 +1766,9 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       SetterDeclaration
         setKeyword: set
         name: foo
@@ -1633,7 +1784,22 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         propertyKeyword: set
         name: foo
@@ -1661,15 +1827,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       SetterDeclaration
         augmentKeyword: augment
         setKeyword: set
@@ -1686,7 +1852,16 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -1716,15 +1891,15 @@ augment extension type E {
     assertParsedNodeText(
       parseResult.findNode.singleExtensionTypeDeclaration,
       r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockClassBody
+  body: BlockInstanceDeclarationBody
     leftBracket: {
-    members2
+    members
       SetterDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1742,7 +1917,16 @@ ExtensionTypeDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockClassBody
+    leftBracket: {
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1772,14 +1956,12 @@ extension type A(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   metadata
     Annotation
       atSign: @
       expression: ParsedUnqualifiedName
         name: foo
-      name: SimpleIdentifier
-        token: foo
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1792,7 +1974,20 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: foo
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1812,7 +2007,7 @@ extension type const A<T, U>.named(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1837,7 +2032,27 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1857,7 +2072,7 @@ extension type const A<T, U>(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1879,7 +2094,24 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1899,7 +2131,7 @@ extension type const A.named(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1916,7 +2148,19 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: A
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1936,7 +2180,7 @@ extension type const A(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1950,7 +2194,16 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1972,7 +2225,18 @@ extension type const E {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1993,7 +2257,7 @@ extension type A({int a = 0}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2013,7 +2277,15 @@ ExtensionTypeDeclaration
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2039,7 +2311,7 @@ extension type A([int a = 0]) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2059,7 +2331,15 @@ ExtensionTypeDeclaration
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2088,7 +2368,7 @@ extension type A(
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2113,15 +2393,16 @@ ExtensionTypeDeclaration
                     name: String
                   name: x
               rightParenthesis: )
-            formalParameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: String
-                name: x
-              rightParenthesis: )
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -2156,7 +2437,7 @@ extension type A({
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2181,7 +2462,15 @@ ExtensionTypeDeclaration
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2215,7 +2504,7 @@ extension type A(
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2232,7 +2521,15 @@ ExtensionTypeDeclaration
             name: int
           name: a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -2256,7 +2553,7 @@ extension type A(this.it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2269,7 +2566,15 @@ ExtensionTypeDeclaration
           period: .
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         thisKeyword: this
@@ -2289,7 +2594,7 @@ extension type A(int it()) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2306,7 +2611,15 @@ ExtensionTypeDeclaration
               leftParenthesis: (
               rightParenthesis: )
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2332,7 +2645,7 @@ extension type A(const int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2346,7 +2659,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
@@ -2369,7 +2690,7 @@ extension type A(covariant int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2383,7 +2704,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -2407,7 +2736,7 @@ extension type A(covariant int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2421,7 +2750,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -2444,7 +2781,7 @@ extension type A(covariant final int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2459,7 +2796,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -2481,7 +2826,7 @@ extension type A(covariant var int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2496,7 +2841,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -2518,7 +2871,7 @@ extension type A(final int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2532,7 +2885,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2554,7 +2915,7 @@ extension type A(final int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2568,7 +2929,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2589,7 +2958,7 @@ extension type A(final it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2601,7 +2970,15 @@ ExtensionTypeDeclaration
           constFinalOrVarKeyword: final
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2621,7 +2998,7 @@ extension type A(final it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2633,7 +3010,15 @@ ExtensionTypeDeclaration
           constFinalOrVarKeyword: final
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2654,7 +3039,7 @@ extension type A(required int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2668,7 +3053,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -2691,7 +3084,7 @@ extension type A(static int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2704,7 +3097,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2724,7 +3125,7 @@ extension type A(var it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2736,7 +3137,15 @@ ExtensionTypeDeclaration
           constFinalOrVarKeyword: var
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -2756,7 +3165,7 @@ extension type A(var it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2768,7 +3177,15 @@ ExtensionTypeDeclaration
           constFinalOrVarKeyword: var
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -2787,7 +3204,7 @@ extension type A({int it = 0}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2807,7 +3224,15 @@ ExtensionTypeDeclaration
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2834,7 +3259,7 @@ extension type A({int it = 0}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2854,7 +3279,15 @@ ExtensionTypeDeclaration
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2880,7 +3313,7 @@ extension type A({int? a, int? b}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2902,7 +3335,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2931,7 +3372,7 @@ extension type A({int? a, int? b}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2953,7 +3394,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2981,7 +3430,7 @@ extension type A({int? a, required int b}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3003,7 +3452,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3031,7 +3488,7 @@ extension type A([int it = 0]) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3051,7 +3508,15 @@ ExtensionTypeDeclaration
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -3078,7 +3543,7 @@ extension type A([int it = 0]) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3098,7 +3563,15 @@ ExtensionTypeDeclaration
                 literal: 0
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -3124,7 +3597,7 @@ extension type A([int? a, int? b]) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3146,7 +3619,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -3175,7 +3656,7 @@ extension type A([int? a, int? b]) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3197,7 +3678,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -3225,7 +3714,7 @@ extension type A({required int it}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3242,7 +3731,15 @@ ExtensionTypeDeclaration
             name: it
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3266,7 +3763,7 @@ extension type A({required int it}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3283,7 +3780,15 @@ ExtensionTypeDeclaration
             name: it
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3306,7 +3811,7 @@ extension type A({required int a, int? b}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3328,7 +3833,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3356,7 +3869,7 @@ extension type A({required int a, required int b}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3378,7 +3891,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -3406,7 +3927,7 @@ extension type A(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3419,7 +3940,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3440,7 +3969,7 @@ extension type A(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3453,7 +3982,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3473,7 +4010,7 @@ extension type A(int a, {int? b}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3495,7 +4032,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3523,7 +4068,7 @@ extension type A(int a, {int? b}) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3545,7 +4090,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3572,7 +4125,7 @@ extension type A(int a, [int? b]) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3594,7 +4147,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3622,7 +4183,7 @@ extension type A(int a, [int? b]) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3644,7 +4205,15 @@ ExtensionTypeDeclaration
             name: b
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3671,7 +4240,7 @@ extension type A(int a, int b) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3688,7 +4257,15 @@ ExtensionTypeDeclaration
             name: int
           name: b
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3713,7 +4290,7 @@ extension type A(int a, int b) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3730,7 +4307,15 @@ ExtensionTypeDeclaration
             name: int
           name: b
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3754,7 +4339,7 @@ extension type A(int A) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3767,7 +4352,15 @@ ExtensionTypeDeclaration
             name: int
           name: A
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3787,7 +4380,7 @@ extension type A(@foo int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3801,13 +4394,19 @@ ExtensionTypeDeclaration
               atSign: @
               expression: ParsedUnqualifiedName
                 name: foo
-              name: SimpleIdentifier
-                token: foo
           type: NamedType
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -3832,7 +4431,18 @@ extension type A() {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3854,7 +4464,18 @@ extension type A() {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3875,7 +4496,7 @@ extension type A(it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3886,7 +4507,15 @@ ExtensionTypeDeclaration
         RegularFormalParameter
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
@@ -3905,7 +4534,7 @@ extension type A(it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3916,7 +4545,15 @@ ExtensionTypeDeclaration
         RegularFormalParameter
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
@@ -3934,7 +4571,7 @@ extension type A(@foo it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3948,11 +4585,17 @@ ExtensionTypeDeclaration
               atSign: @
               expression: ParsedUnqualifiedName
                 name: foo
-              name: SimpleIdentifier
-                token: foo
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -3975,7 +4618,7 @@ extension type A(super.it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3988,7 +4631,15 @@ ExtensionTypeDeclaration
           period: .
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
@@ -4008,7 +4659,7 @@ extension type A(int it,) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4021,7 +4672,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4042,7 +4701,7 @@ extension type A(int it,) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4055,7 +4714,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4077,7 +4744,18 @@ extension type E {}
 
     var node = parseResult.findNode.extensionTypeDeclaration('E');
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  extensionKeyword: extension @0
+  typeKeyword: type @10
+  namePart: PrimaryConstructorDeclaration
+    typeName: E @15
+    formalParameters: FormalParameterList
+      leftParenthesis: ( @17 <synthetic>
+      rightParenthesis: ) @17 <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @17
+    rightBracket: } @18
+V1: ExtensionTypeDeclaration
   extensionKeyword: extension @0
   typeKeyword: type @10
   namePart: PrimaryConstructorDeclaration
@@ -4098,7 +4776,7 @@ extension type A<T, U>.named(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4122,7 +4800,26 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4142,7 +4839,7 @@ extension type A<T, U>(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4163,7 +4860,23 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4183,7 +4896,7 @@ extension type A.named(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4199,7 +4912,18 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4219,7 +4943,7 @@ extension type A(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4232,7 +4956,15 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4254,7 +4986,7 @@ extension type A(int it) {
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4267,7 +4999,20 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody2
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4276,12 +5021,7 @@ ExtensionTypeDeclaration
       rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
-    members2
-      PrimaryConstructorBody2
-        thisKeyword: this
-        body: EmptyFunctionBody
-          semicolon: ;
-    members(v1)
+    members
       PrimaryConstructorBody
         thisKeyword: this
         body: EmptyFunctionBody
@@ -4297,7 +5037,7 @@ extension type A(int it) implements B, C {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4310,7 +5050,22 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: B
+      NamedType
+        name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4337,7 +5092,7 @@ extension type A<T>(int it) {}
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4356,7 +5111,21 @@ ExtensionTypeDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
