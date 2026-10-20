@@ -45,6 +45,17 @@ testBindShared(String name) async {
   var socket = await ServerSocket.bind(address, 0, shared: true);
   Expect.isTrue(socket.port == 0);
 
+  ServerSocket? abstractSocket;
+  if (Platform.isLinux || Platform.isAndroid) {
+    abstractSocket = await ServerSocket.bind(
+      InternetAddress(
+        '@temp.sock.${name.substring(name.lastIndexOf('/') + 1)}',
+        type: InternetAddressType.unix,
+      ),
+      0,
+    );
+  }
+
   // Same path
   var socket2 = await ServerSocket.bind(address, 0, shared: true);
   Expect.equals(socket.address.address, socket2.address.address);
@@ -65,6 +76,7 @@ testBindShared(String name) async {
     ),
   );
   Expect.equals(socket.port, socket2.port);
+  await abstractSocket?.close();
   await socket.close();
   await socket2.close();
   await socket3.close();
