@@ -394,9 +394,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
-
-  @override
   void visitEmptyFunctionBody(covariant EmptyFunctionBodyImpl node) {
     node.localVariableInfo = _localVariableInfo;
     super.visitEmptyFunctionBody(node);

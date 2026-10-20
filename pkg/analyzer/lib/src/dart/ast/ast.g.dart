@@ -446,8 +446,6 @@ abstract class AstVisitor2<R> {
 
   R? visitBlock(Block node);
 
-  R? visitBlockClassBody(BlockClassBody node);
-
   @experimental
   R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node);
 
@@ -565,8 +563,6 @@ abstract class AstVisitor2<R> {
   R? visitDottedName(DottedName node);
 
   R? visitDoubleLiteral(DoubleLiteral node);
-
-  R? visitEmptyClassBody(EmptyClassBody node);
 
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 

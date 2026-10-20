@@ -790,7 +790,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMembers(
-    List<ClassMemberV1OrV2Impl> members,
+    List<MemberDeclarationImpl> members,
     _ContainerMemberFragments fragments,
   ) {
     for (var member in members) {

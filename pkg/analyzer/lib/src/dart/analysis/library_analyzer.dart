@@ -156,8 +156,7 @@ class LibraryAnalyzer {
     // Resolution can replace the node at the completion offset. Select the
     // stable enclosing resolution root while the parsed tree still owns it.
     var nodeToResolve = node?.thisOrAncestorMatching2((e) {
-      return e.parent2 is ClassBody ||
-          e.parent2 is ClassDeclaration2 ||
+      return e.parent2 is ClassDeclaration2 ||
           e.parent2 is CompilationUnit ||
           e.parent2 is InstanceDeclarationBody ||
           e.parent2 is ExtensionDeclaration2 ||

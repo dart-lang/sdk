@@ -1463,8 +1463,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is TopLevelVariablesDeclaration;
     }
 
-    if (parent is ClassBody || parent is InstanceDeclarationBody) {
-      parent = parent!.parent2;
+    if (parent is InstanceDeclarationBody) {
+      parent = parent.parent2;
     }
 
     // The visit methods of these declarations set only the enclosing
@@ -2242,11 +2242,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.visitChildren2(this);
   }
@@ -2891,9 +2886,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     node.recordStaticType(typeProvider.doubleType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
   TypeImpl visitEmptyFunctionBody(

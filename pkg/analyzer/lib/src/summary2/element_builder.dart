@@ -1331,11 +1331,6 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    node.members2.accept2(this);
-  }
-
-  @override
   void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
     node.members.accept2(this);
   }
@@ -1446,9 +1441,6 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       formalParameters: node.formalParameters,
     );
   }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
   void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {

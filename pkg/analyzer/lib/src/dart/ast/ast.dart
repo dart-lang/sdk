@@ -4191,71 +4191,41 @@ sealed class BlockClassBody implements ClassBody {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty(
-      'members2',
-      v1Name: 'members',
-      v1Projection: V1Projection.classMember,
-      type: NodeList<ClassMemberV1OrV2Impl>,
-    ),
+    GenerateNodeProperty('members'),
     GenerateNodeProperty('rightBracket'),
   ],
 )
+@V1Ast('The V2 counterpart is BlockInstanceDeclarationBody.')
 final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   final Token leftBracket;
 
   @generated
-  @experimental
   @override
-  final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._();
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
 
   @generated
   @override
   final Token rightBracket;
 
-  /// The V1 members.
+  final BlockInstanceDeclarationBodyImpl _v1ProjectionOrigin;
+
+  /// A V1 projection of [origin].
   ///
-  /// For a V1 projection, the members are projected eagerly, so that their
-  /// V1 projections have this body as the V1 parent.
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  @V1Ast('The V2 counterpart is members2.')
-  @override
-  late final NodeListImpl<ClassMemberImpl>
-  members = switch (_v1ProjectionOrigin) {
-    var origin? =>
-      NodeListImpl<ClassMemberImpl>._().._initialize(this, [
-        for (var member in origin.members) V1Projection.toV1ClassMember(member),
-      ]),
-    null => _V1ProjectedNodeListImpl(members2, V1Projection.toV1ClassMember),
-  };
-
-  /// The canonical body, if this node is a V1 projection.
-  ///
-  /// The body of a migrated declaration is a V2 node, viewed in V1 through
-  /// this projection. The bodies of other declarations are still canonical
-  /// [BlockClassBodyImpl]s.
-  BlockInstanceDeclarationBodyImpl? _v1ProjectionOrigin;
-
-  @generated
-  new({
-    required this.leftBracket,
-    required List<ClassMemberV1OrV2Impl> members2,
-    required this.rightBracket,
-  }) {
-    this.members2._initializeProjected(this, members2);
-  }
-
-  @V1Ast()
+  /// The members are projected eagerly, so that their V1 projections have
+  /// this body as the V1 parent.
   new v1Projection(BlockInstanceDeclarationBodyImpl origin)
     : leftBracket = origin.leftBracket,
       rightBracket = origin.rightBracket,
       _v1ProjectionOrigin = origin {
-    members2._initialize(this, null);
-    // Establish the V1 links of the projected members.
-    members;
+    members._initialize(this, [
+      for (var member in origin.members) V1Projection.toV1ClassMember(member),
+    ]);
   }
 
   @generated
@@ -4270,10 +4240,9 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
     return rightBracket;
   }
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   @override
-  AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -4285,10 +4254,9 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members2', members2)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities2 {
+    throw StateError('BlockClassBody is not in the V2 AST view.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -4298,26 +4266,20 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockClassBody(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('BlockClassBody is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (members2.containsChild(oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove child 'members2' because NodeList cannot be resized.",
-      );
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (members2.replaceChild(oldNode, newNode)) {
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
@@ -4331,25 +4293,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    members2.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(NodeListImpl<ClassMemberV1OrV2Impl>)? visitMembers2,
-  }) {
-    if (visitMembers2 != null) {
-      visitMembers2(members2);
-    } else {
-      members2.accept2(visitor);
-    }
+    throw StateError('BlockClassBody is not in the V2 AST view.');
   }
 
   @generated
@@ -4366,11 +4310,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (members2._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    return null;
+    throw StateError('BlockClassBody is not in the V2 AST view.');
   }
 }
 
@@ -7693,28 +7633,14 @@ class ChildEntity {
 /// The body of a class declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {
-  /// The members declared in the body in the V1 AST view.
-  ///
-  /// Analyzer implementations should traverse [members2] instead.
-  @V1Ast('The V2 counterpart is members2.')
+  /// The members declared in the body.
   NodeList<ClassMember> get members;
-
-  /// The members declared in the body in the V2 AST view.
-  ///
-  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
-  /// is in progress. Each entry is either a V2 [MemberDeclaration] or a V1
-  /// [ClassMember] whose V2 representation is not yet available.
-  @experimental
-  NodeList<AnnotatedNode> get members2;
 }
 
+@V1Ast('The V2 counterpart is InstanceDeclarationBodyImpl.')
 sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
-  @V1Ast('The V2 counterpart is members2.')
   @override
   NodeListImpl<ClassMemberImpl> get members;
-
-  @override
-  NodeListImpl<ClassMemberV1OrV2Impl> get members2;
 }
 
 /// The declaration of a class.
@@ -8541,12 +8467,6 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 }
-
-/// A temporary marker interface for members in [ClassBodyImpl.members2].
-///
-/// This unifies V1 class members that have not yet been migrated with V2
-/// [MemberDeclaration]s.
-sealed class ClassMemberV1OrV2Impl implements AnnotatedNodeImpl {}
 
 /// The name of a class, enum, or extension type declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
@@ -17214,28 +17134,23 @@ sealed class EmptyClassBody implements ClassBody {
   Token get semicolon;
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('semicolon')])
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [GenerateNodeProperty('semicolon')],
+)
+@V1Ast('The V2 counterpart is SemicolonInstanceDeclarationBody.')
 final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @generated
   @override
   final Token semicolon;
 
-  @V1Ast('The V2 counterpart is members2.')
   @override
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
-  @override
-  late final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._()
-    .._initialize(this, null);
+  final SemicolonInstanceDeclarationBodyImpl _v1ProjectionOrigin;
 
-  /// The canonical body, if this node is a V1 projection.
-  SemicolonInstanceDeclarationBodyImpl? _v1ProjectionOrigin;
-
-  @generated
-  new({required this.semicolon});
-
-  @V1Ast()
   new v1Projection(SemicolonInstanceDeclarationBodyImpl origin)
     : semicolon = origin.semicolon,
       _v1ProjectionOrigin = origin;
@@ -17252,10 +17167,9 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
     return semicolon;
   }
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   @override
-  AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -17265,8 +17179,9 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities2 {
+    throw StateError('EmptyClassBody is not in the V2 AST view.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -17276,7 +17191,21 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyClassBody(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('EmptyClassBody is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -17286,12 +17215,9 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @generated
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('EmptyClassBody is not in the V2 AST view.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is _childContainingRange2.')
@@ -17303,7 +17229,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
+    throw StateError('EmptyClassBody is not in the V2 AST view.');
   }
 }
 
@@ -39867,7 +39793,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 sealed class MemberDeclaration implements AnnotatedNode {}
 
 sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
-    implements ClassMemberV1OrV2Impl, MemberDeclaration {
+    implements MemberDeclaration {
   new({required super.comment, required super.metadata});
 
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -62006,17 +61932,11 @@ enum V1Projection {
   /// Project an [ArgumentImpl] child to the V1 argument view.
   argument,
 
-  /// Project a [ClassMemberV1OrV2Impl] child to the V1 class member view.
-  classMember,
-
   /// Project a [CollectionElementImpl] child to the V1 collection view.
   collectionElement,
 
   /// Project a [CombinatorNameImpl] child to a V1 identifier.
   combinatorName,
-
-  /// Project an [EnumConstantDeclaration2Impl] child to the V1 enum constant.
-  enumConstant,
 
   /// Project an [ExpressionImpl] child to the V1 expression view.
   expression,
@@ -62050,7 +61970,7 @@ enum V1Projection {
   }
 
   @V1Ast()
-  static ClassMemberImpl toV1ClassMember(ClassMemberV1OrV2Impl node) {
+  static ClassMemberImpl toV1ClassMember(MemberDeclarationImpl node) {
     return switch (node) {
       ConstructorDeclaration2Impl() => node.v1Projection,
       PrimaryConstructorBody2Impl() => node.v1Projection,
@@ -62107,13 +62027,6 @@ enum V1Projection {
       return node.v1Projection;
     }
     return node as CompilationUnitMemberImpl;
-  }
-
-  @V1Ast()
-  static EnumConstantDeclarationImpl toV1EnumConstant(
-    EnumConstantDeclaration2Impl node,
-  ) {
-    return node.v1Projection;
   }
 
   @V1Ast()

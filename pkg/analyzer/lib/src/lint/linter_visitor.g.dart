@@ -1290,12 +1290,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
-  @override
-  void visitBlockClassBody(BlockClassBody node) {
-    _runSubscriptions(node, _registry._forBlockClassBody);
-    node.visitChildren2(this);
-  }
-
   @experimental
   @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
@@ -1597,12 +1591,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     _runSubscriptions(node, _registry._forDoubleLiteral);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {
-    _runSubscriptions(node, _registry._forEmptyClassBody);
     node.visitChildren2(this);
   }
 
@@ -4553,8 +4541,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<BinaryOperatorInvocation>>
   _forBinaryOperatorInvocation = [];
 
-  final List<_Subscription2<BlockClassBody>> _forBlockClassBody = [];
-
   final List<_Subscription2<BlockEnumDeclarationBody>>
   _forBlockEnumDeclarationBody = [];
 
@@ -4668,8 +4654,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<DottedName>> _forDottedName = [];
 
   final List<_Subscription2<DoubleLiteral>> _forDoubleLiteral = [];
-
-  final List<_Subscription2<EmptyClassBody>> _forEmptyClassBody = [];
 
   final List<_Subscription2<EmptyFunctionBody>> _forEmptyFunctionBody = [];
 
@@ -5180,12 +5164,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forBlockClassBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addBlockEnumDeclarationBody(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -5556,12 +5534,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addDoubleLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forDoubleLiteral.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forEmptyClassBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

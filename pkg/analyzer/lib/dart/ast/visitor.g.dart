@@ -2012,12 +2012,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
-  @override
-  R? visitBlockClassBody(BlockClassBody node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
   @experimental
   @override
   R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
@@ -2318,12 +2312,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDoubleLiteral(DoubleLiteral node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitEmptyClassBody(EmptyClassBody node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4070,9 +4058,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBlock(Block node) => null;
 
-  @override
-  R? visitBlockClassBody(BlockClassBody node) => null;
-
   @experimental
   @override
   R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) => null;
@@ -4241,9 +4226,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDoubleLiteral(DoubleLiteral node) => null;
-
-  @override
-  R? visitEmptyClassBody(EmptyClassBody node) => null;
 
   @override
   R? visitEmptyFunctionBody(EmptyFunctionBody node) => null;
@@ -5516,9 +5498,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBlock(Block node) => _throw(node);
 
-  @override
-  R? visitBlockClassBody(BlockClassBody node) => _throw(node);
-
   @experimental
   @override
   R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) =>
@@ -5694,9 +5673,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDoubleLiteral(DoubleLiteral node) => _throw(node);
-
-  @override
-  R? visitEmptyClassBody(EmptyClassBody node) => _throw(node);
 
   @override
   R? visitEmptyFunctionBody(EmptyFunctionBody node) => _throw(node);
@@ -7951,14 +7927,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
-  @override
-  T? visitBlockClassBody(BlockClassBody node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitBlockClassBody(node);
-    stopwatch.stop();
-    return result;
-  }
-
   @experimental
   @override
   T? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
@@ -8351,14 +8319,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitDoubleLiteral(DoubleLiteral node) {
     stopwatch.start();
     T? result = _baseVisitor.visitDoubleLiteral(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitEmptyClassBody(EmptyClassBody node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitEmptyClassBody(node);
     stopwatch.stop();
     return result;
   }
@@ -10492,9 +10452,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitBlock(Block node) => visitNode(node);
 
-  @override
-  R? visitBlockClassBody(BlockClassBody node) => visitNode(node);
-
   @experimental
   @override
   R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) =>
@@ -10674,9 +10631,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
-
-  @override
-  R? visitEmptyClassBody(EmptyClassBody node) => visitNode(node);
 
   @override
   R? visitEmptyFunctionBody(EmptyFunctionBody node) => visitNode(node);

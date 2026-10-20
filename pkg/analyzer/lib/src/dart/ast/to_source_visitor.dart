@@ -118,13 +118,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    sink.write(' {');
-    _visitNodeList(node.members2, separator: ' ');
-    sink.write('}');
-  }
-
-  @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
@@ -506,11 +499,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
     sink.write(node.literal.lexeme);
-  }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {
-    sink.write(';');
   }
 
   @override

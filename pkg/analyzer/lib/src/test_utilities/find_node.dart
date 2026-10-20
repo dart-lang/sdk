@@ -20,6 +20,8 @@ class FindNode extends _FindNodeBase {
 
   BinaryExpression get singleBinaryExpression => _single();
 
+  BlockClassBody get singleBlockClassBody => _single();
+
   ClassDeclaration get singleClassDeclaration => _single();
 
   ClassTypeAlias get singleClassTypeAlias => _single();
@@ -685,8 +687,6 @@ abstract class _FindNodeBase {
   AwaitExpression get singleAwaitExpression => _single();
 
   Block get singleBlock => _single();
-
-  BlockClassBody get singleBlockClassBody => _single();
 
   BlockFunctionBody get singleBlockFunctionBody => _single();
 

@@ -48,7 +48,7 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkClassMembers(
     InstanceFragmentImpl fragment,
-    List<ClassMemberV1OrV2Impl> members, {
+    List<MemberDeclarationImpl> members, {
     PrimaryConstructorDeclaration? primaryConstructor,
   }) {
     var firstFragment = fragment.element.firstFragment;

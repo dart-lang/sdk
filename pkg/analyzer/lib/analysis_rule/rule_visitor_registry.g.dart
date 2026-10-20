@@ -533,8 +533,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addBlock(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   @experimental
   void addBlockEnumDeclarationBody(
     AbstractAnalysisRule rule,
@@ -698,8 +696,6 @@ abstract class RuleVisitorRegistry2 {
   void addDottedName(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addDoubleLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

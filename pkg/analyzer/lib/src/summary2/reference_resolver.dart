@@ -54,11 +54,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    node.members2.accept2(this);
-  }
-
-  @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.constants.accept2(this);
     node.members.accept2(this);
@@ -103,9 +98,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
       visitFactoryRedirectionTarget: (_) {},
     );
   }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {}

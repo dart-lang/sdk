@@ -249,7 +249,6 @@ extension AstNodeNullableExtension on AstNode? {
   List<AnnotatedNode> get classMembers2 {
     var self = this;
     return switch (self) {
-      BlockClassBody() => self.members2,
       BlockEnumDeclarationBody() => self.members,
       BlockInstanceDeclarationBody() => self.members,
       ClassDeclaration2Impl() => self.body.members,

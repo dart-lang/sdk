@@ -58,11 +58,6 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.visitChildren2(this);
   }
@@ -106,9 +101,6 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
     node.metadata.accept2(this);
     node.formalParameters.accept2(this);
   }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
   void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
