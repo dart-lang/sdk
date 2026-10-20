@@ -7074,22 +7074,22 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.name,
   });
 
-  ExtensionDeclarationImpl build({
+  ExtensionDeclaration2Impl build({
     required Token? typeKeyword,
     required ExtensionOnClauseImpl? onClause,
   }) {
-    ClassBodyImpl body;
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return ExtensionDeclarationImpl(
+    return ExtensionDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

@@ -249,7 +249,7 @@ dart:core
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension A on int {}
 ''');
-    var node = result.findNode.singleExtensionDeclaration;
+    var node = result.findNodeV1.singleExtensionDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extension::A

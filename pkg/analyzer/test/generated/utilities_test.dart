@@ -739,7 +739,7 @@ extension F<U> on double {}
 ''');
     var destination = parseResult.findNode.extensionDeclaration('E<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<ExtensionDeclaration>(
+    _assertReplacementForChildren<ExtensionDeclaration2>(
       destination: destination,
       source: parseResult.findNode.extensionDeclaration('F<U>'),
       childAccessors: [
@@ -747,7 +747,7 @@ extension F<U> on double {}
         (node) => node.typeParameters!,
       ],
     );
-    _assertRemovalForNullableChild<ExtensionDeclaration>(
+    _assertRemovalForNullableChild<ExtensionDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );

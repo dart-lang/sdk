@@ -757,6 +757,16 @@ extension on A {
     _checkMethodRequested(findElement.method('foo'));
   }
 
+  test_extension_typeParameter_inGetter() async {
+    await assertNoDiagnostics('''
+extension A<T> on List<T> {
+  T? get f => null;
+}
+''');
+    var node = findNode.namedType('T?');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
   test_extension_typeParameter_inMethod() async {
     await assertNoDiagnostics('''
 extension E<T> on int {

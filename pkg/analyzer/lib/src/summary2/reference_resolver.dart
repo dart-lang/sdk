@@ -68,6 +68,11 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    node.members.accept2(this);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _scopeContext.visitClassDeclaration(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
@@ -133,8 +138,8 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    _scopeContext.visitExtensionDeclaration(node, visitor: this);
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
+    _scopeContext.visitExtensionDeclaration2(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 

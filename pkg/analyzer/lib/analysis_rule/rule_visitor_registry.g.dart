@@ -543,6 +543,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addBlockInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addBooleanLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addBreakStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -720,7 +726,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addExtendsClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addExtensionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addExtensionDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addExtensionOnClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

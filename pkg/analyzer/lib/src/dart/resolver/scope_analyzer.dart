@@ -436,8 +436,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    _scopeContext.visitExtensionDeclaration(node, visitor: this);
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
+    _scopeContext.visitExtensionDeclaration2(node, visitor: this);
   }
 
   @override

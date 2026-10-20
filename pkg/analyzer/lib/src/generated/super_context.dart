@@ -62,7 +62,7 @@ class SuperContext {
         }
       } else if (node is ConstructorInitializer) {
         return SuperContext.static;
-      } else if (node is ExtensionDeclaration) {
+      } else if (node is ExtensionDeclaration2) {
         return SuperContext.extension;
       } else if (node is ExtensionTypeDeclaration) {
         return SuperContext.extensionType;

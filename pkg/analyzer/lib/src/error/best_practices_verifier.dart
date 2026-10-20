@@ -417,11 +417,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitExtensionDeclaration(node);
+      super.visitExtensionDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }

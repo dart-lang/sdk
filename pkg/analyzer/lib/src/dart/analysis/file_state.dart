@@ -1032,7 +1032,7 @@ class FileState {
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
         case EnumDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           var name = declaration.name;
           if (name != null) {
             topLevelDeclarations.add(name.lexeme);

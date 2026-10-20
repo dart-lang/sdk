@@ -192,7 +192,7 @@ class _LocalNameScope {
           scope.add(declaration.namePart.typeName);
         case EnumDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           scope.add(declaration.name);
         case ExtensionTypeDeclarationImpl():
           scope.add(declaration.namePart.typeName);

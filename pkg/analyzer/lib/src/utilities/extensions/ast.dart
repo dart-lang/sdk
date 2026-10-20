@@ -251,9 +251,10 @@ extension AstNodeNullableExtension on AstNode? {
     return switch (self) {
       BlockClassBody() => self.members2,
       BlockEnumDeclarationBody() => self.members,
+      BlockInstanceDeclarationBody() => self.members,
       ClassDeclarationImpl() => self.body.members2,
       EnumDeclaration2() => self.body.members,
-      ExtensionDeclaration() => self.body.members2,
+      ExtensionDeclaration2() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members2,
       MixinDeclaration() => self.body.members2,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),

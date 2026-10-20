@@ -44,7 +44,7 @@ class _UnitApiSignatureComputer {
           _addClass(declaration);
         case EnumDeclaration2Impl():
           _addEnum(declaration);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _addExtension(declaration);
         case ExtensionTypeDeclarationImpl():
           _addNode(declaration);
@@ -128,9 +128,9 @@ class _UnitApiSignatureComputer {
     _addClassMembers(members, true);
   }
 
-  void _addExtension(ExtensionDeclarationImpl node) {
+  void _addExtension(ExtensionDeclaration2Impl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members2, false);
+    _addClassMembers(node.body.members, false);
   }
 
   void _addFieldsDeclaration(FieldsDeclaration node, bool hasConstConstructor) {

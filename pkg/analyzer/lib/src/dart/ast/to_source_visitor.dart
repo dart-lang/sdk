@@ -147,6 +147,13 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    sink.write(' {');
+    _visitNodeList(node.members, separator: ' ');
+    sink.write('}');
+  }
+
+  @override
   void visitBooleanLiteral(BooleanLiteral node) {
     sink.write(node.literal.lexeme);
   }
@@ -582,7 +589,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');

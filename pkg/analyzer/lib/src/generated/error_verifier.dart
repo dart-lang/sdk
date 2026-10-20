@@ -1088,7 +1088,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -1112,7 +1112,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingExtensionTypeVariableErrorCodes(element);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members2,
+        node.body.members,
       );
 
       GetterSetterTypesVerifier(
@@ -1128,7 +1128,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           diag.builtInIdentifierAsExtensionName,
         );
       }
-      super.visitExtensionDeclaration(node);
+      super.visitExtensionDeclaration2(node);
     });
   }
 
@@ -5202,7 +5202,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionDeclaresInstanceField(FieldsDeclarationImpl node) {
-    if (node.parent2?.parent2 is! ExtensionDeclaration) {
+    if (node.parent2?.parent2 is! ExtensionDeclaration2) {
       return;
     }
 

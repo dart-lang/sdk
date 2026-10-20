@@ -1309,6 +1309,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    _runSubscriptions(node, _registry._forBlockInstanceDeclarationBody);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
     _runSubscriptions(node, _registry._forBooleanLiteral);
@@ -1654,9 +1661,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _runSubscriptions(node, _registry._forExtensionDeclaration);
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
+    _runSubscriptions(node, _registry._forExtensionDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -4551,6 +4559,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<Block>> _forBlock = [];
 
+  final List<_Subscription2<BlockInstanceDeclarationBody>>
+  _forBlockInstanceDeclarationBody = [];
+
   final List<_Subscription2<BooleanLiteral>> _forBooleanLiteral = [];
 
   final List<_Subscription2<BreakStatement>> _forBreakStatement = [];
@@ -4678,7 +4689,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ExtendsClause>> _forExtendsClause = [];
 
-  final List<_Subscription2<ExtensionDeclaration>> _forExtensionDeclaration =
+  final List<_Subscription2<ExtensionDeclaration2>> _forExtensionDeclaration2 =
       [];
 
   final List<_Subscription2<ExtensionOnClause>> _forExtensionOnClause = [];
@@ -5189,6 +5200,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
+  void addBlockInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forBlockInstanceDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addBooleanLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forBooleanLiteral.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5609,9 +5631,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addExtensionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addExtensionDeclaration2(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
     _hasNodeProcessors = true;
-    _forExtensionDeclaration.add(
+    _forExtensionDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

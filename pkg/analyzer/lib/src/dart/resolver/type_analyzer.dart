@@ -1454,7 +1454,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       return node is ClassDeclaration ||
           node is Directive ||
           node is EnumDeclaration2 ||
-          node is ExtensionDeclaration ||
+          node is ExtensionDeclaration2 ||
           node is ExtensionTypeDeclaration ||
           node is MixinDeclaration ||
           node is TopLevelFunctionDeclaration ||
@@ -1463,7 +1463,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is TopLevelVariablesDeclaration;
     }
 
-    if (parent is ClassBody || parent is EnumDeclarationBody) {
+    if (parent is ClassBody || parent is InstanceDeclarationBody) {
       parent = parent!.parent2;
     }
 
@@ -1472,7 +1472,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     InstanceElementImpl? enclosingElement = switch (parent) {
       ClassDeclarationImpl() => parent.declaredFragment!.element,
       EnumDeclaration2Impl() => parent.declaredFragment!.element,
-      ExtensionDeclarationImpl() => parent.declaredFragment!.element,
+      ExtensionDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
       MixinDeclarationImpl() => parent.declaredFragment!.element,
       _ => null,
@@ -2269,6 +2269,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     } finally {
       _bodyContext = oldBodyContext;
     }
+  }
+
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    node.visitChildren2(this);
   }
 
   @override
@@ -3081,11 +3086,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitExtensionDeclaration(node);
+      elementResolver.visitExtensionDeclaration2(node);
     });
   }
 
@@ -4495,7 +4500,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     // recovery type must not be used to authorize superclass dispatch.
     node.legacyStaticType =
         !isThisAccessible ||
-            node.thisOrAncestorOfType2<ExtensionDeclaration>() != null
+            node.thisOrAncestorOfType2<ExtensionDeclaration2>() != null
         ? InvalidTypeImpl.instance
         : unpromotedThisType ?? InvalidTypeImpl.instance;
   }

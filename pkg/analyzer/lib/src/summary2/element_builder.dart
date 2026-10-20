@@ -1336,6 +1336,11 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    node.members.accept2(this);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
@@ -1610,7 +1615,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     var nameToken = node.name;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -1626,7 +1631,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept2(this);
-      for (var member in node.body.members2) {
+      for (var member in node.body.members) {
         member.accept2(this);
       }
     });

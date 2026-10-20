@@ -479,18 +479,18 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   /// Check that there are no members with the same name.
-  void _checkExtension(covariant ExtensionDeclarationImpl node) {
+  void _checkExtension(covariant ExtensionDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
-    _checkClassMembers(fragment, node.body.members2);
+    _checkClassMembers(fragment, node.body.members);
   }
 
-  void _checkExtensionStatic(covariant ExtensionDeclarationImpl node) {
+  void _checkExtensionStatic(covariant ExtensionDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
 
     var elementContext = _getElementContext(firstFragment);
     var instanceScope = elementContext.instanceScope;
-    for (var member in node.body.members2) {
+    for (var member in node.body.members) {
       if (member is FieldsDeclarationImpl) {
         if (member.staticKeyword != null) {
           for (var field in member.fields) {
@@ -538,7 +538,7 @@ class MemberDuplicateDefinitionVerifier {
       switch (node) {
         case ClassDeclarationImpl():
           _checkClass(node);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _checkExtension(node);
         case EnumDeclaration2Impl():
           _checkEnum(node);
@@ -567,7 +567,7 @@ class MemberDuplicateDefinitionVerifier {
           _checkClassStatic(fragment, declaration.body.members2);
         case EnumDeclaration2Impl():
           _checkEnumStatic(declaration);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _checkExtensionStatic(declaration);
         case ExtensionTypeDeclarationImpl():
           var fragment = declaration.declaredFragment!;

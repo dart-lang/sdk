@@ -68,6 +68,11 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     node.metadata.accept2(this);
     node.namePart.typeParameters?.accept2(this);
@@ -138,7 +143,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
 

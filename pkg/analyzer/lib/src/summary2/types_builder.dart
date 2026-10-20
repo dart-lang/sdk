@@ -157,7 +157,7 @@ class TypesBuilder {
       _classTypeAlias(node);
     } else if (node is EnumDeclaration2Impl) {
       _enumDeclaration(node);
-    } else if (node is ExtensionDeclarationImpl) {
+    } else if (node is ExtensionDeclaration2Impl) {
       _extensionDeclaration(node);
     } else if (node is ExtensionTypeDeclarationImpl) {
       _extensionTypeDeclaration(node);
@@ -206,7 +206,7 @@ class TypesBuilder {
     _addFragmentWithClause(fragment, node.withClause);
   }
 
-  void _extensionDeclaration(ExtensionDeclarationImpl node) {
+  void _extensionDeclaration(ExtensionDeclaration2Impl node) {
     if (node.onClause case var onClause?) {
       var fragment = node.declaredFragment!;
       if (fragment.previousFragment == null) {

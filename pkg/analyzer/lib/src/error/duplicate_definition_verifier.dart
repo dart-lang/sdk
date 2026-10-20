@@ -217,7 +217,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           var identifier = member.name;
           if (identifier != null) {
             var declaredFragment = member.declaredFragment!;

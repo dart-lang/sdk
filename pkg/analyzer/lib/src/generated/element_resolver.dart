@@ -197,7 +197,7 @@ class ElementResolver {
     }
   }
 
-  void visitExtensionDeclaration(ExtensionDeclaration node) {}
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {}
 
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
 

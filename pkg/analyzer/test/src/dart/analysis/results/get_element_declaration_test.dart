@@ -359,6 +359,62 @@ extension E on int {}
     expect(node.name!.lexeme, 'E');
   }
 
+  test_extension_v2() async {
+    var unitResult = await resolveTestCode(r'''
+extension E on int {
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.extension_('E').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: ExtensionDeclaration
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
   test_field() async {
     var unitResult = await resolveTestCode(r'''
 class C {

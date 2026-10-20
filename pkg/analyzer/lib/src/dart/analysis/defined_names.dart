@@ -60,9 +60,9 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
           appendName(names.classMemberNames, constant.name);
         }
         member.body.members.forEach(appendClassMemberName);
-      case ExtensionDeclarationImpl():
+      case ExtensionDeclaration2Impl():
         appendName(names.topLevelNames, member.name);
-        member.body.members2.forEach(appendClassMemberName);
+        member.body.members.forEach(appendClassMemberName);
       case ExtensionTypeDeclarationImpl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart

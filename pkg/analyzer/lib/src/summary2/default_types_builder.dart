@@ -307,7 +307,7 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.namePart.typeParameters,
         );
-      case ExtensionDeclarationImpl():
+      case ExtensionDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,

@@ -453,6 +453,9 @@ abstract class AstVisitor2<R> {
 
   R? visitBlockFunctionBody(BlockFunctionBody node);
 
+  @experimental
+  R? visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node);
+
   R? visitBooleanLiteral(BooleanLiteral node);
 
   R? visitBreakStatement(BreakStatement node);
@@ -584,7 +587,8 @@ abstract class AstVisitor2<R> {
 
   R? visitExtendsClause(ExtendsClause node);
 
-  R? visitExtensionDeclaration(ExtensionDeclaration node);
+  @experimental
+  R? visitExtensionDeclaration2(ExtensionDeclaration2 node);
 
   R? visitExtensionOnClause(ExtensionOnClause node);
 

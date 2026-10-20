@@ -34,6 +34,8 @@ class FindNode extends _FindNodeBase {
 
   EnumDeclaration get singleEnumDeclaration => _single();
 
+  ExtensionDeclaration get singleExtensionDeclaration => _single();
+
   FieldDeclaration get singleFieldDeclaration => _single();
 
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
@@ -117,6 +119,10 @@ class FindNode extends _FindNodeBase {
 
   EnumDeclaration enumDeclaration(String search) {
     return _node(search, (n) => n is EnumDeclaration);
+  }
+
+  ExtensionDeclaration extensionDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionDeclaration);
   }
 
   ExtensionOverride extensionOverride(String search) {
@@ -256,7 +262,7 @@ class FindNode2 extends _FindNodeBase {
   AnnotatedNode get singleClassMember {
     return [
       for (var body in _nodes<ClassBody>()) ...body.members2,
-      for (var body in _nodes<EnumDeclarationBody>()) ...body.members,
+      for (var body in _nodes<InstanceDeclarationBody>()) ...body.members,
     ].single;
   }
 
@@ -282,6 +288,8 @@ class FindNode2 extends _FindNodeBase {
   EnumConstantDeclaration2 get singleEnumConstantDeclaration => _single();
 
   EnumDeclaration2 get singleEnumDeclaration => _single();
+
+  ExtensionDeclaration2 get singleExtensionDeclaration => _single();
 
   Field2 get singleField => _single();
 
@@ -406,6 +414,10 @@ class FindNode2 extends _FindNodeBase {
 
   EnumDeclaration2 enumDeclaration(String search) {
     return _node(search, (n) => n is EnumDeclaration2);
+  }
+
+  ExtensionDeclaration2 extensionDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionDeclaration2);
   }
 
   ExtensionOverride2 extensionOverride2(String search) {
@@ -697,8 +709,6 @@ abstract class _FindNodeBase {
   ExpressionStatement get singleExpressionStatement => _single();
 
   ExtendsClause get singleExtendsClause => _single();
-
-  ExtensionDeclaration get singleExtensionDeclaration => _single();
 
   ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
@@ -1081,10 +1091,6 @@ abstract class _FindNodeBase {
 
   ExtendsClause extendsClause(String search) {
     return _node(search, (n) => n is ExtendsClause);
-  }
-
-  ExtensionDeclaration extensionDeclaration(String search) {
-    return _node(search, (n) => n is ExtensionDeclaration);
   }
 
   ExtensionTypeDeclaration extensionTypeDeclaration(String search) {

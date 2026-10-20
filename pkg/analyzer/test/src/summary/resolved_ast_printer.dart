@@ -191,19 +191,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    // TODO(scheglov): Remove when extensions are parsed as
-    // ExtensionDeclaration2.
-    if (_view == _AstView.v2 && node.parent2 is ExtensionDeclaration) {
-      _sink.writeln('BlockInstanceDeclarationBody');
-      _sink.withIndent(() {
-        for (var entity in (node as AstNodeImpl).namedChildEntities2) {
-          var name = entity.name == 'members2' ? 'members' : entity.name;
-          _writeNamedChildEntity(node, entity, name: name);
-        }
-      });
-      return;
-    }
-
     _sink.writeln('BlockClassBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -229,6 +216,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _sink.writeln('BlockFunctionBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    _sink.writeln('BlockInstanceDeclarationBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -827,16 +822,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitEmptyClassBody(EmptyClassBody node) {
-    // TODO(scheglov): Remove when extensions are parsed as
-    // ExtensionDeclaration2.
-    if (_view == _AstView.v2 && node.parent2 is ExtensionDeclaration) {
-      _sink.writeln('SemicolonInstanceDeclarationBody');
-      _sink.withIndent(() {
-        _writeToken('semicolon', node.semicolon);
-      });
-      return;
-    }
-
     _sink.writeln('EmptyClassBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -959,20 +944,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    // TODO(scheglov): Remove when extensions are parsed as
-    // ExtensionDeclaration2.
-    if (_view == _AstView.v2) {
-      _sink.writeln('ExtensionDeclaration2');
-      _sink.withIndent(() {
-        for (var entity in (node as AstNodeImpl).namedChildEntities2) {
-          _writeNamedChildEntity(node, entity);
-        }
-        _writeDeclaredFragment(node.declaredFragment);
-      });
-      return;
-    }
-
     _sink.writeln('ExtensionDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
+    _sink.writeln('ExtensionDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -2813,15 +2794,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Statement(statement);
     }
 
-    // TODO(scheglov): Remove when extensions are parsed as
-    // ExtensionDeclaration2, which has a distinct V1 projection.
-    if (node is ExtensionDeclaration) {
-      _withInlineV1ChildEntities(false, () => writeNode(node));
-      _sink.writeWithIndent('V1: ');
-      _withView(_AstView.v1, () => _acceptInView(node));
-      return;
-    }
-
     if (v1 == null || identical(v1, node)) {
       writeNode(node);
       return;
@@ -3349,8 +3321,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasExtensionDeclarations(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3721,16 +3692,6 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a declaration list with an [ExtensionDeclaration],
-  /// which will differ from its V1 projection once extensions are parsed as
-  /// `ExtensionDeclaration2`.
-  // TODO(scheglov): Remove when extensions are parsed as
-  // ExtensionDeclaration2.
-  static bool _hasExtensionDeclarations(Object value) {
-    return value is List<AstNode> &&
-        value.any((node) => node is ExtensionDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

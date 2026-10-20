@@ -160,8 +160,8 @@ class ScopeContext {
     });
   }
 
-  void visitExtensionDeclaration(
-    ExtensionDeclarationImpl node, {
+  void visitExtensionDeclaration2(
+    ExtensionDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
