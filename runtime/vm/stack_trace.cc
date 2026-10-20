@@ -370,6 +370,9 @@ void AsyncAwareStackUnwinder::Unwind(
 #endif  // defined(DART_DYNAMIC_MODULES)
         code_or_bytecode_ = function_.EnsureHasCode();
         RELEASE_ASSERT(!code().IsNull());
+        // TODO(dartbug.com/64603): Hack to get old behavior for compiled code
+        // until I figure out why it isn't working properly without this.
+        pc_offset += function_.entry_point() - code().PayloadStart();
 #if defined(DART_DYNAMIC_MODULES)
       }
 #endif  // defined(DART_DYNAMIC_MODULES)
