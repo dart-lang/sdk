@@ -29,6 +29,27 @@ class A = class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -64,8 +85,8 @@ class A = const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -75,7 +96,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: const
       variables
@@ -124,6 +146,33 @@ class A = enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
+          EnumConstantDeclaration
+            name: v
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -142,10 +191,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -165,6 +211,20 @@ class A =
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -193,8 +253,8 @@ class A = final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -204,7 +264,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: final
       variables
@@ -257,6 +318,20 @@ class A = int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: int
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: f
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -291,6 +366,20 @@ class A = void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: void
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: f
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -318,8 +407,8 @@ class A = int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -329,7 +418,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelGetterDeclaration
       getKeyword: get
       name: a
@@ -378,6 +468,20 @@ class A = mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: mixin
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: M
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -406,8 +510,8 @@ class A = set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -417,7 +521,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelSetterDeclaration
       setKeyword: set
       name: a
@@ -473,8 +578,8 @@ class A = typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -484,7 +589,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     GenericTypeAlias2
       typedefKeyword: typedef
       name: A
@@ -560,8 +666,8 @@ class A = var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -571,7 +677,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: var
       variables
@@ -613,6 +720,27 @@ class A = B class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -647,8 +775,8 @@ class A = B const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -658,7 +786,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: const
       variables
@@ -706,6 +835,33 @@ class A = B enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
+          EnumConstantDeclaration
+            name: v
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -724,10 +880,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -746,6 +899,20 @@ class A = B
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -773,8 +940,8 @@ class A = B final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -784,7 +951,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: final
       variables
@@ -831,8 +999,8 @@ class A = B int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -842,7 +1010,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: int
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: f
       formalParameters: FormalParameterList
@@ -889,8 +1058,8 @@ class A = B void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -900,7 +1069,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: void
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: f
       formalParameters: FormalParameterList
@@ -947,8 +1117,8 @@ class A = B int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -958,7 +1128,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: int
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelGetterDeclaration
       getKeyword: get
       name: a
@@ -1004,6 +1175,26 @@ class A = B mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1037,8 +1228,8 @@ class A = B set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1048,7 +1239,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelSetterDeclaration
       setKeyword: set
       name: a
@@ -1103,8 +1295,8 @@ class A = B typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1114,7 +1306,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     GenericTypeAlias2
       typedefKeyword: typedef
       name: A
@@ -1189,8 +1382,8 @@ class A = B var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1200,7 +1393,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: var
       variables
@@ -1241,6 +1435,27 @@ class A = B C class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: C
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1274,8 +1489,8 @@ class A = B C const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1285,7 +1500,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: const
       variables
@@ -1332,6 +1548,33 @@ class A = B C enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: C
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
+          EnumConstantDeclaration
+            name: v
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1350,10 +1593,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -1371,6 +1611,20 @@ class A = B C
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: C
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1397,8 +1651,8 @@ class A = B C final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1408,7 +1662,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: final
       variables
@@ -1455,8 +1710,8 @@ class A = B C int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1466,7 +1721,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       returnType: NamedType
         name: int
@@ -1517,8 +1773,8 @@ class A = B C void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1528,7 +1784,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       returnType: NamedType
         name: void
@@ -1579,8 +1836,8 @@ class A = B C int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1590,7 +1847,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelGetterDeclaration
       returnType: NamedType
         name: int
@@ -1639,6 +1897,26 @@ class A = B C mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: C
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1671,8 +1949,8 @@ class A = B C set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1682,7 +1960,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelSetterDeclaration
       setKeyword: set
       name: a
@@ -1736,8 +2015,8 @@ class A = B C typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1747,7 +2026,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     GenericTypeAlias2
       typedefKeyword: typedef
       name: A
@@ -1821,8 +2101,8 @@ class A = B C var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1832,7 +2112,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: C
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: var
       variables
@@ -1874,6 +2155,27 @@ class A = B with class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1908,8 +2210,8 @@ class A = B with const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -1919,7 +2221,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: const
       variables
@@ -1967,6 +2270,33 @@ class A = B with enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
+          EnumConstantDeclaration
+            name: v
+        rightBracket: }
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1985,10 +2315,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -2007,6 +2334,20 @@ class A = B with
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -2034,8 +2375,8 @@ class A = B with final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2045,7 +2386,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: final
       variables
@@ -2091,8 +2433,8 @@ class A = B with int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2102,7 +2444,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: int
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: f
       formalParameters: FormalParameterList
@@ -2148,8 +2491,8 @@ class A = B with void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2159,7 +2502,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: void
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: f
       formalParameters: FormalParameterList
@@ -2205,8 +2549,8 @@ class A = B with int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2216,7 +2560,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: int
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelGetterDeclaration
       getKeyword: get
       name: a
@@ -2263,8 +2608,8 @@ class A = B with mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2274,7 +2619,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: mixin
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: M
       formalParameters: FormalParameterList
@@ -2322,8 +2668,8 @@ class A = B with set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2333,7 +2679,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelSetterDeclaration
       setKeyword: set
       name: a
@@ -2388,8 +2735,8 @@ class A = B with typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2399,7 +2746,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     GenericTypeAlias2
       typedefKeyword: typedef
       name: A
@@ -2474,8 +2822,8 @@ class A = B with var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassTypeAlias
-      typedefKeyword: class
+    ClassTypeAlias2
+      classKeyword: class
       name: A
       equals: =
       superclass: NamedType
@@ -2485,7 +2833,8 @@ CompilationUnit
         mixinTypes
           NamedType
             name: <empty> <synthetic>
-      semicolon: ; <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
     TopLevelVariablesDeclaration
       constFinalOrVarKeyword: var
       variables
@@ -12620,6 +12969,20 @@ class const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: a
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: a

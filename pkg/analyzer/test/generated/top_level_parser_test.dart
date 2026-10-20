@@ -1142,6 +1142,25 @@ class A = Object with B implements C;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: Object
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: C
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1170,6 +1189,20 @@ class A = Object with B;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: Object
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: B
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: A
@@ -1269,6 +1302,23 @@ class C = D with E;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      documentationComment: Comment
+        tokens
+          /// Doc
+      classKeyword: class
+      name: C
+      equals: =
+      superclass: NamedType
+        name: D
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: E
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       documentationComment: Comment
         tokens
@@ -1878,6 +1928,21 @@ abstract class A = B with C;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      abstractKeyword: abstract
+      classKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       abstractKeyword: abstract
       typedefKeyword: class
@@ -2864,6 +2929,21 @@ abstract class C = S with M;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      abstractKeyword: abstract
+      classKeyword: class
+      name: C
+      equals: =
+      superclass: NamedType
+        name: S
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       abstractKeyword: abstract
       typedefKeyword: class
@@ -2888,6 +2968,49 @@ class C<E> = S<E> with M<E> implements I<E>;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: S
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: E
+          rightBracket: >
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: E
+              rightBracket: >
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: I
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: E
+              rightBracket: >
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: C
@@ -2940,6 +3063,25 @@ class C = S with M implements I;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: C
+      equals: =
+      superclass: NamedType
+        name: S
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: I
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: C
@@ -2968,6 +3110,20 @@ class C = S with M;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: C
+      equals: =
+      superclass: NamedType
+        name: S
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: M
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ;
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: C

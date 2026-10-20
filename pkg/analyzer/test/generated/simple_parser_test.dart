@@ -3805,6 +3805,35 @@ class C<A extends B<E>>= {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+            extendsKeyword: extends
+            bound: NamedType
+              name: B
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: C
@@ -3849,6 +3878,35 @@ class C<A extends B<E /* foo */ >>= {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+            extendsKeyword: extends
+            bound: NamedType
+              name: B
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: C
@@ -3941,6 +3999,26 @@ class C<A>= {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassTypeAlias2
+      classKeyword: class
+      name: C
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+        rightBracket: >
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: SemicolonInstanceDeclarationBody
+        semicolon: ; <synthetic>
+  declarations(v1)
     ClassTypeAlias
       typedefKeyword: class
       name: C
