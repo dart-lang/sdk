@@ -36,6 +36,8 @@ class FindNode extends _FindNodeBase {
 
   ExtensionDeclaration get singleExtensionDeclaration => _single();
 
+  ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
+
   FieldDeclaration get singleFieldDeclaration => _single();
 
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
@@ -129,6 +131,10 @@ class FindNode extends _FindNodeBase {
 
   ExtensionOverride extensionOverride(String search) {
     return _node(search, (n) => n is ExtensionOverride);
+  }
+
+  ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionTypeDeclaration);
   }
 
   FieldDeclaration fieldDeclaration(String search) {
@@ -301,6 +307,8 @@ class FindNode2 extends _FindNodeBase {
 
   ExtensionDeclaration2 get singleExtensionDeclaration => _single();
 
+  ExtensionTypeDeclaration2 get singleExtensionTypeDeclaration => _single();
+
   Field2 get singleField => _single();
 
   FieldsDeclaration get singleFieldsDeclaration => _single();
@@ -434,6 +442,10 @@ class FindNode2 extends _FindNodeBase {
 
   ExtensionOverride2 extensionOverride2(String search) {
     return _node(search, (n) => n is ExtensionOverride2);
+  }
+
+  ExtensionTypeDeclaration2 extensionTypeDeclaration(String search) {
+    return _node(search, (n) => n is ExtensionTypeDeclaration2);
   }
 
   Field2 field(String search) {
@@ -729,8 +741,6 @@ abstract class _FindNodeBase {
   ExpressionStatement get singleExpressionStatement => _single();
 
   ExtendsClause get singleExtendsClause => _single();
-
-  ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
   FieldFormalParameter get singleFieldFormalParameter => _single();
 
@@ -1109,10 +1119,6 @@ abstract class _FindNodeBase {
 
   ExtendsClause extendsClause(String search) {
     return _node(search, (n) => n is ExtendsClause);
-  }
-
-  ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
-    return _node(search, (n) => n is ExtensionTypeDeclaration);
   }
 
   FieldFormalParameter fieldFormalParameter(String search) {

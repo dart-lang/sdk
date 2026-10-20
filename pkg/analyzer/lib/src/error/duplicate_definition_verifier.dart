@@ -229,7 +229,7 @@ class DuplicateDefinitionVerifier {
               );
             }
           }
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(

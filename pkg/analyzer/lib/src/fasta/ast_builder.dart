@@ -7121,19 +7121,19 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.name,
   });
 
-  ExtensionTypeDeclarationImpl build({
+  ExtensionTypeDeclaration2Impl build({
     required Token typeKeyword,
     required Token? constKeyword,
     required _PrimaryConstructorBuilder? primaryConstructorBuilder,
     required ImplementsClauseImpl? implementsClause,
   }) {
-    ClassBodyImpl body;
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
@@ -7143,7 +7143,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       primaryConstructorBuilder: primaryConstructorBuilder,
     );
 
-    return ExtensionTypeDeclarationImpl(
+    return ExtensionTypeDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

@@ -589,7 +589,7 @@ class _InfoBuilder {
         enums.add(_buildEnum(declaration));
       } else if (declaration is ExtensionDeclaration2) {
         extensions.add(_buildExtension(declaration));
-      } else if (declaration is ExtensionTypeDeclaration) {
+      } else if (declaration is ExtensionTypeDeclaration2) {
         extensionTypes.add(_buildExtensionType(declaration));
       } else if (declaration is MixinDeclaration2Impl) {
         mixinDeclarations.add(_buildMixin(declaration));
@@ -841,7 +841,7 @@ class _InfoBuilder {
   }
 
   _InfoExtensionTypeDeclaration _buildExtensionType(
-    ExtensionTypeDeclaration node,
+    ExtensionTypeDeclaration2 node,
   ) {
     return _InfoExtensionTypeDeclaration(
       data: _buildInterfaceData(
@@ -849,7 +849,7 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members2,
+        members: node.body.members,
       ),
     );
   }

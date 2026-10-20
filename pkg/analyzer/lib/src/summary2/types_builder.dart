@@ -159,7 +159,7 @@ class TypesBuilder {
       _enumDeclaration(node);
     } else if (node is ExtensionDeclaration2Impl) {
       _extensionDeclaration(node);
-    } else if (node is ExtensionTypeDeclarationImpl) {
+    } else if (node is ExtensionTypeDeclaration2Impl) {
       _extensionTypeDeclaration(node);
     } else if (node is FieldFormalParameterImpl) {
       _fieldFormalParameter(node);
@@ -216,7 +216,7 @@ class TypesBuilder {
     }
   }
 
-  void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
+  void _extensionTypeDeclaration(ExtensionTypeDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 

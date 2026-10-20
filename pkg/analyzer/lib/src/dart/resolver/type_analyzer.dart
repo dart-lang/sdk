@@ -1455,7 +1455,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is Directive ||
           node is EnumDeclaration2 ||
           node is ExtensionDeclaration2 ||
-          node is ExtensionTypeDeclaration ||
+          node is ExtensionTypeDeclaration2 ||
           node is MixinDeclaration2 ||
           node is TopLevelFunctionDeclaration ||
           node is TopLevelGetterDeclaration ||
@@ -1473,7 +1473,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       ClassDeclarationImpl() => parent.declaredFragment!.element,
       EnumDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionDeclaration2Impl() => parent.declaredFragment!.element,
-      ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
+      ExtensionTypeDeclaration2Impl() => parent.declaredFragment!.element,
       MixinDeclaration2Impl() => parent.declaredFragment!.element,
       _ => null,
     };
@@ -3144,13 +3144,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitExtensionTypeDeclaration(node);
+      elementResolver.visitExtensionTypeDeclaration2(node);
     });
   }
 

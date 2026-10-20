@@ -1681,9 +1681,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _runSubscriptions(node, _registry._forExtensionTypeDeclaration);
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
+    _runSubscriptions(node, _registry._forExtensionTypeDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -4697,8 +4698,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ExtensionOverride2>> _forExtensionOverride2 = [];
 
-  final List<_Subscription2<ExtensionTypeDeclaration>>
-  _forExtensionTypeDeclaration = [];
+  final List<_Subscription2<ExtensionTypeDeclaration2>>
+  _forExtensionTypeDeclaration2 = [];
 
   final List<_Subscription2<Field2>> _forField2 = [];
 
@@ -5655,12 +5656,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addExtensionTypeDeclaration(
+  void addExtensionTypeDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forExtensionTypeDeclaration.add(
+    _forExtensionTypeDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

@@ -199,7 +199,7 @@ class ElementResolver {
 
   void visitExtensionDeclaration2(ExtensionDeclaration2 node) {}
 
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {}
 
   void visitFieldFormalParameter(FieldFormalParameter node) {}
 

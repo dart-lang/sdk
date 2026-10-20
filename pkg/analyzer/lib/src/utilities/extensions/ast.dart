@@ -255,7 +255,7 @@ extension AstNodeNullableExtension on AstNode? {
       ClassDeclarationImpl() => self.body.members2,
       EnumDeclaration2() => self.body.members,
       ExtensionDeclaration2() => self.body.members,
-      ExtensionTypeDeclarationImpl() => self.body.members2,
+      ExtensionTypeDeclaration2Impl() => self.body.members,
       MixinDeclaration2() => self.body.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };

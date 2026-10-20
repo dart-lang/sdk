@@ -64,7 +64,7 @@ class SuperContext {
         return SuperContext.static;
       } else if (node is ExtensionDeclaration2) {
         return SuperContext.extension;
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         return SuperContext.extensionType;
       } else if (node is FieldsDeclaration) {
         if (node.staticKeyword != null) {

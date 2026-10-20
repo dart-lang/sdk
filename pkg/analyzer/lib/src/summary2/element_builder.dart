@@ -1646,8 +1646,8 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
@@ -1949,7 +1949,8 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     var parent = node.parent2;
     var isAugmentation =
-        parent is ExtensionTypeDeclarationImpl && parent.augmentKeyword != null;
+        parent is ExtensionTypeDeclaration2Impl &&
+        parent.augmentKeyword != null;
 
     var fragment = ConstructorFragmentImpl(name: fragmentName);
     fragment.isAugmentation = isAugmentation;
@@ -1976,7 +1977,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     var formalParameters = node.formalParameters.allFormalParameters;
 
     var isFirstFormalExtensionTypeRepresentation = false;
-    if (parent is ExtensionTypeDeclarationImpl) {
+    if (parent is ExtensionTypeDeclaration2Impl) {
       var firstFormalParameter = formalParameters.firstOrNull;
       isFirstFormalExtensionTypeRepresentation =
           firstFormalParameter is RegularFormalParameterImpl;

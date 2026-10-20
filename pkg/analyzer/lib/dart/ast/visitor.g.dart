@@ -2403,8 +2403,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  R? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4282,8 +4283,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionOverride2(ExtensionOverride2 node) => null;
 
+  @experimental
   @override
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) => null;
+  R? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) => null;
 
   @experimental
   @override
@@ -5734,8 +5736,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionOverride2(ExtensionOverride2 node) => _throw(node);
 
+  @experimental
   @override
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
+  R? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) =>
       _throw(node);
 
   @experimental
@@ -8456,10 +8459,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  T? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitExtensionTypeDeclaration(node);
+    T? result = _baseVisitor.visitExtensionTypeDeclaration2(node);
     stopwatch.stop();
     return result;
   }
@@ -10711,8 +10715,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitExtensionOverride2(ExtensionOverride2 node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
+  R? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) =>
       visitNode(node);
 
   @experimental

@@ -425,7 +425,7 @@ class AnnotationVerifier {
   void _checkNonVirtual(Annotation node) {
     var parent = node.parent2;
     if (parent is MethodDeclarationV1OriginImpl) {
-      if (parent.parent2?.parent2 is ExtensionTypeDeclaration ||
+      if (parent.parent2?.parent2 is ExtensionTypeDeclaration2 ||
           !parent.isComplete) {
         _diagnosticReporter.report(
           diag.invalidNonVirtualAnnotation.at(node.nameEntity),
@@ -440,8 +440,8 @@ class AnnotationVerifier {
     var parent = node.parent2;
     var parent2 = parent.parent2;
     var parent3 = parent2?.parent2;
-    if (parent2 is! BlockClassBody ||
-        parent3 is! ExtensionTypeDeclaration ||
+    if (parent2 is! BlockInstanceDeclarationBody ||
+        parent3 is! ExtensionTypeDeclaration2 ||
         parent is MethodDeclarationV1OriginImpl &&
             parent.staticKeyword != null) {
       _diagnosticReporter.report(

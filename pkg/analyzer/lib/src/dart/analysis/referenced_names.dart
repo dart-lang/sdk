@@ -47,7 +47,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
     } else if (declaration is EnumDeclaration2) {
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is ExtensionTypeDeclaration) {
+    } else if (declaration is ExtensionTypeDeclaration2) {
       addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is MixinDeclaration2) {
       addSubtypedNames(declaration.onClause?.superclassConstraints);
@@ -111,11 +111,11 @@ class _LocalNameScope {
 
   factory forExtensionType(
     _LocalNameScope enclosing,
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
   ) {
     var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (var member in node.body.members2) {
+    for (var member in node.body.members) {
       if (member is FieldsDeclarationImpl) {
         for (var field in member.fields) {
           scope.add(field.name);
@@ -194,7 +194,7 @@ class _LocalNameScope {
           scope.add(declaration.namePart.typeName);
         case ExtensionDeclaration2Impl():
           scope.add(declaration.name);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
         case MixinDeclaration2Impl():
           scope.add(declaration.name);
@@ -369,13 +369,13 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var outerScope = localScope;
     try {
       localScope = _LocalNameScope.forExtensionType(localScope, node);
-      super.visitExtensionTypeDeclaration(node);
+      super.visitExtensionTypeDeclaration2(node);
     } finally {
       localScope = outerScope;
     }

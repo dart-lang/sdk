@@ -441,14 +441,14 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    _scopeContext.visitExtensionTypeDeclaration(node, visitor: this);
+    _scopeContext.visitExtensionTypeDeclaration2(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 

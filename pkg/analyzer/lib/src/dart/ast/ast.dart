@@ -21029,7 +21029,38 @@ abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
   Token get typeKeyword;
 }
 
+/// The declaration of an extension type.
+///
+///     <extensionTypeDeclaration> ::=
+///         'extension' 'type' 'const'? <typeIdentifier> <typeParameters>?
+///         <representationDeclaration> <interfaces>?
+///         memberedDeclarationBody
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class ExtensionTypeDeclaration2 implements InstanceDeclaration {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  @override
+  ExtensionTypeFragment? get declaredFragment;
+
+  /// The `extension` keyword.
+  Token get extensionKeyword;
+
+  /// The `implements` clause, or `null` if there is none.
+  ImplementsClause? get implementsClause;
+
+  /// The name of the extension type. In valid code the introductory
+  /// declaration has a [PrimaryConstructorDeclaration], and augmentations have
+  /// a [NameWithTypeParameters].
+  ClassNamePart get namePart;
+
+  /// The `type` keyword.
+  Token get typeKeyword;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('extensionKeyword'),
@@ -21039,9 +21070,9 @@ abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('body'),
   ],
 )
-final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
+final class ExtensionTypeDeclaration2Impl extends TopLevelDeclarationImpl
     with AstNodeWithNameScopeMixin
-    implements TopLevelDeclarationV1OrV2Impl, ExtensionTypeDeclaration {
+    implements ExtensionTypeDeclaration2 {
   @generated
   @override
   final Token? augmentKeyword;
@@ -21061,12 +21092,15 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @generated
-  ClassBodyImpl _body;
+  InstanceDeclarationBodyImpl _body;
 
   @override
   ExtensionTypeFragmentImpl? declaredFragment;
 
   Scope? bodyScope;
+
+  @V1Ast()
+  ExtensionTypeDeclarationImpl? _v1Projection;
 
   @generated
   new({
@@ -21077,22 +21111,22 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     required this.typeKeyword,
     required ClassNamePartImpl namePart,
     required ImplementsClauseImpl? implementsClause,
-    required ClassBodyImpl body,
+    required InstanceDeclarationBodyImpl body,
   }) : _namePart = namePart,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf12(namePart);
-    _becomeParentOf12(implementsClause);
-    _becomeParentOf12(body);
+    _becomeParentOf2(namePart);
+    _becomeParentOf2(implementsClause);
+    _becomeParentOf2(body);
   }
 
   @generated
   @override
-  ClassBodyImpl get body => _body;
+  InstanceDeclarationBodyImpl get body => _body;
 
   @generated
-  set body(ClassBodyImpl body) {
-    _body = _becomeParentOf12(body);
+  set body(InstanceDeclarationBodyImpl body) {
+    _body = _becomeParentOf2(body);
   }
 
   @generated
@@ -21116,7 +21150,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf12(implementsClause);
+    _implementsClause = _becomeParentOf2(implementsClause);
   }
 
   @generated
@@ -21125,13 +21159,8 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set namePart(ClassNamePartImpl namePart) {
-    _namePart = _becomeParentOf12(namePart);
+    _namePart = _becomeParentOf2(namePart);
   }
-
-  @override
-  @Deprecated('Use namePart instead')
-  PrimaryConstructorDeclarationImpl get primaryConstructor =>
-      namePart as PrimaryConstructorDeclarationImpl;
 
   /// Usually, the only formal parameter of the primary constructor.
   /// But could be `null` in invalid code.
@@ -21141,21 +21170,25 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     if (primaryConstructor == null) {
       return null;
     }
-
     var formalParameters = primaryConstructor.formalParameters;
     return formalParameters.allFormalParameters.firstOrNull.tryCast();
   }
 
+  @override
+  TypeParameterListImpl? get typeParameters => namePart.typeParameters;
+
+  @V1Ast()
+  ExtensionTypeDeclarationImpl get v1Projection =>
+      _v1Projection ??= ExtensionTypeDeclarationImpl.v1Projection(this);
+
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('extensionKeyword', extensionKeyword)
-    ..addToken('typeKeyword', typeKeyword)
-    ..addNode('namePart', namePart)
-    ..addNode('implementsClause', implementsClause)
-    ..addNode('body', body);
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -21170,14 +21203,15 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitExtensionTypeDeclaration(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('ExtensionTypeDeclaration2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitExtensionTypeDeclaration(this);
+      visitor.visitExtensionTypeDeclaration2(this);
 
   @generated
   @override
@@ -21207,7 +21241,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
       return;
     }
     if (identical(body, oldNode)) {
-      body = newNode as ClassBodyImpl;
+      body = newNode as InstanceDeclarationBodyImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -21217,10 +21251,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    namePart.accept(visitor);
-    implementsClause?.accept(visitor);
-    body.accept(visitor);
+    throw StateError('ExtensionTypeDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -21244,7 +21275,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     AstVisitor2 visitor, {
     void Function(ClassNamePartImpl)? visitNamePart,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
-    void Function(ClassBodyImpl)? visitBody,
+    void Function(InstanceDeclarationBodyImpl)? visitBody,
   }) {
     _visitCommentAndAnnotations2(visitor);
     if (visitNamePart != null) {
@@ -21264,6 +21295,186 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
     } else {
       body.accept2(visitor);
     }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('ExtensionTypeDeclaration2 is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('extensionKeyword'),
+    GenerateNodeProperty('typeKeyword'),
+    GenerateNodeProperty('namePart'),
+    GenerateNodeProperty('implementsClause'),
+    GenerateNodeProperty('body'),
+  ],
+)
+@V1Ast('The V2 counterpart is ExtensionTypeDeclaration2.')
+final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
+    implements ExtensionTypeDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token extensionKeyword;
+
+  @generated
+  @override
+  final Token typeKeyword;
+
+  final ExtensionTypeDeclaration2Impl _v1ProjectionOrigin;
+
+  late final ClassBodyImpl _v1Body = _becomeParentOf1(
+    V1Projection.toV1ClassBody(_v1ProjectionOrigin.body),
+  );
+
+  new v1Projection(ExtensionTypeDeclaration2Impl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      extensionKeyword = origin.extensionKeyword,
+      typeKeyword = origin.typeKeyword,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(origin.namePart);
+    _becomeParentOf1(origin.implementsClause);
+    _v1Body;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ClassBodyImpl get body => _v1Body;
+
+  @override
+  ExtensionTypeFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token get endToken => _v1ProjectionOrigin.endToken;
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    return extensionKeyword;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ImplementsClauseImpl? get implementsClause =>
+      _v1ProjectionOrigin.implementsClause;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ClassNamePartImpl get namePart => _v1ProjectionOrigin.namePart;
+
+  @override
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
+
+  @override
+  set nameScope(Scope? nameScope) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @Deprecated('Use namePart instead')
+  @override
+  PrimaryConstructorDeclarationImpl get primaryConstructor =>
+      namePart as PrimaryConstructorDeclarationImpl;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('extensionKeyword', extensionKeyword)
+    ..addToken('typeKeyword', typeKeyword)
+    ..addNode('namePart', namePart)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('body', body);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitExtensionTypeDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('ExtensionTypeDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    namePart.accept(visitor);
+    implementsClause?.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('ExtensionTypeDeclaration is not in the V2 AST view.');
   }
 
   @generated
@@ -21290,21 +21501,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
-      return namePart;
-    }
-    if (implementsClause case var implementsClause?) {
-      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
-        return implementsClause;
-      }
-    }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
-    }
-    return null;
+    throw StateError('ExtensionTypeDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -48158,7 +48355,7 @@ final class PrimaryConstructorBody2Impl extends MemberDeclarationImpl
         return parent.namePart.tryCast();
       case EnumDeclaration2Impl parent:
         return parent.namePart.tryCast();
-      case ExtensionTypeDeclarationImpl parent:
+      case ExtensionTypeDeclaration2Impl parent:
         return parent.namePart.tryCast();
       default:
         return null;
@@ -48610,7 +48807,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
       if (body.initializers.isNotEmpty) return true;
     }
 
-    if (parent2 is ExtensionTypeDeclarationImpl) {
+    if (parent2 is ExtensionTypeDeclaration2Impl) {
       return true;
     }
 
@@ -61612,6 +61809,9 @@ enum V1Projection {
     if (node is MixinDeclaration2Impl) {
       return node.v1Projection;
     }
+    if (node is ExtensionTypeDeclaration2Impl) {
+      return node.v1Projection;
+    }
     return node as CompilationUnitMemberImpl;
   }
 
@@ -61687,6 +61887,7 @@ enum V1Projection {
     EnumDeclaration2Impl() => node._v1Projection,
     ExtensionDeclaration2Impl() => node._v1Projection,
     MixinDeclaration2Impl() => node._v1Projection,
+    ExtensionTypeDeclaration2Impl() => node._v1Projection,
     BlockInstanceDeclarationBodyImpl() => node._v1Projection,
     SemicolonInstanceDeclarationBodyImpl() => node._v1Projection,
     BlockEnumDeclarationBodyImpl() => node._v1Projection,
@@ -61747,6 +61948,7 @@ enum V1Projection {
       EnumDeclaration2Impl() => root.v1Projection,
       ExtensionDeclaration2Impl() => root.v1Projection,
       MixinDeclaration2Impl() => root.v1Projection,
+      ExtensionTypeDeclaration2Impl() => root.v1Projection,
       FunctionTypeAlias2Impl() => root.v1Projection,
       GenericTypeAlias2Impl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
@@ -61805,6 +62007,7 @@ enum V1Projection {
     EnumDeclarationImpl() => node._v1ProjectionOrigin,
     ExtensionDeclarationImpl() => node._v1ProjectionOrigin,
     MixinDeclarationImpl() => node._v1ProjectionOrigin,
+    ExtensionTypeDeclarationImpl() => node._v1ProjectionOrigin,
     BlockClassBodyImpl() => node._v1ProjectionOrigin,
     EmptyClassBodyImpl() => node._v1ProjectionOrigin,
     FieldDeclarationImpl() => node._v1ProjectionOrigin,

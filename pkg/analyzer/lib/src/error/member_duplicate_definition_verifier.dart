@@ -521,10 +521,10 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
+  void _checkExtensionType(ExtensionTypeDeclaration2Impl node) {
     _checkClassMembers(
       node.declaredFragment!,
-      node.body.members2,
+      node.body.members,
       primaryConstructor: node.namePart.tryCast(),
     );
   }
@@ -542,7 +542,7 @@ class MemberDuplicateDefinitionVerifier {
           _checkExtension(node);
         case EnumDeclaration2Impl():
           _checkEnum(node);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           _checkExtensionType(node);
         case MixinDeclaration2Impl():
           _checkMixin(node);
@@ -569,9 +569,9 @@ class MemberDuplicateDefinitionVerifier {
           _checkEnumStatic(declaration);
         case ExtensionDeclaration2Impl():
           _checkExtensionStatic(declaration);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.body.members2);
+          _checkClassStatic(fragment, declaration.body.members);
         case MixinDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.body.members);

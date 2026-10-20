@@ -127,6 +127,19 @@ extension E on int {
   }
 
   @V1Ast('Tests the V1 projection.')
+  test_extensionTypeDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'extension type A(int it) {void foo() {}}',
+      result.findNodeV1.singleExtensionTypeDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
   test_fieldDeclaration() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {

@@ -791,11 +791,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitExtensionTypeDeclaration(node);
+    super.visitExtensionTypeDeclaration2(node);
   }
 
   @override
@@ -935,7 +935,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
             }
           }
         }
-      case ExtensionTypeDeclarationImpl():
+      case ExtensionTypeDeclaration2Impl():
         // Do not report a field declared in a primary constructor which is
         // declared in an extension type, since it cannot be removed, and
         // renaming it to be public is not an improvement.

@@ -46,7 +46,7 @@ class _UnitApiSignatureComputer {
           _addEnum(declaration);
         case ExtensionDeclaration2Impl():
           _addExtension(declaration);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           _addNode(declaration);
         case MixinDeclaration2Impl():
           _addMixin(declaration);

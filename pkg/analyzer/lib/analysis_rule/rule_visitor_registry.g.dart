@@ -734,7 +734,8 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addExtensionOverride2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addExtensionTypeDeclaration(
+  @experimental
+  void addExtensionTypeDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

@@ -162,6 +162,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ExtensionOverride,
         ExtensionOverride2,
         ExtensionTypeDeclaration,
+        ExtensionTypeDeclaration2,
         Field2,
         FieldDeclaration,
         FieldFormalParameter,

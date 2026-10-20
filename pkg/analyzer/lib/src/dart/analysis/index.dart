@@ -985,16 +985,16 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     _addSubtype(
       node.namePart.typeName.lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members2,
+      memberNodes: node.body.members,
     );
 
-    super.visitExtensionTypeDeclaration(node);
+    super.visitExtensionTypeDeclaration2(node);
   }
 
   @override

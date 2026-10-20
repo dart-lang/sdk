@@ -595,7 +595,8 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitExtensionOverride2(ExtensionOverride2 node);
 
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
+  @experimental
+  R? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node);
 
   @experimental
   R? visitField2(Field2 node);

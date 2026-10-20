@@ -260,7 +260,7 @@ extension A on int {}
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension type A(int it) {}
 ''');
-    var node = result.findNode.singleExtensionTypeDeclaration;
+    var node = result.findNodeV1.singleExtensionTypeDeclaration;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extensionType::A
@@ -1841,6 +1841,17 @@ extension type A(int it) {}
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@extensionType::A
+''');
+  }
+
+  test_locate_PrimaryConstructorDeclaration_inEnum() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum A(final int it) { v(0) }
+''');
+    var node = result.findNode.singlePrimaryConstructorDeclaration;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@enum::A
 ''');
   }
 

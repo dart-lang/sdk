@@ -63,7 +63,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
       case ExtensionDeclaration2Impl():
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);
-      case ExtensionTypeDeclarationImpl():
+      case ExtensionTypeDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
@@ -72,7 +72,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
             isExtensionType: true,
           );
         }
-        member.body.members2.forEach(appendClassMemberName);
+        member.body.members.forEach(appendClassMemberName);
       case MixinDeclaration2Impl():
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);
