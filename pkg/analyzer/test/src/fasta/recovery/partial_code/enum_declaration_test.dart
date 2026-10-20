@@ -36,7 +36,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -72,7 +77,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -133,7 +143,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -145,7 +160,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -169,7 +187,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -196,7 +217,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -255,7 +281,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: int
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -316,7 +347,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -379,7 +415,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: int
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -437,7 +478,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: mixin
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -496,7 +542,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: set
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -563,7 +614,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: typedef
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -646,7 +702,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -697,7 +758,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -727,7 +791,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -780,7 +847,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -790,7 +860,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -813,7 +886,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -836,7 +912,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -889,7 +968,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -946,7 +1028,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -1003,7 +1088,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -1058,7 +1146,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -1087,7 +1178,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -1147,7 +1241,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -1227,7 +1324,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -1276,7 +1376,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1310,7 +1415,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1369,7 +1479,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1381,7 +1496,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -1405,7 +1523,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1432,7 +1555,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1491,7 +1619,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1554,7 +1687,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1617,7 +1755,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1678,7 +1821,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1711,7 +1859,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1777,7 +1930,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1863,7 +2021,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1914,7 +2077,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1946,7 +2114,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2003,7 +2176,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2015,7 +2193,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -2038,7 +2219,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2063,7 +2249,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2120,7 +2311,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2181,7 +2377,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2242,7 +2443,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2301,7 +2507,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2332,7 +2543,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2396,7 +2612,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2480,7 +2701,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2594,7 +2820,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -3004,7 +3233,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3036,7 +3268,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3091,7 +3326,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3101,7 +3339,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -3145,7 +3386,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3198,7 +3442,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: int
+        constants(v1)
           EnumConstantDeclaration
             name: int
         rightBracket: } <synthetic>
@@ -3253,7 +3500,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3310,7 +3560,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: int
+        constants(v1)
           EnumConstantDeclaration
             name: int
         rightBracket: } <synthetic>
@@ -3362,7 +3615,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: mixin
+        constants(v1)
           EnumConstantDeclaration
             name: mixin
         rightBracket: } <synthetic>
@@ -3415,7 +3671,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: set
+        constants(v1)
           EnumConstantDeclaration
             name: set
         rightBracket: } <synthetic>
@@ -3476,7 +3735,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: typedef
+        constants(v1)
           EnumConstantDeclaration
             name: typedef
         rightBracket: } <synthetic>
@@ -3553,7 +3815,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3681,7 +3946,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -4198,7 +4466,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -4634,7 +4905,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4664,7 +4938,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4717,7 +4994,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4727,7 +5007,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: v
+        constants(v1)
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -4749,7 +5032,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4772,7 +5058,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4825,7 +5114,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4882,7 +5174,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4939,7 +5234,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4994,7 +5292,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -5023,7 +5324,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -5083,7 +5387,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -5163,7 +5470,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: a
+        constants(v1)
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -5211,7 +5521,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        constants(v1)
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>

@@ -50,7 +50,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -73,7 +76,11 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        augmentKeyword: augment
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         augmentKeyword: augment
         name: v
@@ -97,8 +104,8 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
-      EnumConstantDeclaration
+    constants2
+      EnumConstantDeclaration2
         augmentKeyword: augment
         name: v
         arguments: EnumConstantArguments
@@ -106,6 +113,18 @@ EnumDeclaration
             period: .
             name2: foo
             name(v1): SimpleIdentifier
+              token: foo
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+    constants(v1)
+      EnumConstantDeclaration
+        augmentKeyword: augment
+        name: v
+        arguments: EnumConstantArguments
+          constructorSelector: ConstructorSelector
+            period: .
+            name: SimpleIdentifier
               token: foo
           argumentList: ArgumentList
             leftParenthesis: (
@@ -290,13 +309,21 @@ enum E {
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
-EnumConstantDeclaration
+EnumConstantDeclaration2
   name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
       name2: <empty> <synthetic>
-      name(v1): SimpleIdentifier
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+V1: EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -315,13 +342,21 @@ enum E {
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
-EnumConstantDeclaration
+EnumConstantDeclaration2
   name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
       name2: named
-      name(v1): SimpleIdentifier
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+V1: EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
         token: named
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -341,13 +376,21 @@ enum E {
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
-EnumConstantDeclaration
+EnumConstantDeclaration2
   name: v
   arguments: EnumConstantArguments
     constructorSelector: ConstructorSelector
       period: .
       name2: <empty> <synthetic>
-      name(v1): SimpleIdentifier
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+V1: EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -366,7 +409,7 @@ enum E {
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>.');
     assertParsedNodeText(node, r'''
-EnumConstantDeclaration
+EnumConstantDeclaration2
   name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
@@ -378,7 +421,21 @@ EnumConstantDeclaration
     constructorSelector: ConstructorSelector
       period: .
       name2: <empty> <synthetic>
-      name(v1): SimpleIdentifier
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+V1: EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -398,7 +455,7 @@ enum E {
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
     assertParsedNodeText(node, r'''
-EnumConstantDeclaration
+EnumConstantDeclaration2
   name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
@@ -410,7 +467,21 @@ EnumConstantDeclaration
     constructorSelector: ConstructorSelector
       period: .
       name2: <empty> <synthetic>
-      name(v1): SimpleIdentifier
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+V1: EnumConstantDeclaration
+  name: v
+  arguments: EnumConstantArguments
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+    constructorSelector: ConstructorSelector
+      period: .
+      name: SimpleIdentifier
         token: <empty> <synthetic>
     argumentList: ArgumentList
       leftParenthesis: ( <synthetic>
@@ -433,7 +504,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -455,7 +529,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     semicolon: ;
@@ -474,7 +551,19 @@ enum E<T> {
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
     assertParsedNodeText(node, r'''
-EnumConstantDeclaration
+EnumConstantDeclaration2
+  name: v
+  arguments: EnumConstantArguments
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+V1: EnumConstantDeclaration
   name: v
   arguments: EnumConstantArguments
     typeArguments: TypeArgumentList
@@ -1342,7 +1431,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1363,7 +1455,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1384,7 +1479,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1405,7 +1503,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1455,7 +1556,10 @@ EnumDeclaration
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1475,7 +1579,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1568,7 +1675,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1600,7 +1710,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1627,7 +1740,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1651,7 +1767,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1673,7 +1792,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1696,7 +1818,10 @@ EnumDeclaration
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1725,7 +1850,10 @@ EnumDeclaration
       rightParenthesis: ) <synthetic>
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1778,7 +1906,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1840,7 +1971,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1911,7 +2045,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1949,7 +2086,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1996,7 +2136,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2035,13 +2178,23 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
-      EnumConstantDeclaration
+    constants2
+      EnumConstantDeclaration2
         name: a
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
             arguments2
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    constants(v1)
+      EnumConstantDeclaration
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -2083,13 +2236,23 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
-      EnumConstantDeclaration
+    constants2
+      EnumConstantDeclaration2
         name: a
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
             arguments2
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    constants(v1)
+      EnumConstantDeclaration
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -2129,13 +2292,23 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
-      EnumConstantDeclaration
+    constants2
+      EnumConstantDeclaration2
         name: a
         arguments: EnumConstantArguments
           argumentList: ArgumentList
             leftParenthesis: (
             arguments2
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    constants(v1)
+      EnumConstantDeclaration
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
@@ -2170,7 +2343,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2201,7 +2377,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2227,7 +2406,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2250,7 +2432,10 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2278,7 +2463,10 @@ EnumDeclaration
       rightParenthesis: ) <synthetic>
   body: BlockEnumBody
     leftBracket: {
-    constants
+    constants2
+      EnumConstantDeclaration2
+        name: v
+    constants(v1)
       EnumConstantDeclaration
         name: v
     rightBracket: }

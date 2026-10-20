@@ -3889,7 +3889,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: ONE
+        constants(v1)
           EnumConstantDeclaration
             name: ONE
         rightBracket: }
@@ -3910,7 +3913,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: ONE
+        constants(v1)
           EnumConstantDeclaration
             name: ONE
         rightBracket: }
@@ -3931,7 +3937,12 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: ONE
+          EnumConstantDeclaration2
+            name: TWO
+        constants(v1)
           EnumConstantDeclaration
             name: ONE
           EnumConstantDeclaration
@@ -3958,7 +3969,10 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            name: ONE
+        constants(v1)
           EnumConstantDeclaration
             name: ONE
         rightBracket: }
@@ -3982,7 +3996,13 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
+        constants2
+          EnumConstantDeclaration2
+            documentationComment: Comment
+              tokens
+                /// Doc
+            name: ONE
+        constants(v1)
           EnumConstantDeclaration
             documentationComment: Comment
               tokens
@@ -4010,8 +4030,8 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants
-          EnumConstantDeclaration
+        constants2
+          EnumConstantDeclaration2
             documentationComment: Comment
               tokens
                 /// Doc
@@ -4020,6 +4040,17 @@ CompilationUnit
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            name: ONE
+        constants(v1)
+          EnumConstantDeclaration
+            documentationComment: Comment
+              tokens
+                /// Doc
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             name: ONE
