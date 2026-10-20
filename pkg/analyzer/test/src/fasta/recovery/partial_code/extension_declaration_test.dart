@@ -119,16 +119,34 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -681,16 +699,33 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
+    ExtensionDeclaration
+      extensionKeyword: extension
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -1215,16 +1250,34 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -1836,16 +1889,34 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }

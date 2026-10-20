@@ -4039,16 +4039,24 @@ enum E { ONE }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: ONE
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: ONE
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: ONE
         rightBracket: }
@@ -4063,16 +4071,24 @@ enum E { ONE }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: ONE
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: ONE
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: ONE
         rightBracket: }
@@ -4087,18 +4103,26 @@ enum E { ONE, TWO }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: ONE
+          EnumConstantDeclaration2
+            name: TWO
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: ONE
-          EnumConstantDeclaration2
-            name: TWO
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: ONE
           EnumConstantDeclaration
@@ -4116,6 +4140,20 @@ enum E { ONE }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      documentationComment: Comment
+        tokens
+          /// Doc
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: ONE
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       documentationComment: Comment
         tokens
@@ -4125,10 +4163,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: ONE
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: ONE
         rightBracket: }
@@ -4146,19 +4181,27 @@ enum E {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            documentationComment: Comment
+              tokens
+                /// Doc
+            name: ONE
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            documentationComment: Comment
-              tokens
-                /// Doc
-            name: ONE
-        constants(v1)
+        constants
           EnumConstantDeclaration
             documentationComment: Comment
               tokens
@@ -4180,13 +4223,13 @@ enum E {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             documentationComment: Comment
               tokens
@@ -4199,7 +4242,15 @@ CompilationUnit
                 name: SimpleIdentifier
                   token: annotation
             name: ONE
-        constants(v1)
+        rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
           EnumConstantDeclaration
             documentationComment: Comment
               tokens

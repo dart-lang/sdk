@@ -128,17 +128,14 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -717,17 +714,14 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -1282,17 +1276,14 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -1884,17 +1875,14 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)

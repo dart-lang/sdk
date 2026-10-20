@@ -52,38 +52,28 @@ void f() {
     assertResolvedNodeText(result.unit, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v1
-            constructorElement: <testLibrary>::@enum::A::@constructor::new
-            declaredFragment: <testLibraryFragment> v1@11
-        constants(v1)
-          EnumConstantDeclaration
             name: v1
             constructorElement: <testLibrary>::@enum::A::@constructor::new
             declaredFragment: <testLibraryFragment> v1@11
         rightBracket: }
       declaredFragment: <testLibraryFragment> A@5
-    EnumDeclaration
+    EnumDeclaration2
       augmentKeyword: augment
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v2
-            constructorElement: <testLibrary>::@enum::A::@constructor::new
-            declaredFragment: <testLibraryFragment> v2@36
-        constants(v1)
-          EnumConstantDeclaration
             name: v2
             constructorElement: <testLibrary>::@enum::A::@constructor::new
             declaredFragment: <testLibraryFragment> v2@36
@@ -222,33 +212,28 @@ void f() {
     assertResolvedNodeText(result.unit, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v1
-            constructorElement: <testLibrary>::@enum::A::@constructor::new
-            declaredFragment: <testLibraryFragment> v1@11
-        constants(v1)
-          EnumConstantDeclaration
             name: v1
             constructorElement: <testLibrary>::@enum::A::@constructor::new
             declaredFragment: <testLibraryFragment> v1@11
         rightBracket: }
       declaredFragment: <testLibraryFragment> A@5
-    EnumDeclaration
+    EnumDeclaration2
       augmentKeyword: augment
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        semicolon: ;
-        members2
+        membersSeparator: ;
+        members
           GetterDeclaration
             staticKeyword: static
             returnType: NamedType
@@ -266,40 +251,17 @@ CompilationUnit
             declaredFragment: <testLibraryFragment> values@52
               element: <testLibrary>::@enum::A::@getter::values#1
                 type: int Function()
-        members(v1)
-          MethodDeclaration
-            modifierKeyword: static
-            returnType: NamedType
-              name: int
-              element: dart:core::@class::int
-              type: int
-            propertyKeyword: get
-            name: values
-            body: ExpressionFunctionBody
-              functionDefinition: =>
-              expression: IntegerLiteral
-                literal: 0
-                staticType: int
-              semicolon: ;
-            declaredFragment: <testLibraryFragment> values@52
-              element: <testLibrary>::@enum::A::@getter::values#1
-                type: int Function()
         rightBracket: }
       declaredFragment: <testLibraryFragment> A@30
-    EnumDeclaration
+    EnumDeclaration2
       augmentKeyword: augment
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v2
-            constructorElement: <testLibrary>::@enum::A::@constructor::new
-            declaredFragment: <testLibraryFragment> v2@87
-        constants(v1)
-          EnumConstantDeclaration
             name: v2
             constructorElement: <testLibrary>::@enum::A::@constructor::new
             declaredFragment: <testLibraryFragment> v2@87
@@ -961,7 +923,14 @@ enum E;
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: SemicolonEnumDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@5
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
@@ -983,7 +952,14 @@ enum E;
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: SemicolonEnumDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> E@21
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
@@ -1335,7 +1311,35 @@ enum A<T extends int> {v}
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          declaredFragment: <testLibraryFragment> T@7
+            defaultType: int
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        constructorElement: SubstitutedConstructorElementImpl
+          baseElement: <testLibrary>::@enum::A::@constructor::new
+          substitution: {T: int}
+        declaredFragment: <testLibraryFragment> v@23
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: A
@@ -1354,14 +1358,7 @@ EnumDeclaration
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        constructorElement: SubstitutedConstructorElementImpl
-          baseElement: <testLibrary>::@enum::A::@constructor::new
-          substitution: {T: int}
-        declaredFragment: <testLibraryFragment> v@23
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         constructorElement: SubstitutedConstructorElementImpl
@@ -1380,18 +1377,26 @@ enum A {v}
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@8
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: A
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@8
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         constructorElement: <testLibrary>::@enum::A::@constructor::new
@@ -1408,7 +1413,7 @@ enum A({final int a = 0}) { v(a: 1) }
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1435,7 +1440,35 @@ EnumDeclaration
                 field: <testLibrary>::@enum::A::@field::a
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function({int a})
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression2: IntegerLiteral
+                  literal: 1
+                  staticType: int
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@28
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1461,24 +1494,7 @@ EnumDeclaration
         type: A Function({int a})
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              NamedArgument
-                name: a
-                colon: :
-                argumentExpression2: IntegerLiteral
-                  literal: 1
-                  staticType: int
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@28
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -1507,7 +1523,7 @@ enum A({required final int a}) { v(a: 0) }
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1530,7 +1546,35 @@ EnumDeclaration
                 field: <testLibrary>::@enum::A::@field::a
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function({required int a})
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression2: IntegerLiteral
+                  literal: 0
+                  staticType: int
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@33
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1552,24 +1596,7 @@ EnumDeclaration
         type: A Function({required int a})
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              NamedArgument
-                name: a
-                colon: :
-                argumentExpression2: IntegerLiteral
-                  literal: 0
-                  staticType: int
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@33
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -1599,7 +1626,7 @@ int foo(String _) => 0;
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1627,24 +1654,40 @@ EnumDeclaration
                     element: isPublic
                       type: String
               rightParenthesis: )
-            formalParameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: String
-                  element: dart:core::@class::String
-                  type: String
-                name: x
-                declaredFragment: <testLibraryFragment> x@26
-                  element: isPublic
-                    type: String
-              rightParenthesis: )
           declaredFragment: <testLibraryFragment> a@17
             element: isFinal isPublic
               type: int Function(String)
               field: <testLibrary>::@enum::A::@field::a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function(int Function(String))
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              UnqualifiedNameExpression
+                name: foo
+                resolution: ExecutableTearOffResolution
+                  element: <testLibrary>::@function::foo
+                  type: int Function(String)
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+                staticType: int Function(String)
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@32
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1676,30 +1719,7 @@ EnumDeclaration
         type: A Function(int Function(String))
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              UnqualifiedNameExpression
-                name: foo
-                resolution: ExecutableTearOffResolution
-                  element: <testLibrary>::@function::foo
-                  type: int Function(String)
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                staticType: int Function(String)
-            arguments(v1)
-              SimpleIdentifier
-                token: foo
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                element: <testLibrary>::@function::foo
-                staticType: int Function(String)
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@32
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -1726,7 +1746,7 @@ enum A(final int a) { v(0) }
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1745,7 +1765,32 @@ EnumDeclaration
               type: int
               field: <testLibrary>::@enum::A::@field::a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function(int)
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+                staticType: int
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@22
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1764,21 +1809,7 @@ EnumDeclaration
         type: A Function(int)
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                staticType: int
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@22
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -1807,7 +1838,7 @@ enum A(int this.a) {
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -1827,7 +1858,45 @@ EnumDeclaration
               type: int
               field: <testLibrary>::@enum::A::@field::a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function(int)
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+                staticType: int
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@23
+    membersSeparator: ;
+    members
+      FieldsDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: a
+            declaredFragment: <testLibraryFragment> a@41
+        semicolon: ;
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         type: NamedType
@@ -1847,21 +1916,7 @@ EnumDeclaration
         type: A Function(int)
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                staticType: int
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@23
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -1876,19 +1931,7 @@ EnumDeclaration
         constructorElement: <testLibrary>::@enum::A::@constructor::new
         declaredFragment: <testLibraryFragment> v@23
     semicolon: ;
-    members2
-      FieldsDeclaration
-        constFinalOrVarKeyword: final
-        type: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        fields
-          Field
-            name: a
-            declaredFragment: <testLibraryFragment> a@41
-        semicolon: ;
-    members(v1)
+    members
       FieldDeclaration
         fields: VariableDeclarationList
           keyword: final
@@ -2026,7 +2069,7 @@ enum A<T>.named(T t) { v.named(0) }
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2054,7 +2097,50 @@ EnumDeclaration
             element: isPublic
               type: T
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> named@10
+      element: <testLibrary>::@enum::A::@constructor::named
+        type: A<T> Function(T)
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          constructorSelector: ConstructorSelector
+            period: .
+            name2: named
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+                correspondingParameter: SubstitutedFormalParameterElementImpl
+                  baseElement: <testLibrary>::@enum::A::@constructor::named::@formalParameter::t
+                  substitution: {T: int}
+                staticType: int
+            rightParenthesis: )
+        constructorElement: SubstitutedConstructorElementImpl
+          baseElement: <testLibrary>::@enum::A::@constructor::named
+          substitution: {T: int}
+        declaredFragment: <testLibraryFragment> v@23
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@7
+            defaultType: dynamic
+      rightBracket: >
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2071,32 +2157,7 @@ EnumDeclaration
         type: A<T> Function(T)
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          constructorSelector: ConstructorSelector
-            period: .
-            name2: named
-            name(v1): SimpleIdentifier
-              token: named
-              element: <null>
-              staticType: null
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-                correspondingParameter: SubstitutedFormalParameterElementImpl
-                  baseElement: <testLibrary>::@enum::A::@constructor::named::@formalParameter::t
-                  substitution: {T: int}
-                staticType: int
-            rightParenthesis: )
-        constructorElement: SubstitutedConstructorElementImpl
-          baseElement: <testLibrary>::@enum::A::@constructor::named
-          substitution: {T: int}
-        declaredFragment: <testLibraryFragment> v@23
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -2132,7 +2193,7 @@ enum A<T>(T t) { v(0) }
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2157,24 +2218,12 @@ EnumDeclaration
             element: isPublic
               type: T
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        type: NamedType
-          name: T
-          element: #E0 T
-          type: T
-        name: t
-        declaredFragment: <testLibraryFragment> t@12
-          element: isPublic
-            type: T
-      rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@enum::A::@constructor::new
         type: A<T> Function(T)
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    constants2
+    constants
       EnumConstantDeclaration2
         name: v
         arguments: EnumConstantArguments
@@ -2192,7 +2241,38 @@ EnumDeclaration
           baseElement: <testLibrary>::@enum::A::@constructor::new
           substitution: {T: int}
         declaredFragment: <testLibraryFragment> v@17
-    constants(v1)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@7
+            defaultType: dynamic
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: t
+        declaredFragment: <testLibraryFragment> t@12
+          element: isPublic
+            type: T
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A<T> Function(T)
+  body: BlockEnumBody
+    leftBracket: {
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -2222,7 +2302,7 @@ enum A.named(int a) { v.named(0) }
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2242,7 +2322,38 @@ EnumDeclaration
             element: isPublic
               type: int
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> named@7
+      element: <testLibrary>::@enum::A::@constructor::named
+        type: A Function(int)
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          constructorSelector: ConstructorSelector
+            period: .
+            name2: named
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::named::@formalParameter::a
+                staticType: int
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::named
+        declaredFragment: <testLibraryFragment> v@22
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2259,28 +2370,7 @@ EnumDeclaration
         type: A Function(int)
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          constructorSelector: ConstructorSelector
-            period: .
-            name2: named
-            name(v1): SimpleIdentifier
-              token: named
-              element: <null>
-              staticType: null
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::named::@formalParameter::a
-                staticType: int
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::named
-        declaredFragment: <testLibraryFragment> v@22
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -2312,7 +2402,7 @@ enum A(int a) { v(0) }
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2329,7 +2419,32 @@ EnumDeclaration
             element: isPublic
               type: int
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function(int)
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
+                staticType: int
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@16
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2346,21 +2461,7 @@ EnumDeclaration
         type: A Function(int)
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                staticType: int
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@16
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -2594,7 +2695,7 @@ enum A(bool x, bool y) {
 
     var node = result.findNode.singleEnumDeclaration;
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2620,7 +2721,98 @@ EnumDeclaration
             element: isPublic
               type: bool
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@enum::A::@constructor::new
+        type: A Function(bool, bool)
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              BooleanLiteral
+                literal: true
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                staticType: bool
+              BooleanLiteral
+                literal: true
+                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                staticType: bool
+            rightParenthesis: )
+        constructorElement: <testLibrary>::@enum::A::@constructor::new
+        declaredFragment: <testLibraryFragment> v@27
+    membersSeparator: ;
+    members
+      PrimaryConstructorBody2
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition2: UnqualifiedNameExpression
+              name: x
+              resolution: VariableReadResolution
+                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                type: bool
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ExpressionStatement
+                expression2: UnqualifiedNameExpression
+                  name: y
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                    type: bool
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody2
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition2: LogicalNot
+              operator: !
+              operand: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
+                  type: bool
+                staticType: bool
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ExpressionStatement
+                expression2: LogicalNot
+                  operator: !
+                  operand: UnqualifiedNameExpression
+                    name: y
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
+                      type: bool
+                    staticType: bool
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@5
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2646,25 +2838,7 @@ EnumDeclaration
         type: A Function(bool, bool)
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              BooleanLiteral
-                literal: true
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
-                staticType: bool
-              BooleanLiteral
-                literal: true
-                correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
-                staticType: bool
-            rightParenthesis: )
-        constructorElement: <testLibrary>::@enum::A::@constructor::new
-        declaredFragment: <testLibraryFragment> v@27
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
         arguments: EnumConstantArguments
@@ -2683,92 +2857,7 @@ EnumDeclaration
         constructorElement: <testLibrary>::@enum::A::@constructor::new
         declaredFragment: <testLibraryFragment> v@27
     semicolon: ;
-    members2
-      PrimaryConstructorBody2
-        thisKeyword: this
-        colon: :
-        initializers
-          AssertInitializer
-            assertKeyword: assert
-            leftParenthesis: (
-            condition2: UnqualifiedNameExpression
-              name: x
-              resolution: VariableReadResolution
-                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
-                type: bool
-              staticType: bool
-            condition(v1): SimpleIdentifier
-              token: x
-              element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
-              staticType: bool
-            rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: {
-            statements2
-              ExpressionStatement
-                expression2: UnqualifiedNameExpression
-                  name: y
-                  resolution: VariableReadResolution
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
-                    type: bool
-                  staticType: bool
-                expression(v1): SimpleIdentifier
-                  token: y
-                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
-                  staticType: bool
-                semicolon: ;
-            rightBracket: }
-      PrimaryConstructorBody2
-        thisKeyword: this
-        colon: :
-        initializers
-          AssertInitializer
-            assertKeyword: assert
-            leftParenthesis: (
-            condition2: LogicalNot
-              operator: !
-              operand: UnqualifiedNameExpression
-                name: x
-                resolution: VariableReadResolution
-                  element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
-                  type: bool
-                staticType: bool
-              staticType: bool
-            condition(v1): PrefixExpression
-              operator: !
-              operand: SimpleIdentifier
-                token: x
-                element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::x
-                staticType: bool
-              element: <null>
-              staticType: bool
-            rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: {
-            statements2
-              ExpressionStatement
-                expression2: LogicalNot
-                  operator: !
-                  operand: UnqualifiedNameExpression
-                    name: y
-                    resolution: VariableReadResolution
-                      element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
-                      type: bool
-                    staticType: bool
-                  staticType: bool
-                expression(v1): PrefixExpression
-                  operator: !
-                  operand: SimpleIdentifier
-                    token: y
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::y
-                    staticType: bool
-                  element: <null>
-                  staticType: bool
-                semicolon: ;
-            rightBracket: }
-    members(v1)
+    members
       PrimaryConstructorBody
         thisKeyword: this
         colon: :

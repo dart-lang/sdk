@@ -4387,7 +4387,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       metadata
         Annotation
           atSign: @
@@ -4398,12 +4398,25 @@ CompilationUnit
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: v
-        constants(v1)
+        rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }

@@ -199,6 +199,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
+    // TODO(scheglov): Remove when enums are parsed as EnumDeclaration2.
+    if (_view == _AstView.v2) {
+      _sink.writeln('BlockEnumDeclarationBody');
+      _sink.withIndent(() {
+        for (var entity in (node as AstNodeImpl).namedChildEntities2) {
+          var name = switch (entity.name) {
+            'constants2' => 'constants',
+            'semicolon' => 'membersSeparator',
+            'members2' => 'members',
+            var name => name,
+          };
+          _writeNamedChildEntity(node, entity, name: name);
+        }
+      });
+      return;
+    }
+
     _sink.writeln('BlockEnumBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -814,7 +831,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitEmptyEnumBody(EmptyEnumBody node) {
-    _sink.writeln('EmptyEnumBody');
+    // TODO(scheglov): Remove when enums are parsed as EnumDeclaration2.
+    _sink.writeln(
+      _view == _AstView.v2 ? 'SemicolonEnumDeclarationBody' : 'EmptyEnumBody',
+    );
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -874,6 +894,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
+    // TODO(scheglov): Remove when enums are parsed as EnumDeclaration2.
+    if (_view == _AstView.v2) {
+      _sink.writeln('EnumDeclaration2');
+      _sink.withIndent(() {
+        for (var entity in (node as AstNodeImpl).namedChildEntities2) {
+          _writeNamedChildEntity(node, entity);
+        }
+        _writeDeclaredFragment(node.declaredFragment);
+      });
+      return;
+    }
+
     _sink.writeln('EnumDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2752,6 +2784,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Statement(statement);
     }
 
+    // TODO(scheglov): Remove when enums are parsed as EnumDeclaration2,
+    // which has a distinct V1 projection.
+    if (node is EnumDeclaration) {
+      _withInlineV1ChildEntities(false, () => writeNode(node));
+      _sink.writeWithIndent('V1: ');
+      _withView(_AstView.v1, () => _acceptInView(node));
+      return;
+    }
+
     if (v1 == null || identical(v1, node)) {
       writeNode(node);
       return;
@@ -3279,7 +3320,8 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          !_sameChildEntityValue(entity2.value, entity.value)) {
+          (!_sameChildEntityValue(entity2.value, entity.value) ||
+              _hasEnumDeclarations(entity2.value))) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3650,6 +3692,15 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
+  }
+
+  /// Whether [value] is a declaration list with an [EnumDeclaration], which
+  /// will differ from its V1 projection once enums are parsed as
+  /// `EnumDeclaration2`.
+  // TODO(scheglov): Remove when enums are parsed as EnumDeclaration2.
+  static bool _hasEnumDeclarations(Object value) {
+    return value is List<AstNode> &&
+        value.any((node) => node is EnumDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

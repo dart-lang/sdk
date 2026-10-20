@@ -455,7 +455,24 @@ augment enum A<T> {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@26
+            defaultType: null
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@24
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -484,7 +501,16 @@ augment enum A {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@27
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -503,7 +529,24 @@ augment enum A <T>{}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@30
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@27
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -532,7 +575,28 @@ augment enum A<T, U> {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@29
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@32
+            defaultType: null
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@27
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -565,7 +629,24 @@ augment enum A<T> {}
 ''');
     var node = result.findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@32
+            defaultType: dynamic
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@30
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters

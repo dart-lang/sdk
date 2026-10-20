@@ -23,7 +23,15 @@ augment enum E {}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -43,17 +51,25 @@ augment enum E {
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -69,18 +85,26 @@ augment enum E {
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        augmentKeyword: augment
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        augmentKeyword: augment
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         augmentKeyword: augment
         name: v
@@ -97,14 +121,14 @@ augment enum E {
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    constants2
+    constants
       EnumConstantDeclaration2
         augmentKeyword: augment
         name: v
@@ -112,12 +136,18 @@ EnumDeclaration
           constructorSelector: ConstructorSelector
             period: .
             name2: foo
-            name(v1): SimpleIdentifier
-              token: foo
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-    constants(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
       EnumConstantDeclaration
         augmentKeyword: augment
         name: v
@@ -140,7 +170,14 @@ augment enum E;
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: SemicolonEnumDeclarationBody
+    semicolon: ;
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -155,7 +192,20 @@ EnumDeclaration
 augment enum E implements B {}
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: B
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -178,7 +228,16 @@ augment enum E {;}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    membersSeparator: ;
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -199,15 +258,15 @@ augment enum E {;
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       MethodDeclaration2
         returnType: NamedType
           name: void
@@ -219,7 +278,16 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -240,7 +308,24 @@ EnumDeclaration
 augment enum E<T extends int> {}
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          extendsKeyword: extends
+          bound: NamedType
+            name: int
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -265,7 +350,20 @@ EnumDeclaration
 augment enum E with M {}
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: M
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -288,7 +386,14 @@ enum E {}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
@@ -498,16 +603,23 @@ enum E {
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -523,16 +635,24 @@ enum E {
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    membersSeparator: ;
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     semicolon: ;
@@ -1009,7 +1129,15 @@ enum E {;}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    membersSeparator: ;
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
@@ -1029,14 +1157,14 @@ enum E {;
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       MethodDeclaration2
         returnType: NamedType
           name: void
@@ -1048,7 +1176,15 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         returnType: NamedType
           name: void
@@ -1071,7 +1207,13 @@ enum E;
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: SemicolonEnumDeclarationBody
+    semicolon: ;
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
@@ -1090,7 +1232,13 @@ enum E;
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: SemicolonEnumDeclarationBody
+    semicolon: ;
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
@@ -1106,15 +1254,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       FieldsDeclaration
         augmentKeyword: augment
         type: NamedType
@@ -1126,7 +1274,16 @@ EnumDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       FieldDeclaration
         augmentKeyword: augment
         fields: VariableDeclarationList
@@ -1150,15 +1307,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       FieldsDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1171,7 +1328,16 @@ EnumDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1196,15 +1362,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       FieldsDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1218,7 +1384,16 @@ EnumDeclaration
             initializer: IntegerLiteral
               literal: 0
         semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       FieldDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1244,15 +1419,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       GetterDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1264,7 +1439,16 @@ EnumDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1287,15 +1471,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       GetterDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -1308,7 +1492,16 @@ EnumDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1332,15 +1525,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       MethodDeclaration2
         augmentKeyword: augment
         returnType: NamedType
@@ -1353,7 +1546,16 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1377,15 +1579,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       MethodDeclaration2
         augmentKeyword: augment
         staticKeyword: static
@@ -1399,7 +1601,16 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static
@@ -1425,16 +1636,23 @@ base enum E { v }
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1449,16 +1667,23 @@ final enum E { v }
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1473,16 +1698,23 @@ interface enum E { v }
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1497,16 +1729,23 @@ sealed enum E { v }
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1518,7 +1757,21 @@ EnumDeclaration
 augment enum E<T> {}
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
@@ -1542,7 +1795,25 @@ enum E<T, U> {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
@@ -1556,10 +1827,7 @@ EnumDeclaration
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1573,16 +1841,23 @@ enum E {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1596,15 +1871,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       OperatorDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1624,7 +1899,16 @@ EnumDeclaration
           expression2: IntegerLiteral
             literal: 0
           semicolon: ;
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         augmentKeyword: augment
         returnType: NamedType
@@ -1654,7 +1938,32 @@ enum const E<T, U>.named() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -1675,10 +1984,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1692,7 +1998,29 @@ enum const E<T, U>() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -1710,10 +2038,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1727,7 +2052,24 @@ enum const E.named() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -1740,10 +2082,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1757,7 +2096,21 @@ enum const E() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -1767,10 +2120,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1786,16 +2136,23 @@ enum const E {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1812,16 +2169,23 @@ enum const E {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1837,7 +2201,24 @@ enum const E.named {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -1850,10 +2231,7 @@ EnumDeclaration
       rightParenthesis: ) <synthetic>
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1867,7 +2245,7 @@ enum const E({required final int a = 0}) {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -1889,7 +2267,18 @@ EnumDeclaration
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1906,10 +2295,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1926,7 +2312,7 @@ enum const E({
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -1951,7 +2337,18 @@ EnumDeclaration
                 literal: 0
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1971,10 +2368,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -1991,7 +2385,7 @@ enum const E(
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -2016,15 +2410,19 @@ EnumDeclaration
                     name: String
                   name: x
               rightParenthesis: )
-            formalParameters(v1): FormalParameterList
-              leftParenthesis: (
-              parameter: RegularFormalParameter
-                type: NamedType
-                  name: String
-                name: x
-              rightParenthesis: )
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -2045,10 +2443,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2062,7 +2457,7 @@ enum const E(final int a) {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -2076,7 +2471,18 @@ EnumDeclaration
             name: int
           name: a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -2086,10 +2492,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2106,7 +2509,7 @@ enum const E(
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     constKeyword: const
@@ -2123,7 +2526,18 @@ EnumDeclaration
             name: int
           name: a
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    constKeyword: const
+    typeName: E
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         documentationComment: Comment
@@ -2136,10 +2550,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2155,7 +2566,7 @@ enum A(covariant int it) { a(0) }
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2168,17 +2579,9 @@ EnumDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
-      leftParenthesis: (
-      parameter: RegularFormalParameter
-        covariantKeyword: covariant
-        type: NamedType
-          name: int
-        name: it
-      rightParenthesis: )
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    constants2
+    constants
       EnumConstantDeclaration2
         name: a
         arguments: EnumConstantArguments
@@ -2188,7 +2591,22 @@ EnumDeclaration
               IntegerLiteral
                 literal: 0
             rightParenthesis: )
-    constants(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        covariantKeyword: covariant
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockEnumBody
+    leftBracket: {
+    constants
       EnumConstantDeclaration
         name: a
         arguments: EnumConstantArguments
@@ -2211,7 +2629,7 @@ enum A(covariant final int it) { a(0) }
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2225,7 +2643,24 @@ EnumDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -2236,17 +2671,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: a
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-            rightParenthesis: )
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: a
         arguments: EnumConstantArguments
@@ -2267,7 +2692,7 @@ enum A(covariant var int it) { a(0) }
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: A
@@ -2281,7 +2706,24 @@ EnumDeclaration
             name: int
           name: it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: a
+        arguments: EnumConstantArguments
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+            rightParenthesis: )
+    rightBracket: }
+V1: EnumDeclaration
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -2292,17 +2734,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: a
-        arguments: EnumConstantArguments
-          argumentList: ArgumentList
-            leftParenthesis: (
-            arguments2
-              IntegerLiteral
-                literal: 0
-            rightParenthesis: )
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: a
         arguments: EnumConstantArguments
@@ -2323,7 +2755,31 @@ enum E<T, U>.named() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: E
@@ -2343,10 +2799,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2360,7 +2813,28 @@ enum E<T, U>() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+        TypeParameter
+          name: U
+      rightBracket: >
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: E
@@ -2377,10 +2851,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2394,7 +2865,23 @@ enum E.named() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: E
@@ -2406,10 +2893,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2423,7 +2907,20 @@ enum E() {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: E
@@ -2432,10 +2929,7 @@ EnumDeclaration
       rightParenthesis: )
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2451,7 +2945,23 @@ enum E.named {v}
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''
-EnumDeclaration
+EnumDeclaration2
+  enumKeyword: enum
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+  body: BlockEnumDeclarationBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration2
+        name: v
+    rightBracket: }
+V1: EnumDeclaration
   enumKeyword: enum
   namePart: PrimaryConstructorDeclaration
     typeName: E
@@ -2463,10 +2973,7 @@ EnumDeclaration
       rightParenthesis: ) <synthetic>
   body: BlockEnumBody
     leftBracket: {
-    constants2
-      EnumConstantDeclaration2
-        name: v
-    constants(v1)
+    constants
       EnumConstantDeclaration
         name: v
     rightBracket: }
@@ -2501,15 +3008,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       SetterDeclaration
         augmentKeyword: augment
         setKeyword: set
@@ -2526,7 +3033,16 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         augmentKeyword: augment
         propertyKeyword: set
@@ -2553,15 +3069,15 @@ augment enum E {;
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleEnumDeclaration, r'''
-EnumDeclaration
+EnumDeclaration2
   augmentKeyword: augment
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: E
-  body: BlockEnumBody
+  body: BlockEnumDeclarationBody
     leftBracket: {
-    semicolon: ;
-    members2
+    membersSeparator: ;
+    members
       SetterDeclaration
         augmentKeyword: augment
         staticKeyword: static
@@ -2579,7 +3095,16 @@ EnumDeclaration
           block: Block
             leftBracket: {
             rightBracket: }
-    members(v1)
+    rightBracket: }
+V1: EnumDeclaration
+  augmentKeyword: augment
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    semicolon: ;
+    members
       MethodDeclaration
         augmentKeyword: augment
         modifierKeyword: static

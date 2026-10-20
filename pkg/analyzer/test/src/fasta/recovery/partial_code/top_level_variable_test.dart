@@ -99,17 +99,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -611,17 +608,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -1186,17 +1180,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -1803,17 +1794,14 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -2414,17 +2402,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -3041,17 +3026,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -3706,17 +3688,14 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -4317,16 +4296,24 @@ final enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -4789,17 +4776,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -5358,17 +5342,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -5954,17 +5935,14 @@ CompilationUnit
         TopLevelVariable
           name: int
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -6499,17 +6477,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -7084,17 +7059,14 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -7596,17 +7568,14 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)
@@ -8823,17 +8792,14 @@ CompilationUnit
           initializer: ParsedUnqualifiedName
             name: b
       semicolon: ; <synthetic>
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: v
-        constants(v1)
-          EnumConstantDeclaration
             name: v
         rightBracket: }
   declarations(v1)

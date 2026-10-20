@@ -30,18 +30,33 @@ enum E {, class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -71,21 +86,16 @@ enum E {, const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -137,18 +147,36 @@ enum E {, enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -160,10 +188,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -181,16 +206,24 @@ enum E {,
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -211,21 +244,16 @@ enum E {, final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -275,21 +303,16 @@ enum E {, int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: int
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: int
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -341,21 +364,16 @@ enum E {, void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -409,21 +427,16 @@ enum E {, int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: int
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: int
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -472,21 +485,16 @@ enum E {, mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: mixin
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: mixin
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -536,21 +544,16 @@ enum E {, set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: set
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: set
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -608,21 +611,16 @@ enum E {, typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: typedef
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: typedef
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -696,21 +694,16 @@ enum E {, var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -752,16 +745,31 @@ enum E {,} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -785,17 +793,14 @@ enum E {,} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -841,16 +846,34 @@ enum E {,} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: }
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -860,10 +883,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -880,16 +900,24 @@ enum E {,}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -906,17 +934,14 @@ enum E {,} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -962,17 +987,14 @@ enum E {,} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -1022,17 +1044,14 @@ enum E {,} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -1082,17 +1101,14 @@ enum E {,} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     TopLevelGetterDeclaration
@@ -1140,16 +1156,30 @@ enum E {,} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: }
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
@@ -1172,17 +1202,14 @@ enum E {,} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     TopLevelSetterDeclaration
@@ -1235,17 +1262,14 @@ enum E {,} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     GenericTypeAlias2
@@ -1318,17 +1342,14 @@ enum E {,} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -1370,18 +1391,33 @@ enum E {,a class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1409,21 +1445,16 @@ enum E {,a const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1473,18 +1504,36 @@ enum E {,a enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1496,10 +1545,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -1517,18 +1563,26 @@ enum E {,a
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1549,21 +1603,16 @@ enum E {,a final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1613,21 +1662,16 @@ enum E {,a int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1681,21 +1725,16 @@ enum E {,a void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1749,21 +1788,16 @@ enum E {,a int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -1815,18 +1849,32 @@ enum E {,a mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -1853,21 +1901,16 @@ enum E {,a set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -1924,21 +1967,16 @@ enum E {,a typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -2015,21 +2053,16 @@ enum E {,a var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -2071,18 +2104,33 @@ enum E {, a} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2108,21 +2156,16 @@ enum E {, a} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -2170,18 +2213,36 @@ enum E {, a} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: }
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2193,10 +2254,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -2213,18 +2271,26 @@ enum E {, a}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2243,21 +2309,16 @@ enum E {, a} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -2305,21 +2366,16 @@ enum E {, a} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -2371,21 +2427,16 @@ enum E {, a} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -2437,21 +2488,16 @@ enum E {, a} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     TopLevelGetterDeclaration
@@ -2501,18 +2547,32 @@ enum E {, a} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: }
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
           EnumConstantDeclaration
@@ -2537,21 +2597,16 @@ enum E {, a} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     TopLevelSetterDeclaration
@@ -2606,21 +2661,16 @@ enum E {, a} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     GenericTypeAlias2
@@ -2695,21 +2745,16 @@ enum E {, a} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
             name: <empty> <synthetic>
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
-            name: <empty> <synthetic>
-          EnumConstantDeclaration
             name: a
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -2752,6 +2797,21 @@ enum class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2786,6 +2846,14 @@ enum const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: a
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2807,6 +2875,24 @@ enum enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2820,10 +2906,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -2841,6 +2924,14 @@ enum
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2862,11 +2953,11 @@ enum final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -2909,6 +3000,14 @@ enum int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: int
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -2930,11 +3029,11 @@ enum void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -2981,11 +3080,11 @@ enum int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: int
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -3027,6 +3126,20 @@ enum mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3054,11 +3167,11 @@ enum set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -3109,11 +3222,11 @@ enum typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -3184,11 +3297,11 @@ enum var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -3227,16 +3340,31 @@ enum E { class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3262,17 +3390,14 @@ enum E { const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -3320,16 +3445,34 @@ enum E { enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -3339,10 +3482,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -3358,6 +3498,14 @@ enum E {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3380,17 +3528,14 @@ enum E { final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -3436,17 +3581,14 @@ enum E { int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: int
-        constants(v1)
-          EnumConstantDeclaration
             name: int
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -3494,17 +3636,14 @@ enum E { void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -3554,17 +3693,14 @@ enum E { int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: int
-        constants(v1)
-          EnumConstantDeclaration
             name: int
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -3609,17 +3745,14 @@ enum E { mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: mixin
-        constants(v1)
-          EnumConstantDeclaration
             name: mixin
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -3665,17 +3798,14 @@ enum E { set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: set
-        constants(v1)
-          EnumConstantDeclaration
             name: set
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -3729,17 +3859,14 @@ enum E { typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: typedef
-        constants(v1)
-          EnumConstantDeclaration
             name: typedef
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -3809,17 +3936,14 @@ enum E { var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
-          EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -3859,6 +3983,21 @@ enum {} class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3886,11 +4025,11 @@ enum {} const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -3933,6 +4072,24 @@ enum {} enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3946,10 +4103,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -3966,6 +4120,14 @@ enum {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -3986,11 +4148,11 @@ enum {} final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -4033,11 +4195,11 @@ enum {} int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -4084,11 +4246,11 @@ enum {} void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration
@@ -4135,11 +4297,11 @@ enum {} int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelGetterDeclaration
@@ -4184,6 +4346,20 @@ enum {} mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        rightBracket: }
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -4210,11 +4386,11 @@ enum {} set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelSetterDeclaration
@@ -4264,11 +4440,11 @@ enum {} typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     GenericTypeAlias2
@@ -4338,11 +4514,11 @@ enum {} var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: <empty> <synthetic>
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelVariablesDeclaration
@@ -4379,6 +4555,21 @@ enum E class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -4406,11 +4597,11 @@ enum E const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4453,6 +4644,24 @@ enum E enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -4466,10 +4675,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -4486,6 +4692,14 @@ enum E
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -4506,11 +4720,11 @@ enum E final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4553,11 +4767,11 @@ enum E int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -4604,11 +4818,11 @@ enum E void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -4655,11 +4869,11 @@ enum E int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -4704,6 +4918,20 @@ enum E mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -4730,11 +4958,11 @@ enum E set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -4784,11 +5012,11 @@ enum E typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -4858,11 +5086,11 @@ enum E var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4899,16 +5127,31 @@ enum E {a class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -4932,17 +5175,14 @@ enum E {a const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -4988,16 +5228,34 @@ enum E {a enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -5007,10 +5265,7 @@ CompilationUnit
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: v
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: v
         rightBracket: }
@@ -5026,16 +5281,24 @@ enum E {a
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -5052,17 +5315,14 @@ enum E {a final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -5108,17 +5368,14 @@ enum E {a int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -5168,17 +5425,14 @@ enum E {a void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -5228,17 +5482,14 @@ enum E {a int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -5286,16 +5537,30 @@ enum E {a mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: a
+        rightBracket: } <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: M
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: a
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
@@ -5318,17 +5583,14 @@ enum E {a set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -5381,17 +5643,14 @@ enum E {a typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -5464,17 +5723,14 @@ enum E {a var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
-      body: BlockEnumBody
+      body: BlockEnumDeclarationBody
         leftBracket: {
-        constants2
+        constants
           EnumConstantDeclaration2
-            name: a
-        constants(v1)
-          EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -5515,16 +5771,24 @@ enum E {,
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
         typeName: E
       body: BlockEnumBody
         leftBracket: {
-        constants2
-          EnumConstantDeclaration2
-            name: <empty> <synthetic>
-        constants(v1)
+        constants
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
@@ -5540,6 +5804,14 @@ enum E {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        rightBracket: } <synthetic>
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
