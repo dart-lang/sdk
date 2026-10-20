@@ -23,7 +23,6 @@ import '../../kernel/external_ast_helper.dart' as extern;
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
-import '../../source/check_helper.dart';
 import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -35,8 +34,8 @@ import '../../source/source_method_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
 import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
-import '../fragment.dart';
 import '../../type_inference/context_allocation_strategy.dart';
+import '../fragment.dart';
 
 sealed class MethodEncoding implements InferredTypeListener {
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters;
@@ -75,11 +74,6 @@ sealed class MethodEncoding implements InferredTypeListener {
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   });
-
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  );
 
   void checkVariance(
     SourceClassBuilder sourceClassBuilder,
@@ -278,24 +272,6 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     memberName.attachMember(procedure);
 
     callback(kind: _builtMemberKind, member: procedure);
-  }
-
-  @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  ) {
-    List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameterBuilders;
-    if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(problemReporting, typeParameters);
-    }
-    problemReporting.checkInitializersInFormals(
-      formals: _fragment.declaredFormals,
-      typeEnvironment: typeEnvironment,
-      isAbstract: _fragment.modifiers.isAbstract,
-      isExternal: _fragment.modifiers.isExternal,
-    );
   }
 
   @override
@@ -648,24 +624,6 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       kind: _builtMemberKind,
       member: procedure,
       tearOff: _extensionTearOff,
-    );
-  }
-
-  @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  ) {
-    List<SourceNominalParameterBuilder>? typeParameters =
-        _fragment.declaredTypeParameterBuilders;
-    if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(problemReporting, typeParameters);
-    }
-    problemReporting.checkInitializersInFormals(
-      formals: _fragment.declaredFormals,
-      typeEnvironment: typeEnvironment,
-      isAbstract: _fragment.modifiers.isAbstract,
-      isExternal: _fragment.modifiers.isExternal,
     );
   }
 

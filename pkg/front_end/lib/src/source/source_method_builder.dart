@@ -24,6 +24,7 @@ import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import '../util/reference_map.dart';
+import 'augmented_parameters.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
@@ -70,6 +71,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
 
   final MemberName _memberName;
 
+  final AugmentedParameters _parameters;
+
   late final Procedure _invokeTarget;
   late final Procedure? _readTarget;
 
@@ -84,6 +87,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     required NameScheme nameScheme,
     required this._declarations,
     required this._implementation,
+    required this._parameters,
     required this._references,
   }) : _nameScheme = nameScheme,
        _modifiers = modifiers,
@@ -168,12 +172,13 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    // TODO(johnniwinther): Updated checks for default values to handle
-    // default values declared on the introductory method and omitted on the
-    // augmenting method.
-    for (int i = 0; i < _declarations.length; i++) {
-      _declarations[i].checkTypes(problemReporting, typeEnvironment);
-    }
+    _parameters.processOutlineExpressions(
+      problemReporting,
+      typeEnvironment,
+      isAbstract: _modifiers.isAbstract,
+      isExternal: _modifiers.isExternal,
+      libraryFeatures: libraryFeatures,
+    );
   }
 
   @override

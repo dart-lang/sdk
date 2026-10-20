@@ -6,7 +6,6 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -45,8 +44,10 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_target.dart' show DillTarget;
 import '../fragment/constructor/declaration.dart';
+import '../source/augmented_parameters.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
@@ -1226,6 +1227,7 @@ class KernelTarget {
       nameScheme: nameScheme,
       declarations: [declaration],
       implementation: declaration,
+      parameters: new AugmentedParameters(),
       isConst: isConst,
     );
 
@@ -1343,6 +1345,7 @@ class KernelTarget {
       nameScheme: nameScheme,
       declarations: [declaration],
       implementation: declaration,
+      parameters: new AugmentedParameters(),
       isConst: false,
     );
   }

@@ -2174,6 +2174,14 @@ const MessageCode declaredMemberConflictsWithOverriddenMembersCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode defaultValueAlreadySpecifiedInAugmentationChainCause =
+    const MessageCode(
+      "DefaultValueAlreadySpecifiedInAugmentationChainCause",
+      severity: CfeSeverity.context,
+      problemMessage: """The previous parameter with a default value.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String redirectionTarget})>
 defaultValueInRedirectingFactoryConstructor = const Template(
   "DefaultValueInRedirectingFactoryConstructor",

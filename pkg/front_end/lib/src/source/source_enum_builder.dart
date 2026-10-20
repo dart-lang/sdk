@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart';
@@ -28,6 +27,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/constructor/declaration.dart';
 import '../fragment/constructor/encoding.dart';
 import '../fragment/field/declaration.dart';
@@ -44,6 +44,7 @@ import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
 import '../util/helpers.dart';
+import 'augmented_parameters.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -293,6 +294,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         declarationBuilder: this,
       );
 
+      AugmentedParameters parameters = new AugmentedParameters();
       SourceConstructorBuilder constructorBuilder =
           _synthesizedDefaultConstructorBuilder = new SourceConstructorBuilder(
             name: "",
@@ -304,6 +306,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             nameScheme: nameScheme,
             declarations: [constructorDeclaration],
             implementation: constructorDeclaration,
+            parameters: parameters,
             isConst: true,
           );
       constructorDeclaration.createEncoding(
@@ -312,7 +315,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
         declarationBuilder: this,
         constructorBuilder: constructorBuilder,
         typeParameterFactory: libraryBuilder.typeParameterFactory,
+        parameters: parameters,
         encodingStrategy: encodingStrategy,
+        isImplementation: true,
       );
 
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
@@ -340,6 +345,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       nameScheme: toStringNameScheme,
       declarations: [toStringDeclaration],
       implementation: toStringDeclaration,
+      parameters: new AugmentedParameters(),
       isStatic: false,
       modifiers: Modifiers.empty,
       references: toStringReferences,
@@ -578,12 +584,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  ) {}
-
-  @override
   void checkVariance(
     SourceClassBuilder sourceClassBuilder,
     TypeEnvironment typeEnvironment,
@@ -599,7 +599,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
   }) {
     throw new UnsupportedError("$runtimeType.createEncoding");
   }

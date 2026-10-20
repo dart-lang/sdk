@@ -557,6 +557,7 @@ disposed
 disposes
 distinguished
 distribute
+distributing
 diverged
 divided
 divides

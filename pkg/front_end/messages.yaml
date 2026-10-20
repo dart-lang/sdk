@@ -7867,3 +7867,8 @@ augmentationExtendsClassAlreadyPresentCause:
   parameters: none
   problemMessage: "The previous 'extends' clause."
   severity: CONTEXT
+
+defaultValueAlreadySpecifiedInAugmentationChainCause:
+  parameters: none
+  problemMessage: "The previous parameter with a default value."
+  severity: CONTEXT

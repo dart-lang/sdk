@@ -20,6 +20,7 @@ import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/augmented_parameters.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
@@ -70,11 +71,6 @@ abstract class MethodDeclaration {
     required List<TypeParameter>? classTypeParameters,
   });
 
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  );
-
   void checkVariance(
     SourceClassBuilder sourceClassBuilder,
     TypeEnvironment typeEnvironment,
@@ -85,8 +81,10 @@ abstract class MethodDeclaration {
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
+    required AugmentedParameters parameters,
     required MethodEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
   });
 
   void ensureTypes(
@@ -189,14 +187,6 @@ class MethodDeclarationImpl
   }
 
   @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  ) {
-    _encoding.checkTypes(problemReporting, typeEnvironment);
-  }
-
-  @override
   void checkVariance(
     SourceClassBuilder sourceClassBuilder,
     TypeEnvironment typeEnvironment,
@@ -225,7 +215,9 @@ class MethodDeclarationImpl
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
   }) {
     _encoding = encodingStrategy.createMethodEncoding(
       builder,
@@ -239,6 +231,7 @@ class MethodDeclarationImpl
       allowNameConflict: true,
     );
     returnType.registerInferredTypeListener(_encoding);
+    parameters.registerParameters(formals, isImplementation: isImplementation);
   }
 
   @override

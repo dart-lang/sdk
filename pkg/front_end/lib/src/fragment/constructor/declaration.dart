@@ -6,13 +6,11 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../../base/extension_scope.dart';
 import '../../base/local_scope.dart';
 import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
-import '../../base/name_space.dart';
 import '../../base/scope.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/declaration_builders.dart';
@@ -28,7 +26,7 @@ import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/resolver.dart';
 import '../../kernel/type_algorithms.dart';
-import '../../source/check_helper.dart';
+import '../../source/augmented_parameters.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
@@ -73,8 +71,10 @@ abstract class ConstructorDeclaration {
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   });
 
   void buildOutlineNodes({
@@ -95,12 +95,6 @@ abstract class ConstructorDeclaration {
     required ClassHierarchy classHierarchy,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
-
-  void checkTypes(
-    ProblemReporting problemReporting,
-    NameSpace nameSpace,
-    TypeEnvironment typeEnvironment,
-  );
 
   int computeDefaultTypes(
     ComputeDefaultTypeContext context, {
@@ -723,20 +717,6 @@ mixin _ConstructorDeclarationMixin
   }
 
   @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    NameSpace nameSpace,
-    TypeEnvironment typeEnvironment,
-  ) {
-    problemReporting.checkInitializersInFormals(
-      formals: formals,
-      typeEnvironment: typeEnvironment,
-      isAbstract: false,
-      isExternal: isExternal,
-    );
-  }
-
-  @override
   int computeDefaultTypes(
     ComputeDefaultTypeContext context, {
     required bool inErrorRecovery,
@@ -993,8 +973,10 @@ class RegularConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {
     _fragment.builder = constructorBuilder;
     _typeParameters = encodingStrategy.createTypeParameters(
@@ -1018,6 +1000,7 @@ class RegularConstructorDeclaration
       fileUri: _fragment.fileUri,
       fileOffset: _fragment.fullNameOffset,
     );
+    parameters.registerParameters(_formals, isImplementation: isImplementation);
     _encoding = encodingStrategy.createEncoding(
       isExternal: _fragment.modifiers.isExternal,
     );
@@ -1164,9 +1147,12 @@ class DefaultEnumConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {
+    parameters.registerParameters(formals, isImplementation: isImplementation);
     _encoding = encodingStrategy.createEncoding(isExternal: false);
     _registerInferable(constructorBuilder);
   }
@@ -1322,8 +1308,10 @@ class PrimaryConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {
     _fragment.builder = constructorBuilder;
     _bodyFragment?.builder = constructorBuilder;
@@ -1351,6 +1339,7 @@ class PrimaryConstructorDeclaration
       fileUri: _fragment.fileUri,
       fileOffset: _fragment.fileOffset,
     );
+    parameters.registerParameters(_formals, isImplementation: isImplementation);
     _encoding = encodingStrategy.createEncoding(
       isExternal: _fragment.modifiers.isExternal,
     );
@@ -1634,13 +1623,6 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
   List<MetadataBuilder>? get metadata => null;
 
   @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    NameSpace nameSpace,
-    TypeEnvironment typeEnvironment,
-  ) {}
-
-  @override
   // Coverage-ignore(suite): Not run.
   int computeDefaultTypes(
     ComputeDefaultTypeContext context, {
@@ -1716,8 +1698,10 @@ class DefaultConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {}
 
   @override
@@ -1792,8 +1776,10 @@ class ForwardingConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
+    required AugmentedParameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {}
 
   @override
