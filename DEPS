@@ -149,7 +149,7 @@ vars = {
   "pub_rev": "9df389a76385f82c1165c7cf93b78807b5ea8890", # rolled manually
   "shelf_rev": "b66665b8b405e883b203fd401f25e0bde47cdb01",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
-  "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
+  "tar_rev": "201952a191be34a993f4ae182612c891ea4ef0a2",
   "test_rev": "d1afeb14cc57a0487227f9c4e9485eece327b2af",
   "tools_rev": "4d7715ac1c0c243f443c0455d2fe14971af92ff4",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
