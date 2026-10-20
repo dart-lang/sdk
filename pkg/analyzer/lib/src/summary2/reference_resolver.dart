@@ -59,9 +59,9 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockEnumBody(BlockEnumBody node) {
-    node.constants2.accept2(this);
-    node.members2.accept2(this);
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
+    node.constants.accept2(this);
+    node.members.accept2(this);
   }
 
   @override
@@ -103,19 +103,16 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {}
 
   @override
   void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {}
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
 
-    _scopeContext.visitEnumDeclaration(node, visitor: this);
+    _scopeContext.visitEnumDeclaration2(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
 
     for (var field in fragment.fields) {
@@ -342,6 +339,9 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     _visitFormalParameter(node);
   }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
 
   @override
   void visitSemicolonInstanceDeclarationBody(

@@ -656,7 +656,7 @@ enum E {
 enum E1<T> with M1 implements I1 {one, two}
 enum E2<U> with M2 implements I2 {one, two}
 ''');
-    _assertReplacementForChildren<EnumDeclaration>(
+    _assertReplacementForChildren<EnumDeclaration2>(
       destination: parseResult.findNode.enumDeclaration('enum E1'),
       source: parseResult.findNode.enumDeclaration('enum E2'),
       childAccessors: [

@@ -63,7 +63,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockEnumBody(BlockEnumBody node) {
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.visitChildren2(this);
   }
 
@@ -106,15 +106,12 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
   void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     node.metadata.accept2(this);
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     node.metadata.accept2(this);
     node.namePart.typeParameters?.accept2(this);
 
@@ -286,6 +283,9 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
       functionTypedSuffix.formalParameters.accept2(this);
     }
   }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
 
   @override
   void visitSemicolonInstanceDeclarationBody(

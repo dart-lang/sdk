@@ -648,7 +648,7 @@ class AnnotationVerifier {
     switch (containedDeclaration.parent2?.parent2) {
       case ClassDeclaration classDeclaration:
         declaredElement = classDeclaration.declaredFragment?.element;
-      case EnumDeclaration enumDeclaration:
+      case EnumDeclaration2 enumDeclaration:
         declaredElement = enumDeclaration.declaredFragment?.element;
       case MixinDeclaration mixinDeclaration:
         declaredElement = mixinDeclaration.declaredFragment?.element;

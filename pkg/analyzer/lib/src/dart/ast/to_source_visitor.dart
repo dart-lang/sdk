@@ -125,11 +125,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitBlockEnumBody(BlockEnumBody node) {
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     sink.write(' {');
-    _visitNodeList(node.constants2, separator: ', ');
-    _visitToken(node.semicolon);
-    _visitNodeList(node.members2, prefix: ' ', separator: ' ');
+    _visitNodeList(node.constants, separator: ', ');
+    _visitToken(node.membersSeparator);
+    _visitNodeList(node.members, prefix: ' ', separator: ' ');
     sink.write('}');
   }
 
@@ -507,11 +507,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {
-    sink.write(';');
-  }
-
-  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     sink.write(';');
   }
@@ -537,7 +532,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     sink.write('enum ');
@@ -1566,6 +1561,11 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitScriptTag(ScriptTag node) {
     sink.write(node.scriptTag.lexeme);
+  }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {
+    sink.write(';');
   }
 
   @override

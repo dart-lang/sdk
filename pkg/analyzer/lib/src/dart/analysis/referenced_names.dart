@@ -44,7 +44,7 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
       addSubtypedName(declaration.superclass);
       addSubtypedNames(declaration.withClause.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is EnumDeclaration) {
+    } else if (declaration is EnumDeclaration2) {
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
     } else if (declaration is ExtensionTypeDeclaration) {
@@ -190,7 +190,7 @@ class _LocalNameScope {
       switch (declaration) {
         case ClassDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
         case ExtensionDeclarationImpl():
           scope.add(declaration.name);

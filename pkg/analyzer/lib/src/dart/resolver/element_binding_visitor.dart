@@ -148,7 +148,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.classes[classIndex++],
           );
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _bindEnumDeclaration(
             declaration,
             _libraryFragment.enums[enumIndex++],
@@ -597,7 +597,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindEnumDeclaration(
-    EnumDeclarationImpl node,
+    EnumDeclaration2Impl node,
     EnumFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -628,11 +628,11 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.withClause?.accept2(this);
     node.implementsClause?.accept2(this);
 
-    for (var constant in node.body.constants2) {
+    for (var constant in node.body.constants) {
       _bindEnumConstant(constant, memberFragments.nextField());
     }
 
-    _bindMembers(node.body.members2, memberFragments);
+    _bindMembers(node.body.members, memberFragments);
   }
 
   void _bindExtensionDeclaration(

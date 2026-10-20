@@ -535,7 +535,11 @@ abstract class RuleVisitorRegistry2 {
 
   void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addBlockEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -690,8 +694,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -704,7 +706,8 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addEnumDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addEnumDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addExportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -1132,6 +1135,12 @@ abstract class RuleVisitorRegistry2 {
   void addReturnStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addScriptTag(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addSemicolonEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   @experimental
   void addSemicolonInstanceDeclarationBody(

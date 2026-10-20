@@ -32,6 +32,8 @@ class FindNode extends _FindNodeBase {
 
   EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
 
+  EnumDeclaration get singleEnumDeclaration => _single();
+
   FieldDeclaration get singleFieldDeclaration => _single();
 
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
@@ -111,6 +113,10 @@ class FindNode extends _FindNodeBase {
 
   EnumConstantDeclaration enumConstantDeclaration(String search) {
     return _node(search, (n) => n is EnumConstantDeclaration);
+  }
+
+  EnumDeclaration enumDeclaration(String search) {
+    return _node(search, (n) => n is EnumDeclaration);
   }
 
   ExtensionOverride extensionOverride(String search) {
@@ -250,7 +256,7 @@ class FindNode2 extends _FindNodeBase {
   AnnotatedNode get singleClassMember {
     return [
       for (var body in _nodes<ClassBody>()) ...body.members2,
-      for (var body in _nodes<EnumBody>()) ...body.members2,
+      for (var body in _nodes<EnumDeclarationBody>()) ...body.members,
     ].single;
   }
 
@@ -274,6 +280,8 @@ class FindNode2 extends _FindNodeBase {
   DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
 
   EnumConstantDeclaration2 get singleEnumConstantDeclaration => _single();
+
+  EnumDeclaration2 get singleEnumDeclaration => _single();
 
   Field2 get singleField => _single();
 
@@ -394,6 +402,10 @@ class FindNode2 extends _FindNodeBase {
 
   EnumConstantDeclaration2 enumConstantDeclaration(String search) {
     return _node(search, (n) => n is EnumConstantDeclaration2);
+  }
+
+  EnumDeclaration2 enumDeclaration(String search) {
+    return _node(search, (n) => n is EnumDeclaration2);
   }
 
   ExtensionOverride2 extensionOverride2(String search) {
@@ -677,8 +689,6 @@ abstract class _FindNodeBase {
   EmptyFunctionBody get singleEmptyFunctionBody => _single();
 
   EmptyStatement get singleEmptyStatement => _single();
-
-  EnumDeclaration get singleEnumDeclaration => _single();
 
   ExportDirective get singleExportDirective => _single();
 
@@ -1051,10 +1061,6 @@ abstract class _FindNodeBase {
 
   EmptyStatement emptyStatement(String search) {
     return _node(search, (n) => n is EmptyStatement);
-  }
-
-  EnumDeclaration enumDeclaration(String search) {
-    return _node(search, (n) => n is EnumDeclaration);
   }
 
   ExportDirective export(String search) {

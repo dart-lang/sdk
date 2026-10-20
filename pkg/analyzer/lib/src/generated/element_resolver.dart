@@ -185,7 +185,7 @@ class ElementResolver {
 
   void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {}
 
-  void visitEnumDeclaration(EnumDeclaration node) {}
+  void visitEnumDeclaration2(EnumDeclaration2 node) {}
 
   void visitExportDirective(ExportDirectiveImpl node) {
     var exportElement = node.libraryExport;

@@ -399,21 +399,18 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
   void visitEmptyFunctionBody(covariant EmptyFunctionBodyImpl node) {
     node.localVariableInfo = _localVariableInfo;
     super.visitEmptyFunctionBody(node);
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    _scopeContext.visitEnumDeclaration(node, visitor: this);
+    _scopeContext.visitEnumDeclaration2(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
@@ -809,6 +806,9 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       }
     }
   }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
 
   @override
   void visitSemicolonInstanceDeclarationBody(

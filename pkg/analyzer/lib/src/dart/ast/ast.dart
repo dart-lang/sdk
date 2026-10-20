@@ -4358,71 +4358,52 @@ abstract final class BlockEnumBody implements EnumBody {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty(
-      'constants2',
-      v1Name: 'constants',
-      v1Projection: V1Projection.enumConstant,
-    ),
+    GenerateNodeProperty('constants'),
     GenerateNodeProperty('semicolon'),
-    GenerateNodeProperty(
-      'members2',
-      v1Name: 'members',
-      v1Projection: V1Projection.classMember,
-      type: NodeList<ClassMemberV1OrV2Impl>,
-    ),
+    GenerateNodeProperty('members'),
     GenerateNodeProperty('rightBracket'),
   ],
 )
+@V1Ast('The V2 counterpart is BlockEnumDeclarationBody.')
 final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @generated
   @override
   final Token leftBracket;
 
   @generated
-  @experimental
   @override
-  final NodeListImpl<EnumConstantDeclaration2Impl> constants2 =
-      NodeListImpl._();
-
-  @generated
-  @V1Ast('The V2 counterpart is constants2.')
-  @override
-  late final NodeListImpl<EnumConstantDeclarationImpl> constants =
-      _V1ProjectedNodeListImpl(constants2, V1Projection.toV1EnumConstant);
+  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
 
   @generated
   @override
   final Token? semicolon;
 
   @generated
-  @experimental
   @override
-  final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._();
-
-  @generated
-  @V1Ast('The V2 counterpart is members2.')
-  @override
-  late final NodeListImpl<ClassMemberImpl> members = _V1ProjectedNodeListImpl(
-    members2,
-    V1Projection.toV1ClassMember,
-  );
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
 
   @generated
   @override
   final Token rightBracket;
 
-  @generated
-  new({
-    required this.leftBracket,
-    required List<EnumConstantDeclaration2Impl> constants2,
-    required this.semicolon,
-    required List<ClassMemberV1OrV2Impl> members2,
-    required this.rightBracket,
-  }) {
-    this.constants2._initializeProjected(this, constants2);
-    this.members2._initializeProjected(this, members2);
+  /// A V1 projection of [origin].
+  ///
+  /// The constants and members are projected eagerly, so that their V1
+  /// projections have this body as the V1 parent.
+  new v1Projection(BlockEnumDeclarationBodyImpl origin)
+    : leftBracket = origin.leftBracket,
+      semicolon = origin.membersSeparator,
+      rightBracket = origin.rightBracket {
+    constants._initialize(this, [
+      for (var constant in origin.constants) constant.v1Projection,
+    ]);
+    members._initialize(this, [
+      for (var member in origin.members) V1Projection.toV1ClassMember(member),
+    ]);
   }
 
   @generated
@@ -4438,6 +4419,10 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   }
 
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities => ChildEntities()
@@ -4449,12 +4434,9 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('constants2', constants2)
-    ..addToken('semicolon', semicolon)
-    ..addNodeList('members2', members2)
-    ..addToken('rightBracket', rightBracket);
+  ChildEntities get _childEntities2 {
+    throw StateError('BlockEnumBody is not in the V2 AST view.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -4464,34 +4446,20 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockEnumBody(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('BlockEnumBody is not in the V2 AST view.');
+  }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (constants2.containsChild(oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove child 'constants2' because NodeList cannot be resized.",
-      );
-    }
-    if (members2.containsChild(oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove child 'members2' because NodeList cannot be resized.",
-      );
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (constants2.replaceChild(oldNode, newNode)) {
-      return;
-    }
-    if (members2.replaceChild(oldNode, newNode)) {
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
@@ -4506,32 +4474,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    constants2.accept2(visitor);
-    members2.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(NodeListImpl<EnumConstantDeclaration2Impl>)? visitConstants2,
-    void Function(NodeListImpl<ClassMemberV1OrV2Impl>)? visitMembers2,
-  }) {
-    if (visitConstants2 != null) {
-      visitConstants2(constants2);
-    } else {
-      constants2.accept2(visitor);
-    }
-    if (visitMembers2 != null) {
-      visitMembers2(members2);
-    } else {
-      members2.accept2(visitor);
-    }
+    throw StateError('BlockEnumBody is not in the V2 AST view.');
   }
 
   @generated
@@ -4552,11 +4495,210 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (constants2._elementContainingRange(rangeOffset, rangeEnd)
+    throw StateError('BlockEnumBody is not in the V2 AST view.');
+  }
+}
+
+/// An enum body with constants and members.
+///
+///     enumBody ::=
+///         '{' enumEntry (',' enumEntry)* ','? (';' memberDeclaration*)? '}'
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class BlockEnumDeclarationBody implements EnumDeclarationBody {
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The semicolon separating enum constants from member declarations, or
+  /// `null` if there is none.
+  ///
+  /// Valid source has this token whenever [members] is non-empty. The token
+  /// can also occur without constants or members, as in `enum E {;}`.
+  Token? get membersSeparator;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('constants'),
+    GenerateNodeProperty('membersSeparator'),
+    GenerateNodeProperty('members'),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class BlockEnumDeclarationBodyImpl extends EnumDeclarationBodyImpl
+    implements BlockEnumDeclarationBody {
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  @override
+  final NodeListImpl<EnumConstantDeclaration2Impl> constants = NodeListImpl._();
+
+  @generated
+  @override
+  final Token? membersSeparator;
+
+  @generated
+  @override
+  final NodeListImpl<MemberDeclarationImpl> members = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @V1Ast()
+  BlockEnumBodyImpl? _v1Projection;
+
+  @generated
+  new({
+    required this.leftBracket,
+    required List<EnumConstantDeclaration2Impl> constants,
+    required this.membersSeparator,
+    required List<MemberDeclarationImpl> members,
+    required this.rightBracket,
+  }) {
+    this.constants._initialize(this, constants);
+    this.members._initialize(this, members);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftBracket;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @V1Ast()
+  @override
+  BlockEnumBodyImpl get v1Projection =>
+      _v1Projection ??= BlockEnumBodyImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('BlockEnumDeclarationBody is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('constants', constants)
+    ..addToken('membersSeparator', membersSeparator)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('BlockEnumDeclarationBody is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitBlockEnumDeclarationBody(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (constants.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'constants' because NodeList cannot be resized.",
+      );
+    }
+    if (members.containsChild(oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove child 'members' because NodeList cannot be resized.",
+      );
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (constants.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    if (members.replaceChild(oldNode, newNode)) {
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('BlockEnumDeclarationBody is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    constants.accept2(visitor);
+    members.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(NodeListImpl<EnumConstantDeclaration2Impl>)? visitConstants,
+    void Function(NodeListImpl<MemberDeclarationImpl>)? visitMembers,
+  }) {
+    if (visitConstants != null) {
+      visitConstants(constants);
+    } else {
+      constants.accept2(visitor);
+    }
+    if (visitMembers != null) {
+      visitMembers(members);
+    } else {
+      members.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('BlockEnumDeclarationBody is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (constants._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
-    if (members2._elementContainingRange(rangeOffset, rangeEnd)
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -7916,8 +8058,7 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   Token? get augmentKeyword;
 }
 
-/// A temporary marker interface for members in [ClassBodyImpl.members2] and
-/// [EnumBodyImpl.members2].
+/// A temporary marker interface for members in [ClassBodyImpl.members2].
 ///
 /// This unifies V1 class members that have not yet been migrated with V2
 /// [MemberDeclaration]s.
@@ -16676,32 +16817,27 @@ abstract final class EmptyEnumBody implements EnumBody {
   Token get semicolon;
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('semicolon')])
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [GenerateNodeProperty('semicolon')],
+)
+@V1Ast('The V2 counterpart is SemicolonEnumDeclarationBody.')
 final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   @generated
   @override
   final Token semicolon;
 
-  @V1Ast('The V2 counterpart is constants2.')
   @override
   late final NodeListImpl<EnumConstantDeclarationImpl> constants =
       NodeListImpl._().._initialize(this, null);
 
   @override
-  late final NodeListImpl<EnumConstantDeclaration2Impl> constants2 =
-      NodeListImpl._().._initialize(this, null);
-
-  @V1Ast('The V2 counterpart is members2.')
-  @override
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
-  @override
-  late final NodeListImpl<ClassMemberV1OrV2Impl> members2 = NodeListImpl._()
-    .._initialize(this, null);
-
-  @generated
-  new({required this.semicolon});
+  new v1Projection(SemicolonEnumDeclarationBodyImpl origin)
+    : semicolon = origin.semicolon;
 
   @generated
   @override
@@ -16716,6 +16852,10 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   }
 
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
   ChildEntities get _childEntities =>
@@ -16723,8 +16863,9 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities2 {
+    throw StateError('EmptyEnumBody is not in the V2 AST view.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -16734,7 +16875,21 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyEnumBody(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('EmptyEnumBody is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -16744,12 +16899,9 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   @generated
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('EmptyEnumBody is not in the V2 AST view.');
+  }
 
   @generated
   @V1Ast('The V2 counterpart is _childContainingRange2.')
@@ -16761,7 +16913,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
+    throw StateError('EmptyEnumBody is not in the V2 AST view.');
   }
 }
 
@@ -16942,42 +17094,19 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
-  @V1Ast('The V2 counterpart is constants2.')
   NodeList<EnumConstantDeclaration> get constants;
 
-  /// The enumeration constants being declared.
-  @experimental
-  NodeList<EnumConstantDeclaration2> get constants2;
-
-  /// The members declared in the body in the V1 AST view.
-  ///
-  /// Analyzer implementations should traverse [members2] instead.
-  @V1Ast('The V2 counterpart is members2.')
+  /// The members declared in the body.
   NodeList<ClassMember> get members;
-
-  /// The members declared in the body in the V2 AST view.
-  ///
-  /// The element type is temporarily [AnnotatedNode] while the V2 AST migration
-  /// is in progress. Each entry is either a V2 [MemberDeclaration] or a V1
-  /// [ClassMember] whose V2 representation is not yet available.
-  @experimental
-  NodeList<AnnotatedNode> get members2;
 }
 
+@V1Ast('The V2 counterpart is EnumDeclarationBodyImpl.')
 sealed class EnumBodyImpl extends AstNodeImpl implements EnumBody {
-  @V1Ast('The V2 counterpart is constants2.')
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants;
 
   @override
-  NodeListImpl<EnumConstantDeclaration2Impl> get constants2;
-
-  @V1Ast('The V2 counterpart is members2.')
-  @override
   NodeListImpl<ClassMemberImpl> get members;
-
-  @override
-  NodeListImpl<ClassMemberV1OrV2Impl> get members2;
 }
 
 /// The arguments part of an enum constant.
@@ -17631,7 +17760,39 @@ abstract final class EnumDeclaration implements CompilationUnitMember {
   WithClause? get withClause;
 }
 
+/// The declaration of an enumeration.
+///
+///     enumType ::=
+///         metadata 'enum' classNamePart [WithClause]? [ImplementsClause]?
+///         enumBody
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class EnumDeclaration2 implements InstanceDeclaration {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  @override
+  EnumDeclarationBody get body;
+
+  @override
+  EnumFragment? get declaredFragment;
+
+  /// The `enum` keyword.
+  Token get enumKeyword;
+
+  /// The `implements` clause, or `null` if there is none.
+  ImplementsClause? get implementsClause;
+
+  /// The name of the enum, as an identifier with type parameters, or a
+  /// primary constructor.
+  ClassNamePart get namePart;
+
+  /// The `with` clause, or `null` if there is none.
+  WithClause? get withClause;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('enumKeyword'),
@@ -17641,9 +17802,9 @@ abstract final class EnumDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('body'),
   ],
 )
-final class EnumDeclarationImpl extends CompilationUnitMemberImpl
+final class EnumDeclaration2Impl extends TopLevelDeclarationImpl
     with AstNodeWithNameScopeMixin
-    implements TopLevelDeclarationV1OrV2Impl, EnumDeclaration {
+    implements EnumDeclaration2 {
   @generated
   @override
   final Token? augmentKeyword;
@@ -17662,12 +17823,15 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @generated
-  EnumBodyImpl _body;
+  EnumDeclarationBodyImpl _body;
 
   @override
   EnumFragmentImpl? declaredFragment;
 
   Scope? bodyScope;
+
+  @V1Ast()
+  EnumDeclarationImpl? _v1Projection;
 
   @generated
   new({
@@ -17678,24 +17842,24 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
     required ClassNamePartImpl namePart,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
-    required EnumBodyImpl body,
+    required EnumDeclarationBodyImpl body,
   }) : _namePart = namePart,
        _withClause = withClause,
        _implementsClause = implementsClause,
        _body = body {
-    _becomeParentOf12(namePart);
-    _becomeParentOf12(withClause);
-    _becomeParentOf12(implementsClause);
-    _becomeParentOf12(body);
+    _becomeParentOf2(namePart);
+    _becomeParentOf2(withClause);
+    _becomeParentOf2(implementsClause);
+    _becomeParentOf2(body);
   }
 
   @generated
   @override
-  EnumBodyImpl get body => _body;
+  EnumDeclarationBodyImpl get body => _body;
 
   @generated
-  set body(EnumBodyImpl body) {
-    _body = _becomeParentOf12(body);
+  set body(EnumDeclarationBodyImpl body) {
+    _body = _becomeParentOf2(body);
   }
 
   @generated
@@ -17719,7 +17883,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf12(implementsClause);
+    _implementsClause = _becomeParentOf2(implementsClause);
   }
 
   @generated
@@ -17728,8 +17892,15 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set namePart(ClassNamePartImpl namePart) {
-    _namePart = _becomeParentOf12(namePart);
+    _namePart = _becomeParentOf2(namePart);
   }
+
+  @override
+  TypeParameterListImpl? get typeParameters => namePart.typeParameters;
+
+  @V1Ast()
+  EnumDeclarationImpl get v1Projection =>
+      _v1Projection ??= EnumDeclarationImpl.v1Projection(this);
 
   @generated
   @override
@@ -17737,19 +17908,17 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   set withClause(WithClauseImpl? withClause) {
-    _withClause = _becomeParentOf12(withClause);
+    _withClause = _becomeParentOf2(withClause);
   }
 
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('enumKeyword', enumKeyword)
-    ..addNode('namePart', namePart)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addNode('body', body);
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -17764,12 +17933,14 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('EnumDeclaration2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEnumDeclaration(this);
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEnumDeclaration2(this);
 
   @generated
   @override
@@ -17807,7 +17978,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
       return;
     }
     if (identical(body, oldNode)) {
-      body = newNode as EnumBodyImpl;
+      body = newNode as EnumDeclarationBodyImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -17817,11 +17988,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    namePart.accept(visitor);
-    withClause?.accept(visitor);
-    implementsClause?.accept(visitor);
-    body.accept(visitor);
+    throw StateError('EnumDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -17847,7 +18014,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
     void Function(ClassNamePartImpl)? visitNamePart,
     void Function(WithClauseImpl)? visitWithClause,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
-    void Function(EnumBodyImpl)? visitBody,
+    void Function(EnumDeclarationBodyImpl)? visitBody,
   }) {
     _visitCommentAndAnnotations2(visitor);
     if (visitNamePart != null) {
@@ -17880,26 +18047,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
-      return namePart;
-    }
-    if (withClause case var withClause?) {
-      if (withClause._containsOffset(rangeOffset, rangeEnd)) {
-        return withClause;
-      }
-    }
-    if (implementsClause case var implementsClause?) {
-      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
-        return implementsClause;
-      }
-    }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
-    }
-    return null;
+    throw StateError('EnumDeclaration2 is not in the V1 AST view.');
   }
 
   @generated
@@ -17925,6 +18073,204 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
       return body;
     }
     return null;
+  }
+}
+
+/// The body of an [EnumDeclaration2].
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class EnumDeclarationBody implements InstanceDeclarationBody {
+  /// The enum constants being declared.
+  NodeList<EnumConstantDeclaration2> get constants;
+}
+
+sealed class EnumDeclarationBodyImpl extends InstanceDeclarationBodyImpl
+    implements EnumDeclarationBody {
+  @override
+  NodeListImpl<EnumConstantDeclaration2Impl> get constants;
+
+  /// The cached V1 projection.
+  @V1Ast()
+  EnumBodyImpl get v1Projection;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('enumKeyword'),
+    GenerateNodeProperty('namePart'),
+    GenerateNodeProperty('withClause'),
+    GenerateNodeProperty('implementsClause'),
+    GenerateNodeProperty('body'),
+  ],
+)
+@V1Ast('The V2 counterpart is EnumDeclaration2.')
+final class EnumDeclarationImpl extends CompilationUnitMemberImpl
+    with AstNodeWithNameScopeMixin
+    implements EnumDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token enumKeyword;
+
+  final EnumDeclaration2Impl _v1ProjectionOrigin;
+
+  late final EnumBodyImpl _v1Body = _becomeParentOf1(
+    _v1ProjectionOrigin.body.v1Projection,
+  );
+
+  new v1Projection(EnumDeclaration2Impl origin)
+    : augmentKeyword = origin.augmentKeyword,
+      enumKeyword = origin.enumKeyword,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+      ) {
+    _becomeParentOf1(origin.namePart);
+    _becomeParentOf1(origin.withClause);
+    _becomeParentOf1(origin.implementsClause);
+    _v1Body;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  EnumBodyImpl get body => _v1Body;
+
+  @override
+  EnumFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  Token get endToken => _v1ProjectionOrigin.endToken;
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    return enumKeyword;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ImplementsClauseImpl? get implementsClause =>
+      _v1ProjectionOrigin.implementsClause;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  ClassNamePartImpl get namePart => _v1ProjectionOrigin.namePart;
+
+  @override
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
+
+  @override
+  set nameScope(Scope? nameScope) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  WithClauseImpl? get withClause => _v1ProjectionOrigin.withClause;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('enumKeyword', enumKeyword)
+    ..addNode('namePart', namePart)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addNode('body', body);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumDeclaration(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('EnumDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    namePart.accept(visitor);
+    withClause?.accept(visitor);
+    implementsClause?.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('EnumDeclaration is not in the V2 AST view.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (namePart._containsOffset(rangeOffset, rangeEnd)) {
+      return namePart;
+    }
+    if (withClause case var withClause?) {
+      if (withClause._containsOffset(rangeOffset, rangeEnd)) {
+        return withClause;
+      }
+    }
+    if (implementsClause case var implementsClause?) {
+      if (implementsClause._containsOffset(rangeOffset, rangeEnd)) {
+        return implementsClause;
+      }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('EnumDeclaration is not in the V2 AST view.');
   }
 }
 
@@ -47195,7 +47541,7 @@ final class PrimaryConstructorBody2Impl extends MemberDeclarationImpl
     switch (parent2?.parent2) {
       case ClassDeclarationImpl parent:
         return parent.namePart.tryCast();
-      case EnumDeclarationImpl parent:
+      case EnumDeclaration2Impl parent:
         return parent.namePart.tryCast();
       case ExtensionTypeDeclarationImpl parent:
         return parent.namePart.tryCast();
@@ -52077,6 +52423,116 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// An enum body represented by a semicolon.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class SemicolonEnumDeclarationBody
+    implements EnumDeclarationBody {
+  /// The semicolon.
+  Token get semicolon;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [GenerateNodeProperty('semicolon')],
+)
+final class SemicolonEnumDeclarationBodyImpl extends EnumDeclarationBodyImpl
+    implements SemicolonEnumDeclarationBody {
+  @generated
+  @override
+  final Token semicolon;
+
+  @override
+  late final NodeListImpl<EnumConstantDeclaration2Impl> constants =
+      NodeListImpl._().._initialize(this, null);
+
+  @override
+  late final NodeListImpl<MemberDeclarationImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
+  @V1Ast()
+  EmptyEnumBodyImpl? _v1Projection;
+
+  @generated
+  new({required this.semicolon});
+
+  @generated
+  @override
+  Token get beginToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @V1Ast()
+  @override
+  EmptyEnumBodyImpl get v1Projection =>
+      _v1Projection ??= EmptyEnumBodyImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities {
+    throw StateError('SemicolonEnumDeclarationBody is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('SemicolonEnumDeclarationBody is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitSemicolonEnumDeclarationBody(this);
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('SemicolonEnumDeclarationBody is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('SemicolonEnumDeclarationBody is not in the V1 AST view.');
   }
 
   @generated
@@ -60513,6 +60969,9 @@ enum V1Projection {
     if (node is ClassTypeAlias2Impl) {
       return node.v1Projection;
     }
+    if (node is EnumDeclaration2Impl) {
+      return node.v1Projection;
+    }
     return node as CompilationUnitMemberImpl;
   }
 
@@ -60585,6 +61044,9 @@ enum V1Projection {
     TopLevelVariablesDeclarationImpl() => node._v1Projection,
     VariableDeclarationV1OriginImpl() => node._v1Projection,
     ClassTypeAlias2Impl() => node._v1Projection,
+    EnumDeclaration2Impl() => node._v1Projection,
+    BlockEnumDeclarationBodyImpl() => node._v1Projection,
+    SemicolonEnumDeclarationBodyImpl() => node._v1Projection,
     FunctionTypeAlias2Impl() => node._v1Projection,
     GenericTypeAlias2Impl() => node._v1Projection,
     _ => node._astNodeApi == AstNodeApi.shared ? node : null,
@@ -60638,6 +61100,7 @@ enum V1Projection {
       MethodDeclarationV1OriginImpl() => root.v1Projection,
       TopLevelVariablesDeclarationImpl() => root.v1Projection,
       ClassTypeAlias2Impl() => root.v1Projection,
+      EnumDeclaration2Impl() => root.v1Projection,
       FunctionTypeAlias2Impl() => root.v1Projection,
       GenericTypeAlias2Impl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
@@ -60693,6 +61156,7 @@ enum V1Projection {
     ClassTypeAliasImpl() => node._v1ProjectionOrigin,
     ConstructorDeclarationImpl() => node._v1ProjectionOrigin,
     EnumConstantDeclarationImpl() => node._v1ProjectionOrigin,
+    EnumDeclarationImpl() => node._v1ProjectionOrigin,
     FieldDeclarationImpl() => node._v1ProjectionOrigin,
     PrimaryConstructorBodyImpl() => node._v1ProjectionOrigin,
     FunctionDeclarationImpl() => node._v1ProjectionOrigin,

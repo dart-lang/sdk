@@ -40,7 +40,7 @@ class VarianceBuilder {
             _typeParameters(node.typeParameters);
           } else if (node is ClassDeclarationImpl) {
             _typeParameters(node.namePart.typeParameters);
-          } else if (node is EnumDeclarationImpl) {
+          } else if (node is EnumDeclaration2Impl) {
             _typeParameters(node.namePart.typeParameters);
           } else if (node is FunctionTypeAlias2Impl) {
             _functionTypeAlias(node);

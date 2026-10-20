@@ -585,7 +585,7 @@ class _InfoBuilder {
         classDeclarations.add(_buildClass(declaration));
       } else if (declaration is ClassTypeAlias2) {
         classTypeAliases.add(_buildClassTypeAlias(declaration));
-      } else if (declaration is EnumDeclarationImpl) {
+      } else if (declaration is EnumDeclaration2Impl) {
         enums.add(_buildEnum(declaration));
       } else if (declaration is ExtensionDeclaration) {
         extensions.add(_buildExtension(declaration));
@@ -788,18 +788,18 @@ class _InfoBuilder {
     );
   }
 
-  _InfoEnumDeclaration _buildEnum(EnumDeclarationImpl node) {
+  _InfoEnumDeclaration _buildEnum(EnumDeclaration2Impl node) {
     return _InfoEnumDeclaration(
       data: _buildInterfaceData(
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members2,
+        members: node.body.members,
         fields: [
-          ...node.body.constants2.map(_buildEnumConstant),
+          ...node.body.constants.map(_buildEnumConstant),
           for (var declaration
-              in node.body.members2.whereType<FieldsDeclaration>())
+              in node.body.members.whereType<FieldsDeclaration>())
             for (var field in declaration.fields)
               _buildField(declaration, field),
         ],
@@ -940,7 +940,7 @@ class _InfoBuilder {
   }
 
   _InstanceData _buildInstanceData(
-    Declaration node, {
+    AnnotatedNode node, {
     required Token? name,
     required TypeParameterList? typeParameters,
     required List<AnnotatedNode> members,
@@ -969,7 +969,7 @@ class _InfoBuilder {
       }
     }
 
-    var annotatedNode = node as AnnotatedNode;
+    var annotatedNode = node;
     return _InstanceData(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -989,7 +989,7 @@ class _InfoBuilder {
   }
 
   _InterfaceData _buildInterfaceData(
-    Declaration node, {
+    AnnotatedNode node, {
     required Token? name,
     required TypeParameterList? typeParameters,
     PrimaryConstructorDeclaration? primaryConstructor,

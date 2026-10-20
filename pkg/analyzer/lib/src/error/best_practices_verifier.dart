@@ -390,12 +390,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
     _deprecatedFunctionalityVerifier.enumDeclaration(node);
 
     try {
-      super.visitEnumDeclaration(node);
+      super.visitEnumDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }

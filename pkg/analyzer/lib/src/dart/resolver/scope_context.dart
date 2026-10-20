@@ -134,8 +134,8 @@ class ScopeContext {
     });
   }
 
-  void visitEnumDeclaration(
-    EnumDeclarationImpl node, {
+  void visitEnumDeclaration2(
+    EnumDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -642,7 +642,7 @@ extension _FieldsDeclarationExtension on FieldsDeclaration {
   PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
     return switch (parent2?.parent2) {
       ClassDeclarationImpl(:var namePart) => namePart.tryCast(),
-      EnumDeclarationImpl(:var namePart) => namePart.tryCast(),
+      EnumDeclaration2Impl(:var namePart) => namePart.tryCast(),
       ExtensionTypeDeclarationImpl(:var namePart) => namePart.tryCast(),
       _ => null,
     };

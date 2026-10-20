@@ -346,14 +346,14 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   /// Check that there are no members with the same name.
-  void _checkEnum(EnumDeclarationImpl node) {
+  void _checkEnum(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
 
     var elementContext = _getElementContext(firstFragment);
     var staticScope = elementContext.staticScope;
 
-    for (var constant in node.body.constants2) {
+    for (var constant in node.body.constants) {
       var constantFragment = constant.declaredFragment!;
       var constantGetter = constantFragment.element.getter!;
       _checkDuplicateIdentifier(
@@ -367,7 +367,7 @@ class MemberDuplicateDefinitionVerifier {
 
     _checkClassMembers(
       fragment,
-      node.body.members2,
+      node.body.members,
       primaryConstructor: node.namePart.tryCast(),
     );
 
@@ -420,7 +420,7 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  void _checkEnumStatic(EnumDeclarationImpl node) {
+  void _checkEnumStatic(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
     var declarationName = firstFragment.name;
@@ -540,7 +540,7 @@ class MemberDuplicateDefinitionVerifier {
           _checkClass(node);
         case ExtensionDeclarationImpl():
           _checkExtension(node);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _checkEnum(node);
         case ExtensionTypeDeclarationImpl():
           _checkExtensionType(node);
@@ -565,7 +565,7 @@ class MemberDuplicateDefinitionVerifier {
         case ClassDeclarationImpl():
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.body.members2);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _checkEnumStatic(declaration);
         case ExtensionDeclarationImpl():
           _checkExtensionStatic(declaration);

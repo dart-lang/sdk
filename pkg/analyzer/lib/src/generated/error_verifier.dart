@@ -1003,7 +1003,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -1044,7 +1044,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
       }
 
-      var members = node.body.members2;
+      var members = node.body.members;
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
         element,
@@ -1063,7 +1063,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         diagnosticSource: _currentUnit.source,
       ).checkStaticGetters(element.getters);
 
-      super.visitEnumDeclaration(node);
+      super.visitEnumDeclaration2(node);
     });
   }
 
@@ -5050,7 +5050,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForEnumInstantiatedToBoundsIsNotWellBounded(
-    EnumDeclaration node,
+    EnumDeclaration2 node,
     EnumElementImpl element,
   ) {
     var valuesFieldType = element.valuesField?.type;
@@ -5069,7 +5069,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForEnumWithNameValues(EnumDeclarationImpl node) {
+  void _checkForEnumWithNameValues(EnumDeclaration2Impl node) {
     if (node.namePart.typeName.lexeme == 'values') {
       diagnosticReporter.report(
         diag.enumWithNameValues.at(node.namePart.typeName),

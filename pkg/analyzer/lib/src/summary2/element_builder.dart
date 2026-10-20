@@ -1446,7 +1446,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -1467,7 +1467,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       // Build fields for all enum constants.
       var valuesElements = <UnqualifiedNameExpressionImpl>[];
       var valuesNames = <String>{};
-      for (var constant in node.body.constants2) {
+      for (var constant in node.body.constants) {
         var nameToken = constant.name;
         var name = nameToken.lexeme;
         var field = FieldFragmentImpl(name: _getFragmentName(nameToken))
@@ -1588,7 +1588,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       );
 
       node.namePart.accept2(this);
-      for (var member in node.body.members2) {
+      for (var member in node.body.members) {
         member.accept2(this);
       }
     });
@@ -1950,7 +1950,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     fragment.isAugmentation = isAugmentation;
     fragment.isOriginDeclaration = true;
     fragment.isConst =
-        node.constKeyword != null || parent is EnumDeclarationImpl;
+        node.constKeyword != null || parent is EnumDeclaration2Impl;
     fragment.isPrimary = true;
     fragment.isComplete = node.isComplete;
     fragment.typeName = node.typeName.lexeme;

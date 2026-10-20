@@ -783,11 +783,11 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitClassElement(declaredElement);
 
-    super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration2(node);
   }
 
   @override
@@ -916,7 +916,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   ) {
     switch (node.parent2) {
       case ClassDeclarationImpl():
-      case EnumDeclarationImpl():
+      case EnumDeclaration2Impl():
         for (var parameter in node.formalParameters.allFormalParameters) {
           var element = parameter.declaredFragment!.element;
           if (element is FieldFormalParameterElementImpl &&

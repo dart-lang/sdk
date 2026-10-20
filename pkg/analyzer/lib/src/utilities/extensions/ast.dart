@@ -250,9 +250,9 @@ extension AstNodeNullableExtension on AstNode? {
     var self = this;
     return switch (self) {
       BlockClassBody() => self.members2,
-      BlockEnumBody() => self.members2,
+      BlockEnumDeclarationBody() => self.members,
       ClassDeclarationImpl() => self.body.members2,
-      EnumDeclaration() => self.body.members2,
+      EnumDeclaration2() => self.body.members,
       ExtensionDeclaration() => self.body.members2,
       ExtensionTypeDeclarationImpl() => self.body.members2,
       MixinDeclaration() => self.body.members2,

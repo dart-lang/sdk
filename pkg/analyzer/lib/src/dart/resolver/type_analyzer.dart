@@ -1453,7 +1453,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (parent is CompilationUnit) {
       return node is ClassDeclaration ||
           node is Directive ||
-          node is EnumDeclaration ||
+          node is EnumDeclaration2 ||
           node is ExtensionDeclaration ||
           node is ExtensionTypeDeclaration ||
           node is MixinDeclaration ||
@@ -1463,7 +1463,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is TopLevelVariablesDeclaration;
     }
 
-    if (parent is ClassBody || parent is EnumBody) {
+    if (parent is ClassBody || parent is EnumDeclarationBody) {
       parent = parent!.parent2;
     }
 
@@ -1471,7 +1471,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     // instance element before visiting their members.
     InstanceElementImpl? enclosingElement = switch (parent) {
       ClassDeclarationImpl() => parent.declaredFragment!.element,
-      EnumDeclarationImpl() => parent.declaredFragment!.element,
+      EnumDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionDeclarationImpl() => parent.declaredFragment!.element,
       ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
       MixinDeclarationImpl() => parent.declaredFragment!.element,
@@ -2247,7 +2247,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitBlockEnumBody(BlockEnumBody node) {
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.visitChildren2(this);
   }
 
@@ -2891,9 +2891,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
   TypeImpl visitEmptyFunctionBody(
     EmptyFunctionBody node, {
     TypeImpl? imposedType,
@@ -3018,14 +3015,14 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     //
     // Continue the enum resolution.
     //
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitEnumDeclaration(node);
+      elementResolver.visitEnumDeclaration2(node);
     });
   }
 
@@ -4374,6 +4371,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
 
   @override
   void visitSemicolonInstanceDeclarationBody(

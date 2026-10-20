@@ -285,9 +285,9 @@ class DartdocDirectiveInfo {
 
       var members = switch (declaration) {
         ClassDeclaration() => declaration.body.members2,
-        EnumDeclaration() => [
-          ...declaration.body.constants2,
-          ...declaration.body.members2,
+        EnumDeclaration2() => [
+          ...declaration.body.constants,
+          ...declaration.body.members,
         ],
         MixinDeclaration() => declaration.body.members2,
         ExtensionDeclaration() => declaration.body.members2,

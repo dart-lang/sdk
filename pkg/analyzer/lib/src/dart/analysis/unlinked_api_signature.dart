@@ -42,7 +42,7 @@ class _UnitApiSignatureComputer {
       switch (declaration) {
         case ClassDeclarationImpl():
           _addClass(declaration);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _addEnum(declaration);
         case ExtensionDeclarationImpl():
           _addExtension(declaration);
@@ -114,8 +114,8 @@ class _UnitApiSignatureComputer {
     signature.addBool(node.isComplete);
   }
 
-  void _addEnum(EnumDeclarationImpl node) {
-    var members = node.body.members2;
+  void _addEnum(EnumDeclaration2Impl node) {
+    var members = node.body.members;
 
     // If not enhanced, include the whole node.
     var firstMember = members.firstOrNull;

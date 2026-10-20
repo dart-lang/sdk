@@ -684,6 +684,17 @@ class A<T> {
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
+  test_enum_typeParameter_inField() async {
+    await assertNoDiagnostics('''
+enum A<T> {
+  v;
+  final T? a = null;
+}
+''');
+    var node = findNode.namedType('T?');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
   test_extension_method_none_fromExtended() async {
     await assertNoDiagnostics('''
 class A {

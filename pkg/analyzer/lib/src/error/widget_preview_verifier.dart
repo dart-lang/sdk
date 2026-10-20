@@ -105,7 +105,7 @@ class WidgetPreviewVerifier {
 
     var nameToken = switch (parent) {
       ClassDeclaration declaration => declaration.namePart.typeName,
-      EnumDeclaration declaration => declaration.namePart.typeName,
+      EnumDeclaration2 declaration => declaration.namePart.typeName,
       ExtensionDeclaration declaration => declaration.name,
       ExtensionTypeDeclaration declaration => declaration.namePart.typeName,
       MixinDeclaration declaration => declaration.name,

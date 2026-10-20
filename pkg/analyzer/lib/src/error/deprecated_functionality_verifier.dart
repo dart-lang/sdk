@@ -96,7 +96,7 @@ class DeprecatedFunctionalityVerifier {
     );
   }
 
-  void enumDeclaration(EnumDeclaration node) {
+  void enumDeclaration(EnumDeclaration2 node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
   }

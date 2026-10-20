@@ -51,7 +51,7 @@ class SuperContext {
           node is LocalFunctionDeclaration) {
         inDefaultValue = false;
       } else if (node is ClassDeclaration ||
-          node is EnumDeclaration ||
+          node is EnumDeclaration2 ||
           node is MixinDeclaration) {
         return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {

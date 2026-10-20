@@ -159,7 +159,7 @@ class LibraryAnalyzer {
       return e.parent2 is ClassBody ||
           e.parent2 is ClassDeclaration ||
           e.parent2 is CompilationUnit ||
-          e.parent2 is EnumBody ||
+          e.parent2 is EnumDeclarationBody ||
           e.parent2 is ExtensionDeclaration ||
           e.parent2 is MixinDeclaration;
     });

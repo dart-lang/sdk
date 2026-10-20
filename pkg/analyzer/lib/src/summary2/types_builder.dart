@@ -155,7 +155,7 @@ class TypesBuilder {
       _classDeclaration(node);
     } else if (node is ClassTypeAlias2Impl) {
       _classTypeAlias(node);
-    } else if (node is EnumDeclarationImpl) {
+    } else if (node is EnumDeclaration2Impl) {
       _enumDeclaration(node);
     } else if (node is ExtensionDeclarationImpl) {
       _extensionDeclaration(node);
@@ -194,7 +194,7 @@ class TypesBuilder {
     }
   }
 
-  void _enumDeclaration(EnumDeclarationImpl node) {
+  void _enumDeclaration(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 

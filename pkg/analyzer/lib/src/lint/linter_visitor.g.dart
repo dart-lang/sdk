@@ -1296,9 +1296,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitBlockEnumBody(BlockEnumBody node) {
-    _runSubscriptions(node, _registry._forBlockEnumBody);
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
+    _runSubscriptions(node, _registry._forBlockEnumDeclarationBody);
     node.visitChildren2(this);
   }
 
@@ -1598,12 +1599,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {
-    _runSubscriptions(node, _registry._forEmptyEnumBody);
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _runSubscriptions(node, _registry._forEmptyFunctionBody);
     node.visitChildren2(this);
@@ -1628,9 +1623,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
-    _runSubscriptions(node, _registry._forEnumDeclaration);
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
+    _runSubscriptions(node, _registry._forEnumDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -2452,6 +2448,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitScriptTag(ScriptTag node) {
     _runSubscriptions(node, _registry._forScriptTag);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {
+    _runSubscriptions(node, _registry._forSemicolonEnumDeclarationBody);
     node.visitChildren2(this);
   }
 
@@ -4541,7 +4544,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<BlockClassBody>> _forBlockClassBody = [];
 
-  final List<_Subscription2<BlockEnumBody>> _forBlockEnumBody = [];
+  final List<_Subscription2<BlockEnumDeclarationBody>>
+  _forBlockEnumDeclarationBody = [];
 
   final List<_Subscription2<BlockFunctionBody>> _forBlockFunctionBody = [];
 
@@ -4653,8 +4657,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<EmptyClassBody>> _forEmptyClassBody = [];
 
-  final List<_Subscription2<EmptyEnumBody>> _forEmptyEnumBody = [];
-
   final List<_Subscription2<EmptyFunctionBody>> _forEmptyFunctionBody = [];
 
   final List<_Subscription2<EmptyStatement>> _forEmptyStatement = [];
@@ -4665,7 +4667,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<EnumConstantDeclaration2>>
   _forEnumConstantDeclaration2 = [];
 
-  final List<_Subscription2<EnumDeclaration>> _forEnumDeclaration = [];
+  final List<_Subscription2<EnumDeclaration2>> _forEnumDeclaration2 = [];
 
   final List<_Subscription2<ExportDirective>> _forExportDirective = [];
 
@@ -4968,6 +4970,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ScriptTag>> _forScriptTag = [];
 
+  final List<_Subscription2<SemicolonEnumDeclarationBody>>
+  _forSemicolonEnumDeclarationBody = [];
+
   final List<_Subscription2<SemicolonInstanceDeclarationBody>>
   _forSemicolonInstanceDeclarationBody = [];
 
@@ -5167,9 +5172,14 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addBlockEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
     _hasNodeProcessors = true;
-    _forBlockEnumBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forBlockEnumDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
@@ -5530,12 +5540,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forEmptyEnumBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forEmptyFunctionBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5570,9 +5574,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addEnumDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addEnumDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forEnumDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forEnumDeclaration2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -6567,6 +6571,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addScriptTag(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forScriptTag.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addSemicolonEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forSemicolonEnumDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

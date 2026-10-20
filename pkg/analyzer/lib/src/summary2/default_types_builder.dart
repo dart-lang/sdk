@@ -302,7 +302,7 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.typeParameters,
         );
-      case EnumDeclarationImpl():
+      case EnumDeclaration2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.namePart.typeParameters,

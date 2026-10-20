@@ -50,16 +50,16 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
           appendDeclaringFormalParameterNames(constructor);
         }
         member.body.members2.forEach(appendClassMemberName);
-      case EnumDeclarationImpl():
+      case EnumDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl constructor) {
           appendDeclaringFormalParameterNames(constructor);
         }
-        for (var constant in member.body.constants2) {
+        for (var constant in member.body.constants) {
           appendName(names.classMemberNames, constant.name);
         }
-        member.body.members2.forEach(appendClassMemberName);
+        member.body.members.forEach(appendClassMemberName);
       case ExtensionDeclarationImpl():
         appendName(names.topLevelNames, member.name);
         member.body.members2.forEach(appendClassMemberName);

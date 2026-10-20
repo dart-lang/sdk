@@ -6964,7 +6964,7 @@ abstract class _ClassLikeDeclarationBuilder {
 
   Token? emptyClassBodySemicolon;
   Token leftBracket;
-  final List<ClassMemberV1OrV2Impl> members = [];
+  final List<MemberDeclarationImpl> members = [];
   Token rightBracket;
 
   new({
@@ -7027,21 +7027,21 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.semicolon,
   });
 
-  EnumDeclarationImpl build() {
-    EnumBodyImpl body;
+  EnumDeclaration2Impl build() {
+    EnumDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyEnumBodyImpl(semicolon: semicolon);
+      body = SemicolonEnumDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockEnumBodyImpl(
+      body = BlockEnumDeclarationBodyImpl(
         leftBracket: leftBracket,
-        constants2: constants,
-        semicolon: semicolon,
-        members2: members,
+        constants: constants,
+        membersSeparator: semicolon,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return EnumDeclarationImpl(
+    return EnumDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

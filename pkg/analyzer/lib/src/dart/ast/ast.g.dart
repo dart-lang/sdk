@@ -448,7 +448,8 @@ abstract class AstVisitor2<R> {
 
   R? visitBlockClassBody(BlockClassBody node);
 
-  R? visitBlockEnumBody(BlockEnumBody node);
+  @experimental
+  R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node);
 
   R? visitBlockFunctionBody(BlockFunctionBody node);
 
@@ -563,8 +564,6 @@ abstract class AstVisitor2<R> {
 
   R? visitEmptyClassBody(EmptyClassBody node);
 
-  R? visitEmptyEnumBody(EmptyEnumBody node);
-
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
@@ -574,7 +573,8 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node);
 
-  R? visitEnumDeclaration(EnumDeclaration node);
+  @experimental
+  R? visitEnumDeclaration2(EnumDeclaration2 node);
 
   R? visitExportDirective(ExportDirective node);
 
@@ -889,6 +889,9 @@ abstract class AstVisitor2<R> {
   R? visitReturnStatement(ReturnStatement node);
 
   R? visitScriptTag(ScriptTag node);
+
+  @experimental
+  R? visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node);
 
   @experimental
   R? visitSemicolonInstanceDeclarationBody(

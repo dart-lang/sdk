@@ -82,7 +82,7 @@ const isEmptyStatement = TypeMatcher<EmptyStatement>();
 
 const isEnumConstantDeclaration2 = TypeMatcher<EnumConstantDeclaration2>();
 
-const isEnumDeclaration = TypeMatcher<EnumDeclaration>();
+const isEnumDeclaration2 = TypeMatcher<EnumDeclaration2>();
 
 const isExportDirective = TypeMatcher<ExportDirective>();
 
