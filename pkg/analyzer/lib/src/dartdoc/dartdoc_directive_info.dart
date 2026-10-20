@@ -122,6 +122,9 @@ class DartdocDirectiveInfo {
   ///
   /// Youtube and animation directives are replaced with markdown hyperlinks.
   Documentation processDartdoc(String comment, {bool includeSummary = false}) {
+    // TODO(dantup): In LSP, we often want only the summary. Consider
+    //  accepting a `bool includeFull = true` and processing forwards to avoid
+    //  processing/running regexes for every additional line.
     List<String> lines = _stripDelimiters(comment);
     var firstBlankLine = lines.length;
     for (int i = lines.length - 1; i >= 0; i--) {

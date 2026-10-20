@@ -10,6 +10,7 @@ import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/completion_utils.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/extensions/text_document_filters.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -31,6 +32,7 @@ import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
@@ -596,29 +598,48 @@ class CompletionHandler
           );
         }
 
-        // Grab docs and see whether we should include them inline or delay
-        // them to resolve. If we are already including resolution info, we will
-        // always delay docs too so we don't need to check them here.
+        // Decide whether to compute docs to inline, or add resolution info to
+        // allow for them to be resolved lazily.
         String? cleanedDoc;
-        if (resolutionInfo == null && element != null) {
-          // Maybe include docs.
-          // Compute cleaned docs as they would be shown.
-          cleanedDoc = getCleanElementDocumentation(
-            element,
-            completionRequest,
-            preferredDocumentation,
-          );
-          if ((cleanedDoc?.length ?? 0) > maxDocSizeForInlining) {
-            // Docs are long, so handle them via resolution.
-            var elementLocation = ElementLocation.forElement(element);
-            if (elementLocation != null) {
-              // We need an ElementLocation in order to get back to docs later
-              // so we won't fall into here for things like parameters.
-              // Currently their docs will still be included inline.
-              resolutionInfo = DartCompletionItemResolutionInfo(
-                file: clientSupportsMergedData ? null : unit.path,
-                ref: elementLocation.encoding,
-              );
+        if (resolutionInfo == null &&
+            element != null &&
+            preferredDocumentation != DocumentationPreference.none) {
+          // Get the target that holds the docs to show. Don't compute final
+          // docs yet, as if we delay them  it will be wasted processing.
+          var docElements = completionRequest.documentationComputer
+              .computeDocumentedElement(element);
+
+          if (docElements != null) {
+            // We will resolve lazily for large comments.
+            if (docElements.shouldResolveLazily) {
+              var elementLocation = ElementLocation.forElement(element);
+              if (elementLocation != null) {
+                // We need an ElementLocation in order to get back to the
+                // element to read the docs later. We can't get an
+                // ElementLocation for some kinds of elements (such as
+                // parameters), so those will currently still be inlined.
+                resolutionInfo = DartCompletionItemResolutionInfo(
+                  file: clientSupportsMergedData ? null : unit.path,
+                  ref: elementLocation.encoding,
+                );
+              }
+            }
+
+            // If we didn't compute resolution info, docs will be inlined, so
+            // we should finish computing them (replace templates, etc).
+            if (resolutionInfo == null) {
+              var doc = completionRequest.documentationComputer
+                  .computeForTargets(
+                    docElements,
+                    includeSummary:
+                        preferredDocumentation ==
+                        DocumentationPreference.summary,
+                  );
+
+              var rawDoc = doc is DocumentationWithSummary
+                  ? doc.summary
+                  : doc?.full;
+              cleanedDoc = cleanDartdoc(rawDoc);
             }
           }
         }
@@ -1082,4 +1103,22 @@ class _FuzzyScoreHelper {
 
   double suggestionScore(CompletionSuggestion item) =>
       _matcher.score(item.displayText ?? item.completion);
+}
+
+extension on DocumentationTargets {
+  /// Whether the documentation should be resolved lazily via
+  /// `completionItem/resolve`.
+  ///
+  /// This is used as a signal to include resolution info even if it wouldn't
+  /// otherwise be included. It happens when the docs are too long, or they
+  /// contain macro templates that will be replaced (in which case we assume
+  /// they will be long).
+  bool get shouldResolveLazily {
+    var rawDocs = documentedElement.documentationComment;
+    if (rawDocs == null) return false;
+
+    return rawDocs.length > CompletionHandler.maxDocSizeForInlining ||
+        // See DartdocDirectiveInfo.macroRegExp.
+        rawDocs.contains('{@macro');
+  }
 }
