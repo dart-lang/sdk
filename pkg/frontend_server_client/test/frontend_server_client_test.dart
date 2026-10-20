@@ -436,6 +436,121 @@ void main() {
         }
       },
     );
+
+    test('generates bootstrap scripts', () {
+      final bootstrap = generateDdcLibraryBundleBootstrapScript(
+        ddcModuleLoaderUrl: 'loader.js',
+        mapperUrl: 'mapper.js',
+        sdkUrl: 'sdk.js',
+        mainModuleUrl: 'main_module.js',
+      );
+      for (final url in [
+        'loader.js',
+        'mapper.js',
+        'sdk.js',
+        'main_module.js',
+      ]) {
+        expect(bootstrap, contains('"$url"'));
+      }
+
+      const app = 'org-dartlang-app:///web/main.dart';
+      final mainModuleJs = generateDdcLibraryBundleMainModule(
+        entrypoint: app,
+        onLoadEndBootstrap: 'on_load_end.js',
+      );
+      expect(mainModuleJs, contains('const appName = "$app";'));
+      expect(mainModuleJs, contains("const onLoadEndSrc = 'on_load_end.js';"));
+      expect(mainModuleJs, contains('/* MAIN_EXTENSION_MARKER */'));
+    });
+  });
+
+  group('DdcLibraryBundleSdkAssets', () {
+    // Creates an SDK with only the scripts that it ships.
+    Future<String> createSdk() async {
+      await d.dir('sdk', [
+        d.dir('lib', [
+          d.dir('dev_compiler', [
+            d.dir('ddc', [d.file('ddc_module_loader.js', 'loader')]),
+            d.dir('web', [d.file('dart_stack_trace_mapper.js', 'mapper')]),
+          ]),
+        ]),
+      ]).create();
+      return p.join(d.sandbox, 'sdk');
+    }
+
+    test('loads SDK scripts with dart_sdk.js from sdkJsPath', () async {
+      final sdkRoot = await createSdk();
+      await d.dir('out', [
+        d.file('dart_sdk.js', 'sdk'),
+        d.file('dart_sdk.js.map', 'map'),
+      ]).create();
+      final assets = await DdcLibraryBundleSdkAssets.load(
+        sdkJsPath: p.join(d.sandbox, 'out', 'dart_sdk.js'),
+        sdkRoot: sdkRoot,
+      );
+      expect(
+        [
+          assets.moduleLoader,
+          assets.stackTraceMapper,
+          assets.sdkJs,
+          assets.sdkJsMap,
+        ].map(utf8.decode),
+        ['loader', 'mapper', 'sdk', 'map'],
+      );
+    });
+
+    test('throws if sdkJsPath does not exist', () async {
+      expect(
+        DdcLibraryBundleSdkAssets.load(
+          sdkJsPath: p.join(d.sandbox, 'out', 'dart_sdk.js'),
+          sdkRoot: await createSdk(),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test("throws if the SDK can't be compiled", () async {
+      expect(
+        DdcLibraryBundleSdkAssets.load(sdkRoot: await createSdk()),
+        throwsA(isA<FileSystemException>()),
+      );
+    });
+
+    test('compiles and caches dart_sdk.js', () async {
+      final cacheDir = p.join('.dart_tool', 'frontend_server_client', 'sdk');
+      addTearDown(() => Directory(cacheDir).delete(recursive: true));
+      await d.dir('stale', [d.file('dart_sdk.js', 'old')]).create(cacheDir);
+      await d.dir('tmp_other').create(cacheDir);
+      final assets = await DdcLibraryBundleSdkAssets.load();
+      expect(utf8.decode(assets.sdkJs), contains('dart_sdk.js.map'));
+      expect(assets.sdkJsMap, isNotEmpty);
+      expect(assets.moduleLoader, isNotEmpty);
+      expect(assets.stackTraceMapper, isNotEmpty);
+      expect(
+        Directory(p.join(cacheDir, 'stale')).existsSync(),
+        isFalse,
+        reason: 'Deletes the outputs of other SDK builds.',
+      );
+      expect(
+        Directory(p.join(cacheDir, 'tmp_other')).existsSync(),
+        isTrue,
+        reason: 'Keeps the outputs of other compiles.',
+      );
+
+      final cachedSubdir = Directory(cacheDir)
+          .listSync()
+          .whereType<Directory>()
+          .where((dir) => !p.basename(dir.path).startsWith('tmp_'))
+          .single;
+      final cachedSdkJs = File(p.join(cachedSubdir.path, 'dart_sdk.js'));
+      cachedSdkJs.writeAsStringSync('cached');
+      final cachedAssets = await DdcLibraryBundleSdkAssets.load();
+      expect(
+        utf8.decode(cachedAssets.sdkJs),
+        'cached',
+        reason: 'Reuses the compiled SDK.',
+      );
+    }, timeout: const Timeout.factor(4));
   });
 
   test('can enable experiments', () async {
