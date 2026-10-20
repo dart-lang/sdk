@@ -717,12 +717,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     var element = node.declaration?.declaredFragment!.element;
     _elementUsageFrontierDetector.pushElement(element);
     // TODO(srawlins): Account for @doNotStore, as in
     // `visitLocalFunctionDeclaration`.
-    super.visitPrimaryConstructorBody(node);
+    super.visitPrimaryConstructorBody2(node);
     _elementUsageFrontierDetector.popElement();
   }
 

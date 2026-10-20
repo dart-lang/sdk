@@ -343,7 +343,7 @@ class ElementResolver {
               .tryCast<ConstructorDeclaration2Impl>()
               ?.formalParameters ??
           node.parent2
-              .tryCast<PrimaryConstructorBodyImpl>()
+              .tryCast<PrimaryConstructorBody2Impl>()
               ?.declaration
               ?.formalParameters,
     );

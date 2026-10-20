@@ -524,7 +524,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  Element? visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     return node.declaration?.declaredFragment?.element;
   }
 

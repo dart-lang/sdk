@@ -573,7 +573,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginPrimaryConstructorBody(Token beginToken, Token? augmentToken) {
-    debugEvent("PrimaryConstructorBody");
+    debugEvent("PrimaryConstructorBody2");
     push(_Modifiers()..augmentKeyword = augmentToken);
   }
 
@@ -2901,7 +2901,7 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, beginToken);
 
     _classLikeBuilder!.members.add(
-      PrimaryConstructorBodyImpl(
+      PrimaryConstructorBody2Impl(
         comment: comment,
         metadata: metadata,
         augmentKeyword: modifiers.augmentKeyword,

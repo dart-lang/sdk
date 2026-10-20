@@ -249,7 +249,7 @@ class AstResolver {
 
   void resolvePrimaryConstructor(
     PrimaryConstructorDeclarationImpl node,
-    PrimaryConstructorBodyImpl body,
+    PrimaryConstructorBody2Impl body,
   ) {
     var element = node.declaredFragment!.element;
 

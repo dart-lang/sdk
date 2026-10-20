@@ -98,7 +98,7 @@ class ConstructorFieldsVerifier {
       primaryConstructor.formalParameters.allFormalParameters,
     );
 
-    var body = primaryConstructor.body;
+    var body = primaryConstructor.body2;
     if (body != null) {
       constructorState.updateWithInitializers(
         diagnosticReporter,

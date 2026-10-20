@@ -354,7 +354,7 @@ class AnnotationVerifier {
           diag.invalidInternalAnnotation.at(node.nameEntity),
         );
       }
-    } else if (parent is PrimaryConstructorBody) {
+    } else if (parent is PrimaryConstructorBody2) {
       var element = parent.declaration?.declaredFragment?.element;
       if (element != null) {
         if (element.isPrivate || element.enclosingElement.isPrivate) {
@@ -411,7 +411,7 @@ class AnnotationVerifier {
           diag.invalidLiteralAnnotation.at(node.nameEntity),
         );
       }
-    } else if (parent is PrimaryConstructorBody) {
+    } else if (parent is PrimaryConstructorBody2) {
       if (parent.declaration?.constKeyword == null) {
         _diagnosticReporter.report(
           diag.invalidLiteralAnnotation.at(node.nameEntity),
@@ -597,7 +597,7 @@ class AnnotationVerifier {
       }
     } else {
       Element? declaredElement;
-      if (parent is PrimaryConstructorBody) {
+      if (parent is PrimaryConstructorBody2) {
         declaredElement = parent.declaration?.declaredFragment?.element;
       } else {
         declaredElement = _declaredElement(parent);
@@ -805,7 +805,7 @@ class AnnotationVerifier {
           return [element, ?element.field];
         }
         return [?element];
-      case PrimaryConstructorBody(:var declaration):
+      case PrimaryConstructorBody2(:var declaration):
         return [?declaration?.declaredFragment?.element];
       case TopLevelVariablesDeclaration(:var variables):
         return [

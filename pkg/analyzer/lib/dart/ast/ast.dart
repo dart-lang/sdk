@@ -321,6 +321,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         PrefixExpression,
         PrefixedIdentifier,
         PrimaryConstructorBody,
+        PrimaryConstructorBody2,
         PrimaryConstructorDeclaration,
         PrimaryConstructorName,
         PropertyAccess,

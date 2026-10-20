@@ -297,8 +297,10 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    _scopeContext.visitPrimaryConstructorBody(
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
+    _scopeContext.visitPrimaryConstructorBody2(
       node,
       visitor: this,
       visitInitializers: (_) {},

@@ -63,7 +63,7 @@ class ConstructorInitializerResolver {
             }
           }
         case PrimaryConstructorDeclarationImpl():
-          if (node.body case var body?) {
+          if (node.body2 case var body?) {
             var initializerScope = body.formalParameterInitializerScope!;
             var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
             var astResolver = AstResolver.forLinking(

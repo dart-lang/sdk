@@ -162,7 +162,7 @@ class MemberDuplicateDefinitionVerifier {
               _checkValuesDeclarationInEnum(member.nameToken);
             }
           }
-        case PrimaryConstructorBodyImpl():
+        case PrimaryConstructorBody2Impl():
           // Not an actual declaration.
           break;
       }

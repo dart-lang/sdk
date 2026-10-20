@@ -135,7 +135,7 @@ class C([int x = 0]) {
   this {}
 }
 ''',
-      ['FormalParameterListImpl', 'PrimaryConstructorBodyImpl'],
+      ['FormalParameterListImpl', 'PrimaryConstructorBody2Impl'],
     );
   }
 

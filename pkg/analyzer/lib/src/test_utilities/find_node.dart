@@ -51,6 +51,8 @@ class FindNode extends _FindNodeBase {
 
   PrefixedIdentifier get singlePrefixedIdentifier => _single();
 
+  PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
+
   PropertyAccess get singlePropertyAccess => _single();
 
   SimpleIdentifier get singleSimpleIdentifier => _single();
@@ -302,6 +304,8 @@ class FindNode2 extends _FindNodeBase {
   NullAssertionExpression get singleNullAssertionExpression => _single();
 
   OperatorDeclaration get singleOperatorDeclaration => _single();
+
+  PrimaryConstructorBody2 get singlePrimaryConstructorBody => _single();
 
   ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
 
@@ -782,8 +786,6 @@ abstract class _FindNodeBase {
 
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
-
-  PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
   PrimaryConstructorDeclaration get singlePrimaryConstructorDeclaration =>
       _single();

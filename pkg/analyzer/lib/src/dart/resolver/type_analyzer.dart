@@ -4050,7 +4050,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var primaryConstructorDeclaration = node.declaration;
     if (primaryConstructorDeclaration == null) {
       diagnosticReporter.report(

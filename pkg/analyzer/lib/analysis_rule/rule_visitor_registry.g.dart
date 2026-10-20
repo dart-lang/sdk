@@ -1039,7 +1039,8 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addPrimaryConstructorBody(
+  @experimental
+  void addPrimaryConstructorBody2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

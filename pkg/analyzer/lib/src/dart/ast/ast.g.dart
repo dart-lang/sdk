@@ -832,7 +832,8 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
+  @experimental
+  R? visitPrimaryConstructorBody2(PrimaryConstructorBody2 node);
 
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node);
 

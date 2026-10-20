@@ -416,8 +416,8 @@ class ScopeContext {
     });
   }
 
-  void visitPrimaryConstructorBody(
-    PrimaryConstructorBodyImpl node, {
+  void visitPrimaryConstructorBody2(
+    PrimaryConstructorBody2Impl node, {
     required AstVisitor2 visitor,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
   }) {

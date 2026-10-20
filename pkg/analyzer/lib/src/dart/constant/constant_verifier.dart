@@ -407,12 +407,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var element = node.declaration?.declaredFragment?.element;
     if (element is ConstructorElementImpl && element.isConst) {
       _validateConstructorInitializers(node.initializers);
     }
-    super.visitPrimaryConstructorBody(node);
+    super.visitPrimaryConstructorBody2(node);
   }
 
   @override

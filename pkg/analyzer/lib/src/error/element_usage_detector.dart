@@ -963,7 +963,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       }
       for (; node != null; node = node.parent2) {
         var declaredElement = switch (node) {
-          PrimaryConstructorBody() =>
+          PrimaryConstructorBody2() =>
             node.declaration?.declaredFragment?.element,
           FragmentDeclaringNode() => node.declaredFragment?.element,
           _ => null,

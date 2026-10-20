@@ -67,7 +67,7 @@ class WidgetPreviewVerifier {
       MethodDeclaration2() => _isValidMethodPreviewApplication(
         declaration: parent,
       ),
-      PrimaryConstructorBody(:var declaration?) =>
+      PrimaryConstructorBody2(:var declaration?) =>
         _isValidConstructorPreviewApplication(
           declaration: parent,
           name: parent.declaration?.constructorName?.name.lexeme,

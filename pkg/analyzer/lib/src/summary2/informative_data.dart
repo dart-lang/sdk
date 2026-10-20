@@ -1005,7 +1005,7 @@ class _InfoBuilder {
     );
 
     var primaryConstructorBody = members
-        .whereType<PrimaryConstructorBody>()
+        .whereType<PrimaryConstructorBody2>()
         .firstOrNull;
 
     return _InterfaceData(
@@ -1082,7 +1082,7 @@ class _InfoBuilder {
 
   _InfoConstructorDeclaration _buildPrimaryConstructor(
     PrimaryConstructorDeclaration node, {
-    required PrimaryConstructorBody? body,
+    required PrimaryConstructorBody2? body,
   }) {
     var headerOffset = (node.constructorName ?? node.formalParameters).offset;
     return _InfoConstructorDeclaration(

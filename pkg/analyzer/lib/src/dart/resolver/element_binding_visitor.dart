@@ -441,14 +441,16 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     if (node.declaration case var declaration?) {
       var fragment = declaration.declaredFragment!;
       _withElementHolder(ElementHolder(fragment), () {
-        super.visitPrimaryConstructorBody(node);
+        super.visitPrimaryConstructorBody2(node);
       });
     } else {
-      super.visitPrimaryConstructorBody(node);
+      super.visitPrimaryConstructorBody2(node);
     }
   }
 
@@ -817,7 +819,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
           for (var field in member.fields) {
             _bindField(field, fragments.nextField(), member);
           }
-        case PrimaryConstructorBodyImpl():
+        case PrimaryConstructorBody2Impl():
           member.accept2(this);
       }
     }

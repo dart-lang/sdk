@@ -61,7 +61,7 @@ class SuperConstructorResolver {
       if (node is ConstructorDeclaration2) {
         handleInitializers(node.initializers);
       } else if (node is PrimaryConstructorDeclaration) {
-        if (node.body case var body?) {
+        if (node.body2 case var body?) {
           handleInitializers(body.initializers);
         }
       }

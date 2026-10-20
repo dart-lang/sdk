@@ -1927,7 +1927,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   void visitPartOfDirective(PartOfDirective node) {}
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     // We copy initializers in [visitPrimaryConstructorDeclaration].
   }
 
@@ -1960,7 +1960,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     _addChildFragment(fragment);
 
-    if (node.body case var body?) {
+    if (node.body2 case var body?) {
       fragment.metadata = _buildMetadata(body.metadata);
       if (fragment.isConst) {
         fragment.constantInitializers = body.initializers;

@@ -751,7 +751,7 @@ dart:core::@class::num::@method::+
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A() { this { } }
 ''');
-    var node = result.findNode.singlePrimaryConstructorBody;
+    var node = result.findNodeV1.singlePrimaryConstructorBody;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new

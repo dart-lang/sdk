@@ -1081,7 +1081,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (node.parent2 is! PrimaryConstructorBody) {
+    if (node.parent2 is! PrimaryConstructorBody2) {
       _returnTypeVerifier.verifyExpressionFunctionBody(node);
     }
     super.visitExpressionFunctionBody(node);
@@ -1864,7 +1864,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var declaredFragment = node.declaration?.declaredFragment;
     if (declaredFragment == null) {
       return;
@@ -1906,12 +1908,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       element,
       () {
         super.visitPrimaryConstructorDeclaration(node);
-        var body = node.body;
+        var body = node.body2;
 
         if (!_checkForConstConstructorWithNonConstSuper(
           element: element,
           factoryKeyword: null,
-          initializers: node.body?.initializers,
+          initializers: node.body2?.initializers,
           implicitErrorRange: node.errorRange,
         )) {
           _checkForConstConstructorWithNonFinalField(
@@ -4358,7 +4360,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   /// Check that the given primary constructor [body] has a valid combination of
   /// redirecting constructor invocation(s) and super constructor invocation(s).
   void _checkForConflictingPrimaryConstructorInitializers(
-    PrimaryConstructorBodyImpl body,
+    PrimaryConstructorBody2Impl body,
   ) {
     var redirectingConstructorInvocations = body.initializers
         .whereType<RedirectingConstructorInvocationImpl>()
@@ -6373,7 +6375,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
                   .withArguments(className: className)
                   .atSourceRange(primaryConstructor.errorRange),
             );
-          } else if (primaryConstructor.body case var body?) {
+          } else if (primaryConstructor.body2 case var body?) {
             if (body.initializers.isNotEmpty) {
               diagnosticReporter.report(
                 diag.mixinClassDeclaresNonTrivialGenerativeConstructor
@@ -6671,7 +6673,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     List<AnnotatedNode> members,
   ) {
     var primaryConstructorBodies = members
-        .whereType<PrimaryConstructorBody>()
+        .whereType<PrimaryConstructorBody2>()
         .toList();
 
     for (var i = 1; i < primaryConstructorBodies.length; i++) {
@@ -7108,7 +7110,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     // Primary constructor body is an intention to have a constructor.
     hasGenerativeConstructor |= members
-        .whereType<PrimaryConstructorBodyImpl>()
+        .whereType<PrimaryConstructorBody2Impl>()
         .isNotEmpty;
 
     for (var fieldDeclaration in members.whereType<FieldsDeclaration>()) {

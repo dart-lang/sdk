@@ -98,7 +98,7 @@ class _UnitApiSignatureComputer {
         _addFieldsDeclaration(member, hasConstConstructor);
       } else if (member is MethodDeclarationV1OriginImpl) {
         _addMethodDeclaration(member);
-      } else if (member is PrimaryConstructorBody) {
+      } else if (member is PrimaryConstructorBody2) {
         _addPrimaryConstructorBody(member);
       } else {
         throw UnimplementedError('(${member.runtimeType}) $member');
@@ -205,7 +205,7 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void _addPrimaryConstructorBody(PrimaryConstructorBody2 node) {
     signature.addInt(_kindPrimaryConstructorBody);
     _addTokens(node.beginToken, node.body.beginToken);
   }

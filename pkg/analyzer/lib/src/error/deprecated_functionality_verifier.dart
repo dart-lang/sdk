@@ -124,7 +124,7 @@ class DeprecatedFunctionalityVerifier {
   void primaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _checkForDeprecatedOptionalSuperParameters(
       parameters: node.formalParameters,
-      initializers: node.body?.initializers ?? const [],
+      initializers: node.body2?.initializers ?? const [],
       superConstructor: node.declaredFragment?.element.superConstructor,
       errorRange: node.errorRange,
     );
