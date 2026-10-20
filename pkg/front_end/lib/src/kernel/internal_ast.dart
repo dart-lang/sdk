@@ -1841,7 +1841,6 @@ sealed class InternalFunctionParameter extends InternalVariable
     _defaultValue = value;
   }
 
-  // Coverage-ignore(suite): Not run.
   Expression? get inferredDefaultValue => _astVariable.defaultValue;
 
   void setInferredDefaultValue(Expression value) {

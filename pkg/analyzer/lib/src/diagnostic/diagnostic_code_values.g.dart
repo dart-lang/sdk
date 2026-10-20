@@ -1245,6 +1245,7 @@ final sharedAnalyzerCodes = <DiagnosticCode>[
   diag.covariantAndStatic,
   diag.covariantMember,
   diag.defaultInSwitchExpression,
+  diag.defaultValueAlreadySpecifiedInAugmentationChain,
   diag.deferredAfterPrefix,
   diag.directiveAfterDeclaration,
   diag.duplicateDeferred,

@@ -200,6 +200,14 @@
       }
     }
   },
+  "wasm_dev": {
+    "include": [
+      {
+        "target": "wasm"
+      }
+    ],
+    "libraries": {}
+  },
   "wasm_js_compatibility": {
     "include": [
       {

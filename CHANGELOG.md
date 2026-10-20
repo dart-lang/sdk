@@ -75,6 +75,21 @@ remove them.
 
 [#64561]: https://github.com/dart-lang/sdk/issues/64561
 
+#### Pub
+
+- `dart pub publish` now creates reproducible `.tar.gz` package archives with
+  deterministic entry ordering, zeroed modification timestamps, and normalized
+  permissions ([dart-lang/pub#4885][]).
+- On Windows, `dart pub` now requires `git.exe` on `PATH` and no longer invokes
+  `git.cmd` or `git.bat` batch wrappers ([dart-lang/pub#4941][]).
+- Deprecated the `--[no-]precompile` flag on `dart pub get`, `upgrade`, `add`,
+  and `remove` ([dart-lang/pub#4910][]). `dart run` and `dart test` now cache
+  precompiled executables directly in `.dart_tool/dartdev/bin/`.
+
+[dart-lang/pub#4885]: https://github.com/dart-lang/pub/pull/4885
+[dart-lang/pub#4910]: https://github.com/dart-lang/pub/pull/4910
+[dart-lang/pub#4941]: https://github.com/dart-lang/pub/pull/4941
+
 ## 3.14.0
 
 **Released on:** Unreleased

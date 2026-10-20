@@ -1,0 +1,215 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:20:35: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+// augment int topLevelMethod1e([int x = 0]) => x; // Error
+//                                   ^
+// pkg/front_end/testcases/augmentations/default_values.dart:19:27: Context: The previous parameter with a default value.
+// int topLevelMethod1e([int x = 0]);
+//                           ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:23:35: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// augment int topLevelMethod1f([int x]) => x; // Error
+//                                   ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:83:37: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+//   augment int instanceMethod1e([int x = 0]) => x; // Error
+//                                     ^
+// pkg/front_end/testcases/augmentations/default_values.dart:82:29: Context: The previous parameter with a default value.
+//   int instanceMethod1e([int x = 0]);
+//                             ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:86:37: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   augment int instanceMethod1f([int x]) => x; // Error
+//                                     ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:112:42: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+//   augment static int staticMethod1e([int x = 0]) => x; // Error
+//                                          ^
+// pkg/front_end/testcases/augmentations/default_values.dart:111:34: Context: The previous parameter with a default value.
+//   static int staticMethod1e([int x = 0]);
+//                                  ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:115:42: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   augment static int staticMethod1f([int x]) => x; // Error
+//                                          ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:54:33: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+//   augment new generative1e([int x = 0]) : result = x; // Error
+//                                 ^
+// pkg/front_end/testcases/augmentations/default_values.dart:53:25: Context: The previous parameter with a default value.
+//   new generative1e([int x = 0]);
+//                         ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:57:33: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   augment new generative1f([int x]) : result = x; // Error
+//                                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  final field core::int result;
+  constructor •([initializing-formal core::int result = #C1]) → self::Class
+    : self::Class::result = result, super core::Object::•()
+    ;
+  constructor generative1a([core::int x = #C2]) → self::Class
+    : self::Class::result = x, super core::Object::•()
+    ;
+  constructor generative1b([core::int x = #C2]) → self::Class
+    : self::Class::result = x, super core::Object::•()
+    ;
+  constructor generative1c([core::int x = #C2]) → self::Class
+    : self::Class::result = x, super core::Object::•()
+    ;
+  constructor generative1d([core::int x = #C2]) → self::Class
+    : self::Class::result = x, super core::Object::•()
+    ;
+  constructor generative1e([core::int x = #C2]) → self::Class
+    : self::Class::result = x, super core::Object::•()
+    ;
+  constructor generative1f([erroneously-initialized core::int x = #C3]) → self::Class
+    : self::Class::result = x, super core::Object::•()
+    ;
+  constructor generative2a([core::int x = #C2, core::int y = #C2]) → self::Class
+    : self::Class::result = x.{core::num::+}(y){(core::num) → core::int}, super core::Object::•()
+    ;
+  constructor generative2b([core::int x = #C2, core::int y = #C2]) → self::Class
+    : self::Class::result = x.{core::num::+}(y){(core::num) → core::int}, super core::Object::•()
+    ;
+  constructor generative2c([core::int x = #C2, core::int y = #C2]) → self::Class
+    : self::Class::result = x.{core::num::+}(y){(core::num) → core::int}, super core::Object::•()
+    ;
+  method instanceMethod1a([core::int x = #C2]) → core::int
+    return x;
+  method instanceMethod1b([core::int x = #C2]) → core::int
+    return x;
+  method instanceMethod1c([core::int x = #C2]) → core::int
+    return x;
+  method instanceMethod1d([core::int x = #C2]) → core::int
+    return x;
+  method instanceMethod1e([core::int x = #C2]) → core::int
+    return x;
+  method instanceMethod1f([erroneously-initialized core::int x = #C3]) → core::int
+    return x;
+  method instanceMethod2a([core::int x = #C2, core::int y = #C2]) → core::int
+    return x.{core::num::+}(y){(core::num) → core::int};
+  method instanceMethod2b([core::int x = #C2, core::int y = #C2]) → core::int
+    return x.{core::num::+}(y){(core::num) → core::int};
+  method instanceMethod2c([core::int x = #C2, core::int y = #C2]) → core::int
+    return x.{core::num::+}(y){(core::num) → core::int};
+  static method staticMethod1a([core::int x = #C2]) → core::int
+    return x;
+  static method staticMethod1b([core::int x = #C2]) → core::int
+    return x;
+  static method staticMethod1c([core::int x = #C2]) → core::int
+    return x;
+  static method staticMethod1d([core::int x = #C2]) → core::int
+    return x;
+  static method staticMethod1e([core::int x = #C2]) → core::int
+    return x;
+  static method staticMethod1f([erroneously-initialized core::int x = #C3]) → core::int
+    return x;
+  static method staticMethod2a([core::int x = #C2, core::int y = #C2]) → core::int
+    return x.{core::num::+}(y){(core::num) → core::int};
+  static method staticMethod2b([core::int x = #C2, core::int y = #C2]) → core::int
+    return x.{core::num::+}(y){(core::num) → core::int};
+  static method staticMethod2c([core::int x = #C2, core::int y = #C2]) → core::int
+    return x.{core::num::+}(y){(core::num) → core::int};
+}
+static method topLevelMethod1a([core::int x = #C2]) → core::int
+  return x;
+static method topLevelMethod1b([core::int x = #C2]) → core::int
+  return x;
+static method topLevelMethod1c([core::int x = #C2]) → core::int
+  return x;
+static method topLevelMethod1d([core::int x = #C2]) → core::int
+  return x;
+static method topLevelMethod1e([core::int x = #C2]) → core::int
+  return x;
+static method topLevelMethod1f([erroneously-initialized core::int x = #C3]) → core::int
+  return x;
+static method topLevelMethod2a([core::int x = #C2, core::int y = #C2]) → core::int
+  return x.{core::num::+}(y){(core::num) → core::int};
+static method topLevelMethod2b([core::int x = #C2, core::int y = #C2]) → core::int
+  return x.{core::num::+}(y){(core::num) → core::int};
+static method topLevelMethod2c([core::int x = #C2, core::int y = #C2]) → core::int
+  return x.{core::num::+}(y){(core::num) → core::int};
+static method main() → dynamic {
+  self::expect(0, self::topLevelMethod1a());
+  self::expect(1, self::topLevelMethod1a(1));
+  self::expect(0, self::topLevelMethod1b());
+  self::expect(1, self::topLevelMethod1b(1));
+  self::expect(0, self::topLevelMethod1c());
+  self::expect(1, self::topLevelMethod1c(1));
+  self::expect(0, self::topLevelMethod1d());
+  self::expect(1, self::topLevelMethod1d(1));
+  self::expect(0, self::topLevelMethod2a());
+  self::expect(3, self::topLevelMethod2a(1, 2));
+  self::expect(0, self::topLevelMethod2b());
+  self::expect(3, self::topLevelMethod2b(1, 2));
+  self::expect(0, self::topLevelMethod2c());
+  self::expect(3, self::topLevelMethod2c(1, 2));
+  self::expect(0, new self::Class::generative1a().{self::Class::result}{core::int});
+  self::expect(1, new self::Class::generative1a(1).{self::Class::result}{core::int});
+  self::expect(0, new self::Class::generative1b().{self::Class::result}{core::int});
+  self::expect(1, new self::Class::generative1b(1).{self::Class::result}{core::int});
+  self::expect(0, new self::Class::generative1c().{self::Class::result}{core::int});
+  self::expect(1, new self::Class::generative1c(1).{self::Class::result}{core::int});
+  self::expect(0, new self::Class::generative1d().{self::Class::result}{core::int});
+  self::expect(1, new self::Class::generative1d(1).{self::Class::result}{core::int});
+  self::expect(0, new self::Class::generative2a().{self::Class::result}{core::int});
+  self::expect(3, new self::Class::generative2a(1, 2).{self::Class::result}{core::int});
+  self::expect(0, new self::Class::generative2b().{self::Class::result}{core::int});
+  self::expect(3, new self::Class::generative2b(1, 2).{self::Class::result}{core::int});
+  self::expect(0, new self::Class::generative2c().{self::Class::result}{core::int});
+  self::expect(3, new self::Class::generative2c(1, 2).{self::Class::result}{core::int});
+  self::Class c = new self::Class::•();
+  self::expect(0, c.{self::Class::instanceMethod1a}(){([core::int]) → core::int});
+  self::expect(1, c.{self::Class::instanceMethod1a}(1){([core::int]) → core::int});
+  self::expect(0, c.{self::Class::instanceMethod1b}(){([core::int]) → core::int});
+  self::expect(1, c.{self::Class::instanceMethod1b}(1){([core::int]) → core::int});
+  self::expect(0, c.{self::Class::instanceMethod1c}(){([core::int]) → core::int});
+  self::expect(1, c.{self::Class::instanceMethod1c}(1){([core::int]) → core::int});
+  self::expect(0, c.{self::Class::instanceMethod1d}(){([core::int]) → core::int});
+  self::expect(1, c.{self::Class::instanceMethod1d}(1){([core::int]) → core::int});
+  self::expect(0, c.{self::Class::instanceMethod2a}(){([core::int, core::int]) → core::int});
+  self::expect(3, c.{self::Class::instanceMethod2a}(1, 2){([core::int, core::int]) → core::int});
+  self::expect(0, c.{self::Class::instanceMethod2b}(){([core::int, core::int]) → core::int});
+  self::expect(3, c.{self::Class::instanceMethod2b}(1, 2){([core::int, core::int]) → core::int});
+  self::expect(0, c.{self::Class::instanceMethod2c}(){([core::int, core::int]) → core::int});
+  self::expect(3, c.{self::Class::instanceMethod2c}(1, 2){([core::int, core::int]) → core::int});
+  self::expect(0, self::Class::staticMethod1a());
+  self::expect(1, self::Class::staticMethod1a(1));
+  self::expect(0, self::Class::staticMethod1b());
+  self::expect(1, self::Class::staticMethod1b(1));
+  self::expect(0, self::Class::staticMethod1c());
+  self::expect(1, self::Class::staticMethod1c(1));
+  self::expect(0, self::Class::staticMethod1d());
+  self::expect(1, self::Class::staticMethod1d(1));
+  self::expect(0, self::Class::staticMethod2a());
+  self::expect(3, self::Class::staticMethod2a(1, 2));
+  self::expect(0, self::Class::staticMethod2b());
+  self::expect(3, self::Class::staticMethod2b(1, 2));
+  self::expect(0, self::Class::staticMethod2c());
+  self::expect(3, self::Class::staticMethod2c(1, 2));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
+
+constants  {
+  #C1 = -1
+  #C2 = 0
+  #C3 = null
+}

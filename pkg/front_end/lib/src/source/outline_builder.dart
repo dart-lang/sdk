@@ -3426,85 +3426,50 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (formals != null) {
         assert(formals.isNotEmpty);
-        if (formals.length == 2) {
-          if (formals[0].name == formals[1].name && !formals[0].isWildcard) {
+        Map<String, FormalParameterBuilder> seenNames =
+            <String, FormalParameterBuilder>{};
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.isWildcard) {
+            continue;
+          }
+          FormalParameterBuilder? existingFormal = seenNames[formal.name];
+          if (existingFormal != null) {
+            // Mark [formal] as a duplicate of [existingFormal].
+            formal.next = existingFormal;
             addProblem(
-              diag.duplicatedParameterName.withArguments(name: formals[1].name),
-              formals[1].fileOffset,
-              formals[1].name.length,
+              diag.duplicatedParameterName.withArguments(name: formal.name),
+              formal.fileOffset,
+              formal.name.length,
               context: [
                 diag.duplicatedParameterNameCause
-                    .withArguments(name: formals[1].name)
+                    .withArguments(name: formal.name)
                     .withLocation(
                       uri,
-                      formals[0].fileOffset,
-                      formals[0].name.length,
+                      existingFormal.fileOffset,
+                      existingFormal.name.length,
                     ),
               ],
             );
+          } else {
+            seenNames[formal.name] = formal;
           }
+        }
 
-          // For private named parameters, also look for a collision between the
-          // corresponding public name and another parameter's name.
-          if (formals[0].publicName case var publicName?
-              when publicName == formals[1].name) {
-            _privateNamedParameterPublicNameCollision(
-              publicName,
-              formals[0],
-              formals[1],
-            );
-          }
-
-          if (formals[1].publicName case var publicName?
-              when publicName == formals[0].name) {
-            _privateNamedParameterPublicNameCollision(
-              publicName,
-              formals[1],
-              formals[0],
-            );
-          }
-        } else if (formals.length > 2) {
-          Map<String, FormalParameterBuilder> seenNames =
-              <String, FormalParameterBuilder>{};
-          for (FormalParameterBuilder formal in formals) {
-            if (formal.isWildcard) {
-              continue;
-            }
-            if (seenNames.containsKey(formal.name)) {
-              addProblem(
-                diag.duplicatedParameterName.withArguments(name: formal.name),
-                formal.fileOffset,
-                formal.name.length,
-                context: [
-                  diag.duplicatedParameterNameCause
-                      .withArguments(name: formal.name)
-                      .withLocation(
-                        uri,
-                        seenNames[formal.name]!.fileOffset,
-                        seenNames[formal.name]!.name.length,
-                      ),
-                ],
+        // For private named parameters, also look for a collision between the
+        // corresponding public name and another parameter's name.
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.publicName case var publicName?) {
+            if (seenNames[publicName] case var previous?) {
+              _privateNamedParameterPublicNameCollision(
+                publicName,
+                formal,
+                previous,
               );
-            } else {
-              seenNames[formal.name] = formal;
-            }
-          }
-
-          // For private named parameters, also look for a collision between the
-          // corresponding public name and another parameter's name.
-          for (FormalParameterBuilder formal in formals) {
-            if (formal.publicName case var publicName?) {
-              if (seenNames[publicName] case var previous?) {
-                _privateNamedParameterPublicNameCollision(
-                  publicName,
-                  formal,
-                  previous,
-                );
-              }
             }
           }
         }
       }
+
       if (declarationContext == DeclarationContext.ExtensionType &&
           kind == MemberKind.PrimaryConstructor &&
           formals == null) {

@@ -11,7 +11,7 @@
   (memory $foo.second_mem (import "foo" "second_mem") 1)
   (global $.a (import "" "a") (ref extern))
   (global $"\"a\"" (ref $JSExternWrapper)
-    (i32.const 65)
+    (i32.const 66)
     (global.get $.a)
     (struct.new $JSExternWrapper))
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)

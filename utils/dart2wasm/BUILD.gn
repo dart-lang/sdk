@@ -106,6 +106,22 @@ compile_platform("dart2wasm_standalone_platform") {
   ]
 }
 
+compile_platform("dart2wasm_dev_platform") {
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = rebase_path("$sdk_root/", root_build_dir)
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+
+  outputs = [
+    "$root_out_dir/dart2wasm_dev_platform.dill",
+    "$root_out_dir/dart2wasm_dev_outline.dill",
+  ]
+
+  args = [
+    "--target=dart2wasm_dev",
+    "dart:core",
+  ]
+}
+
 wasm_module("ffi_native_test_wasm_module") {
   module_name = "ffi_native_test_module"
 }
