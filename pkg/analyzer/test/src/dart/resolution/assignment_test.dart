@@ -5951,6 +5951,8 @@ V1: AssignmentExpression
     var result = await resolveTestCodeWithDiagnostics('''
 void f(void Function() a) {
   (a).call ??= () {};
+//    ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
 //             ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
