@@ -15,64 +15,6 @@ main() {
   });
 }
 
-@reflectiveTest
-class NonNativeFunctionTypeArgumentToPointerTest
-    extends PubPackageResolutionTest {
-  test_asFunction_1() async {
-    await resolveTestCodeWithDiagnostics(r'''
-import 'dart:ffi';
-typedef R = Int8 Function(Int8);
-class C {
-  void f(Pointer<Double> p) {
-    p.asFunction<R>();
-//    ^^^^^^^^^^
-// [diag.undefinedMethod] The method 'asFunction' isn't defined for the type 'Pointer<Double>'.
-  }
-}
-''');
-  }
-
-  test_asFunction_2() async {
-    await resolveTestCodeWithDiagnostics(r'''
-import 'dart:ffi';
-typedef TPrime = int Function(int);
-typedef F = String Function(String);
-class C {
-  void f(Pointer<NativeFunction<TPrime>> p) {
-    p.asFunction<F>();
-//               ^
-// [diag.nonNativeFunctionTypeArgumentToPointer] Can't invoke 'asFunction' because the function signature 'NativeFunction<TPrime>' for the pointer isn't a valid C function signature.
-  }
-}
-''');
-  }
-
-  test_asFunction_F() async {
-    await resolveTestCodeWithDiagnostics(r'''
-import 'dart:ffi';
-typedef R = int Function(int);
-class C<T extends Function> {
-  void f(Pointer<NativeFunction<T>> p) {
-    p.asFunction<R>();
-//  ^
-// [diag.nonConstantTypeArgument] The type arguments to 'asFunction' must be known at compile time, so they can't be type parameters.
-  }
-}
-''');
-  }
-
-  test_asFunction_Pointer_Opaque() async {
-    await resolveTestCodeWithDiagnostics(r'''
-import 'dart:ffi';
-main() {
-  DynamicLibrary.open('dontcare')
-      .lookup<NativeFunction<Void Function(Pointer<Opaque>)>>('dontcare')
-      .asFunction<void Function(Pointer<Opaque>)>(isLeaf: true);
-}
-''');
-  }
-}
-
 /// Exercises `_validateAsFunction` with invalid types and unresolved references
 /// at each input position, pinning diagnostics and guarding against crashes.
 /// The `extensionOverride` and `extensionName` tests cover receivers that are
@@ -267,6 +209,64 @@ void f(Pointer<NativeFunction<Void Function()>> p) {
 // [diag.mustBeASubtype] The type 'Void Function()' must be a subtype of 'dynamic' for 'asFunction'.
 //            ^^^^^^^^^^^^^^^^^^^^^^
 // [diag.wrongNumberOfTypeArgumentsElement] The method 'asFunction' is declared with 1 type parameters, but 2 type arguments are given.
+}
+''');
+  }
+}
+
+@reflectiveTest
+class NonNativeFunctionTypeArgumentToPointerTest
+    extends PubPackageResolutionTest {
+  test_asFunction_1() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+typedef R = Int8 Function(Int8);
+class C {
+  void f(Pointer<Double> p) {
+    p.asFunction<R>();
+//    ^^^^^^^^^^
+// [diag.undefinedMethod] The method 'asFunction' isn't defined for the type 'Pointer<Double>'.
+  }
+}
+''');
+  }
+
+  test_asFunction_2() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+typedef TPrime = int Function(int);
+typedef F = String Function(String);
+class C {
+  void f(Pointer<NativeFunction<TPrime>> p) {
+    p.asFunction<F>();
+//               ^
+// [diag.nonNativeFunctionTypeArgumentToPointer] Can't invoke 'asFunction' because the function signature 'NativeFunction<TPrime>' for the pointer isn't a valid C function signature.
+  }
+}
+''');
+  }
+
+  test_asFunction_F() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+typedef R = int Function(int);
+class C<T extends Function> {
+  void f(Pointer<NativeFunction<T>> p) {
+    p.asFunction<R>();
+//  ^
+// [diag.nonConstantTypeArgument] The type arguments to 'asFunction' must be known at compile time, so they can't be type parameters.
+  }
+}
+''');
+  }
+
+  test_asFunction_Pointer_Opaque() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+main() {
+  DynamicLibrary.open('dontcare')
+      .lookup<NativeFunction<Void Function(Pointer<Opaque>)>>('dontcare')
+      .asFunction<void Function(Pointer<Opaque>)>(isLeaf: true);
 }
 ''');
   }
