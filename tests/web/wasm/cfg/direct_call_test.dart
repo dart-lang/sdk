@@ -165,6 +165,32 @@ int callNeverSetter(int x) {
   return x;
 }
 
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int sum3(int a, [int b = 20, int c = 300]) => a + b + c;
+
+// Omitted optional positional arguments are filled in with default values.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callSum3(int x) => sum3(x) + sum3(x, x) + sum3(x, x, x);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String optionalString(bool c, [String s = 'default']) => c ? s : 'other';
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callOptionalString(int x) => optionalString(x > 0);
+
+@pragma('wasm:never-inline')
+bool isNull([int? x]) =>
+    // `==` on `int?` is not compiled via CFG.
+    x == null;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsNull() => isNull();
+
 void main() {
   final int0 = int.parse('0');
   final int1 = int.parse('1');
@@ -225,4 +251,12 @@ void main() {
   Expect.throwsArgumentError(() => callNeverGetter(negOne));
   Expect.equals(int1, callNeverSetter(int1));
   Expect.throwsArgumentError(() => callNeverSetter(negOne));
+
+  // Optional positional parameters.
+  Expect.equals((1 + 20 + 300) + (1 + 1 + 300) + (1 + 1 + 1), callSum3(int1));
+  Expect.equals('default', callOptionalString(int1));
+  Expect.equals('other', callOptionalString(int0));
+  Expect.equals('s', optionalString(true, 's'));
+  Expect.isTrue(callIsNull());
+  Expect.isFalse(isNull(int1));
 }
