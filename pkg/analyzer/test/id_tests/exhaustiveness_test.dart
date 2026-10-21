@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
@@ -77,7 +78,7 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
   new(super.uri, super.actualMap, this._exhaustivenessData);
 
   @override
-  Features? computeNodeValue(Id id, AstNode node) {
+  FutureOr<Features?> computeNodeValue(Id id, AstNode node) async {
     Features features = Features();
     if (node is SwitchStatement || node is SwitchExpression) {
       StaticType? scrutineeType = _exhaustivenessData.switchScrutineeType[node];
@@ -123,7 +124,16 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
       NonExhaustiveness? nonExhaustiveness =
           _exhaustivenessData.nonExhaustivenesses[node];
       if (nonExhaustiveness != null) {
-        features[Tags.error] = nonExhaustivenessToText(nonExhaustiveness);
+        String nonExhaustivenessText = nonExhaustivenessToText(
+          nonExhaustiveness,
+        );
+        features[Tags.error] = nonExhaustivenessText;
+        String reducedText = await reducedNonExhaustivenessToText(
+          nonExhaustiveness,
+        );
+        if (nonExhaustivenessText != reducedText) {
+          features[Tags.reduced] = reducedText;
+        }
       }
     } else if (node is SwitchMember || node is SwitchExpressionCase) {
       Space? caseSpace = _exhaustivenessData.caseSpaces[node];

@@ -13,6 +13,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/constant/value.dart';
@@ -28,6 +29,35 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:pub_semver/pub_semver.dart';
+
+class AnalyzerDartAccessibility
+    implements DartAccessibility<DartObject, FieldElement, TypeImpl> {
+  final Future<bool> Function(Element element, String name) isTypeInaccessible;
+  final bool Function(EnumElement enumElement, FieldElement value)
+  isEnumValueInaccessible;
+
+  new({
+    required this.isTypeInaccessible,
+    required this.isEnumValueInaccessible,
+  });
+
+  @override
+  Future<bool> isEnumValueAccessible(FieldElement value, String name) {
+    var enumElement = value.enclosingElement;
+    if (enumElement is! EnumElement) {
+      return Future.value(true);
+    }
+    return Future.value(!isEnumValueInaccessible(enumElement, value));
+  }
+
+  @override
+  Future<bool> isTypeAccessible(TypeImpl type, String name) async {
+    if (type.element case Element(:var name?) && var element) {
+      return !await isTypeInaccessible(element, name);
+    }
+    return true;
+  }
+}
 
 /// The buffer that accumulates types and elements as is, so that they
 /// can be written latter into Dart code that considers imports. It also
@@ -61,7 +91,7 @@ class AnalyzerDartTemplateBuffer
     }
 
     parts.add(
-      MissingPatternEnumValuePart(enumElement2: enumElement, value2: value),
+      MissingPatternEnumValuePart(enumElement: enumElement, value: value),
     );
   }
 
@@ -101,6 +131,11 @@ class AnalyzerEnumOperations
         yield field;
       }
     }
+  }
+
+  @override
+  String getEnumElementSimpleName(FieldElement enumField) {
+    return enumField.name!;
   }
 
   @override
@@ -444,13 +479,13 @@ class ExhaustivenessDataForTesting {
 }
 
 class MissingPatternEnumValuePart extends MissingPatternPart {
-  final EnumElement enumElement2;
-  final FieldElement value2;
+  final EnumElement enumElement;
+  final FieldElement value;
 
-  new({required this.enumElement2, required this.value2});
+  new({required this.enumElement, required this.value});
 
   @override
-  String toString() => value2.name!;
+  String toString() => value.name!;
 }
 
 abstract class MissingPatternPart {
@@ -459,7 +494,14 @@ abstract class MissingPatternPart {
   /// [diag.nonExhaustiveSwitchStatement] diagnostic with a
   /// list of missing patterns; this data is used by the analysis server to add
   /// missing switch cases.
-  static final byDiagnostic = Expando<List<List<MissingPatternPart>>>();
+  static final byDiagnostic = Expando<Witnesses>();
+}
+
+class MissingPatterns {
+  final List<List<MissingPatternPart>> partsList;
+  final bool needsDefault;
+
+  new(this.partsList, this.needsDefault);
 }
 
 class MissingPatternTextPart extends MissingPatternPart {
@@ -829,5 +871,40 @@ class TypeParameterReplacer extends ReplacementVisitor {
     TypeImpl type,
   ) {
     return TypeParameterReplacer(typeSystem)._replaceTypeParameterTypes(type);
+  }
+}
+
+class Witnesses {
+  final List<Space> _caseSpaces;
+  final List<Witness> _witnesses;
+
+  new(this._caseSpaces, this._witnesses);
+
+  Future<MissingPatterns> computeMissingPatterns(
+    AnalyzerDartAccessibility accessibility,
+  ) async {
+    ReducedWitnesses reducedWitnesses =
+        await ReducedWitnesses.computeReducedWitnesses(
+          _caseSpaces,
+          _witnesses,
+          accessibility,
+        );
+    bool needsDefault = reducedWitnesses.needsDefault;
+    List<List<MissingPatternPart>> partsList = [];
+    for (Witness witness in reducedWitnesses.nonTrivialWitnesses) {
+      var correctionDataBuffer = AnalyzerDartTemplateBuffer();
+      witness.toDart(correctionDataBuffer, forCorrection: true);
+      if (correctionDataBuffer.isComplete) {
+        partsList.add(correctionDataBuffer.parts);
+      } else {
+        assert(
+          false,
+          "Unexpected witness $witness, "
+          "that cannot be generated as Dart code.",
+        );
+        needsDefault = true;
+      }
+    }
+    return MissingPatterns(partsList, needsDefault);
   }
 }

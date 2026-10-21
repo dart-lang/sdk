@@ -19,6 +19,7 @@ abs
 absorb
 absorbed
 accepting
+accessibility
 accompany
 accounting
 accounts
@@ -674,6 +675,7 @@ exhaust
 exhausted
 exhaustively
 exhaustiveness
+exhausts
 existence
 existentially
 exp
@@ -692,6 +694,7 @@ exportees
 expose
 exposing
 expr
+expressible
 expression's
 ext
 extenders
@@ -905,6 +908,7 @@ importantly
 imprecise
 improperly
 improves
+inaccessible
 inactivity
 inapplicable
 inc
@@ -1110,6 +1114,7 @@ logically
 logs
 lookahead
 loopback
+losing
 lots
 lp
 lparen
@@ -1575,6 +1580,10 @@ redirectee
 redirections
 redirector
 redo
+reducing
+reduction
+reductions
+redundancies
 reevaluation
 reexport
 reexports

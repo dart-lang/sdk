@@ -71,6 +71,22 @@ abstract class DartTemplateBuffer<
   void writeGeneralType(Type type, String name);
 }
 
+/// Interface used to determine whether part of a witness is accessible.
+///
+/// This is used to reduce a witness to a sound approximation that can be
+/// used as a quick fix for missing switch cases.
+abstract class DartAccessibility<
+  ConstantValue extends Object,
+  EnumValue extends Object,
+  Type extends Object
+> {
+  /// Returns `true` if the enum [value] with the given [name] is accessible.
+  Future<bool> isEnumValueAccessible(EnumValue value, String name);
+
+  /// Returns `true` if the [type] with the given [name] is accessible.
+  Future<bool> isTypeAccessible(Type type, String name);
+}
+
 /// An accumulator of a Dart code template that discards semantic information,
 /// immediately producing a simple string.
 class SimpleDartBuffer implements DartTemplateBuffer<Object, Object, Object> {

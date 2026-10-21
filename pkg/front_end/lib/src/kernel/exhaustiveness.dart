@@ -431,7 +431,12 @@ class CfeEnumOperations(final ConstantEvaluator _constantEvaluator)
 
   @override
   String getEnumElementName(Field enumField) {
-    return '${enumField.enclosingClass!.name}.${enumField.name}';
+    return '${enumField.enclosingClass!.name}.${enumField.name.text}';
+  }
+
+  @override
+  String getEnumElementSimpleName(Field enumField) {
+    return enumField.name.text;
   }
 
   @override

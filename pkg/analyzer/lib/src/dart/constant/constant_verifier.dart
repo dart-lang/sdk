@@ -1152,14 +1152,10 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
             forCorrection: true,
           );
 
-          var correctionData = <List<MissingPatternPart>>[];
-          for (var witness in nonExhaustiveness.witnesses) {
-            var correctionDataBuffer = AnalyzerDartTemplateBuffer();
-            witness.toDart(correctionDataBuffer, forCorrection: true);
-            if (correctionDataBuffer.isComplete) {
-              correctionData.add(correctionDataBuffer.parts);
-            }
-          }
+          var missingPatterns = Witnesses(
+            caseSpaces,
+            nonExhaustiveness.witnesses,
+          );
 
           Diagnostic diagnostic;
           _currentLibrary;
@@ -1189,9 +1185,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
                   .at(switchKeyword),
             );
           }
-          if (correctionData.isNotEmpty) {
-            MissingPatternPart.byDiagnostic[diagnostic] = correctionData;
-          }
+          MissingPatternPart.byDiagnostic[diagnostic] = missingPatterns;
         }
       } else {
         if (defaultNode != null && mustBeExhaustive) {
