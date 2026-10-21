@@ -171,13 +171,13 @@ abstract base class _Invocation extends _DependencyTracker
       callKind: CallKind.Method,
     );
 
-    final nsmArgs = new Args<Type>([
+    final nsmArgs = Args.two(
       receiver,
       typeFlowAnalysis.hierarchyCache.fromStaticType(
         typeFlowAnalysis.coreTypes.invocationNonNullableRawType,
         false,
       ),
-    ]);
+    );
 
     final nsmInvocation = typeFlowAnalysis._invocationsCache.getInvocation(
       nsmSelector,
@@ -417,16 +417,19 @@ final class _DirectInvocation extends _Invocation {
           assert(numTypeParams(member) == 0);
           args = Args.withReceiver(args, receiver);
         } else {
-          // Drop closure receiver.
-          List<Type> argValues = args.values.sublist(1);
-          // Prepend type parameters if target member needs them.
+          // Drop closure receiver and prepend type parameters if target member
+          // needs them.
           final numTypeParameters = numTypeParams(member);
-          if (numTypeParameters != 0) {
-            argValues = [
-              for (int i = 0; i < numTypeParameters; ++i) unknownType,
-              ...argValues,
-            ];
-          }
+          final argValues = List<Type>.filled(
+            numTypeParameters + (args.values.length - 1),
+            unknownType,
+          );
+          argValues.setRange(
+            numTypeParameters,
+            argValues.length,
+            args.values,
+            1,
+          );
           args = Args(argValues, names: args.names);
         }
         final result = typeFlowAnalysis.applyCall(
@@ -499,7 +502,7 @@ final class _DirectInvocation extends _Invocation {
         final receiver = typeFlowAnalysis.applyCall(
           /* callSite = */ null,
           DirectSelector(member, callKind: CallKind.PropertyGet),
-          Args([args.receiver]),
+          Args.one(args.receiver),
         );
         return _processCallWithSubstitutedReceiver(receiver, typeFlowAnalysis);
       }
@@ -1127,7 +1130,7 @@ class _SelectorApproximation {
   }
 
   Args<Type> approximateArgs() {
-    final approxValues = List<Type>.from(_rawSelectorArgs.values);
+    final approxValues = List.of(_rawSelectorArgs.values, growable: false);
     for (int i = 0; i < _values.length; i++) {
       if (_values[i] case final canonical?) {
         approxValues[i] = canonical;
@@ -1301,11 +1304,10 @@ class _FieldValue extends _DependencyTracker {
   ) {
     if (field.initializer != null) {
       assert(field.isStatic == (receiverType == null));
-      final args = !field.isStatic ? <Type>[receiverType!] : const <Type>[];
       final initializerInvocation = typeFlowAnalysis._invocationsCache
           .getInvocation(
             new DirectSelector(field, callKind: CallKind.FieldInitializer),
-            new Args<Type>(args),
+            !field.isStatic ? Args.one(receiverType!) : Args.empty,
           );
 
       // It may update the field value.
@@ -1319,7 +1321,7 @@ class _FieldValue extends _DependencyTracker {
     final typeGuardSummary = this.typeGuardSummary;
     return (typeGuardSummary != null)
         ? typeGuardSummary.apply(
-            Args([receiverType!, value]),
+            Args.two(receiverType!, value),
             typeFlowAnalysis.hierarchyCache,
             typeFlowAnalysis,
           )
@@ -1361,7 +1363,7 @@ class _FieldValue extends _DependencyTracker {
     final narrowedNewValue = typeGuardSummary != null
         ? typeGuardSummary
               .apply(
-                new Args([receiverType!, newValue]),
+                Args.two(receiverType!, newValue),
                 hierarchy,
                 typeFlowAnalysis,
               )
@@ -1957,7 +1959,7 @@ class _WorkList {
       final initializerInvocation = _typeFlowAnalysis._invocationsCache
           .getInvocation(
             DirectSelector(field, callKind: CallKind.FieldInitializer),
-            Args<Type>(const <Type>[]),
+            Args.empty,
           );
       invalidateInvocation(initializerInvocation);
     }

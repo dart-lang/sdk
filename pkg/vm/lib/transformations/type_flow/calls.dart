@@ -216,6 +216,8 @@ class FunctionSelector extends Selector {
 /// Arguments passed to a call, including implicit receiver argument.
 // TODO(alexmarkov): take type arguments into account
 class Args<T extends TypeExpr> {
+  static final empty = Args<Type>(const <Type>[]);
+
   final List<T> values;
   final List<String> names;
 
@@ -226,8 +228,12 @@ class Args<T extends TypeExpr> {
     assert(isSorted(names));
   }
 
+  Args.one(T a0) : this(List<T>.filled(1, a0));
+
+  Args.two(T a0, T a1) : this(List<T>.filled(2, a0)..[1] = a1);
+
   Args.withReceiver(Args<T> args, T receiver)
-    : values = new List.from(args.values),
+    : values = List.of(args.values, growable: false),
       names = args.names {
     values[0] = receiver;
   }
