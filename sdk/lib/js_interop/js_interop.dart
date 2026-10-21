@@ -617,9 +617,6 @@ class NullRejectionException implements Exception {
 }
 
 /// The JavaScript `Error` type.
-///
-/// [`Error.isError`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
-/// [known bugs]: https://bugs.webkit.org/show_bug.cgi?id=292727
 @JS('Error')
 extension type JSError._(JSObject _) implements JSObject {
   /// See [`Error.captureStackTrace()`].
@@ -1249,6 +1246,9 @@ extension NullableObjectUtilExtension on Object? {
   ///   value for [T] instead.
   /// - User interop types that have an object literal constructor: This will
   ///   result in an error as you likely want to use [JSObject] instead.
+  ///
+  /// [`Error.isError`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
+  /// [known bugs]: https://bugs.webkit.org/show_bug.cgi?id=292727
   @Since('3.4')
   external bool isA<T extends JSAny?>();
 }
