@@ -428,6 +428,23 @@ class DriverEventsPrinter {
     );
   }
 
+  void _writeDiscardMemoryExpensiveData(
+    events.DiscardMemoryExpensiveData event,
+  ) {
+    if (configuration.withDiscardMemoryExpensiveData) {
+      var root = event.driver.analysisContext!.contextRoot.root;
+      sink.writelnWithIndent('[operation] discardMemoryExpensiveData');
+      sink.withIndent(() {
+        sink.writelnWithIndent('root: ${root.posixPath}');
+        sink.writeElements(
+          'keptIds',
+          event.keptIds.map((uri) => '$uri').sorted(),
+          sink.writelnWithIndent,
+        );
+      });
+    }
+  }
+
   void _writeErrorsEvent(GetErrorsEvent event) {
     if (!configuration.withGetErrorsEvents) {
       return;
@@ -918,6 +935,8 @@ class DriverEventsPrinter {
         _writeCheckLibraryDiagnosticsRequirements(object);
       case events.CheckLinkedBundleRequirements():
         _writeCheckLinkedBundleRequirements(object);
+      case events.DiscardMemoryExpensiveData():
+        _writeDiscardMemoryExpensiveData(object);
       case events.LinkLibraryCycle():
         _writeLinkLibraryCycle(object);
       case events.ReuseLinkedBundle():
@@ -1007,6 +1026,7 @@ class DriverEventsPrinterConfiguration {
   var withAnalyzeFileEvents = true;
   var withCheckLibraryDiagnosticsRequirements = false;
   var withCheckLinkedBundleRequirements = false;
+  var withDiscardMemoryExpensiveData = false;
   var withElementManifests = false;
   var withGetErrorsEvents = true;
   var withGetLibraryByUri = true;

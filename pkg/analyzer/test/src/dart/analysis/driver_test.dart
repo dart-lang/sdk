@@ -6271,6 +6271,7 @@ class DriverEventCollector {
         case driver_events.LinkLibraryCycle():
         case driver_events.CheckLibraryDiagnosticsRequirements():
         case driver_events.CheckLinkedBundleRequirements():
+        case driver_events.DiscardMemoryExpensiveData():
         case driver_events.ReuseLinkedBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
@@ -45774,6 +45775,273 @@ typedef B = A;
     flags: isLibrary
 ''',
     );
+  }
+
+  test_discardMemoryExpensiveData_explicit() async {
+    configuration
+      ..withDiscardMemoryExpensiveData = true
+      ..withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    driver.addFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 0; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // The explicit discard does not keep IDs.
+    driver.discardMemoryExpensiveData();
+    await assertEventsText(collector, r'''
+[operation] discardMemoryExpensiveData
+  root: /home/test
+''');
+
+    // And forgets that they were requested before.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 1; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+  }
+
+  test_discardMemoryExpensiveData_idsRequestedTwice() async {
+    configuration
+      ..withDiscardMemoryExpensiveData = true
+      ..withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Requested once, during the initial analysis.
+    driver.addFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+
+    // Requested twice.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 0; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // Requested again.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 1; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // Not requested.
+    newFile(testFile.path, r'''
+void f() {}
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+[status] idle
+''');
+  }
+
+  test_discardMemoryExpensiveData_workWithoutIds_doesNotEndPeriod() async {
+    configuration
+      ..withDiscardMemoryExpensiveData = true
+      ..withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Requested once, during the initial analysis.
+    driver.addFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+
+    // Requested twice.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 0; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // Work that does not request IDs does not end the period.
+    await driver.getFilesReferencingNames({'A'});
+    await assertEventsText(collector, r'''
+[status] working
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // So the IDs are still requested during each of the last two periods.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 1; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
   }
 
   test_manifest_baseName2_private2() async {
