@@ -32,7 +32,7 @@
   (func $JSStringImpl._interpolate (param $var0 (ref $Array<Object?>)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl._interpolate2 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl._interpolate3 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (param $var2 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
-  (func $JSStringImpl.fromRefUnchecked (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
+  (func $JSStringImpl.fromRefUnchecked (param $var0 (ref extern)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.substring (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (param $var2 i64) (result (ref $JSExternWrapper)) <...>)
   (func $_TypeError._throwNullCheckErrorWithCurrentStack  <...>)
   (func $_throwIndexError (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) <...>)

@@ -33,7 +33,7 @@ final class JSStringImpl extends js.JSExternWrapper
     implements String, StringUncheckedOperationsBase {
   static bool _checkRefType(WasmExternRef? ref) => jsStringTest(ref).toBool();
 
-  JSStringImpl.fromRefUnchecked(WasmExternRef? ref) : super(ref) {
+  JSStringImpl.fromRefUnchecked(WasmExternRef ref) : super(ref) {
     assert(_checkRefType(ref));
   }
 
@@ -44,11 +44,13 @@ final class JSStringImpl extends js.JSExternWrapper
           ? ArgumentError()
           : ArgumentError("JS reference is not a string");
     }
-    return JSStringImpl.fromRefUnchecked(ref);
+    return JSStringImpl.fromRefUnchecked(ref!);
   }
 
   @pragma('wasm:entry-point')
   static JSStringImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
+
     final int refType = js.JS<WasmI32>('''o => {
         if (o === null || o === undefined) return 0;
         if (typeof(o) === 'string') return 1;
@@ -63,7 +65,7 @@ final class JSStringImpl extends js.JSExternWrapper
 
   @pragma("wasm:prefer-inline")
   static String? box(WasmExternRef? ref) =>
-      js.isDartNull(ref) ? null : JSStringImpl.fromRefUnchecked(ref);
+      js.isDartNull(ref) ? null : JSStringImpl.fromRefUnchecked(ref!);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -258,6 +260,8 @@ final class JSStringImpl extends js.JSExternWrapper
 
   @override
   String replaceAll(Pattern from, String to) {
+    final internalTo = unsafeCast<JSStringImpl>(to);
+
     if (from is String) {
       if (from.isEmpty) {
         if (isEmpty) return to;
@@ -273,7 +277,7 @@ final class JSStringImpl extends js.JSExternWrapper
       return _jsStringReplaceAll(
         wrappedExternRef,
         unsafeCast<JSStringImpl>(from).wrappedExternRef,
-        to.toExternRef,
+        internalTo.wrappedExternRef,
       );
     }
 
@@ -281,7 +285,7 @@ final class JSStringImpl extends js.JSExternWrapper
       return _jsStringReplace(
         wrappedExternRef,
         (js.regExpGetGlobalNative(from) as js.JSValue).toExternRef,
-        to.toExternRef,
+        internalTo.wrappedExternRef,
       );
     } else {
       int startIndex = 0;
@@ -342,7 +346,7 @@ final class JSStringImpl extends js.JSExternWrapper
           ? _jsStringReplace(
               wrappedExternRef,
               (js.regExpGetNative(from) as js.JSValue).toExternRef,
-              to.toExternRef,
+              unsafeCast<JSStringImpl>(to).wrappedExternRef,
             )
           : _replaceFirstRE(from, to, startIndex);
     }
@@ -683,11 +687,11 @@ final class JSStringImpl extends js.JSExternWrapper
 // NOTE: The [replacement] does not need special escaping it will be used
 // as-is (due to passing `() => r` to the JS `replaceAll()` call)
 JSStringImpl _jsStringReplaceAll(
-  WasmExternRef? string,
-  WasmExternRef? pattern,
-  WasmExternRef? replacement,
+  WasmExternRef string,
+  WasmExternRef pattern,
+  WasmExternRef replacement,
 ) => JSStringImpl.fromRefUnchecked(
-  js.JS<WasmExternRef?>(
+  js.JS<WasmExternRef>(
     '(o, p, r) => o.replaceAll(p, () => r)',
     string,
     pattern,
@@ -698,11 +702,11 @@ JSStringImpl _jsStringReplaceAll(
 // NOTE: The [replacement] does not need special escaping it will be used
 // as-is (due to passing `() => r` to the JS `replaceAll()` call)
 String _jsStringReplace(
-  WasmExternRef? string,
-  WasmExternRef? pattern,
-  WasmExternRef? replacement,
+  WasmExternRef string,
+  WasmExternRef pattern,
+  WasmExternRef replacement,
 ) => JSStringImpl.fromRefUnchecked(
-  js.JS<WasmExternRef?>(
+  js.JS<WasmExternRef>(
     '(o, p, r) => o.replace(p, () => r)',
     string,
     pattern,
@@ -710,29 +714,29 @@ String _jsStringReplace(
   ),
 );
 
-WasmExternRef? _jsStringToLowerCase(WasmExternRef? string) =>
+WasmExternRef _jsStringToLowerCase(WasmExternRef string) =>
     // Note: Special cased in V8 to be fast as `F.p.c.b`.
     // Do not change to `s => s.toLowerCase()`!
-    js.JS<WasmExternRef?>(
+    js.JS<WasmExternRef>(
       'Function.prototype.call.bind(String.prototype.toLowerCase)',
       string,
     );
 
-WasmExternRef? _jsStringToUpperCase(WasmExternRef? string) =>
-    js.JS<WasmExternRef?>('s => s.toUpperCase()', string);
+WasmExternRef _jsStringToUpperCase(WasmExternRef string) =>
+    js.JS<WasmExternRef>('s => s.toUpperCase()', string);
 
-WasmExternRef? _jsStringTrim(WasmExternRef? string) =>
-    js.JS<WasmExternRef?>('s => s.trim()', string);
+WasmExternRef _jsStringTrim(WasmExternRef string) =>
+    js.JS<WasmExternRef>('s => s.trim()', string);
 
-WasmExternRef? _jsStringTrimLeft(WasmExternRef? string) =>
-    js.JS<WasmExternRef?>('s => s.trimLeft()', string);
+WasmExternRef _jsStringTrimLeft(WasmExternRef string) =>
+    js.JS<WasmExternRef>('s => s.trimLeft()', string);
 
-WasmExternRef? _jsStringTrimRight(WasmExternRef? string) =>
-    js.JS<WasmExternRef?>('s => s.trimRight()', string);
+WasmExternRef _jsStringTrimRight(WasmExternRef string) =>
+    js.JS<WasmExternRef>('s => s.trimRight()', string);
 
 @pragma("wasm:prefer-inline")
-WasmExternRef? _jsStringRepeat(WasmExternRef? string, int times) =>
-    js.JS<WasmExternRef?>(
+WasmExternRef _jsStringRepeat(WasmExternRef string, int times) =>
+    js.JS<WasmExternRef>(
       '(string, times) => string.repeat(times)',
       string,
       times.toWasmI32(),
@@ -740,8 +744,8 @@ WasmExternRef? _jsStringRepeat(WasmExternRef? string, int times) =>
 
 @pragma("wasm:prefer-inline")
 int _jsStringIndexOf(
-  WasmExternRef? string,
-  WasmExternRef? pattern,
+  WasmExternRef string,
+  WasmExternRef pattern,
   int startIndex,
 ) =>
     // Note: Special cased in V8 to be fast as `F.p.c.b`.
@@ -757,8 +761,8 @@ int _jsStringIndexOf(
 
 @pragma("wasm:prefer-inline")
 int _jsStringLastIndexOf(
-  WasmExternRef? string,
-  WasmExternRef? pattern,
+  WasmExternRef string,
+  WasmExternRef pattern,
   int start,
 ) => js
     .JS<WasmI32>(
@@ -772,25 +776,19 @@ int _jsStringLastIndexOf(
 // TODO(joshualitt): Create a subtype of `JSArrayImpl` that can support lazily
 // converting arguments `toDart` and return that here.
 @pragma("wasm:prefer-inline")
-List<String> _jsStringSplitToDart(
-  WasmExternRef? string,
-  WasmExternRef? token,
-) => (js.JSValue(_jsStringSplit(string, token)) as JSArray).toDart
-    .map((JSAny? a) => (a as JSString).toDart)
-    .toList();
+List<String> _jsStringSplitToDart(WasmExternRef string, WasmExternRef token) =>
+    (js.JSValue(_jsStringSplit(string, token)) as JSArray).toDart
+        .map((JSAny? a) => (a as JSString).toDart)
+        .toList();
 
-WasmExternRef? _jsStringSplit(WasmExternRef? string, WasmExternRef? token) =>
-    js.JS<WasmExternRef?>(
-      '(string, token) => string.split(token)',
-      string,
-      token,
-    );
+WasmExternRef _jsStringSplit(WasmExternRef string, WasmExternRef token) => js
+    .JS<WasmExternRef>('(string, token) => string.split(token)', string, token);
 
 bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
     js.JS<WasmI32>('Object.is', ref1, ref2).toBool();
 
 @pragma("wasm:prefer-inline")
-int jsCharCodeAt(WasmExternRef? stringRef, int index) =>
+int jsCharCodeAt(WasmExternRef stringRef, int index) =>
     _jsStringCharCodeAtImport(
       stringRef,
       WasmI32.fromInt(index),
@@ -798,7 +796,7 @@ int jsCharCodeAt(WasmExternRef? stringRef, int index) =>
 
 @pragma("wasm:prefer-inline")
 WasmExternRef _jsSubstring(
-  WasmExternRef? stringRef,
+  WasmExternRef stringRef,
   int startIndex,
   int endIndex,
 ) => _jsStringSubstringImport(
@@ -808,15 +806,15 @@ WasmExternRef _jsSubstring(
 );
 
 @pragma("wasm:prefer-inline")
-int _jsLength(WasmExternRef? stringRef) =>
+int _jsLength(WasmExternRef stringRef) =>
     _jsStringLengthImport(stringRef).toIntUnsigned();
 
 @pragma("wasm:prefer-inline")
-bool _jsEquals(WasmExternRef? s1, WasmExternRef? s2) =>
+bool _jsEquals(WasmExternRef s1, WasmExternRef s2) =>
     _jsStringEqualsImport(s1, s2).toBool();
 
 @pragma("wasm:prefer-inline")
-int _jsCompare(WasmExternRef? s1, WasmExternRef? s2) =>
+int _jsCompare(WasmExternRef s1, WasmExternRef s2) =>
     _jsStringCompareImport(s1, s2).toIntSigned();
 
 @pragma("wasm:import", "wasm:js-string.charCodeAt")

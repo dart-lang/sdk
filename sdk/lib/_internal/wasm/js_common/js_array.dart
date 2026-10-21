@@ -16,11 +16,11 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   static bool _checkRefType(WasmExternRef? ref) =>
       js.JS<WasmI32>('o => o instanceof Array', ref).toBool();
 
-  JSArrayImpl.fromRefUnchecked(WasmExternRef? ref) : super(ref) {
+  JSArrayImpl.fromRefUnchecked(WasmExternRef ref) : super(ref) {
     assert(_checkRefType(ref));
   }
 
-  factory JSArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSArrayImpl.fromRef(WasmExternRef ref) {
     if (!_checkRefType(ref)) {
       throw minify
           ? ArgumentError()
@@ -33,7 +33,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
       JSArrayImpl<T>.fromRefUnchecked(js.newArrayFromLengthRaw(length));
 
   static JSArrayImpl<T>? box<T extends JSAny?>(WasmExternRef? ref) =>
-      js.isDartNull(ref) ? null : JSArrayImpl<T>.fromRefUnchecked(ref);
+      js.isDartNull(ref) ? null : JSArrayImpl<T>.fromRefUnchecked(ref!);
 
   @override
   List<R> cast<R>() => List.castFrom<T, R>(this);
@@ -174,8 +174,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
 
   @override
   String join([String separator = ""]) {
-    WasmExternRef? result;
-    result = js.JS<WasmExternRef?>(
+    final result = js.JS<WasmExternRef>(
       '(a, s) => a.join(s)',
       wrappedExternRef,
       separator.toExternRef,
@@ -274,7 +273,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   List<T> sublist(int start, [int? end]) {
     end = RangeErrorUtils.checkValidRange(start, end, length);
     return JSArrayImpl<T>.fromRefUnchecked(
-      js.JS<WasmExternRef?>(
+      js.JS<WasmExternRef>(
         '(a, s, e) => a.slice(s, e)',
         wrappedExternRef,
         WasmI32.fromInt(start),
@@ -556,7 +555,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   List<T> operator +(List<T> other) {
     if (other is JSArrayImpl) {
       return JSArrayImpl<T>.fromRefUnchecked(
-        js.JS<WasmExternRef?>(
+        js.JS<WasmExternRef>(
           '(a, t) => a.concat(t)',
           wrappedExternRef,
           other.toJS.toExternRef,
@@ -637,5 +636,5 @@ class JSArrayImplIterator<T extends JSAny?> implements Iterator<T> {
   }
 }
 
-void arrayPush(WasmExternRef? array, WasmExternRef? elem) =>
+void arrayPush(WasmExternRef array, WasmExternRef? elem) =>
     js.JS<WasmVoid>('(a, i) => a.push(i)', array, elem);
