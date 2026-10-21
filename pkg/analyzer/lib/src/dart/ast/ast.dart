@@ -21737,6 +21737,9 @@ abstract final class Field2 implements FragmentDeclaringNode {
 
   /// The name of the field.
   Token get name;
+
+  @override
+  FieldsDeclaration get parent2;
 }
 
 @GenerateNodeImpl(
@@ -21809,6 +21812,9 @@ final class Field2Impl extends AstNodeImpl
 
   @override
   ExpressionImpl? get initializer2 => initializer;
+
+  @override
+  FieldsDeclarationImpl get parent2 => super.parent2 as FieldsDeclarationImpl;
 
   @V1Ast()
   @override
@@ -37380,6 +37386,9 @@ abstract final class LocalVariable implements FragmentDeclaringNode {
 
   /// The name of the variable.
   Token get name;
+
+  @override
+  LocalVariablesDeclaration get parent2;
 }
 
 @GenerateNodeImpl(
@@ -37453,6 +37462,10 @@ final class LocalVariableImpl extends AstNodeImpl
   /// Local variables are resolved in the enclosing scope.
   @override
   Scope? get initializerScope => null;
+
+  @override
+  LocalVariablesDeclarationImpl get parent2 =>
+      super.parent2 as LocalVariablesDeclarationImpl;
 
   @V1Ast()
   @override
@@ -59353,6 +59366,9 @@ abstract final class TopLevelVariable2 implements FragmentDeclaringNode {
 
   /// The name of the variable.
   Token get name;
+
+  @override
+  TopLevelVariablesDeclaration get parent2;
 }
 
 @GenerateNodeImpl(
@@ -59425,6 +59441,10 @@ final class TopLevelVariable2Impl extends AstNodeImpl
 
   @override
   ExpressionImpl? get initializer2 => initializer;
+
+  @override
+  TopLevelVariablesDeclarationImpl get parent2 =>
+      super.parent2 as TopLevelVariablesDeclarationImpl;
 
   @V1Ast()
   @override

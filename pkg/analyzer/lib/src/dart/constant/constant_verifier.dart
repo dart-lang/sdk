@@ -1752,8 +1752,7 @@ extension on Expression {
         return true;
       } else if (parent is Field2 && child == parent.initializer) {
         var declaration = parent.parent2;
-        if (declaration is FieldsDeclaration &&
-            declaration.staticKeyword == null) {
+        if (declaration.staticKeyword == null) {
           var body = declaration.parent2;
           if (body is BlockInstanceDeclarationBody) {
             var container = body.parent2;

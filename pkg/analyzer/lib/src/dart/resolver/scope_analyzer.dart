@@ -647,8 +647,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitLocalVariable(covariant LocalVariableImpl node) {
     var element = node.declaredFragment!.element;
-    var declaration = node.parent2 as LocalVariablesDeclarationImpl;
-    if (declaration.type case var typeNode?) {
+    if (node.parent2.type case var typeNode?) {
       element.type = typeNode.typeOrThrow;
     } else {
       // TODO(scheglov): review and improve resolution to not rely on dynamic.

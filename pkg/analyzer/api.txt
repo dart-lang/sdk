@@ -1861,6 +1861,7 @@ package:analyzer/dart/ast/ast.dart:
     equals (getter: Token?)
     initializer (getter: Expression?)
     name (getter: Token)
+    parent2 (getter: FieldsDeclaration)
   FieldDeclaration (class extends Object implements ClassMember, abstract, final):
     abstractKeyword (getter: Token?)
     augmentKeyword (getter: Token?)
@@ -2307,6 +2308,7 @@ package:analyzer/dart/ast/ast.dart:
     equals (getter: Token?)
     initializer (getter: Expression?)
     name (getter: Token)
+    parent2 (getter: LocalVariablesDeclaration)
   LocalVariablesDeclaration (class extends Object implements AnnotatedNode, abstract, final, experimental):
     constFinalOrVarKeyword (getter: Token?)
     constKeyword (getter: Token?)
@@ -2859,6 +2861,7 @@ package:analyzer/dart/ast/ast.dart:
     equals (getter: Token?)
     initializer (getter: Expression?)
     name (getter: Token)
+    parent2 (getter: TopLevelVariablesDeclaration)
   TopLevelVariableDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
     abstractKeyword (getter: Token?)
     augmentKeyword (getter: Token?)
