@@ -60,106 +60,88 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     var textDocument = params.textDocument;
     var position = params.position;
 
-    var filePath = pathOfDoc(textDocument);
-    var result = await filePath.mapResult(requireResolvedUnit);
-    var docIdentifier = filePath.mapResultSync(
-      (filePath) => success(extractDocumentVersion(textDocument, filePath)),
-    );
-    var offset = result.mapResultSync(
-      (result) => toOffset(result.lineInfo, position),
-    );
+    return withResolvedUnit(textDocument, token, (result, docIdentifier, _) {
+      var offset = toOffset(result.lineInfo, position);
+      return offset.mapResult((offset) async {
+        // Locate the invocation we're editing.
+        var invocationInfo = getInvocationInfo(result, offset);
+        if (invocationInfo == null) {
+          return error(
+            ServerErrorCodes.editArgumentInvalidPosition,
+            'No invocation was found at the provided position',
+          );
+        }
 
-    return await (filePath, result, docIdentifier, offset).mapResults((
-      filePath,
-      result,
-      docIdentifier,
-      offset,
-    ) async {
-      // Check for document changes or cancellation after the awaits above.
-      if (fileHasBeenModified(filePath, docIdentifier.version)) {
-        return fileModifiedError;
-      } else if (token.isCancellationRequested) {
-        return cancelled(token);
-      }
+        var (
+          invocation: _,
+          :widgetName,
+          :widgetDocumentation,
+          :parameters,
+          :positionalParameterIndexes,
+          :parameterArguments,
+          :argumentList,
+          :numPositionals,
+          :numSuppliedPositionals,
+        ) = invocationInfo;
 
-      // Locate the invocation we're editing.
-      var invocationInfo = getInvocationInfo(result, offset);
-      if (invocationInfo == null) {
-        return error(
-          ServerErrorCodes.editArgumentInvalidPosition,
-          'No invocation was found at the provided position',
+        // Find the parameter we're editing the argument for.
+        var parameterName = params.edit.name;
+        var parameter = parameters.firstWhereOrNull(
+          (p) => p.name == parameterName,
         );
-      }
+        if (parameter == null) {
+          return error(
+            ServerErrorCodes.editArgumentInvalidParameter,
+            "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name).join(', ')}",
+          );
+        }
 
-      var (
-        invocation: _,
-        :widgetName,
-        :widgetDocumentation,
-        :parameters,
-        :positionalParameterIndexes,
-        :parameterArguments,
-        :argumentList,
-        :numPositionals,
-        :numSuppliedPositionals,
-      ) = invocationInfo;
+        var argument = parameterArguments[parameter];
+        var valueExpression = argument?.argumentExpression;
 
-      // Find the parameter we're editing the argument for.
-      var parameterName = params.edit.name;
-      var parameter = parameters.firstWhereOrNull(
-        (p) => p.name == parameterName,
-      );
-      if (parameter == null) {
-        return error(
-          ServerErrorCodes.editArgumentInvalidParameter,
-          "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name).join(', ')}",
+        // Determine whether a value for this parameter is editable.
+        var notEditableReason = getNotEditableReason(
+          argument: valueExpression,
+          positionalIndex: positionalParameterIndexes[parameter],
+          numPositionals: numPositionals,
+          numSuppliedPositionals: numSuppliedPositionals,
         );
-      }
+        if (notEditableReason != null) {
+          // This should never happen unless a client is broken, because either
+          // they should have failed the version check, or they would've already
+          // known this argument was not editable.
+          var notEditableReasonLower =
+              notEditableReason.substring(0, 1).toLowerCase() +
+              notEditableReason.substring(1);
+          return error(
+            ServerErrorCodes.editArgumentInvalidParameter,
+            "The parameter '$parameterName' is not editable because $notEditableReasonLower",
+          );
+        }
 
-      var argument = parameterArguments[parameter];
-      var valueExpression = argument?.argumentExpression;
-
-      // Determine whether a value for this parameter is editable.
-      var notEditableReason = getNotEditableReason(
-        argument: valueExpression,
-        positionalIndex: positionalParameterIndexes[parameter],
-        numPositionals: numPositionals,
-        numSuppliedPositionals: numSuppliedPositionals,
-      );
-      if (notEditableReason != null) {
-        // This should never happen unless a client is broken, because either
-        // they should have failed the version check, or they would've already
-        // known this argument was not editable.
-        var notEditableReasonLower =
-            notEditableReason.substring(0, 1).toLowerCase() +
-            notEditableReason.substring(1);
-        return error(
-          ServerErrorCodes.editArgumentInvalidParameter,
-          "The parameter '$parameterName' is not editable because $notEditableReasonLower",
-        );
-      }
-
-      // Compute the new expression for this argument.
-      var newValueCode = _computeValueCode(
-        parameter,
-        valueExpression,
-        params.edit,
-      );
-
-      // Build the edit and send it to the client.
-      var workspaceEdit = await newValueCode.mapResult(
-        (newValueCode) => _computeWorkspaceEdit(
-          docIdentifier,
-          // We use the editors capabilities here, not the caller, because it's
-          // the editor that will handle this edit.
-          editorClientCapabilities,
-          result,
-          parameters,
-          argumentList,
+        // Compute the new expression for this argument.
+        var newValueCode = _computeValueCode(
           parameter,
-          newValueCode,
-        ),
-      );
-      return workspaceEdit.mapResult(_sendEditToClient);
+          valueExpression,
+          params.edit,
+        );
+
+        // Build the edit and send it to the client.
+        var workspaceEdit = await newValueCode.mapResult(
+          (newValueCode) => _computeWorkspaceEdit(
+            docIdentifier,
+            // We use the editors capabilities here, not the caller, because it's
+            // the editor that will handle this edit.
+            editorClientCapabilities,
+            result,
+            parameters,
+            argumentList,
+            parameter,
+            newValueCode,
+          ),
+        );
+        return workspaceEdit.mapResult(_sendEditToClient);
+      });
     });
   }
 

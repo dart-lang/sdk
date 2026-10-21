@@ -116,11 +116,12 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   }
 
   bool fileHasBeenModified(String path, int? clientVersion) {
+    // We allow nulls on either side, because if a client doesn't support
+    // versions somewhere we can't just reject everything.
+    if (clientVersion == null) return false;
+
     var serverDocumentVersion = server.getDocumentVersion(path);
-    // Allow nulls on either side, because if a client doesn't support versions
-    // somewhere we can't just reject everything.
-    return clientVersion != null &&
-        serverDocumentVersion != null &&
+    return serverDocumentVersion != null &&
         clientVersion != serverDocumentVersion;
   }
 
@@ -335,6 +336,107 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : fileNotAnalyzedError(path);
     }
     return success(result);
+  }
+
+  /// Resolves the path of [textDocument] and calls [handler] with it and the
+  /// document version captured at the start of the request, providing a
+  /// `checkAbort` function that can be used to detect whether the request
+  /// was cancelled, or if the file was modified since the handler was invoked.
+  Future<ErrorOr<R>> withPath<R>(
+    TextDocumentIdentifier textDocument,
+    CancellationToken token,
+    Future<ErrorOr<R>> Function(
+      String path,
+      OptionalVersionedTextDocumentIdentifier docIdentifier,
+      ErrorOr<R>? Function() checkAbort,
+    )
+    handler,
+  ) {
+    return pathOfDoc(textDocument).mapResult((path) {
+      var docIdentifier = extractDocumentVersion(textDocument, path);
+
+      ErrorOr<R>? checkAbort() {
+        if (fileHasBeenModified(path, docIdentifier.version)) {
+          return error<R>(
+            ErrorCodes.ContentModified,
+            'Document was modified before operation completed',
+          );
+        }
+        if (token.isCancellationRequested) {
+          return cancelled<R>(token);
+        }
+        return null;
+      }
+
+      return handler(path, docIdentifier, checkAbort);
+    });
+  }
+
+  /// Gets the resolved unit for [textDocument] and calls [handler] with it and
+  /// the document version captured at the start of the request, providing a
+  /// `checkAbort` function that can be used to detect whether the request was
+  /// cancelled, or if the file was modified since the handler was invoked.
+  ///
+  /// If the file does not exist, [handler] is not called and `checkAbort`
+  /// returns an empty result if [R] allows `null` or a [List], otherwise an
+  /// error.
+  Future<ErrorOr<R>> withResolvedUnit<R>(
+    TextDocumentIdentifier textDocument,
+    CancellationToken token,
+    Future<ErrorOr<R>> Function(
+      ResolvedUnitResult result,
+      OptionalVersionedTextDocumentIdentifier docIdentifier,
+      ErrorOr<R>? Function() checkAbort,
+    )
+    handler,
+  ) {
+    // Wrap withPath() to resolve the unit and extend checkAbort() to check
+    // the unit exists.
+    return withPath<R>(textDocument, token, (
+      path,
+      docIdentifier,
+      baseCheckAbort,
+    ) async {
+      var result = await requireResolvedUnit(path);
+      return result.mapResult((result) async {
+        // Override checkAbort to check `exists`.
+        ErrorOr<R>? checkAbort() {
+          // Base check.
+          if (baseCheckAbort() case var reason?) return reason;
+
+          // Check unit exists.
+          if (!result.exists) {
+            // Usually for a file that doesn't exist, we will return an "empty"
+            // result rather than an error, to avoid errors being shown if a
+            // file was being deleted (or created) as requests were sent.
+
+            // Try null first.
+            if (null is R) {
+              return success(null as R);
+            }
+            // Try empty next.
+            if (const <Never>[] is R) {
+              return success(const <Never>[] as R);
+            }
+            // Otherwise, fall back to an error.
+            return error<R>(
+              ServerErrorCodes.invalidFilePath,
+              'File does not exist',
+              path,
+            );
+          }
+
+          // No reason to abort.
+          return null;
+        }
+
+        // Do an initial check since we just called requireResolvedUnit.
+        if (baseCheckAbort() case var reason?) return reason;
+
+        // Finally, call the handler.
+        return handler(result, docIdentifier, checkAbort);
+      });
+    });
   }
 }
 
