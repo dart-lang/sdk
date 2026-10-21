@@ -365,6 +365,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         // Stack: lhs rhs
         instanceCall(node.element, node.operator.lexeme, [], twoArguments);
       // Stack: result
+      case null:
+        throw StateError('Invalid binary operator: ${node.operator.lexeme}');
     }
   }
 

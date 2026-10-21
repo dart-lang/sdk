@@ -199,6 +199,51 @@ class B extends A {
 ''');
   }
 
+  test_fromExtendingClass_operator_invalidBinaryOperator() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  A operator ~() => this;
+}
+class B extends A {
+  @override
+  A operator ~() => super ~ 0;
+//           ^
+// [diag.mustCallSuper] This method overrides a method annotated as '@mustCallSuper' in 'A', but doesn't invoke the overridden method.
+//                        ^
+// [diag.notBinaryOperator] '~' isn't a binary operator.
+}
+''');
+
+    var node = result.findNode.singleBinaryOperatorInvocation;
+    assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SuperReference
+    superKeyword: super
+  operator: ~
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: null
+  element: <null>
+  staticType: InvalidType
+V1: BinaryExpression
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: B
+  operator: ~
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  element: <null>
+  staticInvokeType: null
+  staticType: InvalidType
+''');
+  }
+
   test_fromExtendingClass_setter() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
