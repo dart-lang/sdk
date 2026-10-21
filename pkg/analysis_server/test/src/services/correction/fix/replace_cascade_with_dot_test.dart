@@ -188,24 +188,24 @@ void f(String? s) {
   Future<void> test_method_awaitTarget_normalCascade() async {
     await resolveTestCode('''
 class C {
-  List<int> list = [];
+  void m() {}
 }
 
 Future<C> getC() => Future.value(C());
 
 void f() async {
-  await getC()..list.forEach((e) => print(e));
+  await getC()..m();
 }
 ''');
     await assertHasFix('''
 class C {
-  List<int> list = [];
+  void m() {}
 }
 
 Future<C> getC() => Future.value(C());
 
 void f() async {
-  (await getC()).list.forEach((e) => print(e));
+  (await getC()).m();
 }
 ''');
   }
@@ -213,24 +213,24 @@ void f() async {
   Future<void> test_method_awaitTarget_nullAwareCascade() async {
     await resolveTestCode('''
 class C {
-  List<int> list = [];
+  void m() {}
 }
 
 Future<C?> getC() => Future.value(C());
 
 void f() async {
-  await getC()?..list.forEach((e) => print(e));
+  await getC()?..m();
 }
 ''');
     await assertHasFix('''
 class C {
-  List<int> list = [];
+  void m() {}
 }
 
 Future<C?> getC() => Future.value(C());
 
 void f() async {
-  (await getC())?.list.forEach((e) => print(e));
+  (await getC())?.m();
 }
 ''');
   }
