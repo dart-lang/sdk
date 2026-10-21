@@ -1977,18 +1977,20 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+  void visitReceiverMethodInvocation(
+    covariant ReceiverMethodInvocationImpl node,
+  ) {
     if (node.operator.type == TokenType.QUESTION_PERIOD) {
       switch (node.receiver) {
         case SuperReferenceImpl():
           break;
-        case StaticQualifier():
+        case StaticQualifierImpl():
           diagnosticReporter.report(
             diag.invalidNullAwareOperator
                 .withArguments(operator: '?.', replacement: '.')
                 .at(node.operator),
           );
-        case InstanceReceiver receiver:
+        case InstanceReceiverImpl receiver:
           _checkForUnnecessaryNullAware(
             receiver,
             node.operator,
@@ -2002,7 +2004,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitReceiverPropertyAssignmentTarget(
-    ReceiverPropertyAssignmentTarget node,
+    covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {
     var ambiguousElement = node.read
         .tryCast<InvalidNamedReadResolution>()
@@ -2017,13 +2019,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       switch (node.receiver) {
         case SuperReferenceImpl():
           break;
-        case StaticQualifier():
+        case StaticQualifierImpl():
           diagnosticReporter.report(
             diag.invalidNullAwareOperator
                 .withArguments(operator: '?.', replacement: '.')
                 .at(node.operator),
           );
-        case InstanceReceiver receiver:
+        case InstanceReceiverImpl receiver:
           _checkForUnnecessaryNullAware(
             receiver,
             node.operator,
@@ -2043,7 +2045,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       switch (node.receiver) {
         case SuperReferenceImpl():
           break;
-        case StaticQualifier():
+        case StaticQualifierImpl():
           diagnosticReporter.report(
             diag.invalidNullAwareOperator
                 .withArguments(operator: '?.', replacement: '.')

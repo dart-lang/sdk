@@ -2473,7 +2473,7 @@ abstract final class AssignmentExpression2 implements Expression {
   Expression get value;
 }
 
-abstract base class AssignmentExpression2Impl extends ExpressionImpl
+sealed class AssignmentExpression2Impl extends ExpressionImpl
     implements AssignmentExpression2 {
   AssignmentTargetImpl _target;
 
@@ -2561,7 +2561,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   InternalMethodElement? get element => switch (_v1ProjectionOrigin) {
     CompoundAssignmentImpl origin => origin.element,
     DirectAssignmentImpl() || IfNullAssignmentImpl() => null,
-    _ => throw StateError('Unexpected assignment projection origin.'),
   };
 
   set element(InternalMethodElement? element) {
@@ -2610,19 +2609,11 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @override
-  TypeImpl? get readType {
-    var origin = _v1ProjectionOrigin;
-    if (origin is DirectAssignmentImpl) {
-      return null;
-    }
-    if (origin is CompoundAssignmentImpl) {
-      return _v1CompoundReadType(origin.target);
-    }
-    if (origin is IfNullAssignmentImpl) {
-      return _v1IfNullReadType(origin.target);
-    }
-    throw StateError('Unexpected assignment projection origin.');
-  }
+  TypeImpl? get readType => switch (_v1ProjectionOrigin) {
+    DirectAssignmentImpl() => null,
+    CompoundAssignmentImpl origin => _v1CompoundReadType(origin.target),
+    IfNullAssignmentImpl origin => _v1IfNullReadType(origin.target),
+  };
 
   @override
   set readType(TypeImpl? type) {
@@ -2658,19 +2649,15 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @override
-  TypeImpl? get writeType {
-    var origin = _v1ProjectionOrigin;
-    if (origin is DirectAssignmentImpl) {
-      return _v1DirectWriteType(origin.target);
-    }
-    if (origin is CompoundAssignmentImpl) {
-      return _v1ReadWriteAssignmentWriteType(origin.target);
-    }
-    if (origin is IfNullAssignmentImpl) {
-      return _v1ReadWriteAssignmentWriteType(origin.target);
-    }
-    throw StateError('Unexpected assignment projection origin.');
-  }
+  TypeImpl? get writeType => switch (_v1ProjectionOrigin) {
+    DirectAssignmentImpl origin => _v1DirectWriteType(origin.target),
+    CompoundAssignmentImpl origin => _v1ReadWriteAssignmentWriteType(
+      origin.target,
+    ),
+    IfNullAssignmentImpl origin => _v1ReadWriteAssignmentWriteType(
+      origin.target,
+    ),
+  };
 
   @override
   set writeType(TypeImpl? type) {
