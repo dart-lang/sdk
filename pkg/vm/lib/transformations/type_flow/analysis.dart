@@ -1045,7 +1045,7 @@ class _ReceiverTypeBuilder {
       if (list == null) {
         t = emptyType;
       } else {
-        t = SetType(list);
+        t = SetType(List.of(list, growable: false));
       }
     } else {
       assert(_list == null);
@@ -1524,10 +1524,9 @@ class _TFClassImpl extends TFClass {
     } else if (numSubTypes == 1) {
       return _allocatedSubtypes.single.concreteType;
     } else {
-      List<ConcreteType> types = <ConcreteType>[];
-      for (var sub in _allocatedSubtypes) {
-        types.add(sub.concreteType);
-      }
+      final types = _allocatedSubtypes
+          .map((sub) => sub.concreteType)
+          .toList(growable: false);
       // SetType constructor expects a list of ConcreteTypes sorted by classId
       // (for faster intersections and unions).
       types.sort();
