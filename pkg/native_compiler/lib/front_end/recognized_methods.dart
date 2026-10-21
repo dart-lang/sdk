@@ -1012,6 +1012,48 @@ final class VmRecognizedMethods(
         builder.graph.function,
       );
     },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'get:key',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.WeakProperty_key);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'set:key',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.WeakProperty_key);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'get:value',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.WeakProperty_value);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'set:value',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.WeakProperty_value);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakReference',
+      'get:target',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.WeakReference_target);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakReference',
+      'set:_target',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.WeakReference_target);
+    },
 
     // dart:_compact_hash
     index.getTopLevelProcedure(

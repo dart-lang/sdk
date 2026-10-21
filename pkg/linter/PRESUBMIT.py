@@ -41,12 +41,9 @@ def CheckSorted(input_api, output_api):
         arg for git_file in input_api.AffectedTestableFiles()
         for arg in ('-s', git_file.AbsoluteLocalPath())
     ]
-    result = subprocess.run([
-        dart,
-        'run',
-        os.path.join(local_root, 'pkg', 'analysis_server', 'test',
-                     'verify_sorted_test.dart'),
-    ] + sourceArgs,
+    verify_sorted = os.path.join(local_root, 'pkg', 'analysis_server', 'test',
+                                 'verify_sorted_test.dart')
+    result = subprocess.run([dart, 'run', '-r', verify_sorted] + sourceArgs,
                             capture_output=True)
     if result.returncode != 0:
         unsorted_file_details = [
@@ -64,7 +61,20 @@ def CheckSorted(input_api, output_api):
                     result.stderr.decode('utf-8')
                 ]))
             ]
+        unsorted_files = []
+        for line in unsorted_file_details:
+            path = line.split('Unsorted file ', 1)[1].strip()
+            if path not in unsorted_files:
+                unsorted_files.append(path)
+        lineSep = ' \\\n'
+        if windows:
+            lineSep = ' ^\n'
+        fix_args = ['-s %s' % path for path in unsorted_files]
         return [
-            output_api.PresubmitError('\n'.join(unsorted_file_details))
+            output_api.PresubmitError(
+                '\n'.join(unsorted_file_details) + '\n'
+                'Fix these issues with:\n'
+                '%s run -r %s --update%s%s' %
+                (dart, verify_sorted, lineSep, lineSep.join(fix_args)))
         ]
     return []

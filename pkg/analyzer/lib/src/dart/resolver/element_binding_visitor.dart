@@ -403,7 +403,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitLocalVariable(covariant LocalVariableImpl node) {
-    var declaration = node.parent2 as LocalVariablesDeclarationImpl;
+    var declaration = node.parent2;
 
     var fragment = LocalVariableFragmentImpl(
       name: node.name.nameIfNotEmpty,

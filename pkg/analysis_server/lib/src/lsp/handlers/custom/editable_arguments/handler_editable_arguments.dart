@@ -48,36 +48,18 @@ class EditableArgumentsHandler
     var textDocument = params.textDocument;
     var position = params.position;
 
-    var filePath = pathOfDoc(textDocument);
-    var result = await filePath.mapResult(requireResolvedUnit);
-    var docIdentifier = filePath.mapResultSync(
-      (filePath) => success(extractDocumentVersion(textDocument, filePath)),
-    );
-    var offset = result.mapResultSync(
-      (result) => toOffset(result.lineInfo, position),
-    );
+    return withResolvedUnit(textDocument, token, (result, _, _) async {
+      var offset = toOffset(result.lineInfo, position);
+      return offset.mapResultSync((offset) {
+        // Compute the editable arguments for an invocation at `offset`.
+        var editableArguments = _getEditableArguments(
+          result,
+          textDocument,
+          offset,
+        );
 
-    return await (filePath, result, docIdentifier, offset).mapResults((
-      filePath,
-      result,
-      docIdentifier,
-      offset,
-    ) async {
-      // Check for document changes or cancellation after the awaits above.
-      if (fileHasBeenModified(filePath, docIdentifier.version)) {
-        return fileModifiedError;
-      } else if (token.isCancellationRequested) {
-        return cancelled(token);
-      }
-
-      // Compute the editable arguments for an invocation at `offset`.
-      var editableArguments = _getEditableArguments(
-        result,
-        textDocument,
-        offset,
-      );
-
-      return success(editableArguments);
+        return success(editableArguments);
+      });
     });
   }
 

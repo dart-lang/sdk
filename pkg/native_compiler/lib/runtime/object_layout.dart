@@ -191,6 +191,14 @@ class ObjectLayout {
     'dart:core',
     '_GrowableList',
   );
+  late final ast.Class _weakPropertyClass = _libraryIndex.getClass(
+    'dart:core',
+    '_WeakProperty',
+  );
+  late final ast.Class _weakReferenceClass = _libraryIndex.getClass(
+    'dart:core',
+    '_WeakReference',
+  );
   late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
     'dart:_compact_hash',
     '_LinkedHashBase',
@@ -268,6 +276,24 @@ class ObjectLayout {
     'data',
     _coreTypes.nonNullableRawType(_arrayClass),
     vmOffsets.GrowableObjectArray_data_offset,
+  );
+  late final CField WeakProperty_key = _createBuiltInField(
+    _weakPropertyClass,
+    'key',
+    const ast.DynamicType(),
+    vmOffsets.WeakProperty_key_offset,
+  );
+  late final CField WeakProperty_value = _createBuiltInField(
+    _weakPropertyClass,
+    'value',
+    const ast.DynamicType(),
+    vmOffsets.WeakProperty_value_offset,
+  );
+  late final CField WeakReference_target = _createBuiltInField(
+    _weakReferenceClass,
+    'target',
+    ast.TypeParameterType(_weakReferenceClass.typeParameters.single, .nullable),
+    vmOffsets.WeakReference_target_offset,
   );
 
   // dart:_compact_hash
