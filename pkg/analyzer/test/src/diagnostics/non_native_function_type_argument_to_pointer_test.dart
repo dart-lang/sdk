@@ -63,7 +63,7 @@ import 'dart:ffi';
 void f() {
   NativeFunctionPointer(undefinedPointer).asFunction<void Function()>();
 //                      ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'undefinedPointer'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'undefinedPointer'.
 }
 ''');
   }
@@ -131,7 +131,7 @@ import 'dart:ffi';
 void f(Pointer<NativeFunction<Void Function()>> p) {
   p.asFunction<void Function()>(isLeaf: undefinedLeaf);
 //                                      ^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'undefinedLeaf'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'undefinedLeaf'.
 // [diag.argumentMustBeAConstant] Argument 'isLeaf' must be a constant.
 }
 ''');
