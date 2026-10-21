@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -23,10 +24,12 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 /// Helper for resolving V2 assignment expressions and their targets.
 class AssignmentExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
+  final PropertyElementResolver _propertyElementResolver;
   final TypePropertyResolver _typePropertyResolver;
 
   new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
+      _propertyElementResolver = typeAnalyzer.propertyElementResolver,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 
   DiagnosticReporter get _diagnosticReporter =>
@@ -276,9 +279,8 @@ class AssignmentExpressionResolver {
           );
           _typeAnalyzer.nullSafetyDeadCodeVerifier.visitNode(target.index);
         }
-        var resolution = _typeAnalyzer.resolveIndexDirectAssignmentTarget(
-          target,
-        );
+        var resolution = _propertyElementResolver
+            .resolveIndexDirectAssignmentTarget(target);
         target.write = resolution;
 
         _typeAnalyzer.analyzeExpression(
@@ -314,7 +316,7 @@ class AssignmentExpressionResolver {
         writeAcceptedType = resolution.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var resolution = _typeAnalyzer
+        var resolution = _propertyElementResolver
             .resolveReceiverPropertyDirectAssignmentTarget(target);
         target.write = resolution;
         if (resolution == null) {
@@ -331,12 +333,11 @@ class AssignmentExpressionResolver {
         }
         writeAcceptedType = resolution.acceptedType;
       case ImportPrefixedAssignmentTargetImpl():
-        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
+        _propertyElementResolver.resolveImportPrefixedAssignmentTarget(target);
         writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
-        var resolution = _typeAnalyzer.resolveUnqualifiedNameAssignmentTarget(
-          target,
-        );
+        var resolution = _propertyElementResolver
+            .resolveUnqualifiedNameAssignmentTarget(target);
         target.write = resolution;
         writeAcceptedType = resolution.acceptedType;
         if (resolution case VariableWriteResolutionImpl(:var element)) {
@@ -526,7 +527,7 @@ class AssignmentExpressionResolver {
         );
       case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var result = _typeAnalyzer
+        var result = _propertyElementResolver
             .resolveReceiverPropertyReadWriteAssignmentTarget(target);
         if (result == null) return const UnresolvedReadWriteTarget();
         target.read = result.read;
@@ -537,7 +538,7 @@ class AssignmentExpressionResolver {
           readExpressionInfo: result.readExpressionInfo,
         );
       case ImportPrefixedAssignmentTargetImpl():
-        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
+        _propertyElementResolver.resolveImportPrefixedAssignmentTarget(target);
         var read = target.read!;
         var write = target.write!;
         return ResolvedReadWriteTarget(
@@ -545,7 +546,7 @@ class AssignmentExpressionResolver {
           writeAcceptedType: write.acceptedType,
         );
       case UnqualifiedNameAssignmentTargetImpl():
-        var result = _typeAnalyzer
+        var result = _propertyElementResolver
             .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
         target.read = result.read;
         target.write = result.write;
@@ -871,7 +872,9 @@ class AssignmentExpressionResolver {
       _typeAnalyzer.nullSafetyDeadCodeVerifier.visitNode(target.index);
     }
 
-    var result = _typeAnalyzer.resolveIndexReadWriteAssignmentTarget(target);
+    var result = _propertyElementResolver.resolveIndexReadWriteAssignmentTarget(
+      target,
+    );
     target.read = result?.read;
     target.write = result?.write;
 

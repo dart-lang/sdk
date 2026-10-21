@@ -170,7 +170,8 @@ class ForResolver {
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
       target = forEachParts.target;
-      var write = _typeAnalyzer.resolveUnqualifiedNameAssignmentTarget(target);
+      var write = _typeAnalyzer.propertyElementResolver
+          .resolveUnqualifiedNameAssignmentTarget(target);
       target.write = write;
       _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(
         target,

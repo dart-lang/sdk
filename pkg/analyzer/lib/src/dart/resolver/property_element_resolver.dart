@@ -2201,7 +2201,7 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     var readLookup =
         LexicalLookup.resolveGetter(scopeLookupResult) ??
-        _typeAnalyzer.thisLookupGetter2(node, name.lexeme);
+        ThisLookup.lookupGetter2(_typeAnalyzer, node: node, name: name.lexeme);
     var readElementRequested = readLookup?.requested;
     var readElementRecovery = readLookup?.recovery;
 
