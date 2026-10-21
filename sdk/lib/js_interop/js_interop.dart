@@ -634,10 +634,12 @@ extension type JSError._(JSObject _) implements JSObject {
   ///
   /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
   factory JSError(String message, {JSAny? cause}) => cause == null
-      ? JSError.__(message)
-      : JSError.__(message, JSObject()..['cause'] = cause);
+      ? JSError._native(message)
+      : JSError._native(message, JSObject()..['cause'] = cause);
 
-  external JSError.__(String message, [JSObject options]);
+  /// The native constructor that takes a raw [JSObject] for its options rather
+  /// than Dart-style named arguments.
+  external JSError._native(String message, [JSObject options]);
 
   /// See [`Error.cause`].
   ///
