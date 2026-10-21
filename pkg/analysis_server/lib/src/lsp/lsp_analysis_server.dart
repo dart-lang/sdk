@@ -53,6 +53,10 @@ import 'package:meta/meta.dart';
 /// that listens on a [LspServerCommunicationChannel] for LSP messages and
 /// processes them.
 class LspAnalysisServer extends AnalysisServer {
+  /// A [Future] used by tests to allow inserting a delay after getting a
+  /// resolved unit.
+  static Future<void>? delayAfterResolveForTests;
+
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
 
@@ -87,6 +91,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Capabilities of the server. Will be null prior to initialization as
   /// the server capabilities depend on the client capabilities.
   ServerCapabilities? capabilities;
+
   late ServerCapabilitiesComputer capabilitiesComputer;
 
   /// Whether or not the server is controlling the shutdown and will exit

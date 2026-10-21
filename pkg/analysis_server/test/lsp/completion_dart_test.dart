@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
 import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
@@ -2813,7 +2813,7 @@ var a = 1 /^
 
     // Use a completer to force the requests to overlap without races.
     var completer = Completer<void>();
-    CompletionHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       var responseFutures = [
         getCompletion(mainFileUri, position),
@@ -2851,7 +2851,7 @@ var a = 1 /^
       completer.complete();
       await Future.wait(expectationFutures);
     } finally {
-      CompletionHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
   }
 
@@ -5609,7 +5609,7 @@ void f() {
 
     // Use a Completer to control when the completion handler starts computing.
     var completer = Completer<void>();
-    CompletionHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       // Start the completion request but don't await it yet.
       var completionRequest = getCompletionList(
@@ -5627,7 +5627,7 @@ void f() {
       expect(result.items, isNotEmpty);
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
-      CompletionHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
   }
 

@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/extensions/text_document_filters.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
@@ -38,7 +39,6 @@ import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:collection/collection.dart';
-import 'package:meta/meta.dart';
 
 /// A record of a [CompletionItem] and a fuzzy score.
 typedef _ScoredCompletionItem = ({CompletionItem item, double score});
@@ -46,11 +46,6 @@ typedef _ScoredCompletionItem = ({CompletionItem item, double score});
 class CompletionHandler
     extends SharedMessageHandler<CompletionParams, CompletionList>
     with LspPluginRequestHandlerMixin {
-  /// A [Future] used by tests to allow inserting a delay between resolving
-  /// the initial unit and the completion code running.
-  @visibleForTesting
-  static Future<void>? delayAfterResolveForTests;
-
   /// The maximum size of a documentation comment for it to be included inline
   /// in a completion item.
   ///
@@ -166,8 +161,8 @@ class CompletionHandler
       );
     });
 
-    if (delayAfterResolveForTests != null) {
-      await delayAfterResolveForTests;
+    if (LspAnalysisServer.delayAfterResolveForTests case var delay?) {
+      await delay;
     }
     if (token.isCancellationRequested) {
       return cancelled(token);

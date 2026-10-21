@@ -36,7 +36,11 @@ class InlayHintHandler
       return success([]);
     }
 
-    return withResolvedUnit(textDocument, token, (result, _, _) async {
+    return withResolvedUnit(textDocument: textDocument, token, (
+      result,
+      _,
+      _,
+    ) async {
       var config = server.lspClientConfiguration.global.inlayHints;
       var computer = DartInlayHintComputer(pathContext, result, config);
       var hints = computer.compute();
