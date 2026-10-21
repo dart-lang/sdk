@@ -49,28 +49,23 @@ import 'utils.dart';
 
 /// Maintains set of dependent invocations.
 class _DependencyTracker {
-  Set<_Invocation>? _dependentInvocations;
+  SmallSet<_Invocation> _dependentInvocations = const SmallSet.empty();
 
   void addDependentInvocation(_Invocation invocation) {
     if (!identical(invocation, this)) {
-      var dependentInvocations = _dependentInvocations;
-      if (dependentInvocations == null) {
-        _dependentInvocations = dependentInvocations = Set<_Invocation>();
-      }
-      dependentInvocations.add(invocation);
+      _dependentInvocations = _dependentInvocations.add(invocation);
     }
   }
 
   void invalidateDependentInvocations(_WorkList workList) {
-    final dependentInvocations = _dependentInvocations;
-    if (dependentInvocations != null) {
+    if (!_dependentInvocations.isEmpty) {
       if (kPrintTrace) {
         tracePrint('   - CHANGED: $this');
-        for (var di in dependentInvocations) {
+        _dependentInvocations.forEach((di) {
           tracePrint('     - invalidating $di');
-        }
+        });
       }
-      dependentInvocations.forEach(workList.invalidateInvocation);
+      _dependentInvocations.forEach(workList.invalidateInvocation);
     }
   }
 }
@@ -512,7 +507,8 @@ final class _DirectInvocation extends _Invocation {
 
 final class _DispatchableInvocation extends _Invocation {
   bool _isPolymorphic = false;
-  Set<Call>? _callSites; // Populated only if not polymorphic.
+  // Populated only if not polymorphic.
+  SmallSet<Call> _callSites = const SmallSet.empty();
   Member? _monomorphicTarget;
   _DirectInvocation? _monomorphicDirectInvocation;
 
@@ -938,7 +934,7 @@ final class _DispatchableInvocation extends _Invocation {
       typeChecksNeeded = true;
 
       _notifyCallSites();
-      _callSites = null;
+      _callSites = const SmallSet.empty();
     }
   }
 
@@ -953,7 +949,7 @@ final class _DispatchableInvocation extends _Invocation {
   void addCallSite(Call callSite) {
     _notifyCallSite(callSite);
     if (!callSite.isPolymorphic || !callSite.useCheckedEntry) {
-      (_callSites ??= new Set<Call>()).add(callSite);
+      _callSites = _callSites.add(callSite);
     }
   }
 
@@ -977,10 +973,7 @@ final class _DispatchableInvocation extends _Invocation {
   /// Notify call sites monitoring this invocation about changes in
   /// polymorphism of this invocation.
   void _notifyCallSites() {
-    final callSites = _callSites;
-    if (callSites != null) {
-      callSites.forEach(_notifyCallSite);
-    }
+    _callSites.forEach(_notifyCallSite);
   }
 
   @override
