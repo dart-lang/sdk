@@ -89,19 +89,16 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   void visitPatternVariableDeclarationStatement(
     PatternVariableDeclarationStatement node,
   ) {
-    if (node.declaration.expression.hasObviousType) return;
     _PatternVisitor(rule).visitDartPattern(node.declaration.pattern);
   }
 
   @override
   void visitSwitchExpression(SwitchExpression node) {
-    if (node.expression.hasObviousType) return;
     node.cases.forEach(_PatternVisitor(rule).visitSwitchExpressionCase);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    if (node.expression.hasObviousType) return;
     for (SwitchMember member in node.members) {
       if (member is SwitchPatternCase) {
         _PatternVisitor(rule).visitSwitchPatternCase(member);
