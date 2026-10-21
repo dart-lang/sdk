@@ -121,6 +121,11 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   }
 
   @override
+  Future<bool> isAccessible(DartAccessibility accessibility) {
+    return accessibility.isTypeAccessible(_type, name);
+  }
+
+  @override
   bool get isEnumSubtype => _typeOperations.isEnum(_type);
 
   @override

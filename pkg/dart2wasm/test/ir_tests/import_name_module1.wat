@@ -4,7 +4,7 @@
   (type $JSExternWrapper (sub $Object (struct
     (field $#classId i32)
     (field $#identityHash (mut i32))
-    (field $_externRef externref))))
+    (field $_externRef (ref extern)))))
   (type $Object (sub $#Top (struct
     (field $#classId i32)
     (field $#identityHash (mut i32)))))

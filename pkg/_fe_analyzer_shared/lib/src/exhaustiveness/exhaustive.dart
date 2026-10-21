@@ -198,10 +198,13 @@ class _Checker {
     }
     for (SingleSpace firstValuePattern in firstValuePatterns.singleSpaces) {
       StaticType contextType = firstValuePattern.type;
-      List<StaticType> stack = [firstValuePattern.type];
+      List<_StaticTypeState> stack = [
+        new _StaticTypeState(firstValuePattern.type),
+      ];
       List<Witness>? witnesses;
       while (stack.isNotEmpty) {
-        StaticType type = stack.removeAt(0);
+        _StaticTypeState staticTypeState = stack.removeAt(0);
+        StaticType type = staticTypeState.type;
         if (type.isSubtypeOf(StaticType.neverType)) {
           // Don't try to exhaust the Never type.
           continue;
@@ -209,7 +212,7 @@ class _Checker {
         if (type.isSealed) {
           List<Witness>? result = _filterByType(
             contextType,
-            type,
+            staticTypeState,
             caseRows,
             firstValuePattern,
             valuePatterns,
@@ -224,12 +227,19 @@ class _Checker {
           } else {
             // The type was not fully handled so we must allow for
             // handling of individual subtypes.
-            stack.addAll(type.getSubtypes(keysOfInterest));
+            for (StaticType subtype in type.getSubtypes(keysOfInterest)) {
+              stack.add(
+                new _StaticTypeState(subtype, [
+                  ...?staticTypeState.superTypes,
+                  type,
+                ]),
+              );
+            }
           }
         } else {
           List<Witness>? result = _filterByType(
             contextType,
-            type,
+            staticTypeState,
             caseRows,
             firstValuePattern,
             valuePatterns,
@@ -270,7 +280,7 @@ class _Checker {
 
   List<Witness>? _filterByType(
     StaticType contextType,
-    StaticType type,
+    _StaticTypeState typeState,
     List<List<Space>> caseRows,
     SingleSpace firstSingleSpaceValue,
     List<Space> valueSpaces,
@@ -282,7 +292,12 @@ class _Checker {
     // Extend the witness with the type we're matching.
     List<Predicate> extendedWitness = [
       ...witnessPredicates,
-      new Predicate(path, contextType, type),
+      new Predicate(
+        path: path,
+        staticType: contextType,
+        superTypes: typeState.superTypes,
+        valueType: typeState.type,
+      ),
     ];
 
     // 1) Discard any rows that might not match because the column's type isn't
@@ -300,7 +315,7 @@ class _Checker {
       for (SingleSpace firstSingleSpace in firstSpace.singleSpaces) {
         // If the row's type is a supertype of the value pattern's type then it
         // must match.
-        if (type.isSubtypeOf(firstSingleSpace.type)) {
+        if (typeState.type.isSubtypeOf(firstSingleSpace.type)) {
           remainingRowFirstSingleSpaces.add(firstSingleSpace);
           remainingRows.add(row);
         }
@@ -334,7 +349,7 @@ class _Checker {
         sortedPropertyKeys,
         sortedAdditionalPropertyKeys,
         firstSingleSpaceValue,
-        type,
+        typeState.type,
         path,
       ),
       ...valueSpaces.skip(1),
@@ -483,4 +498,39 @@ class CaseUnreachability {
 
   @override
   String toString() => 'Case #${index + 1} ${cases[index]} is unreachable.';
+}
+
+/// A [StaticType] together with the supertypes that were checked prior to
+/// checking [type].
+///
+/// For instance if we have this hierarchy:
+///
+///     sealed class A {}
+///     class B extends A {}
+///     sealed class C extends A {}
+///     class D extends C {}
+///     class E extends D {}
+///
+/// then when checking
+///
+///     method(A a) => switch (a) {
+///       B() => 0,
+///       D() => 1,
+///     };
+///
+/// we first check if `A` is exhausted, which it isn't directly, and then we
+/// check `B` and `C`, the subtypes of `A`, keeping the information that their
+/// supertype `A` was previously checked. Similarly after checking if `C` is
+/// exhausted, which again it isn't, we check `D` and `E` keeping the
+/// information that supertypes `A` and `C` were previously checked.
+///
+/// This information is used to provide witnesses with the supertype context in
+/// which they were found, which in turn is used to filter witnesses in Quick
+/// Fixes such that inaccessible types/values are not used in the generated
+/// code.
+class _StaticTypeState {
+  final StaticType type;
+  final List<StaticType>? superTypes;
+
+  new(this.type, [this.superTypes]);
 }

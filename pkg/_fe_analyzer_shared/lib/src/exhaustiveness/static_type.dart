@@ -130,6 +130,10 @@ abstract class StaticType {
     Map<Key, PropertyWitness> witnessFields, {
     required bool forCorrection,
   });
+
+  /// Returns `true` if this static type is accessible as determined by
+  /// [accessibility].
+  Future<bool> isAccessible(DartAccessibility accessibility);
 }
 
 mixin _ObjectFieldMixin on _BaseStaticType {
@@ -237,6 +241,10 @@ abstract class _BaseStaticType implements StaticType {
       buffer.write(')');
     }
   }
+
+  @override
+  Future<bool> isAccessible(DartAccessibility accessibility) =>
+      new Future.value(true);
 
   @override
   String toString() => name;
@@ -402,6 +410,10 @@ class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
   }
 
   @override
+  Future<bool> isAccessible(DartAccessibility accessibility) =>
+      underlying.isAccessible(accessibility);
+
+  @override
   bool get isEnumSubtype => underlying.isEnumSubtype;
 
   @override
@@ -534,6 +546,10 @@ class WrappedStaticType extends _BaseStaticType {
       forCorrection: forCorrection,
     );
   }
+
+  @override
+  Future<bool> isAccessible(DartAccessibility accessibility) =>
+      wrappedType.isAccessible(accessibility);
 
   @override
   late final StaticType nonNullable =

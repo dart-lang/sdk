@@ -5,7 +5,7 @@
     (field $#classId i32)
     (field $value f64))))
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param externref) (result externref))
-  (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param f64) (result externref))
+  (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param f64) (result (ref extern)))
   (func $"dart2wasm.R (import)" (import "dart2wasm" "R") (param f64) (result externref))
   (global $"doubleValueNullable initialized" (mut i32) <...>)
   (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)

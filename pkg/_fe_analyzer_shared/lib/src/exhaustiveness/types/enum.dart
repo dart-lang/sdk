@@ -23,8 +23,13 @@ abstract class EnumOperations<
   /// identity.
   EnumElementValue? getEnumElementValue(EnumElement enumElement);
 
-  /// Returns the declared name of the [enumElement].
+  /// Returns the declared name of the [enumElement] including the enum prefix,
+  /// i.e. `E.a`.
   String getEnumElementName(EnumElement enumElement);
+
+  /// Returns the declared name of the [enumElement] excluding the enum prefix,
+  /// i.e. `a` instead of `E.a`.
+  String getEnumElementSimpleName(EnumElement enumElement);
 
   /// Returns the static type of the [enumElement].
   Type getEnumElementType(EnumElement enumElement);
@@ -79,6 +84,7 @@ class EnumInfo<
           new IdentityRestriction<EnumElement>(element),
           _enumOperations.getEnumElementName(element),
           element,
+          _enumOperations.getEnumElementSimpleName(element),
         );
       }
     }
@@ -154,6 +160,10 @@ class EnumElementStaticType<Type extends Object, EnumElement extends Object>
     extends ValueStaticType<Type, EnumElement> {
   final EnumElement _value;
 
+  /// The simple name of the enum element without the enum prefix, i.e. `a`
+  /// instead of `E.a` (which is what [name] is).
+  final String _simpleName;
+
   new(
     super.typeOperations,
     super.fieldLookup,
@@ -161,10 +171,16 @@ class EnumElementStaticType<Type extends Object, EnumElement extends Object>
     super.restriction,
     super.name,
     this._value,
+    this._simpleName,
   );
 
   @override
   void valueToDart(DartTemplateBuffer buffer) {
     buffer.writeEnumValue(_value, name);
+  }
+
+  @override
+  Future<bool> isAccessible(DartAccessibility accessibility) async {
+    return accessibility.isEnumValueAccessible(_value, _simpleName);
   }
 }

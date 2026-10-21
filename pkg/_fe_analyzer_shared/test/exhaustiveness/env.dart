@@ -493,6 +493,12 @@ class _EnumOperations
   }
 
   @override
+  String getEnumElementSimpleName(_EnumElement enumElement) {
+    // TODO(johnniwinther): Support testing of enums.
+    throw new UnimplementedError('_EnumOperations.getEnumElementSimpleName');
+  }
+
+  @override
   _Type getEnumElementType(_EnumElement enumElement) {
     // TODO(johnniwinther): Support testing of enums.
     throw new UnimplementedError('_EnumOperations.getEnumElementType');

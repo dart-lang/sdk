@@ -7,7 +7,6 @@ library;
 
 import 'dart:core' hide Type;
 
-import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart' hide Variance;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_algebra.dart' show getFreshTypeParameters;
@@ -628,14 +627,27 @@ class SetType extends Type {
     int i1 = 0;
     int i2 = 0;
     int newLength = 0;
-    // Pre-allocate a List that is the maximum possible length of the result to
-    // avoid multiple expensive grow operations. Shrink the List to the correct
-    // size at the end.
-    List<ConcreteType> types = List.filled(
-      types1.length + types2.length,
-      _placeholderType,
-      growable: true,
-    );
+    while ((i1 < types1.length) && (i2 < types2.length)) {
+      final t1 = types1[i1];
+      final t2 = types2[i2];
+      final id1 = t1.cls.id;
+      final id2 = t2.cls.id;
+      if (id1 < id2) {
+        ++i1;
+      } else if (id1 > id2) {
+        ++i2;
+      } else {
+        ++i1;
+        ++i2;
+      }
+      ++newLength;
+    }
+    newLength += (types1.length - i1) + (types2.length - i2);
+
+    final types = List.filled(newLength, _placeholderType);
+    i1 = 0;
+    i2 = 0;
+    newLength = 0;
     while ((i1 < types1.length) && (i2 < types2.length)) {
       final t1 = types1[i1];
       final t2 = types2[i2];
@@ -668,7 +680,40 @@ class SetType extends Type {
         types[newLength++] = types2[i];
       }
     }
-    return types..length = newLength;
+    assert(newLength == types.length);
+    return types;
+  }
+
+  static int _binarySearch(List<ConcreteType> types, int targetId) {
+    int min = 0;
+    int max = types.length;
+    while (min < max) {
+      final mid = (min + max) >> 1;
+      final id = types[mid].cls.id;
+      if (id == targetId) return mid;
+      if (id < targetId) {
+        min = mid + 1;
+      } else {
+        max = mid;
+      }
+    }
+    return ~min;
+  }
+
+  static List<ConcreteType> _insertType(
+    List<ConcreteType> types,
+    int index,
+    ConcreteType other,
+  ) {
+    final len = types.length;
+    final newTypes = List.filled(len + 1, other);
+    for (int i = 0; i < index; i++) {
+      newTypes[i] = types[i];
+    }
+    for (int i = index; i < len; i++) {
+      newTypes[i + 1] = types[i];
+    }
+    return newTypes;
   }
 
   static List<ConcreteType> _intersectLists(
@@ -727,6 +772,14 @@ class SetType extends Type {
     return i1 == sublist.length;
   }
 
+  static bool _isSameList(List<ConcreteType> types, List<ConcreteType> list) {
+    assert(types.length == list.length);
+    for (int i = 0; i < types.length; i++) {
+      if (types[i] != list[i]) return false;
+    }
+    return true;
+  }
+
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
     if (identical(this, other)) return this;
@@ -746,14 +799,14 @@ class SetType extends Type {
       return SetType(_unionLists(types, other.types));
     } else if (other is ConcreteType) {
       // Use binary search since types is sorted by class id.
-      int index = binarySearch(types, other);
-      if (index != -1) {
+      int index = _binarySearch(types, other.cls.id);
+      if (index >= 0) {
         final type = types[index];
         final unioned = type.unionSameClass(other);
         if (unioned == type) return this;
-        return SetType(List<ConcreteType>.of(types)..[index] = unioned);
+        return SetType(List.of(types, growable: false)..[index] = unioned);
       }
-      return SetType(_unionLists(types, <ConcreteType>[other]));
+      return SetType(_insertType(types, ~index, other));
     } else if (other is ConeType) {
       return typeHierarchy
           .specializeTypeCone(other.cls, allowWideCone: true)
@@ -780,8 +833,12 @@ class SetType extends Type {
         return emptyType;
       } else if (size == 1) {
         return list.single;
+      } else if (size == types.length && _isSameList(types, list)) {
+        return this;
+      } else if (size == other.types.length && _isSameList(other.types, list)) {
+        return other;
       } else {
-        return SetType(list);
+        return SetType(List.of(list, growable: false));
       }
     } else if (other is ConcreteType) {
       for (var type in types) {
@@ -1021,7 +1078,7 @@ class WideConeType extends ConeType {
       } else if (size == other.types.length) {
         return other;
       } else {
-        return SetType(list);
+        return SetType(List.of(list, growable: false));
       }
     } else {
       throw 'Unexpected type $other';
@@ -1370,8 +1427,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (other is ConcreteType) {
       if (!identical(this.cls, other.cls)) {
         final types = (this.cls.id < other.cls.id)
-            ? <ConcreteType>[this, other]
-            : <ConcreteType>[other, this];
+            ? (List.filled(2, this)..[1] = other)
+            : (List.filled(2, other)..[1] = this);
         return SetType(types);
       }
       return unionSameClass(other);
