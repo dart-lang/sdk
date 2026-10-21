@@ -48,7 +48,8 @@ A f(p) {
 
     expect(nodes, hasLength(51));
     expect(nodes[0], parseResult.unit);
-    expect(nodes[2], findNode.classDeclaration('class B'));
+    // The V1 projection of the class `B`.
+    expect(nodes[2], parseResult.unit.declarations[1]);
     // The V1 projection of the top-level function `f`.
     expect(nodes[3], parseResult.unit.declarations[2]);
     // The V1 projection of the local function `q`.

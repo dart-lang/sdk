@@ -77,6 +77,44 @@ void f() {
 ''');
   }
 
+  test_functionInvocationResult_callable_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  void call<T>() {}
+}
+
+C g() => C();
+
+void f() {
+  g()();
+//^^^
+// [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'C' can't be inferred.
+}
+''');
+  }
+
+  test_functionInvocationResult_immediatelyCast() async {
+    await resolveTestCodeWithDiagnostics(r'''
+T Function<T>() g() => <T>() => throw 0;
+
+void f() {
+  g()() as int;
+}
+''');
+  }
+
+  test_functionInvocationResult_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void Function<T>() g() => <T>() {};
+
+void f() {
+  g()();
+//^^^
+// [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'void Function<T>()' can't be inferred.
+}
+''');
+  }
+
   test_genericFunctionExpression_downwardsInference() async {
     await resolveTestCodeWithDiagnostics(r'''
 int f(T Function<T>()? m, T Function<T>() n) {
@@ -89,6 +127,14 @@ int f(T Function<T>()? m, T Function<T>() n) {
     await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>()? m, void Function<T>() n) {
   (m ?? n)<int>();
+}
+''');
+  }
+
+  test_genericFunctionExpression_immediatelyCast() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(T Function<T>()? m, T Function<T>() n) {
+  (m ?? n)() as int;
 }
 ''');
   }
@@ -132,6 +178,20 @@ void f() {
   h(g());
 //  ^^^
 // [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'C' can't be inferred.
+}
+''');
+  }
+
+  test_methodInvocationResult_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void Function<T>() g() => <T>() {};
+}
+
+void f(A a) {
+  a.g()();
+//^^^^^
+// [diag.inferenceFailureOnGenericInvocation] The type argument(s) of the generic function type 'void Function<T>()' can't be inferred.
 }
 ''');
   }

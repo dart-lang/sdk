@@ -35,11 +35,11 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -621,11 +621,11 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1181,11 +1181,11 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1782,11 +1782,11 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

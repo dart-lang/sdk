@@ -215,7 +215,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
     if (_startOffset == _endOffset &&
@@ -224,7 +224,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
       return;
     }
 
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
   }
 
   @override

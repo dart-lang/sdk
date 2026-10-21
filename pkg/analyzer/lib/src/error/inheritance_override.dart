@@ -56,7 +56,7 @@ class InheritanceOverrideVerifier {
 
     for (var declaration in unit.declarations2) {
       _ClassVerifier verifier;
-      if (declaration is ClassDeclarationImpl) {
+      if (declaration is ClassDeclaration2Impl) {
         var fragment = declaration.declaredFragment!;
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
@@ -71,7 +71,7 @@ class InheritanceOverrideVerifier {
           classFragment: fragment,
           diagnosticSource: unit.declaredFragment!.source,
           implementsClause: declaration.implementsClause,
-          members: declaration.body.members2,
+          members: declaration.body.members,
           primaryConstructor: declaration.namePart.tryCast(),
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,

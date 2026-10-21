@@ -126,6 +126,46 @@ void f(X x) {
 ''');
   }
 
+  test_functionInvocation_bound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T extends num, S extends List<T>>(S s) {}
+
+void g() {
+  f(<String>[]);
+//^
+// [diag.couldNotInfer] Couldn't infer type parameter 'S'.\n\nTried to infer 'List<String>' for 'S' which doesn't work:\n  Type parameter 'S' is declared to extend 'List<T>' producing 'List<num>'.\nThe type 'List<String>' was inferred from:\n  Parameter 's' declared as     'S'\n                but argument is 'List<String>'.\n\nConsider passing explicit type argument(s) to the generic.
+}
+''');
+  }
+
+  test_functionInvocationResult_bound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void Function<T extends num, S extends List<T>>(S) f() =>
+    <T extends num, S extends List<T>>(S s) {};
+
+void g() {
+  f()(<String>[]);
+//^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'S'.\n\nTried to infer 'List<String>' for 'S' which doesn't work:\n  Type parameter 'S' is declared to extend 'List<T>' producing 'List<num>'.\nThe type 'List<String>' was inferred from:\n  Parameter '' declared as     'S'\n               but argument is 'List<String>'.\n\nConsider passing explicit type argument(s) to the generic.
+}
+''');
+  }
+
+  test_functionInvocationResult_instantiation_bound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void Function<T extends num, S extends List<T>>(S) g() =>
+    <T extends num, S extends List<T>>(S s) {};
+
+void h(void Function(List<String>) callback) {}
+
+void f() {
+  h(g());
+//  ^^^
+// [diag.couldNotInfer] Couldn't infer type parameter 'S'.\n\nTried to infer 'List<String>' for 'S' which doesn't work:\n  Type parameter 'S' is declared to extend 'List<T>' producing 'List<num>'.\nThe type 'List<String>' was inferred from:\n  Function type declared as 'void Function<T extends num, S extends List<T>>(S)'\n                used where  'void Function(List<String>)' is required.\n\nConsider passing explicit type argument(s) to the generic.
+}
+''');
+  }
+
   test_functionType() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f<X>() {}

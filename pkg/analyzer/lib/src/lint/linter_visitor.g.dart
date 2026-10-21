@@ -1290,12 +1290,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
-  @override
-  void visitBlockClassBody(BlockClassBody node) {
-    _runSubscriptions(node, _registry._forBlockClassBody);
-    node.visitChildren2(this);
-  }
-
   @experimental
   @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
@@ -1409,9 +1403,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    _runSubscriptions(node, _registry._forClassDeclaration);
+  void visitClassDeclaration2(ClassDeclaration2 node) {
+    _runSubscriptions(node, _registry._forClassDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -1600,12 +1595,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {
-    _runSubscriptions(node, _registry._forEmptyClassBody);
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _runSubscriptions(node, _registry._forEmptyFunctionBody);
     node.visitChildren2(this);
@@ -1681,9 +1670,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _runSubscriptions(node, _registry._forExtensionTypeDeclaration);
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
+    _runSubscriptions(node, _registry._forExtensionTypeDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -4551,8 +4541,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<BinaryOperatorInvocation>>
   _forBinaryOperatorInvocation = [];
 
-  final List<_Subscription2<BlockClassBody>> _forBlockClassBody = [];
-
   final List<_Subscription2<BlockEnumDeclarationBody>>
   _forBlockEnumDeclarationBody = [];
 
@@ -4597,7 +4585,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<CatchClauseParameter>> _forCatchClauseParameter =
       [];
 
-  final List<_Subscription2<ClassDeclaration>> _forClassDeclaration = [];
+  final List<_Subscription2<ClassDeclaration2>> _forClassDeclaration2 = [];
 
   final List<_Subscription2<ClassTypeAlias2>> _forClassTypeAlias2 = [];
 
@@ -4667,8 +4655,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<DoubleLiteral>> _forDoubleLiteral = [];
 
-  final List<_Subscription2<EmptyClassBody>> _forEmptyClassBody = [];
-
   final List<_Subscription2<EmptyFunctionBody>> _forEmptyFunctionBody = [];
 
   final List<_Subscription2<EmptyStatement>> _forEmptyStatement = [];
@@ -4697,8 +4683,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ExtensionOverride2>> _forExtensionOverride2 = [];
 
-  final List<_Subscription2<ExtensionTypeDeclaration>>
-  _forExtensionTypeDeclaration = [];
+  final List<_Subscription2<ExtensionTypeDeclaration2>>
+  _forExtensionTypeDeclaration2 = [];
 
   final List<_Subscription2<Field2>> _forField2 = [];
 
@@ -5178,12 +5164,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forBlockClassBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addBlockEnumDeclarationBody(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -5323,9 +5303,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addClassDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forClassDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forClassDeclaration2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5557,12 +5537,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forEmptyClassBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forEmptyFunctionBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5655,12 +5629,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addExtensionTypeDeclaration(
+  void addExtensionTypeDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forExtensionTypeDeclaration.add(
+    _forExtensionTypeDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

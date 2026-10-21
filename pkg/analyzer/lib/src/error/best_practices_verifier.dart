@@ -245,7 +245,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
 
     _enclosingClass = element;
@@ -264,7 +264,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         nameToken: node.namePart.typeName,
       );
       _checkForInvalidSealedSuperclass(node);
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
@@ -434,11 +434,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitExtensionTypeDeclaration(node);
+      super.visitExtensionTypeDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }

@@ -199,7 +199,7 @@ class DuplicateDefinitionVerifier {
 
     for (var member in node.declarations2) {
       switch (member) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -229,7 +229,7 @@ class DuplicateDefinitionVerifier {
               );
             }
           }
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(

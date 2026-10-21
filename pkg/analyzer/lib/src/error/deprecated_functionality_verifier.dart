@@ -18,7 +18,7 @@ class DeprecatedFunctionalityVerifier {
 
   new(this._diagnosticReporter, this._currentLibrary);
 
-  void classDeclaration(ClassDeclaration node) {
+  void classDeclaration(ClassDeclaration2 node) {
     _checkForDeprecatedExtend(node.extendsClause?.superclass);
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);

@@ -33,6 +33,11 @@ class FunctionReferenceResolver {
   /// method only selects an implicit `call` tear-off and instantiates its type.
   void resolveInstantiation(FunctionInstantiationImpl node) {
     node.typeArguments.accept2(_typeAnalyzer);
+    // Type arguments continue null-shorting, so in `a?.foo<int>` the operand
+    // is the non-nullable `foo` tear-off, and only the result is nullable.
+    // This goes beyond the specification, whose null-shorting rules don't
+    // mention type arguments; the CFE ends null-shorting before them.
+    // TODO(scheglov): Follow the language decision on this.
     _typeAnalyzer.analyzeExpression(
       node.operand,
       _typeAnalyzer.operations.unknownType,
@@ -113,6 +118,10 @@ class FunctionReferenceResolver {
           _typeAnalyzer.typeProvider.objectQuestionType;
     }
     if (rawType is FunctionTypeImpl) {
+      _typeAnalyzer.nullableDereferenceVerifier.expression(
+        diag.uncheckedInstantiationOfNullableValue,
+        node.operand,
+      );
       var typeArgumentTypes = _checkTypeArguments(
         node.typeArguments,
         rawType.typeParameters,

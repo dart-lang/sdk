@@ -25,6 +25,14 @@ const class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -521,11 +529,11 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1081,11 +1089,11 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1699,11 +1707,11 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2307,11 +2315,11 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2919,11 +2927,11 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3585,11 +3593,11 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4229,6 +4237,15 @@ final class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      finalKeyword: final
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       finalKeyword: final
       classKeyword: class
@@ -4696,11 +4713,11 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5254,11 +5271,11 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5859,11 +5876,11 @@ CompilationUnit
         TopLevelVariable
           name: int
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -6393,11 +6410,11 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -6977,11 +6994,11 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -7488,11 +7505,11 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -8700,11 +8717,11 @@ CompilationUnit
           initializer: ParsedUnqualifiedName
             name: b
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

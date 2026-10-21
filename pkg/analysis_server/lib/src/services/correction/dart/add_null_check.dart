@@ -160,7 +160,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
         (parent is CascadeExpression && _target == parent.target) ||
         (parent is MethodInvocation && _target == parent.target) ||
         (parent is FunctionExpressionInvocation &&
-            _target == parent.function)) {
+            _target == parent.function) ||
+        (parent is FunctionReference && _target == parent.function)) {
       // No need to set the `toType` because there isn't any need for a type
       // check.
     } else {
@@ -250,7 +251,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
         target = coveringNode;
       }
     } else if (coveringNode is Expression &&
-        parent is FunctionExpressionInvocation) {
+        (parent is FunctionExpressionInvocation ||
+            parent is FunctionReference)) {
       target = coveringNode;
     } else if (parent is AssignmentExpression) {
       target = parent.rightHandSide;

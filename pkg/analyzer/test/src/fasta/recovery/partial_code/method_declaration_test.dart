@@ -28,13 +28,13 @@ class C { m(B b, {}) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -68,7 +68,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -114,13 +122,13 @@ class C { m(B b, {}) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -141,7 +149,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -175,13 +191,13 @@ class C { m(B b, {}) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -208,7 +224,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -249,13 +273,13 @@ class C { m(B b, {}) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -285,7 +309,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -329,13 +361,13 @@ class C { m(B b, {}) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -365,7 +397,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -409,13 +449,13 @@ class C { m(B b, {}) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -446,7 +486,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -490,13 +538,13 @@ class C { m(B b, {}) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -532,7 +580,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -580,13 +636,13 @@ class C { m(B b, {}) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -621,7 +677,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -668,13 +732,13 @@ class C { m(B b, {}) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -708,7 +772,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -754,13 +826,13 @@ class C { m(B b, []) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -794,7 +866,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -840,13 +920,13 @@ class C { m(B b, []) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -867,7 +947,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -901,13 +989,13 @@ class C { m(B b, []) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -934,7 +1022,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -975,13 +1071,13 @@ class C { m(B b, []) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1011,7 +1107,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1055,13 +1159,13 @@ class C { m(B b, []) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1091,7 +1195,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1135,13 +1247,13 @@ class C { m(B b, []) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1172,7 +1284,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1216,13 +1336,13 @@ class C { m(B b, []) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1258,7 +1378,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1306,13 +1434,13 @@ class C { m(B b, []) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1347,7 +1475,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1394,13 +1530,13 @@ class C { m(B b, []) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1434,7 +1570,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1480,13 +1624,13 @@ class C { m( @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1505,7 +1649,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1536,13 +1688,13 @@ class C { m( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1552,7 +1704,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1578,13 +1738,13 @@ class C { m( var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1596,7 +1756,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1625,13 +1793,13 @@ class C { m( const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1647,7 +1815,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1680,13 +1856,13 @@ class C { m( final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1702,7 +1878,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1732,13 +1916,13 @@ class C { m( int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1754,7 +1938,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1783,13 +1975,13 @@ class C { m( int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1817,7 +2009,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1852,13 +2052,13 @@ class C { m( void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1885,7 +2085,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1920,13 +2128,13 @@ class C { m( set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -1951,7 +2159,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -1988,13 +2204,13 @@ class C { m() @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2017,7 +2233,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2053,13 +2277,13 @@ class C { m() }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2069,7 +2293,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2093,13 +2325,13 @@ class C { m() var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2115,7 +2347,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2146,13 +2386,13 @@ class C { m() const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2171,7 +2411,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2205,13 +2453,13 @@ class C { m() final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2230,7 +2478,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2264,13 +2520,13 @@ class C { m() int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2290,7 +2546,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2324,13 +2588,13 @@ class C { m() int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2355,7 +2619,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2393,13 +2665,13 @@ class C { m() void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2423,7 +2695,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2460,13 +2740,13 @@ class C { m() set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2489,7 +2769,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2527,13 +2815,13 @@ class C { m(B b, @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2556,7 +2844,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2591,13 +2887,13 @@ class C { m(B b, }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2612,7 +2908,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2642,13 +2946,13 @@ class C { m(B b, var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2664,7 +2968,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2697,13 +3009,13 @@ class C { m(B b, const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2723,7 +3035,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2760,13 +3080,13 @@ class C { m(B b, final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2786,7 +3106,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2820,13 +3148,13 @@ class C { m(B b, int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2846,7 +3174,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2879,13 +3215,13 @@ class C { m(B b, int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2917,7 +3253,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -2956,13 +3300,13 @@ class C { m(B b, void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -2993,7 +3337,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3032,13 +3384,13 @@ class C { m(B b, set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3067,7 +3419,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3109,13 +3469,13 @@ class C { m(B @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3141,7 +3501,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3180,13 +3548,13 @@ class C { m(B }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3199,7 +3567,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3227,13 +3603,13 @@ class C { m(B var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3252,7 +3628,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3287,13 +3671,13 @@ class C { m(B const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3315,7 +3699,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3353,13 +3745,13 @@ class C { m(B final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3381,7 +3773,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3419,13 +3819,13 @@ class C { m(B int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3448,7 +3848,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3485,13 +3893,13 @@ class C { m(B int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3519,7 +3927,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3561,13 +3977,13 @@ class C { m(B void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3594,7 +4010,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3634,13 +4058,13 @@ class C { m(B set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3667,7 +4091,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3706,13 +4138,13 @@ class C { m(b, c) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3740,7 +4172,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3780,13 +4220,13 @@ class C { m(b, c) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3801,7 +4241,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3829,13 +4277,13 @@ class C { m(b, c) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3856,7 +4304,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3891,13 +4347,13 @@ class C { m(b, c) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3921,7 +4377,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -3959,13 +4423,13 @@ class C { m(b, c) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -3989,7 +4453,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4027,13 +4499,13 @@ class C { m(b, c) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4058,7 +4530,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4096,13 +4576,13 @@ class C { m(b, c) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4132,7 +4612,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4174,13 +4662,13 @@ class C { m(b, c) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4209,7 +4697,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4250,13 +4746,13 @@ class C { m(b, c) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4284,7 +4780,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4325,13 +4829,13 @@ class C { m(B b @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4359,7 +4863,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4400,13 +4912,13 @@ class C { m(B b }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4421,7 +4933,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4451,13 +4971,13 @@ class C { m(B b var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4478,7 +4998,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4515,13 +5043,13 @@ class C { m(B b const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4545,7 +5073,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4585,13 +5121,13 @@ class C { m(B b final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4615,7 +5151,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4655,13 +5199,13 @@ class C { m(B b int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4686,7 +5230,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4726,13 +5278,13 @@ class C { m(B b int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4762,7 +5314,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4806,13 +5366,13 @@ class C { m(B b void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4841,7 +5401,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4884,13 +5452,13 @@ class C { m(B b set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             name: m
             formalParameters: FormalParameterList
@@ -4918,7 +5486,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             name: m
             parameters: FormalParameterList
@@ -4960,13 +5536,13 @@ class C { static m(B b, {}) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5001,7 +5577,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5048,13 +5632,13 @@ class C { static m(B b, {}) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5076,7 +5660,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5111,13 +5703,13 @@ class C { static m(B b, {}) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5145,7 +5737,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5187,13 +5787,13 @@ class C { static m(B b, {}) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5224,7 +5824,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5269,13 +5877,13 @@ class C { static m(B b, {}) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5306,7 +5914,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5351,13 +5967,13 @@ class C { static m(B b, {}) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5389,7 +6005,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5434,13 +6058,13 @@ class C { static m(B b, {}) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5477,7 +6101,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5526,13 +6158,13 @@ class C { static m(B b, {}) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5568,7 +6200,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5616,13 +6256,13 @@ class C { static m(B b, {}) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5657,7 +6297,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5704,13 +6352,13 @@ class C { static m(B b, []) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5745,7 +6393,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5792,13 +6448,13 @@ class C { static m(B b, []) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5820,7 +6476,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5855,13 +6519,13 @@ class C { static m(B b, []) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5889,7 +6553,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -5931,13 +6603,13 @@ class C { static m(B b, []) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -5968,7 +6640,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6013,13 +6693,13 @@ class C { static m(B b, []) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6050,7 +6730,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6095,13 +6783,13 @@ class C { static m(B b, []) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6133,7 +6821,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6178,13 +6874,13 @@ class C { static m(B b, []) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6221,7 +6917,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6270,13 +6974,13 @@ class C { static m(B b, []) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6312,7 +7016,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6360,13 +7072,13 @@ class C { static m(B b, []) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6401,7 +7113,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6448,13 +7168,13 @@ class C { static m( @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6474,7 +7194,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6506,13 +7234,13 @@ class C { static m( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6523,7 +7251,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6550,13 +7286,13 @@ class C { static m( var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6569,7 +7305,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6599,13 +7343,13 @@ class C { static m( const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6622,7 +7366,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6656,13 +7408,13 @@ class C { static m( final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6679,7 +7431,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6710,13 +7470,13 @@ class C { static m( int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6733,7 +7493,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6763,13 +7531,13 @@ class C { static m( int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6798,7 +7566,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6834,13 +7610,13 @@ class C { static m( void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6868,7 +7644,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6904,13 +7688,13 @@ class C { static m( set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -6936,7 +7720,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -6974,13 +7766,13 @@ class C { static m() @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7004,7 +7796,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7041,13 +7841,13 @@ class C { static m() }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7058,7 +7858,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7083,13 +7891,13 @@ class C { static m() var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7106,7 +7914,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7138,13 +7954,13 @@ class C { static m() const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7164,7 +7980,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7199,13 +8023,13 @@ class C { static m() final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7225,7 +8049,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7260,13 +8092,13 @@ class C { static m() int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7287,7 +8119,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7322,13 +8162,13 @@ class C { static m() int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7354,7 +8194,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7393,13 +8241,13 @@ class C { static m() void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7424,7 +8272,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7462,13 +8318,13 @@ class C { static m() set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7492,7 +8348,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7531,13 +8395,13 @@ class C { static m(B b, @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7561,7 +8425,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7597,13 +8469,13 @@ class C { static m(B b, }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7619,7 +8491,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7650,13 +8530,13 @@ class C { static m(B b, var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7673,7 +8553,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7707,13 +8595,13 @@ class C { static m(B b, const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7734,7 +8622,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7772,13 +8668,13 @@ class C { static m(B b, final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7799,7 +8695,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7834,13 +8738,13 @@ class C { static m(B b, int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7861,7 +8765,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7895,13 +8807,13 @@ class C { static m(B b, int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -7934,7 +8846,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -7974,13 +8894,13 @@ class C { static m(B b, void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8012,7 +8932,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8052,13 +8980,13 @@ class C { static m(B b, set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8088,7 +9016,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8131,13 +9067,13 @@ class C { static m(B @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8164,7 +9100,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8204,13 +9148,13 @@ class C { static m(B }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8224,7 +9168,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8253,13 +9205,13 @@ class C { static m(B var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8279,7 +9231,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8315,13 +9275,13 @@ class C { static m(B const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8344,7 +9304,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8383,13 +9351,13 @@ class C { static m(B final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8412,7 +9380,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8451,13 +9427,13 @@ class C { static m(B int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8481,7 +9457,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8519,13 +9503,13 @@ class C { static m(B int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8554,7 +9538,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8597,13 +9589,13 @@ class C { static m(B void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8631,7 +9623,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8672,13 +9672,13 @@ class C { static m(B set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8706,7 +9706,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8746,13 +9754,13 @@ class C { static m(b, c) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8781,7 +9789,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8822,13 +9838,13 @@ class C { static m(b, c) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8844,7 +9860,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8873,13 +9897,13 @@ class C { static m(b, c) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8901,7 +9925,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -8937,13 +9969,13 @@ class C { static m(b, c) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -8968,7 +10000,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9007,13 +10047,13 @@ class C { static m(b, c) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9038,7 +10078,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9077,13 +10125,13 @@ class C { static m(b, c) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9109,7 +10157,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9148,13 +10204,13 @@ class C { static m(b, c) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9185,7 +10241,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9228,13 +10292,13 @@ class C { static m(b, c) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9264,7 +10328,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9306,13 +10378,13 @@ class C { static m(b, c) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9341,7 +10413,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9383,13 +10463,13 @@ class C { static m(B b @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9418,7 +10498,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9460,13 +10548,13 @@ class C { static m(B b }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9482,7 +10570,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9513,13 +10609,13 @@ class C { static m(B b var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9541,7 +10637,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9579,13 +10683,13 @@ class C { static m(B b const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9610,7 +10714,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9651,13 +10763,13 @@ class C { static m(B b final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9682,7 +10794,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9723,13 +10843,13 @@ class C { static m(B b int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9755,7 +10875,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9796,13 +10924,13 @@ class C { static m(B b int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9833,7 +10961,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9878,13 +11014,13 @@ class C { static m(B b void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9914,7 +11050,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -9958,13 +11102,13 @@ class C { static m(B b set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             name: m
@@ -9993,7 +11137,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             name: m
@@ -10036,13 +11188,13 @@ class C { static A m(B b, {}) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10079,7 +11231,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10128,13 +11288,13 @@ class C { static A m(B b, {}) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10158,7 +11318,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10195,13 +11363,13 @@ class C { static A m(B b, {}) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10231,7 +11399,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10275,13 +11451,13 @@ class C { static A m(B b, {}) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10314,7 +11490,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10361,13 +11545,13 @@ class C { static A m(B b, {}) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10400,7 +11584,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10447,13 +11639,13 @@ class C { static A m(B b, {}) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10487,7 +11679,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10534,13 +11734,13 @@ class C { static A m(B b, {}) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10579,7 +11779,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10630,13 +11838,13 @@ class C { static A m(B b, {}) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10674,7 +11882,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10724,13 +11940,13 @@ class C { static A m(B b, {}) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10767,7 +11983,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10816,13 +12040,13 @@ class C { static A m(B b, []) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10859,7 +12083,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10908,13 +12140,13 @@ class C { static A m(B b, []) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -10938,7 +12170,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -10975,13 +12215,13 @@ class C { static A m(B b, []) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11011,7 +12251,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11055,13 +12303,13 @@ class C { static A m(B b, []) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11094,7 +12342,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11141,13 +12397,13 @@ class C { static A m(B b, []) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11180,7 +12436,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11227,13 +12491,13 @@ class C { static A m(B b, []) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11267,7 +12531,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11314,13 +12586,13 @@ class C { static A m(B b, []) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11359,7 +12631,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11410,13 +12690,13 @@ class C { static A m(B b, []) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11454,7 +12734,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11504,13 +12792,13 @@ class C { static A m(B b, []) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11547,7 +12835,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11596,13 +12892,13 @@ class C { static A m( @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11624,7 +12920,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11658,13 +12962,13 @@ class C { static A m( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11677,7 +12981,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11706,13 +13018,13 @@ class C { static A m( var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11727,7 +13039,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11759,13 +13079,13 @@ class C { static A m( const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11784,7 +13104,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11820,13 +13148,13 @@ class C { static A m( final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11845,7 +13173,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11878,13 +13214,13 @@ class C { static A m( int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11903,7 +13239,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -11935,13 +13279,13 @@ class C { static A m( int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -11972,7 +13316,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12010,13 +13362,13 @@ class C { static A m( void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12046,7 +13398,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12084,13 +13444,13 @@ class C { static A m( set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12118,7 +13478,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12158,13 +13526,13 @@ class C { static A m() @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12190,7 +13558,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12229,13 +13605,13 @@ class C { static A m() }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12248,7 +13624,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12275,13 +13659,13 @@ class C { static A m() var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12300,7 +13684,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12334,13 +13726,13 @@ class C { static A m() const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12362,7 +13754,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12399,13 +13799,13 @@ class C { static A m() final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12427,7 +13827,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12464,13 +13872,13 @@ class C { static A m() int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12493,7 +13901,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12530,13 +13946,13 @@ class C { static A m() int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12564,7 +13980,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12605,13 +14029,13 @@ class C { static A m() void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12638,7 +14062,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12678,13 +14110,13 @@ class C { static A m() set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12710,7 +14142,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12751,13 +14191,13 @@ class C { static A m(B b, @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12783,7 +14223,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12821,13 +14269,13 @@ class C { static A m(B b, }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12845,7 +14293,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12878,13 +14334,13 @@ class C { static A m(B b, var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12903,7 +14359,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -12939,13 +14403,13 @@ class C { static A m(B b, const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -12968,7 +14432,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13008,13 +14480,13 @@ class C { static A m(B b, final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13037,7 +14509,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13074,13 +14554,13 @@ class C { static A m(B b, int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13103,7 +14583,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13139,13 +14627,13 @@ class C { static A m(B b, int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13180,7 +14668,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13222,13 +14718,13 @@ class C { static A m(B b, void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13262,7 +14758,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13304,13 +14808,13 @@ class C { static A m(B b, set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13342,7 +14846,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13387,13 +14899,13 @@ class C { static A m(B @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13422,7 +14934,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13464,13 +14984,13 @@ class C { static A m(B }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13486,7 +15006,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13517,13 +15045,13 @@ class C { static A m(B var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13545,7 +15073,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13583,13 +15119,13 @@ class C { static A m(B const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13614,7 +15150,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13655,13 +15199,13 @@ class C { static A m(B final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13686,7 +15230,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13727,13 +15279,13 @@ class C { static A m(B int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13759,7 +15311,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13799,13 +15359,13 @@ class C { static A m(B int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13836,7 +15396,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13881,13 +15449,13 @@ class C { static A m(B void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13917,7 +15485,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -13960,13 +15536,13 @@ class C { static A m(B set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -13996,7 +15572,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14038,13 +15622,13 @@ class C { static A m(b, c) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14075,7 +15659,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14118,13 +15710,13 @@ class C { static A m(b, c) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14142,7 +15734,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14173,13 +15773,13 @@ class C { static A m(b, c) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14203,7 +15803,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14241,13 +15849,13 @@ class C { static A m(b, c) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14274,7 +15882,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14315,13 +15931,13 @@ class C { static A m(b, c) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14348,7 +15964,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14389,13 +16013,13 @@ class C { static A m(b, c) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14423,7 +16047,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14464,13 +16096,13 @@ class C { static A m(b, c) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14503,7 +16135,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14548,13 +16188,13 @@ class C { static A m(b, c) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14586,7 +16226,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14630,13 +16278,13 @@ class C { static A m(b, c) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14667,7 +16315,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14711,13 +16367,13 @@ class C { static A m(B b @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14748,7 +16404,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14792,13 +16456,13 @@ class C { static A m(B b }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14816,7 +16480,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14849,13 +16521,13 @@ class C { static A m(B b var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14879,7 +16551,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14919,13 +16599,13 @@ class C { static A m(B b const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -14952,7 +16632,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -14995,13 +16683,13 @@ class C { static A m(B b final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -15028,7 +16716,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -15071,13 +16767,13 @@ class C { static A m(B b int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -15105,7 +16801,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -15148,13 +16852,13 @@ class C { static A m(B b int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -15187,7 +16891,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -15234,13 +16946,13 @@ class C { static A m(B b void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -15272,7 +16984,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -15318,13 +17038,13 @@ class C { static A m(B b set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             staticKeyword: static
             returnType: NamedType
@@ -15355,7 +17075,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             modifierKeyword: static
             returnType: NamedType
@@ -15400,13 +17128,13 @@ class C { A m(B b, {}) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -15442,7 +17170,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -15490,13 +17226,13 @@ class C { A m(B b, {}) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -15519,7 +17255,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -15555,13 +17299,13 @@ class C { A m(B b, {}) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -15590,7 +17334,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -15633,13 +17385,13 @@ class C { A m(B b, {}) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -15671,7 +17423,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -15717,13 +17477,13 @@ class C { A m(B b, {}) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -15755,7 +17515,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -15801,13 +17569,13 @@ class C { A m(B b, {}) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -15840,7 +17608,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -15886,13 +17662,13 @@ class C { A m(B b, {}) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -15930,7 +17706,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -15980,13 +17764,13 @@ class C { A m(B b, {}) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16023,7 +17807,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16072,13 +17864,13 @@ class C { A m(B b, {}) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16114,7 +17906,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16162,13 +17962,13 @@ class C { A m(B b, []) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16204,7 +18004,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16252,13 +18060,13 @@ class C { A m(B b, []) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16281,7 +18089,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16317,13 +18133,13 @@ class C { A m(B b, []) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16352,7 +18168,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16395,13 +18219,13 @@ class C { A m(B b, []) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16433,7 +18257,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16479,13 +18311,13 @@ class C { A m(B b, []) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16517,7 +18349,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16563,13 +18403,13 @@ class C { A m(B b, []) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16602,7 +18442,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16648,13 +18496,13 @@ class C { A m(B b, []) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16692,7 +18540,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16742,13 +18598,13 @@ class C { A m(B b, []) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16785,7 +18641,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16834,13 +18698,13 @@ class C { A m(B b, []) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16876,7 +18740,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16924,13 +18796,13 @@ class C { A m( @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -16951,7 +18823,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -16984,13 +18864,13 @@ class C { A m( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17002,7 +18882,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17030,13 +18918,13 @@ class C { A m( var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17050,7 +18938,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17081,13 +18977,13 @@ class C { A m( const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17105,7 +19001,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17140,13 +19044,13 @@ class C { A m( final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17164,7 +19068,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17196,13 +19108,13 @@ class C { A m( int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17220,7 +19132,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17251,13 +19171,13 @@ class C { A m( int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17287,7 +19207,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17324,13 +19252,13 @@ class C { A m( void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17359,7 +19287,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17396,13 +19332,13 @@ class C { A m( set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17429,7 +19365,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17468,13 +19412,13 @@ class C { A m() @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17499,7 +19443,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17537,13 +19489,13 @@ class C { A m() }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17555,7 +19507,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17581,13 +19541,13 @@ class C { A m() var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17605,7 +19565,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17638,13 +19606,13 @@ class C { A m() const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17665,7 +19633,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17701,13 +19677,13 @@ class C { A m() final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17728,7 +19704,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17764,13 +19748,13 @@ class C { A m() int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17792,7 +19776,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17828,13 +19820,13 @@ class C { A m() int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17861,7 +19853,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17901,13 +19901,13 @@ class C { A m() void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -17933,7 +19933,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -17972,13 +19980,13 @@ class C { A m() set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18003,7 +20011,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18043,13 +20059,13 @@ class C { A m(B b, @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18074,7 +20090,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18111,13 +20135,13 @@ class C { A m(B b, }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18134,7 +20158,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18166,13 +20198,13 @@ class C { A m(B b, var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18190,7 +20222,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18225,13 +20265,13 @@ class C { A m(B b, const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18253,7 +20293,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18292,13 +20340,13 @@ class C { A m(B b, final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18320,7 +20368,15 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18356,13 +20412,13 @@ class C { A m(B b, int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18384,7 +20440,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18419,13 +20483,13 @@ class C { A m(B b, int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18459,7 +20523,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18500,13 +20572,13 @@ class C { A m(B b, void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18539,7 +20611,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18580,13 +20660,13 @@ class C { A m(B b, set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18617,7 +20697,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18661,13 +20749,13 @@ class C { A m(B @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18695,7 +20783,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18736,13 +20832,13 @@ class C { A m(B }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18757,7 +20853,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18787,13 +20891,13 @@ class C { A m(B var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18814,7 +20918,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18851,13 +20963,13 @@ class C { A m(B const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18881,7 +20993,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18921,13 +21041,13 @@ class C { A m(B final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -18951,7 +21071,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -18991,13 +21119,13 @@ class C { A m(B int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19022,7 +21150,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19061,13 +21197,13 @@ class C { A m(B int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19097,7 +21233,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19141,13 +21285,13 @@ class C { A m(B void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19176,7 +21320,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19218,13 +21370,13 @@ class C { A m(B set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19253,7 +21405,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19294,13 +21454,13 @@ class C { A m(b, c) @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19330,7 +21490,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19372,13 +21540,13 @@ class C { A m(b, c) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19395,7 +21563,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19425,13 +21601,13 @@ class C { A m(b, c) var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19454,7 +21630,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19491,13 +21675,13 @@ class C { A m(b, c) const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19523,7 +21707,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19563,13 +21755,13 @@ class C { A m(b, c) final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19595,7 +21787,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19635,13 +21835,13 @@ class C { A m(b, c) int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19668,7 +21868,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19708,13 +21916,13 @@ class C { A m(b, c) int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19746,7 +21954,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19790,13 +22006,13 @@ class C { A m(b, c) void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19827,7 +22043,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19870,13 +22094,13 @@ class C { A m(b, c) set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19906,7 +22130,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -19949,13 +22181,13 @@ class C { A m(B b @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -19985,7 +22217,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20028,13 +22268,13 @@ class C { A m(B b }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20051,7 +22291,15 @@ CompilationUnit
               block: Block
                 leftBracket: { <synthetic>
                 rightBracket: } <synthetic>
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20083,13 +22331,13 @@ class C { A m(B b var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20112,7 +22360,15 @@ CompilationUnit
               Field
                 name: f
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20151,13 +22407,13 @@ class C { A m(B b const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20183,7 +22439,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20225,13 +22489,13 @@ class C { A m(B b final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20257,7 +22521,15 @@ CompilationUnit
                 initializer: IntegerLiteral
                   literal: 0
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20299,13 +22571,13 @@ class C { A m(B b int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20332,7 +22604,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20374,13 +22654,13 @@ class C { A m(B b int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20412,7 +22692,15 @@ CompilationUnit
               expression2: IntegerLiteral
                 literal: 0
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20458,13 +22746,13 @@ class C { A m(B b void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20495,7 +22783,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A
@@ -20540,13 +22836,13 @@ class C { A m(B b set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           MethodDeclaration2
             returnType: NamedType
               name: A
@@ -20576,7 +22872,15 @@ CompilationUnit
               block: Block
                 leftBracket: {
                 rightBracket: }
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
           MethodDeclaration
             returnType: NamedType
               name: A

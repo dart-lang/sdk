@@ -40,11 +40,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -719,11 +719,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -1396,11 +1396,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2050,11 +2050,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -2721,11 +2721,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -3423,11 +3423,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -4124,6 +4124,15 @@ mixin class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      mixinKeyword: mixin
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       mixinKeyword: mixin
       classKeyword: class
@@ -4648,11 +4657,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5202,11 +5211,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -5856,11 +5865,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -6526,11 +6535,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -7219,11 +7228,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -7921,11 +7930,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -8641,11 +8650,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -9415,11 +9424,11 @@ CompilationUnit
       body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

@@ -533,8 +533,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addBlock(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   @experimental
   void addBlockEnumDeclarationBody(
     AbstractAnalysisRule rule,
@@ -599,7 +597,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addCatchClauseParameter(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addClassDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addClassTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -698,8 +697,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addDoubleLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -734,7 +731,8 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addExtensionOverride2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addExtensionTypeDeclaration(
+  @experimental
+  void addExtensionTypeDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

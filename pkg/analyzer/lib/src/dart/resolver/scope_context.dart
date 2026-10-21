@@ -44,8 +44,8 @@ class ScopeContext {
     return element.instantiate(nullabilitySuffix: nullability);
   }
 
-  void visitClassDeclaration(
-    ClassDeclarationImpl node, {
+  void visitClassDeclaration2(
+    ClassDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -181,8 +181,8 @@ class ScopeContext {
     });
   }
 
-  void visitExtensionTypeDeclaration(
-    ExtensionTypeDeclarationImpl node, {
+  void visitExtensionTypeDeclaration2(
+    ExtensionTypeDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -641,9 +641,9 @@ extension LocalScopeExtension on LocalScope {
 extension _FieldsDeclarationExtension on FieldsDeclaration {
   PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
     return switch (parent2?.parent2) {
-      ClassDeclarationImpl(:var namePart) => namePart.tryCast(),
+      ClassDeclaration2Impl(:var namePart) => namePart.tryCast(),
       EnumDeclaration2Impl(:var namePart) => namePart.tryCast(),
-      ExtensionTypeDeclarationImpl(:var namePart) => namePart.tryCast(),
+      ExtensionTypeDeclaration2Impl(:var namePart) => namePart.tryCast(),
       _ => null,
     };
   }

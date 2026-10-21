@@ -334,7 +334,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitClassDeclaration(ClassDeclaration node) {
+  Element? visitClassDeclaration2(ClassDeclaration2 node) {
     return node.declaredFragment?.element;
   }
 
@@ -532,7 +532,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitPrimaryConstructorDeclaration(
     PrimaryConstructorDeclaration node,
   ) {
-    if (node.parent2 case Declaration declaration) {
+    if (node.parent2 case FragmentDeclaringNode declaration) {
       return declaration.declaredFragment?.element;
     }
     return null;

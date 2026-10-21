@@ -54,11 +54,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    node.members2.accept2(this);
-  }
-
-  @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.constants.accept2(this);
     node.members.accept2(this);
@@ -73,8 +68,8 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    _scopeContext.visitClassDeclaration(node, visitor: this);
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
+    _scopeContext.visitClassDeclaration2(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
@@ -103,9 +98,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
       visitFactoryRedirectionTarget: (_) {},
     );
   }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {}
@@ -149,10 +141,10 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
-    _scopeContext.visitExtensionTypeDeclaration(node, visitor: this);
+    _scopeContext.visitExtensionTypeDeclaration2(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 

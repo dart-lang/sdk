@@ -237,7 +237,7 @@ extension AstNodeNullableExtension on AstNode? {
     return switch (self) {
       BlockClassBody() => self.members,
       BlockEnumBody() => self.members,
-      ClassDeclarationImpl() => self.body.members,
+      ClassDeclaration() => self.body.members,
       EnumDeclaration() => self.body.members,
       ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
@@ -249,13 +249,12 @@ extension AstNodeNullableExtension on AstNode? {
   List<AnnotatedNode> get classMembers2 {
     var self = this;
     return switch (self) {
-      BlockClassBody() => self.members2,
       BlockEnumDeclarationBody() => self.members,
       BlockInstanceDeclarationBody() => self.members,
-      ClassDeclarationImpl() => self.body.members2,
+      ClassDeclaration2Impl() => self.body.members,
       EnumDeclaration2() => self.body.members,
       ExtensionDeclaration2() => self.body.members,
-      ExtensionTypeDeclarationImpl() => self.body.members2,
+      ExtensionTypeDeclaration2Impl() => self.body.members,
       MixinDeclaration2() => self.body.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };

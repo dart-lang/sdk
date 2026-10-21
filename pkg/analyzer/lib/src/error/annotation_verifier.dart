@@ -142,7 +142,7 @@ class AnnotationVerifier {
   void _checkDeprecatedExtend(Annotation node) {
     Element? declaredElement;
     if (node.parent2
-        case ClassDeclaration(:var declaredFragment) ||
+        case ClassDeclaration2(:var declaredFragment) ||
             ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
@@ -165,7 +165,7 @@ class AnnotationVerifier {
   void _checkDeprecatedImplement(Annotation node) {
     Element? declaredElement;
     if (node.parent2
-        case ClassDeclaration(:var declaredFragment) ||
+        case ClassDeclaration2(:var declaredFragment) ||
             ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case MixinDeclaration2 parent) {
@@ -192,7 +192,7 @@ class AnnotationVerifier {
   void _checkDeprecatedInstantiate(Annotation node) {
     Element? declaredElement;
     if (node.parent2
-        case ClassDeclaration(:var declaredFragment) ||
+        case ClassDeclaration2(:var declaredFragment) ||
             ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case GenericTypeAlias2 parent) {
@@ -213,7 +213,7 @@ class AnnotationVerifier {
 
   void _checkDeprecatedMixin(Annotation node) {
     var parent = node.parent2;
-    if (parent is ClassDeclaration &&
+    if (parent is ClassDeclaration2 &&
         parent.declaredFragment!.element.isPublic &&
         parent.mixinKeyword != null) {
       return;
@@ -251,7 +251,7 @@ class AnnotationVerifier {
   void _checkDeprecatedSubclass(Annotation node) {
     Element? declaredElement;
     if (node.parent2
-        case ClassDeclaration(:var declaredFragment) ||
+        case ClassDeclaration2(:var declaredFragment) ||
             ClassTypeAlias2(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case MixinDeclaration2 parent) {
@@ -425,7 +425,7 @@ class AnnotationVerifier {
   void _checkNonVirtual(Annotation node) {
     var parent = node.parent2;
     if (parent is MethodDeclarationV1OriginImpl) {
-      if (parent.parent2?.parent2 is ExtensionTypeDeclaration ||
+      if (parent.parent2?.parent2 is ExtensionTypeDeclaration2 ||
           !parent.isComplete) {
         _diagnosticReporter.report(
           diag.invalidNonVirtualAnnotation.at(node.nameEntity),
@@ -440,8 +440,8 @@ class AnnotationVerifier {
     var parent = node.parent2;
     var parent2 = parent.parent2;
     var parent3 = parent2?.parent2;
-    if (parent2 is! BlockClassBody ||
-        parent3 is! ExtensionTypeDeclaration ||
+    if (parent2 is! BlockInstanceDeclarationBody ||
+        parent3 is! ExtensionTypeDeclaration2 ||
         parent is MethodDeclarationV1OriginImpl &&
             parent.staticKeyword != null) {
       _diagnosticReporter.report(
@@ -462,7 +462,7 @@ class AnnotationVerifier {
     InterfaceElement? superElement;
 
     var parent = node.parent2;
-    if (parent is ClassDeclaration) {
+    if (parent is ClassDeclaration2) {
       classElement = parent.declaredFragment?.element;
       superElement = classElement?.supertype?.element;
     } else if (parent is ClassTypeAlias2) {
@@ -646,7 +646,7 @@ class AnnotationVerifier {
 
     InterfaceElement? declaredElement;
     switch (containedDeclaration.parent2?.parent2) {
-      case ClassDeclaration classDeclaration:
+      case ClassDeclaration2 classDeclaration:
         declaredElement = classDeclaration.declaredFragment?.element;
       case EnumDeclaration2 enumDeclaration:
         declaredElement = enumDeclaration.declaredFragment?.element;

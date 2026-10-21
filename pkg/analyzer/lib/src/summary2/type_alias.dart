@@ -97,7 +97,7 @@ class _Finder {
             hasSelfReference = true;
             return;
           }
-          if (typeNode is ClassDeclaration) {
+          if (typeNode is ClassDeclaration2) {
             if (visited.add(typeNode)) {
               _typeParameterList(typeNode.namePart.typeParameters);
             }

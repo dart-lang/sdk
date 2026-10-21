@@ -34,6 +34,23 @@ class A implements B extends C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -64,6 +81,28 @@ class A extends B implements C with D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: D
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -101,6 +140,28 @@ class A implements B with C extends D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: D
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -136,6 +197,18 @@ class A extends B extends C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -161,6 +234,23 @@ class A implements B implements C, D {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: C
+          NamedType
+            name: D
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -191,6 +281,27 @@ class A extends B with C, D with E {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+          NamedType
+            name: D
+          NamedType
+            name: E
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -229,11 +340,11 @@ class UnrelatedClass extends Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: Foo
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -241,7 +352,7 @@ CompilationUnit
         TopLevelVariable
           name: exte
       semicolon: ; <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: UnrelatedClass
@@ -249,7 +360,7 @@ CompilationUnit
         extendsKeyword: extends
         superclass: NamedType
           name: Bar
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -292,6 +403,29 @@ class UnrelatedClass extends Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: CurrentlyTypingHere
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: UnrelatedClass
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: Bar
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -328,6 +462,23 @@ class A with B extends C {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: C
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: B
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -369,6 +520,14 @@ CompilationUnit
         literal: 'bar.dart'
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -396,6 +555,14 @@ CompilationUnit
         literal: 'bar.dart'
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -423,6 +590,14 @@ CompilationUnit
         literal: 'bar.dart'
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -454,6 +629,14 @@ CompilationUnit
           foo
       semicolon: ;
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -831,13 +1014,13 @@ class B {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           ConstructorDeclaration2
             constKeyword: const
             typeName: A
@@ -852,28 +1035,14 @@ CompilationUnit
               rightParenthesis: )
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
-          ConstructorDeclaration
-            constKeyword: const
-            typeName: SimpleIdentifier
-              token: A
-            parameters: FormalParameterList
-              leftParenthesis: (
-              leftDelimiter: [
-              parameter: RegularFormalParameter
-                name: x
-              rightDelimiter: ]
-              rightParenthesis: )
-            body: EmptyFunctionBody
-              semicolon: ;
         rightBracket: }
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: B
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           FieldsDeclaration
             fields
               Field
@@ -926,7 +1095,36 @@ CompilationUnit
               Field
                 name: x
             semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              leftDelimiter: [
+              parameter: RegularFormalParameter
+                name: x
+              rightDelimiter: ]
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: B
+      body: BlockClassBody
+        leftBracket: {
+        members
           FieldDeclaration
             fields: VariableDeclarationList
               variables

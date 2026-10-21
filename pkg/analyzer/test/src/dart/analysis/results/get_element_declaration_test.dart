@@ -91,6 +91,64 @@ class {}
     expect(result, null);
   }
 
+  test_class_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class A extends Object {
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.class_('A').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: Object
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  extendsClause: ExtendsClause
+    extendsKeyword: extends
+    superclass: NamedType
+      name: Object
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
   test_classTypeAlias() async {
     var unitResult = await resolveTestCode(r'''
 mixin M {}
@@ -397,6 +455,83 @@ V1: ExtensionDeclaration
     onKeyword: on
     extendedType: NamedType
       name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+''');
+  }
+
+  test_extensionType() async {
+    var unitResult = await resolveTestCode(r'''
+extension type A(int it) {}
+''');
+    var fragment = unitResult.findElement.extensionType('A').firstFragment;
+    var result = await getFragmentDeclaration(fragment);
+    var node = result!.node as ExtensionTypeDeclaration;
+    expect(node.namePart.typeName.lexeme, 'A');
+  }
+
+  test_extensionType_v2() async {
+    var unitResult = await resolveTestCode(r'''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+    var fragment = unitResult.findElement.extensionType('A').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+ExtensionTypeDeclaration2
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
+          type: NamedType
+            name: int
+          name: it
+      rightParenthesis: )
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
   body: BlockClassBody
     leftBracket: {
     members

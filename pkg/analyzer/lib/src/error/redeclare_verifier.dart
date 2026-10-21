@@ -22,11 +22,11 @@ class RedeclareVerifier extends RecursiveAstVisitor2<void> {
   new(this._errorReporter);
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     _currentExtensionType = node.declaredFragment!.element;
-    super.visitExtensionTypeDeclaration(node);
+    super.visitExtensionTypeDeclaration2(node);
     _currentExtensionType = null;
   }
 

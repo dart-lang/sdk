@@ -654,7 +654,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
@@ -686,7 +686,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
   }
 
   @override
@@ -985,16 +985,16 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     _addSubtype(
       node.namePart.typeName.lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members2,
+      memberNodes: node.body.members,
     );
 
-    super.visitExtensionTypeDeclaration(node);
+    super.visitExtensionTypeDeclaration2(node);
   }
 
   @override
@@ -1394,13 +1394,13 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassDeclaration(ClassDeclarationImpl node) {
+  void _addSubtypeForClassDeclaration(ClassDeclaration2Impl node) {
     _addSubtype(
       node.namePart.typeName.lexeme,
       superclass: node.extendsClause?.superclass,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.body.members2,
+      memberNodes: node.body.members,
     );
   }
 

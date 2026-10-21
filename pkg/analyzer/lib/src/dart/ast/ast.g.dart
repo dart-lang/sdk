@@ -446,8 +446,6 @@ abstract class AstVisitor2<R> {
 
   R? visitBlock(Block node);
 
-  R? visitBlockClassBody(BlockClassBody node);
-
   @experimental
   R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node);
 
@@ -491,7 +489,8 @@ abstract class AstVisitor2<R> {
 
   R? visitCatchClauseParameter(CatchClauseParameter node);
 
-  R? visitClassDeclaration(ClassDeclaration node);
+  @experimental
+  R? visitClassDeclaration2(ClassDeclaration2 node);
 
   @experimental
   R? visitClassTypeAlias2(ClassTypeAlias2 node);
@@ -565,8 +564,6 @@ abstract class AstVisitor2<R> {
 
   R? visitDoubleLiteral(DoubleLiteral node);
 
-  R? visitEmptyClassBody(EmptyClassBody node);
-
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
@@ -595,7 +592,8 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitExtensionOverride2(ExtensionOverride2 node);
 
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
+  @experimental
+  R? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node);
 
   @experimental
   R? visitField2(Field2 node);

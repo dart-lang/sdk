@@ -16,7 +16,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     }
   }
 
-  void appendClassMemberName(ClassMemberV1OrV2Impl member) {
+  void appendClassMemberName(MemberDeclarationImpl member) {
     if (member is MethodDeclarationV1OriginImpl) {
       appendName(names.classMemberNames, member.nameToken);
     } else if (member is FieldsDeclarationImpl) {
@@ -41,15 +41,15 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     }
   }
 
-  void appendTopLevelName(TopLevelDeclarationV1OrV2Impl member) {
+  void appendTopLevelName(TopLevelDeclarationImpl member) {
     switch (member) {
-      case ClassDeclarationImpl():
+      case ClassDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl constructor) {
           appendDeclaringFormalParameterNames(constructor);
         }
-        member.body.members2.forEach(appendClassMemberName);
+        member.body.members.forEach(appendClassMemberName);
       case EnumDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
@@ -63,7 +63,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
       case ExtensionDeclaration2Impl():
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);
-      case ExtensionTypeDeclarationImpl():
+      case ExtensionTypeDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
@@ -72,7 +72,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
             isExtensionType: true,
           );
         }
-        member.body.members2.forEach(appendClassMemberName);
+        member.body.members.forEach(appendClassMemberName);
       case MixinDeclaration2Impl():
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);

@@ -50,7 +50,7 @@ class SuperContext {
           node is FunctionExpression ||
           node is LocalFunctionDeclaration) {
         inDefaultValue = false;
-      } else if (node is ClassDeclaration ||
+      } else if (node is ClassDeclaration2 ||
           node is EnumDeclaration2 ||
           node is MixinDeclaration2) {
         return inDefaultValue ? SuperContext.static : SuperContext.valid;
@@ -64,7 +64,7 @@ class SuperContext {
         return SuperContext.static;
       } else if (node is ExtensionDeclaration2) {
         return SuperContext.extension;
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         return SuperContext.extensionType;
       } else if (node is FieldsDeclaration) {
         if (node.staticKeyword != null) {

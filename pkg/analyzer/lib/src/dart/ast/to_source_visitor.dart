@@ -118,13 +118,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    sink.write(' {');
-    _visitNodeList(node.members2, separator: ' ');
-    sink.write('}');
-  }
-
-  @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     sink.write(' {');
     _visitNodeList(node.constants, separator: ', ');
@@ -255,7 +248,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -509,11 +502,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {
-    sink.write(';');
-  }
-
-  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     sink.write(';');
   }
@@ -615,7 +603,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');

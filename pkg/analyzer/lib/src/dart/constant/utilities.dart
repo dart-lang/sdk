@@ -133,7 +133,7 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   new({required this.configuration});
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
     if (node.declaredFragment!.constructors.any((e) => e.isConst) &&
         node.namePart is! PrimaryConstructorDeclaration) {
@@ -143,7 +143,7 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
       treatFinalInstanceVarAsConst = true;
     }
     try {
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       treatFinalInstanceVarAsConst = prevTreatFinalInstanceVarAsConst;
     }

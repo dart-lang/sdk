@@ -55,7 +55,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
 
   T? computeElementValue(Id id, Element element) => null;
 
-  void computeForClass(Declaration node, Id? id) {
+  void computeForClass(ClassDeclaration2 node, Id? id) {
     if (id == null) return;
     FutureOr<T?> value = computeNodeValue(id, node);
     asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
@@ -111,7 +111,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   /// Computes the data corresponding to [token], if any.
   FutureOr<T?> computeTokenValue(Id id, Token token) => null;
 
-  Id createClassId(Declaration node) {
+  Id createClassId(ClassDeclaration2 node) {
     var element = node.declaredFragment!.element;
     return ClassId(element.name!);
   }
@@ -155,9 +155,9 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     computeForClass(node, createClassId(node));
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
   }
 
   @override

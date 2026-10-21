@@ -44,7 +44,7 @@ class C {}
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   metadata
     Annotation
       atSign: @
@@ -64,6 +64,16 @@ ClassDeclaration
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: p
@@ -103,7 +113,7 @@ class C {}
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   metadata
     Annotation
       atSign: @
@@ -126,6 +136,16 @@ ClassDeclaration
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: p
@@ -168,7 +188,7 @@ class C {}
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   metadata
     Annotation
       atSign: @
@@ -185,6 +205,16 @@ ClassDeclaration
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: A
       typeArguments: TypeArgumentList
@@ -220,7 +250,7 @@ class C {}
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   metadata
     Annotation
       atSign: @
@@ -240,6 +270,16 @@ ClassDeclaration
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: A
       typeArguments: TypeArgumentList
@@ -280,7 +320,7 @@ ClassDeclaration
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   metadata
     Annotation
       atSign: @
@@ -296,6 +336,16 @@ ClassDeclaration
             NamedType
               name: A
           rightBracket: >
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: p
@@ -334,7 +384,7 @@ ClassDeclaration
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   metadata
     Annotation
       atSign: @
@@ -347,6 +397,16 @@ ClassDeclaration
             NamedType
               name: A
           rightBracket: >
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: x
       typeArguments: TypeArgumentList
@@ -396,11 +456,11 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)
@@ -466,11 +526,11 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

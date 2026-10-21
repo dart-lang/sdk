@@ -769,6 +769,43 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     nullSafetyDeadCodeVerifier.visitNode(node);
   }
 
+  /// Reports a write to [target] if it is a final local variable that might
+  /// already be assigned.
+  ///
+  /// Must be invoked at the point of the store, after the assigned value is
+  /// analyzed, because the value itself can assign the variable, as in
+  /// `x = (x = 1)`.
+  void checkWriteOfAssignedFinalLocalVariable(
+    AssignmentTargetImpl target, {
+    bool isWrittenRepeatedly = false,
+  }) {
+    if (target is! UnqualifiedNameAssignmentTargetImpl) return;
+    if (flowAnalysis.flow == null) return;
+    var element = target.scopeLookupResult?.getter;
+    if (element is! PromotableElementImpl) return;
+
+    // Queried for every variable, not only final ones, so that the flow
+    // analysis testing data has the state of every written variable.
+    var assigned = flowAnalysis.isDefinitelyAssigned(target, element);
+    var unassigned = flowAnalysis.isDefinitelyUnassigned(target, element);
+
+    if (element.isFinal) {
+      if (element.isLate) {
+        if (isWrittenRepeatedly || assigned) {
+          diagnosticReporter.report(
+            diag.lateFinalLocalAlreadyAssigned.at(target),
+          );
+        }
+      } else if (isWrittenRepeatedly || !unassigned) {
+        diagnosticReporter.report(
+          diag.assignmentToFinalLocal
+              .withArguments(variableName: element.name!)
+              .at(target),
+        );
+      }
+    }
+  }
+
   @override
   List<DiagnosticMessage> computeWhyNotPromotedMessages(
     SyntacticEntity errorEntity,
@@ -1353,7 +1390,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       context,
       staticType,
       diagnosticReporter: diagnosticReporter,
-      errorNode: expression,
+      expression: expression,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
       strictInference: analysisOptions.strictInference,
@@ -1451,11 +1488,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var parent = node.parent2;
 
     if (parent is CompilationUnit) {
-      return node is ClassDeclaration ||
+      return node is ClassDeclaration2 ||
           node is Directive ||
           node is EnumDeclaration2 ||
           node is ExtensionDeclaration2 ||
-          node is ExtensionTypeDeclaration ||
+          node is ExtensionTypeDeclaration2 ||
           node is MixinDeclaration2 ||
           node is TopLevelFunctionDeclaration ||
           node is TopLevelGetterDeclaration ||
@@ -1463,17 +1500,17 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is TopLevelVariablesDeclaration;
     }
 
-    if (parent is ClassBody || parent is InstanceDeclarationBody) {
-      parent = parent!.parent2;
+    if (parent is InstanceDeclarationBody) {
+      parent = parent.parent2;
     }
 
     // The visit methods of these declarations set only the enclosing
     // instance element before visiting their members.
     InstanceElementImpl? enclosingElement = switch (parent) {
-      ClassDeclarationImpl() => parent.declaredFragment!.element,
+      ClassDeclaration2Impl() => parent.declaredFragment!.element,
       EnumDeclaration2Impl() => parent.declaredFragment!.element,
       ExtensionDeclaration2Impl() => parent.declaredFragment!.element,
-      ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
+      ExtensionTypeDeclaration2Impl() => parent.declaredFragment!.element,
       MixinDeclaration2Impl() => parent.declaredFragment!.element,
       _ => null,
     };
@@ -2242,11 +2279,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.visitChildren2(this);
   }
@@ -2472,7 +2504,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var declaredElement = declaredFragment.element;
 
@@ -2482,7 +2514,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(declaredElement, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitClassDeclaration(node);
+      elementResolver.visitClassDeclaration2(node);
     });
 
     baseOrFinalTypeVerifier.checkElement(
@@ -2893,9 +2925,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
-
-  @override
   TypeImpl visitEmptyFunctionBody(
     EmptyFunctionBody node, {
     TypeImpl? imposedType,
@@ -3144,13 +3173,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitExtensionTypeDeclaration(node);
+      elementResolver.visitExtensionTypeDeclaration2(node);
     });
   }
 
@@ -5145,7 +5174,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       errorEntity: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-      strictInference: analysisOptions.strictInference,
       typeSystemOperations: flowAnalysis.typeOperations,
       dataForTesting: inferenceHelper.dataForTesting,
     );
@@ -5197,7 +5225,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         context,
         callMethodType,
         diagnosticReporter: diagnosticReporter,
-        errorNode: expression,
+        expression: expression,
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,

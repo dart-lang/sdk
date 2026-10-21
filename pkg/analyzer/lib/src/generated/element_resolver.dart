@@ -121,7 +121,7 @@ class ElementResolver {
     );
   }
 
-  void visitClassDeclaration(ClassDeclaration node) {}
+  void visitClassDeclaration2(ClassDeclaration2 node) {}
 
   void visitClassTypeAlias2(ClassTypeAlias2 node) {}
 
@@ -199,7 +199,7 @@ class ElementResolver {
 
   void visitExtensionDeclaration2(ExtensionDeclaration2 node) {}
 
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {}
 
   void visitFieldFormalParameter(FieldFormalParameter node) {}
 
@@ -326,7 +326,7 @@ class ElementResolver {
     node.element = element;
     // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
-    var declaration = node.thisOrAncestorOfType2<ClassDeclaration>();
+    var declaration = node.thisOrAncestorOfType2<ClassDeclaration2>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
         _typeAnalyzer.libraryFragment.shouldIgnoreUndefinedNamedType(

@@ -305,7 +305,7 @@ class LiteralElementVerifier {
             elementType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: _diagnosticReporter,
-            errorNode: expression,
+            expression: expression,
             genericMetadataIsEnabled: true,
             inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
               Feature.inference_using_bounds,

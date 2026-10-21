@@ -44,7 +44,7 @@ void computeSimplyBounded(Linker linker) {
   for (var node in nodes) {
     walker.walk(node);
     var node2 = node._node;
-    if (node2 is ClassDeclarationImpl) {
+    if (node2 is ClassDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is ClassTypeAlias2Impl) {
@@ -53,7 +53,7 @@ void computeSimplyBounded(Linker linker) {
     } else if (node2 is EnumDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is ExtensionTypeDeclarationImpl) {
+    } else if (node2 is ExtensionTypeDeclaration2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is GenericTypeAlias2Impl) {
@@ -95,7 +95,7 @@ class SimplyBoundedDependencyWalker
     var graphNode = nodeMap[element];
     if (graphNode == null) {
       var node = linker.getLinkingNode(element.firstFragment);
-      if (node is ClassDeclaration) {
+      if (node is ClassDeclaration2) {
         var parameters = node.namePart.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -119,7 +119,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           const <TypeAnnotation>[],
         );
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         var parameters = node.namePart.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,

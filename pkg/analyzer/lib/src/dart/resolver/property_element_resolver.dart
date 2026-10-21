@@ -212,10 +212,9 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     var result = switch (receiver) {
-      ExpressionImpl() => _resolve(
+      ExpressionImpl() => _resolveCascadeExpressionReceiver(
         node: node,
         target: receiver,
-        isCascaded: true,
         isNullAware: isNullAware,
         propertyName: propertyName,
         hasRead: hasRead,
@@ -236,16 +235,8 @@ class PropertyElementResolver with ScopeHelpers {
     var writeElement = result.writeElement2;
     NamedReadResolutionImpl? read;
     if (hasRead) {
-      var functionCallTearOffResolution = switch (result.functionTypeCallType) {
-        TypeImpl type => _functionCallTearOffResolution(
-          receiverType: type,
-          isCall: true,
-          callFunctionType: result.callFunctionType,
-        ),
-        _ => null,
-      };
       read =
-          functionCallTearOffResolution ??
+          result.functionCallTearOff ??
           (result.atDynamicTarget
               ? DynamicPropertyReadResolutionImpl()
               : _createPropertyReadResolution(
@@ -1565,10 +1556,9 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  PropertyElementResolverResult _resolve({
+  PropertyElementResolverResult _resolveCascadeExpressionReceiver({
     required ExpressionImpl node,
     required ExpressionImpl target,
-    required bool isCascaded,
     required bool isNullAware,
     required Token propertyName,
     required bool hasRead,
@@ -1583,19 +1573,6 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (isNullAware) {
       targetType = _typeSystem.promoteToNonNull(targetType);
-    }
-
-    if (propertyName.lexeme == MethodElement.CALL_METHOD_NAME) {
-      var targetTypeResolved = _typeSystem.resolveToBound(targetType);
-      if (targetTypeResolved is FunctionTypeImpl) {
-        return PropertyElementResolverResult(
-          functionTypeCallType: targetType,
-          callFunctionType: targetTypeResolved,
-        );
-      }
-      if (targetTypeResolved.isDartCoreFunction) {
-        return PropertyElementResolverResult(functionTypeCallType: targetType);
-      }
     }
 
     if (target is TypeLiteralImpl && target.type.type is FunctionType) {
@@ -1634,9 +1611,17 @@ class PropertyElementResolver with ScopeHelpers {
       nameErrorEntity: propertyName,
     );
 
+    var functionCallTearOff = hasRead
+        ? _functionCallTearOffResolution(
+            receiverType: targetType,
+            isCall: propertyName.lexeme == MethodElement.CALL_METHOD_NAME,
+            callFunctionType: result.callFunctionType,
+          )
+        : null;
+
     TypeImpl? getType;
     var isReadFailure = false;
-    if (hasRead) {
+    if (hasRead && functionCallTearOff == null) {
       var unpromotedType = switch (result.getter2) {
         InternalMethodElement(:var type) => type,
         InternalPropertyAccessorElement(:var returnType) => returnType,
@@ -1645,12 +1630,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (_typeAnalyzer.flowAnalysis.flow case var flow?) {
         var (promotedType: wrappedPromotedType, :expressionInfo) = flow
             .propertyGet(
-              isCascaded
-                  ? CascadePropertyTarget.singleton
-                        as PropertyTarget<ExpressionImpl>
-                  : ExpressionPropertyTarget(
-                      _typeAnalyzer.flowAnalysis.getExpressionInfo(target),
-                    ),
+              CascadePropertyTarget.singleton,
               propertyName.lexeme,
               result.getter2,
               SharedTypeView(unpromotedType),
@@ -1702,6 +1682,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElementRequested2: result.setter2,
       writeElementRecovery2: result.getter2,
       atDynamicTarget: _typeSystem.isDynamicBounded(targetType),
+      functionCallTearOff: functionCallTearOff,
       recordField: result.recordField,
       getType: getType,
     );
@@ -2355,8 +2336,7 @@ class PropertyElementResolverResult {
   final Element? writeElementRequested2;
   final Element? writeElementRecovery2;
   final bool atDynamicTarget;
-  final DartType? functionTypeCallType;
-  final FunctionTypeImpl? callFunctionType;
+  final NamedReadResolutionImpl? functionCallTearOff;
   final RecordTypeFieldImpl? recordField;
   final DartType? getType;
 
@@ -2372,8 +2352,7 @@ class PropertyElementResolverResult {
     this.writeElementRecovery2,
     this.atDynamicTarget = false,
     this.indexContextType = UnknownInferredType.instance,
-    this.functionTypeCallType,
-    this.callFunctionType,
+    this.functionCallTearOff,
     this.recordField,
     this.getType,
   });

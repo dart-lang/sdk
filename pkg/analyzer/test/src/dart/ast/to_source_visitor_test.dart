@@ -22,6 +22,19 @@ main() {
 @reflectiveTest
 class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
   @V1Ast('Tests the V1 projection.')
+  test_classDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A extends Object {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'class A extends Object {void foo() {}}',
+      result.findNodeV1.singleClassDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
   test_classTypeAlias() async {
     var result = await resolveTestCodeWithDiagnostics('''
 mixin M {}
@@ -123,6 +136,19 @@ extension E on int {
     _assertSource(
       'extension E on int {void foo() {}}',
       result.findNodeV1.singleExtensionDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_extensionTypeDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'extension type A(int it) {void foo() {}}',
+      result.findNodeV1.singleExtensionTypeDeclaration,
     );
   }
 

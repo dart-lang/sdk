@@ -138,7 +138,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           _bindClassDeclaration(
             declaration,
             _libraryFragment.classes[classIndex++],
@@ -158,7 +158,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.extensions[extensionIndex++],
           );
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           _bindExtensionTypeDeclaration(
             declaration,
             _libraryFragment.extensionTypes[extensionTypeIndex++],
@@ -512,7 +512,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindClassDeclaration(
-    ClassDeclarationImpl node,
+    ClassDeclaration2Impl node,
     ClassFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -545,7 +545,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.implementsClause?.accept2(this);
     node.nativeClause?.accept2(this);
 
-    _bindMembers(node.body.members2, memberFragments);
+    _bindMembers(node.body.members, memberFragments);
   }
 
   void _bindClassTypeAlias(
@@ -657,7 +657,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindExtensionTypeDeclaration(
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
     ExtensionTypeFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -685,7 +685,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     node.implementsClause?.accept2(this);
 
-    _bindMembers(node.body.members2, memberFragments);
+    _bindMembers(node.body.members, memberFragments);
   }
 
   void _bindField(
@@ -790,7 +790,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindMembers(
-    List<ClassMemberV1OrV2Impl> members,
+    List<MemberDeclarationImpl> members,
     _ContainerMemberFragments fragments,
   ) {
     for (var member in members) {

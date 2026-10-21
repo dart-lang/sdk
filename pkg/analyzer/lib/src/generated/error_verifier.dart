@@ -550,7 +550,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
 
@@ -568,7 +568,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForAugmentationExtendsClauseAlreadyPresent(node, declaredFragment);
       _checkForClassAugmentationModifierMismatch(declaredFragment, node);
 
-      List<AnnotatedNode> members = node.body.members2;
+      List<AnnotatedNode> members = node.body.members;
       if (!element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
           node.namePart.typeName,
@@ -623,7 +623,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         diagnosticSource: _currentUnit.source,
       ).checkStaticGetters(element.getters);
 
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     });
   }
 
@@ -1133,8 +1133,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var declaredFragment = node.declaredFragment!;
     var element = declaredFragment.element;
@@ -1156,10 +1156,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
       _checkForNotInitializedFieldDeclarations(
         declaredFragment,
-        node.body.members2,
+        node.body.members,
       );
 
-      var members = node.body.members2;
+      var members = node.body.members;
       if (!_featureSet.isEnabled(Feature.augmentations)) {
         _checkForRepeatedType(
           libraryContext.setOfImplements(element),
@@ -1203,7 +1203,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         diagnosticSource: _currentUnit.source,
       ).checkExtensionType(element, interface);
 
-      super.visitExtensionTypeDeclaration(node);
+      super.visitExtensionTypeDeclaration2(node);
     });
   }
 
@@ -3084,7 +3084,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForAugmentationExtendsClauseAlreadyPresent(
-    ClassDeclarationImpl node,
+    ClassDeclaration2Impl node,
     ClassFragmentImpl declaredFragment,
   ) {
     if (node.augmentKeyword == null) {
@@ -3774,7 +3774,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   void _checkForClassAugmentationModifierMismatch(
     ClassFragmentImpl declaredFragment,
-    ClassDeclarationImpl node,
+    ClassDeclaration2Impl node,
   ) {
     var element = declaredFragment.element;
 
@@ -5012,7 +5012,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             variableType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: diagnosticReporter,
-            errorNode: node.iterable2,
+            expression: node.iterable2,
             genericMetadataIsEnabled: true,
             inferenceUsingBoundsIsEnabled: _featureSet.isEnabled(
               Feature.inference_using_bounds,
@@ -5268,7 +5268,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionTypeImplementsDeferred(
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
   ) {
     var clause = node.implementsClause;
     if (clause == null) {
@@ -5284,7 +5284,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionTypeImplementsItself(
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
     ExtensionTypeFragmentImpl fragment,
   ) {
     if (fragment.element.hasImplementsSelfReference) {
@@ -5295,7 +5295,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionTypeMemberConflicts({
-    required ExtensionTypeDeclaration node,
+    required ExtensionTypeDeclaration2 node,
     required ExtensionTypeElementImpl element,
   }) {
     void report(String memberName, List<InternalExecutableElement> candidates) {
@@ -5333,7 +5333,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionTypeRepresentationDependsOnItself(
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
     ExtensionTypeFragmentImpl fragment,
   ) {
     if (fragment.element.hasRepresentationSelfReference) {
@@ -5346,7 +5346,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionTypeRepresentationErrorCodes(
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
   ) {
     var primaryConstructor = node.namePart;
     if (primaryConstructor is! PrimaryConstructorDeclarationImpl) {
@@ -5460,7 +5460,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionTypeRepresentationTypeBottom(
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
     ExtensionTypeFragmentImpl fragment,
   ) {
     var element = fragment.element;
@@ -5477,12 +5477,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForExtensionTypeWithAbstractMember(
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
   ) {
     if (_featureSet.isEnabled(Feature.augmentations)) {
       return;
     }
-    for (var member in node.body.members2) {
+    for (var member in node.body.members) {
       if (member is MethodDeclarationV1OriginImpl &&
           member.staticKeyword == null) {
         if (!member.isComplete) {
@@ -6363,7 +6363,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           }
         }
       }
-      if (node is ClassDeclarationImpl) {
+      if (node is ClassDeclaration2Impl) {
         if (node.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
           if (primaryConstructor
@@ -6891,7 +6891,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForNonCovariantTypeParameterPositionInRepresentationType(
-    ExtensionTypeDeclaration node,
+    ExtensionTypeDeclaration2 node,
     ExtensionTypeFragmentImpl fragment,
   ) {
     var typeParameters = node.namePart.typeParameters?.typeParameters;
@@ -7787,7 +7787,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     var constructor = parameter.parentFormalParameterList2.parent2;
     if (constructor is PrimaryConstructorDeclaration &&
-        constructor.parent2 is ExtensionTypeDeclaration) {
+        constructor.parent2 is ExtensionTypeDeclaration2) {
       return;
     }
     if (constructor is! ConstructorDeclaration2 &&

@@ -242,7 +242,6 @@ class TypePropertyResolver {
         if (receiverTypeResolved.isDartCoreFunction &&
             _name == MethodElement.CALL_METHOD_NAME) {
           _getterOutcome = LookupOutcome.resolved;
-          _setterOutcome = LookupOutcome.resolved;
           return _toResult();
         }
       }
@@ -251,7 +250,6 @@ class TypePropertyResolver {
           _name == MethodElement.CALL_METHOD_NAME) {
         return ResolutionResult(
           getterOutcome: LookupOutcome.resolved,
-          setterOutcome: LookupOutcome.resolved,
           callFunctionType: receiverTypeResolved,
         );
       }

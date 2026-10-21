@@ -54,7 +54,7 @@ class AstBuilder extends StackListener {
   final Uri fileUri;
   ScriptTagImpl? scriptTag;
   final List<DirectiveImpl> directives = [];
-  final List<TopLevelDeclarationV1OrV2Impl> declarations = [];
+  final List<TopLevelDeclarationImpl> declarations = [];
   final List<AstNodeImpl> invalidNodes = [];
 
   @override
@@ -1323,7 +1323,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
-    debugEvent("ClassDeclaration");
+    debugEvent("ClassDeclaration2");
 
     var builder = _classLikeBuilder as _ClassDeclarationBuilder;
     declarations.add(builder.build());
@@ -6921,19 +6921,19 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.nativeClause,
   });
 
-  ClassDeclarationImpl build() {
-    ClassBodyImpl body;
+  ClassDeclaration2Impl build() {
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return ClassDeclarationImpl(
+    return ClassDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
@@ -7121,19 +7121,19 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.name,
   });
 
-  ExtensionTypeDeclarationImpl build({
+  ExtensionTypeDeclaration2Impl build({
     required Token typeKeyword,
     required Token? constKeyword,
     required _PrimaryConstructorBuilder? primaryConstructorBuilder,
     required ImplementsClauseImpl? implementsClause,
   }) {
-    ClassBodyImpl body;
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
@@ -7143,7 +7143,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       primaryConstructorBuilder: primaryConstructorBuilder,
     );
 
-    return ExtensionTypeDeclarationImpl(
+    return ExtensionTypeDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

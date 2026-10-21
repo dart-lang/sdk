@@ -1331,17 +1331,12 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    node.members2.accept2(this);
-  }
-
-  @override
   void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
     node.members.accept2(this);
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
     var fragment = ClassFragmentImpl(name: fragmentName);
@@ -1446,9 +1441,6 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       formalParameters: node.formalParameters,
     );
   }
-
-  @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
   void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
@@ -1646,8 +1638,8 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var nameToken = node.namePart.typeName;
     var fragmentName = _getFragmentName(nameToken);
@@ -1949,7 +1941,8 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
     var parent = node.parent2;
     var isAugmentation =
-        parent is ExtensionTypeDeclarationImpl && parent.augmentKeyword != null;
+        parent is ExtensionTypeDeclaration2Impl &&
+        parent.augmentKeyword != null;
 
     var fragment = ConstructorFragmentImpl(name: fragmentName);
     fragment.isAugmentation = isAugmentation;
@@ -1976,7 +1969,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     var formalParameters = node.formalParameters.allFormalParameters;
 
     var isFirstFormalExtensionTypeRepresentation = false;
-    if (parent is ExtensionTypeDeclarationImpl) {
+    if (parent is ExtensionTypeDeclaration2Impl) {
       var firstFormalParameter = formalParameters.firstOrNull;
       isFirstFormalExtensionTypeRepresentation =
           firstFormalParameter is RegularFormalParameterImpl;

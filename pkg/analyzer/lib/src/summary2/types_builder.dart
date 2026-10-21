@@ -101,7 +101,7 @@ class TypesBuilder {
     );
   }
 
-  void _classDeclaration(ClassDeclarationImpl node) {
+  void _classDeclaration(ClassDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
@@ -151,7 +151,7 @@ class TypesBuilder {
   }
 
   void _declaration(AstNode node) {
-    if (node is ClassDeclarationImpl) {
+    if (node is ClassDeclaration2Impl) {
       _classDeclaration(node);
     } else if (node is ClassTypeAlias2Impl) {
       _classTypeAlias(node);
@@ -159,7 +159,7 @@ class TypesBuilder {
       _enumDeclaration(node);
     } else if (node is ExtensionDeclaration2Impl) {
       _extensionDeclaration(node);
-    } else if (node is ExtensionTypeDeclarationImpl) {
+    } else if (node is ExtensionTypeDeclaration2Impl) {
       _extensionTypeDeclaration(node);
     } else if (node is FieldFormalParameterImpl) {
       _fieldFormalParameter(node);
@@ -216,7 +216,7 @@ class TypesBuilder {
     }
   }
 
-  void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
+  void _extensionTypeDeclaration(ExtensionTypeDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
@@ -520,7 +520,7 @@ class TypesBuilder {
   }
 }
 
-/// Performs mixins inference in a [ClassDeclaration].
+/// Performs mixins inference in a [ClassDeclaration2].
 class _MixinInference {
   final InterfaceElementImpl element;
   final TypeSystemImpl typeSystem;
@@ -661,7 +661,6 @@ class _MixinInference {
       inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
         Feature.inference_using_bounds,
       ),
-      strictInference: false,
       strictCasts: false,
       typeSystemOperations: typeSystemOperations,
     );
