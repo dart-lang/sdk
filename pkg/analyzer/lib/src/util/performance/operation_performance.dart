@@ -6,13 +6,12 @@ import 'dart:developer' as developer;
 import 'package:collection/collection.dart';
 
 /// Callback type for [OperationPerformanceImpl.runAsyncHook].
-typedef RunAsyncHook =
-    Future<R> Function<R, T>(
-      String name,
-      Future<R> Function(T) operation,
-      T arg, {
-      Map<String, Object?>? arguments,
-    });
+typedef RunAsyncHook = Future<R> Function<R, T>(
+  String name,
+  Future<R> Function(T) operation,
+  T arg, {
+  Map<String, Object?>? arguments,
+});
 
 /// The performance of an operation.
 abstract class OperationPerformance {
@@ -102,8 +101,12 @@ class OperationPerformanceDataImpl_Set<T>
 
 class OperationPerformanceImpl implements OperationPerformance {
   /// This closure can be overriden to intercept [runAsync] invocations.
-  static RunAsyncHook runAsyncHook =
-      <R, T>(name, operation, arg, {arguments}) => operation(arg);
+  static RunAsyncHook runAsyncHook = <R, T>(
+    name,
+    operation,
+    arg, {
+    arguments,
+  }) => operation(arg);
 
   @override
   final String name;

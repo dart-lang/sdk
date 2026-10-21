@@ -496,16 +496,14 @@ class C {
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
+  void test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U) foo = f;
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
+  void test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U, int) foo = f;
@@ -514,8 +512,7 @@ U Function<U>(U, int) foo = f;
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
+  void test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 int Function(int) foo = f;

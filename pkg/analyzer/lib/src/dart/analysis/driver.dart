@@ -371,9 +371,8 @@ class AnalysisDriver {
     // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(
-            rootOptionsFile,
-          ).enabledLegacyPluginNames.toSet()
+        ? getAnalysisOptionsForFile(rootOptionsFile).enabledLegacyPluginNames
+              .toSet()
         : const {};
   }
 

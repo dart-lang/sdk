@@ -551,9 +551,8 @@ class _ClassVerifier {
     }
 
     if (mixinIndex == -1) {
-      CovariantParametersVerifier(
-        thisMember: member,
-      ).verify(diagnosticReporter: reporter, errorEntity: node);
+      CovariantParametersVerifier(thisMember: member)
+          .verify(diagnosticReporter: reporter, errorEntity: node);
     }
   }
 

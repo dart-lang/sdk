@@ -1682,12 +1682,12 @@ void f(
     var a = parseResult.findNode.formalParameter('a<T>');
     _assertFormalParameterMetadata(a);
     _assertReplacementForChildren<RegularFormalParameter>(
-      destination:
-          parseResult.findNode.formalParameter('a<T>')
-              as RegularFormalParameter,
-      source:
-          parseResult.findNode.formalParameter('b<U>')
-              as RegularFormalParameter,
+      destination: parseResult.findNode.formalParameter(
+        'a<T>',
+      ) as RegularFormalParameter,
+      source: parseResult.findNode.formalParameter(
+        'b<U>',
+      ) as RegularFormalParameter,
       childAccessors: [
         (node) => node.type!,
         (node) => node.functionTypedSuffix!,

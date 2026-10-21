@@ -482,9 +482,8 @@ class NamedTypeResolver with ScopeHelpers {
         );
         return InvalidTypeImpl.instance;
       } else {
-        _ErrorHelper(
-          diagnosticReporter,
-        ).reportNullOrNonTypeElement(node, element);
+        _ErrorHelper(diagnosticReporter)
+            .reportNullOrNonTypeElement(node, element);
         return InvalidTypeImpl.instance;
       }
     }
@@ -518,9 +517,8 @@ class NamedTypeResolver with ScopeHelpers {
         nullability: nullability,
       );
     } else {
-      _ErrorHelper(
-        diagnosticReporter,
-      ).reportNullOrNonTypeElement(node, element);
+      _ErrorHelper(diagnosticReporter)
+          .reportNullOrNonTypeElement(node, element);
       return InvalidTypeImpl.instance;
     }
   }

@@ -240,10 +240,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         ? type.element
         : typeProvider.objectElement;
     return inheritanceManager.getMember(
-          class_,
-          Name.forLibrary(coreLibrary, 'toString'),
-        )
-        as MethodElement;
+      class_,
+      Name.forLibrary(coreLibrary, 'toString'),
+    ) as MethodElement;
   }
 
   /// Performs a null check that is part of a null shorting expression.

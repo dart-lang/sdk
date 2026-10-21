@@ -85,9 +85,8 @@ class Scanner {
   Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(
       _inputText,
-      configuration: ExperimentalFeaturesStatus(
-        _featureSet,
-      ).buildScannerConfiguration(),
+      configuration: ExperimentalFeaturesStatus(_featureSet)
+          .buildScannerConfiguration(),
       includeComments: _preserveComments,
       languageVersionChanged: _languageVersionChanged,
     );
@@ -124,9 +123,8 @@ class Scanner {
       _overrideVersion = null;
     } else {
       _featureSet = _featureSetForOverriding.restrictToVersion(overrideVersion);
-      scanner.configuration = ExperimentalFeaturesStatus(
-        _featureSet,
-      ).buildScannerConfiguration();
+      scanner.configuration = ExperimentalFeaturesStatus(_featureSet)
+          .buildScannerConfiguration();
     }
   }
 }

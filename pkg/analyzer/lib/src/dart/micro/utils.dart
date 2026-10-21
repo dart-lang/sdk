@@ -544,9 +544,8 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
       (false, true) => MatchKind.WRITE,
       (false, false) => null,
     };
-    if (node.write case InvalidNamedWriteResolution(
-      :var recoveryElement,
-    ) when kind == null && _matches(recoveryElement)) {
+    if (node.write case InvalidNamedWriteResolution(:var recoveryElement)
+        when kind == null && _matches(recoveryElement)) {
       kind = MatchKind.REFERENCE;
     }
     if (kind != null) {
