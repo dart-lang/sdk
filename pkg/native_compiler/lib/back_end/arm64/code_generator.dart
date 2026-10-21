@@ -2748,10 +2748,64 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.fmul(outputFPReg(instr), leftReg, rightReg);
       case .div:
         _asm.fdiv(outputFPReg(instr), leftReg, rightReg);
-      default:
-        _asm.unimplemented(
-          'Unimplemented: code generation for BinaryDoubleOp ${instr.op.token}',
-        );
+      case .pow:
+        final done = Label();
+        final callPow = Label();
+        // pow(x, 0.0) == 1.0
+        final rightIsZero = addSlowPath(() {
+          _asm.loadDoubleImmediate(outputFPReg(instr), 1.0);
+          _asm.b(done);
+        });
+        _asm.fcmp(rightReg, Immediate(0));
+        _asm.b(rightIsZero, .equal);
+        // pow(x, 1.0) == x
+        assert(outputFPReg(instr) == leftReg);
+        _asm.loadDoubleImmediate(fpTempReg, 1.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(done, .equal);
+        // pow(1.0, x) == 1.0
+        _asm.fcmp(leftReg, fpTempReg);
+        _asm.b(done, .equal);
+        // pow(x, 2.0) == x*x
+        final rightIsTwo = addSlowPath(() {
+          _asm.fmul(outputFPReg(instr), leftReg, leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 2.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsTwo, .equal);
+        // pow(x, 3.0) == x*x*x
+        final rightIsThree = addSlowPath(() {
+          _asm.fmul(fpTempReg, leftReg, leftReg);
+          _asm.fmul(outputFPReg(instr), fpTempReg, leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 3.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsThree, .equal);
+        // pow(x, 0.5) when (x != -inf && x != 0.0) == sqrt(x)
+        final rightIsHalf = addSlowPath(() {
+          _asm.loadDoubleImmediate(fpTempReg, double.negativeInfinity);
+          _asm.fcmp(leftReg, fpTempReg);
+          _asm.b(callPow, .equal);
+          _asm.fcmp(leftReg, Immediate(0));
+          _asm.b(callPow, .equal);
+          _asm.fsqrt(outputFPReg(instr), leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 0.5);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsHalf, .equal);
+        // default case - call pow()
+        _asm.bind(callPow);
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcPow);
+        _asm.bind(done);
+      case .mod:
+        _asm.callLeafRuntime(LeafRuntimeEntry.DartModulo);
+      case .rem:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcFmod);
+      case .atan2:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAtan2);
     }
   }
 
@@ -2830,6 +2884,22 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.frintp(outputFPReg(instr), operandReg);
       case .truncateToDouble:
         _asm.frintz(outputFPReg(instr), operandReg);
+      case .sin:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcSin);
+      case .cos:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcCos);
+      case .tan:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcTan);
+      case .asin:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAsin);
+      case .acos:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAcos);
+      case .atan:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAtan);
+      case .exp:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcExp);
+      case .log:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcLog);
     }
   }
 

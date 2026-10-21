@@ -1296,9 +1296,69 @@ final class VmRecognizedMethods(
     // dart:math
     index.getTopLevelProcedure(
       'dart:math',
+      '_doublePow',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .pow);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_atan2',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .atan2);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_sin',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .sin);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_cos',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .cos);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_tan',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .tan);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_asin',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .asin);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_acos',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .acos);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_atan',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .atan);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
       '_sqrt',
     ): (FlowGraphBuilder builder) {
       buildUnaryDoubleOp(builder, .sqrt);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_exp',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .exp);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_log',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .log);
     },
 
     // dart:typed_data
