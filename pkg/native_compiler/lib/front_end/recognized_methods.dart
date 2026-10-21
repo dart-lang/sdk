@@ -338,6 +338,48 @@ void buildGrowableListCapacity(
   builder.addLoadInstanceField(objectLayout.Array_length);
 }
 
+/// Build IR for hashCode fast-path.
+void buildHashCodeFastPath(
+  FlowGraphBuilder builder,
+  FunctionRegistry functionRegistry,
+  ObjectLayout objectLayout,
+  CField hashField,
+  CFunction function,
+) {
+  final type = builder.pop();
+
+  builder.push(type);
+  final hash = builder.addLoadInstanceField(objectLayout.AbstractType_hash);
+  builder.addIntConstant(0);
+  builder.addComparison(.intEqual);
+
+  final computedBlock = builder.newTargetBlock();
+  final notComputedBlock = builder.newTargetBlock();
+  builder.addBranch(notComputedBlock, computedBlock);
+
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const IntType(),
+  );
+
+  builder.startBlock(computedBlock);
+  builder.push(hash);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(notComputedBlock);
+  builder.push(type);
+  buildNativeMethod(builder, functionRegistry, function);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
+}
+
+/// Build IR for operator== fast-path.
 void buildEqualsWithSameObjectFastPath(
   FlowGraphBuilder builder,
   FunctionRegistry functionRegistry,
@@ -447,6 +489,40 @@ void buildTimelineGetNextTaskId(
     objectLayout.Thread_nextTaskId,
     hasObject: false,
   );
+}
+
+/// Build IR for dart:developer::_isDartStreamEnabled.
+void buildTimelineIsDartStreamEnabled(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(
+    objectLayout.Thread_dartStream,
+    hasObject: false,
+  );
+  builder.addLoadExternalField(
+    objectLayout.TimelineStream_enabled,
+    hasObject: true,
+  );
+  builder.addIntConstant(0);
+  builder.addComparison(.intNotEqual);
+}
+
+/// Build IR for dart:developer::extensionStreamHasListener.
+void buildExtensionStreamHasListener(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(
+    objectLayout.Thread_serviceExtensionStream,
+    hasObject: false,
+  );
+  builder.addLoadExternalField(
+    objectLayout.StreamInfo_enabled,
+    hasObject: true,
+  );
+  builder.addIntConstant(0);
+  builder.addComparison(.intNotEqual);
 }
 
 /// Build IR for ThreadLocal._hasValue.
@@ -989,6 +1065,26 @@ final class VmRecognizedMethods(
         .fixedLengthList, // Backing store array.
         objectLayout.GrowableList_length,
         indirectDataField: objectLayout.GrowableList_data,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Closure',
+      'get:_hash',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.Closure_hash);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_AbstractType',
+      'get:hashCode',
+    ): (FlowGraphBuilder builder) {
+      buildHashCodeFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        objectLayout.AbstractType_hash,
+        builder.graph.function,
       );
     },
     index.getProcedure(
@@ -1651,6 +1747,18 @@ final class VmRecognizedMethods(
       '_getNextTaskId',
     ): (FlowGraphBuilder builder) {
       buildTimelineGetNextTaskId(builder, objectLayout);
+    },
+    index.getTopLevelProcedure(
+      'dart:developer',
+      '_isDartStreamEnabled',
+    ): (FlowGraphBuilder builder) {
+      buildTimelineIsDartStreamEnabled(builder, objectLayout);
+    },
+    index.getTopLevelProcedure(
+      'dart:developer',
+      'get:extensionStreamHasListener',
+    ): (FlowGraphBuilder builder) {
+      buildExtensionStreamHasListener(builder, objectLayout);
     },
 
     // dart:_vm
