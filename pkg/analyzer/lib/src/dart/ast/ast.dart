@@ -46107,8 +46107,8 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   @override
   final Token name;
 
-  /// Lexical binding retained when a call's qualifier stays in parsed form
-  /// until type-based member lookup.
+  /// The scope lookup of this name, stored so that scope analysis does it
+  /// only once.
   ScopeLookupResult? scopeLookupResult;
 
   @generated
@@ -46219,6 +46219,11 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
 
   @generated
   ArgumentListImpl _argumentList;
+
+  /// The receiver `C` of a call `C.m()` kept for type analysis, when it is a
+  /// static qualifier. Set by scope analysis, because the selector operand
+  /// cannot hold a static qualifier.
+  StaticQualifierImpl? staticQualifier;
 
   @generated
   new({
