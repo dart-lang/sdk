@@ -209,14 +209,11 @@ abstract class AnalysisServer {
   /// or `null` if the initial analysis is not yet complete
   ServerPerformance? performanceAfterStartup;
 
-  /// A client for making requests to the pub.dev API.
-  final PubApi pubApi;
-
   /// The performance logger.
   final PerformanceLogger? performanceLogger;
 
   /// A service for fetching pub.dev package details.
-  late final PubPackageService pubPackageService;
+  final PubPackageService pubPackageService;
 
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
@@ -339,11 +336,13 @@ abstract class AnalysisServer {
        _uriConverter = ClientUriConverter.noop(
          baseResourceProvider.pathContext,
        ),
-       pubApi = PubApi(
-         instrumentationService,
-         sessionLogger,
-         httpClient,
-         platform.environment['PUB_HOSTED_URL'],
+       pubPackageService = _createPubPackageService(
+         baseResourceProvider: baseResourceProvider,
+         instrumentationService: instrumentationService,
+         sessionLogger: sessionLogger,
+         httpClient: httpClient,
+         processRunner: processRunner,
+         environment: environment,
        ),
        messageScheduler = MessageScheduler(
          listener:
@@ -352,32 +351,6 @@ abstract class AnalysisServer {
        ) {
     messageScheduler.server = this;
     notificationManager.uriConverter = _uriConverter;
-
-    // We can only spawn processes (eg. to run pub commands) when backed by
-    // a real file system, otherwise we may try to run commands in folders that
-    // don't really exist. If processRunner was supplied, it's likely a mock
-    // from a test in which case the pub command should still be created.
-    if (baseResourceProvider is PhysicalResourceProvider) {
-      processRunner ??= ProcessRunner(environment: environment);
-    }
-    var disablePubCommandVariable =
-        platform.environment[PubCommand.disablePubCommandEnvironmentKey];
-    var pubCommand = processRunner != null && disablePubCommandVariable == null
-        ? PubCommand(
-            instrumentationService,
-            sessionLogger,
-            resourceProvider.pathContext,
-            processRunner,
-          )
-        : null;
-
-    pubPackageService = PubPackageService(
-      instrumentationService,
-      sessionLogger,
-      baseResourceProvider,
-      pubApi,
-      pubCommand,
-    );
 
     this.pluginManager = pluginManager ??= PluginManager(
       resourceProvider,
@@ -609,6 +582,9 @@ abstract class AnalysisServer {
       //  server-provided name (which is today handled by the legacy version).
       editorClientCapabilities?.supportedInteractiveFormInputTypes.isEmpty ??
       true;
+
+  /// A client for making requests to the pub.dev API.
+  PubApi get pubApi => pubPackageService.api;
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
@@ -1480,6 +1456,47 @@ abstract class AnalysisServer {
       sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
+  }
+
+  static PubPackageService _createPubPackageService({
+    required ResourceProvider baseResourceProvider,
+    required InstrumentationService instrumentationService,
+    required SessionLogger sessionLogger,
+    required http.Client? httpClient,
+    required ProcessRunner? processRunner,
+    required Map<String, String>? environment,
+  }) {
+    var pubApi = PubApi(
+      instrumentationService,
+      sessionLogger,
+      httpClient,
+      platform.environment['PUB_HOSTED_URL'],
+    );
+    // We can only spawn processes (eg. to run pub commands) when backed by
+    // a real file system, otherwise we may try to run commands in folders that
+    // don't really exist. If processRunner was supplied, it's likely a mock
+    // from a test in which case the pub command should still be created.
+    if (baseResourceProvider is PhysicalResourceProvider) {
+      processRunner ??= ProcessRunner(environment: environment);
+    }
+    var disablePubCommandVariable =
+        platform.environment[PubCommand.disablePubCommandEnvironmentKey];
+    var pubCommand = processRunner != null && disablePubCommandVariable == null
+        ? PubCommand(
+            instrumentationService,
+            sessionLogger,
+            baseResourceProvider.pathContext,
+            processRunner,
+          )
+        : null;
+
+    return PubPackageService(
+      instrumentationService,
+      sessionLogger,
+      baseResourceProvider,
+      pubApi,
+      pubCommand,
+    );
   }
 }
 
