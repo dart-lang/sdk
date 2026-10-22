@@ -1743,12 +1743,6 @@ class Class : public Object {
   }
   void set_is_type_finalized() const;
 
-  bool is_synthesized_class() const {
-    return SynthesizedClassBit::decode(state_bits());
-  }
-  void set_is_synthesized_class() const;
-  void set_is_synthesized_class_unsafe() const;
-
   bool is_enum_class() const { return EnumBit::decode(state_bits()); }
   void set_is_enum_class() const;
 
@@ -2093,9 +2087,8 @@ class Class : public Object {
   using AbstractBit = BitField<uint32_t, bool, ClassLoadingBits::kNextBit>;
   static constexpr intptr_t kAbstractBitPos = AbstractBit::shift();
 
-  using SynthesizedClassBit = BitField<uint32_t, bool, AbstractBit::kNextBit>;
   using FieldsMarkedNullableBit =
-      BitField<uint32_t, bool, SynthesizedClassBit::kNextBit>;
+      BitField<uint32_t, bool, AbstractBit::kNextBit>;
 
   using EnumBit = BitField<uint32_t, bool, FieldsMarkedNullableBit::kNextBit>;
   static constexpr intptr_t kEnumBitPos = EnumBit::shift();
