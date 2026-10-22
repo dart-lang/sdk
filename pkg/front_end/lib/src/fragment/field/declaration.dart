@@ -67,7 +67,7 @@ abstract class FieldDeclaration {
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   });
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
@@ -335,7 +335,7 @@ class RegularFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -355,7 +355,7 @@ class RegularFieldDeclaration
     // into the outline.
     Token? token = _fragment.takeInitializerTokenForOutline();
     if (!hasBodyBeenBuilt && token != null) {
-      if (_fragment.modifiers.isConst || forConstantConstructor) {
+      if (_fragment.modifiers.isConst || includeBody) {
         if (hasInitializerBeenComputed) {
           buildBody(
             classHierarchy.coreTypes,
@@ -670,6 +670,7 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
@@ -701,6 +702,7 @@ class RegularFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override

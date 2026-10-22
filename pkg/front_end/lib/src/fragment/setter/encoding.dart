@@ -155,6 +155,7 @@ sealed class SetterEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   });
 
   void buildOutlineNode({
@@ -243,6 +244,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -267,6 +269,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override
@@ -528,6 +531,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -565,6 +569,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override

@@ -1309,6 +1309,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
+    required Token bodyToken,
   }) {
     switch (kind) {
       case ProcedureKind.Method:
@@ -1332,6 +1333,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           isInstanceMember: !isStatic,
           isExtensionMember: isExtensionMember,
           isExtensionTypeMember: isExtensionTypeMember,
+          bodyToken: bodyToken,
         );
       case ProcedureKind.Getter:
         addGetter(
@@ -1352,6 +1354,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           isInstanceMember: !isStatic,
           isExtensionMember: isExtensionMember,
           isExtensionTypeMember: isExtensionTypeMember,
+          bodyToken: bodyToken,
         );
       case ProcedureKind.Setter:
         addSetter(
@@ -1372,6 +1375,7 @@ class FragmentFactoryImpl implements FragmentFactory {
           isInstanceMember: !isStatic,
           isExtensionMember: isExtensionMember,
           isExtensionTypeMember: isExtensionTypeMember,
+          bodyToken: bodyToken,
         );
       // Coverage-ignore(suite): Not run.
       case ProcedureKind.Factory:
@@ -1891,6 +1895,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   }) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
@@ -1939,6 +1944,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nativeMethodName: nativeMethodName,
       enclosingCompilationUnit: _compilationUnit,
       enclosingDeclaration: enclosingDeclaration,
+      bodyToken: bodyToken,
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {
@@ -1966,6 +1972,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   }) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
@@ -2018,6 +2025,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nativeMethodName: nativeMethodName,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
+      bodyToken: bodyToken,
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {
@@ -2046,6 +2054,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required bool isOperator,
+    required Token bodyToken,
   }) {
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
@@ -2101,6 +2110,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       nativeMethodName: nativeMethodName,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
+      bodyToken: bodyToken,
     );
     _addFragment(fragment);
     if (nativeMethodName != null) {

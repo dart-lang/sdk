@@ -2344,6 +2344,7 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
         folderOptions.forceNoExplicitGetterCalls,
     forceConstructorTearOffLoweringForTesting:
         folderOptions.forceConstructorTearOffLowering,
+    forceMixinInOutlineForTesting: folderOptions.forceMixinInOutline,
     isClosureContextLoweringEnabled: folderOptions.forceClosureContextLowering,
     supportedDartLibraries: {'_supported.by.target'},
     unsupportedDartLibraries: {'unsupported.by.target'},

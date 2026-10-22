@@ -10,6 +10,7 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/common.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../kernel/kernel_helper.dart';
@@ -162,4 +163,25 @@ enum BuiltMemberKind {
 
 class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
+}
+
+extension MemberBuilderExtension on SourceMemberBuilder {
+  /// Whether this member is an instance member in a class with const
+  /// constructors.
+  bool get isConstClassInstanceMember {
+    DeclarationBuilder? declarationBuilder = this.declarationBuilder;
+    return declarationBuilder is SourceClassBuilder &&
+        !isStatic &&
+        declarationBuilder.declaresConstConstructor;
+  }
+
+  /// Whether this member is an instance member in a mixin class or mixin
+  /// declaration.
+  bool get isMixinInstanceMember {
+    DeclarationBuilder? declarationBuilder = this.declarationBuilder;
+    return declarationBuilder is SourceClassBuilder &&
+        !isStatic &&
+        (declarationBuilder.isMixinClass ||
+            declarationBuilder.isMixinDeclaration);
+  }
 }
