@@ -47,57 +47,64 @@ class PrepareRenameHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      result,
+      _,
+      checkAbort,
+    ) {
+      var offset = toOffset(result.lineInfo, pos);
+      return offset.mapResult((offset) async {
+        var node = result.unit.nodeCovering(offset: offset);
+        var element = node?.getElement(useMockForImport: true);
 
-    return (unit, offset).mapResults((result, offset) async {
-      var node = result.unit.nodeCovering(offset: offset);
-      var element = node?.getElement(useMockForImport: true);
+        if (node == null || element == null) {
+          return success(null);
+        }
 
-      if (node == null || element == null) {
-        return success(null);
-      }
-
-      var refactorDetails = RenameRefactoring.getElementToRename(node, element);
-      if (refactorDetails == null) {
-        return success(null);
-      }
-
-      var refactoring = RenameRefactoring.create(
-        server.refactoringWorkspace,
-        result,
-        refactorDetails.element,
-      );
-      if (refactoring == null) {
-        return success(null);
-      }
-
-      // Check the rename is valid here.
-      var initStatus = await refactoring.checkInitialConditions();
-      if (initStatus.hasFatalError) {
-        return error(
-          ServerErrorCodes.renameNotValid,
-          initStatus.problem!.message,
+        var refactorDetails = RenameRefactoring.getElementToRename(
+          node,
+          element,
         );
-      }
+        if (refactorDetails == null) {
+          return success(null);
+        }
 
-      return success(
-        TextDocumentPrepareRenameResult.t2(
-          PrepareRenamePlaceholder(
-            range: toRange(
-              result.lineInfo,
-              // If the offset is set to -1 it means there is no location for the
-              // old name. However since we must provide a range for LSP, we'll use
-              // a 0-character span at the originally requested location to ensure
-              // it's valid.
-              refactorDetails.offset == -1 ? offset : refactorDetails.offset,
-              refactorDetails.length,
+        var refactoring = RenameRefactoring.create(
+          server.refactoringWorkspace,
+          result,
+          refactorDetails.element,
+        );
+        if (refactoring == null) {
+          return success(null);
+        }
+
+        // Check the rename is valid here.
+        var initStatus = await refactoring.checkInitialConditions();
+        if (checkAbort() case var reason?) return reason;
+        if (initStatus.hasFatalError) {
+          return error(
+            ServerErrorCodes.renameNotValid,
+            initStatus.problem!.message,
+          );
+        }
+
+        return success(
+          TextDocumentPrepareRenameResult.t2(
+            PrepareRenamePlaceholder(
+              range: toRange(
+                result.lineInfo,
+                // If the offset is set to -1 it means there is no location for the
+                // old name. However since we must provide a range for LSP, we'll use
+                // a 0-character span at the originally requested location to ensure
+                // it's valid.
+                refactorDetails.offset == -1 ? offset : refactorDetails.offset,
+                refactorDetails.length,
+              ),
+              placeholder: refactoring.oldName,
             ),
-            placeholder: refactoring.oldName,
           ),
-        ),
-      );
+        );
+      });
     });
   }
 }
@@ -215,14 +222,14 @@ class RenameHandler extends SharedMessageHandler<RenameParams, WorkspaceEdit?> {
             token,
           );
 
-          if (checkAbort() case var reason?) return reason;
-
           if (userChoice != UserPromptActions.renameAnyway) {
             // Return an empty workspace edit response so we do not perform any
             // rename, but also so we do not cause the client to show the user an
             // error after they clicked cancel.
             return success(emptyWorkspaceEdit);
           }
+
+          if (checkAbort() case var reason?) return reason;
         }
 
         // Compute the actual change.

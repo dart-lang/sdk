@@ -32,18 +32,18 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
     }
 
     var performance = message.performance;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await performance.runAsync(
-      'requireResolvedUnit',
-      (_) => path.mapResult(requireResolvedUnit),
+    return withResolvedUnit(
+      textDocument: params.textDocument,
+      performance: performance,
+      token,
+      (result, _, _) {
+        return performance.runAsync(
+          '_getCodeLenses',
+          (performance) =>
+              _getCodeLenses(clientCapabilities, result, token, performance),
+        );
+      },
     );
-    return await unit.mapResult((result) {
-      return performance.runAsync(
-        '_getCodeLenses',
-        (performance) =>
-            _getCodeLenses(clientCapabilities, result, token, performance),
-      );
-    });
   }
 
   @override

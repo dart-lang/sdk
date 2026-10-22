@@ -65,18 +65,22 @@ class PrepareTypeHierarchyHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-    return (unit, offset).mapResultsSync((unit, offset) {
-      var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
-      var target = computer.findTarget(offset);
-      if (target == null) {
-        return success(null);
-      }
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) async {
+      var offset = toOffset(unit.lineInfo, pos);
+      return offset.mapResultSync((offset) {
+        var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
+        var target = computer.findTarget(offset);
+        if (target == null) {
+          return success(null);
+        }
 
-      var item = toLspItem(target);
-      return success([item]);
+        var item = toLspItem(target);
+        return success([item]);
+      });
     });
   }
 }
@@ -123,27 +127,29 @@ class TypeHierarchySubtypesHandler
     TypeHierarchySubtypesParams params,
     MessageInfo message,
     CancellationToken token,
-  ) async {
+  ) {
     var item = params.item;
     var data = item.data;
-    var path = pathOfUri(item.uri);
-    var unit = await path.mapResult(requireResolvedUnit);
 
-    return unit.mapResult((unit) async {
-      var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
+    return withResolvedUnit(
+      textDocument: TextDocumentIdentifier(uri: item.uri),
+      token,
+      (unit, _, _) async {
+        var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
-      if (data == null) {
-        return error(
-          ErrorCodes.InvalidParams,
-          'TypeHierarchyItem is missing the data field',
-        );
-      }
+        if (data == null) {
+          return error(
+            ErrorCodes.InvalidParams,
+            'TypeHierarchyItem is missing the data field',
+          );
+        }
 
-      var location = ElementLocation.decode(data.ref);
-      var calls = await computer.findSubtypes(location, server.searchEngine);
-      var results = calls != null ? convert(calls, toLspItem).toList() : null;
-      return success(results);
-    });
+        var location = ElementLocation.decode(data.ref);
+        var calls = await computer.findSubtypes(location, server.searchEngine);
+        var results = calls != null ? convert(calls, toLspItem).toList() : null;
+        return success(results);
+      },
+    );
   }
 }
 
@@ -171,27 +177,29 @@ class TypeHierarchySupertypesHandler
     TypeHierarchySupertypesParams params,
     MessageInfo message,
     CancellationToken token,
-  ) async {
+  ) {
     var item = params.item;
     var data = item.data;
-    var path = pathOfUri(item.uri);
-    var unit = await path.mapResult(requireResolvedUnit);
 
-    return unit.mapResult((unit) async {
-      var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
+    return withResolvedUnit(
+      textDocument: TextDocumentIdentifier(uri: item.uri),
+      token,
+      (unit, _, _) async {
+        var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
-      if (data == null) {
-        return error(
-          ErrorCodes.InvalidParams,
-          'TypeHierarchyItem is missing the data field',
-        );
-      }
+        if (data == null) {
+          return error(
+            ErrorCodes.InvalidParams,
+            'TypeHierarchyItem is missing the data field',
+          );
+        }
 
-      var location = ElementLocation.decode(data.ref);
-      var calls = await computer.findSupertypes(location);
-      var results = calls != null ? convert(calls, toLspItem).toList() : null;
-      return success(results);
-    });
+        var location = ElementLocation.decode(data.ref);
+        var calls = await computer.findSupertypes(location);
+        var results = calls != null ? convert(calls, toLspItem).toList() : null;
+        return success(results);
+      },
+    );
   }
 }
 

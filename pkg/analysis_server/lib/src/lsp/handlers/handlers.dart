@@ -347,6 +347,9 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   ///
   /// The version of [textDocument] is used if it has one, otherwise (and for
   /// [path]) the version currently held by the server is used.
+  ///
+  /// If [performance] is supplied, the time taken to get the unit is recorded
+  /// in it.
   Future<ErrorOr<R>> withParsedUnit<R>(
     CancellationToken token,
     Future<ErrorOr<R>> Function(
@@ -357,13 +360,19 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     handler, {
     String? path,
     TextDocumentIdentifier? textDocument,
+    OperationPerformanceImpl? performance,
   }) {
     return withPath<R>(path: path, textDocument: textDocument, token, (
       path,
       docIdentifier,
       checkAbort,
     ) async {
-      var result = await requireUnresolvedUnit(path);
+      var result = performance != null
+          ? await performance.runAsync(
+              'requireUnresolvedUnit',
+              (_) => requireUnresolvedUnit(path),
+            )
+          : await requireUnresolvedUnit(path);
       return result.mapResult((result) async {
         // Do an initial check since we just called requireUnresolvedUnit.
         if (checkAbort() case var reason?) return reason;
@@ -428,6 +437,9 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   ///
   /// The version of [textDocument] is used if it has one, otherwise (and for
   /// [path]) the version currently held by the server is used.
+  ///
+  /// If [performance] is supplied, the time taken to get the library is
+  /// recorded in it.
   Future<ErrorOr<R>> withResolvedLibrary<R>(
     CancellationToken token,
     Future<ErrorOr<R>> Function(
@@ -439,13 +451,19 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     handler, {
     String? path,
     TextDocumentIdentifier? textDocument,
+    OperationPerformanceImpl? performance,
   }) {
     return withPath<R>(path: path, textDocument: textDocument, token, (
       path,
       docIdentifier,
       checkAbort,
     ) async {
-      var library = await requireResolvedLibrary(path);
+      var library = performance != null
+          ? await performance.runAsync(
+              'requireResolvedLibrary',
+              (_) => requireResolvedLibrary(path),
+            )
+          : await requireResolvedLibrary(path);
       if (LspAnalysisServer.delayAfterResolveForTests case var delay?) {
         await delay;
       }
@@ -474,6 +492,9 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   ///
   /// The version of [textDocument] is used if it has one, otherwise (and for
   /// [path]) the version currently held by the server is used.
+  ///
+  /// If [performance] is supplied, the time taken to get the unit is recorded
+  /// in it.
   Future<ErrorOr<R>> withResolvedUnit<R>(
     CancellationToken token,
     Future<ErrorOr<R>> Function(
@@ -484,13 +505,19 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     handler, {
     String? path,
     TextDocumentIdentifier? textDocument,
+    OperationPerformanceImpl? performance,
   }) {
     return withPath<R>(path: path, textDocument: textDocument, token, (
       path,
       docIdentifier,
       checkAbort,
     ) async {
-      var result = await requireResolvedUnit(path);
+      var result = performance != null
+          ? await performance.runAsync(
+              'requireResolvedUnit',
+              (_) => requireResolvedUnit(path),
+            )
+          : await requireResolvedUnit(path);
       return result.mapResult((result) async {
         // Do an initial check since we just called requireResolvedUnit.
         if (checkAbort() case var reason?) return reason;

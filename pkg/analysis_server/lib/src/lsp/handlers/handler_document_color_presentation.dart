@@ -48,9 +48,11 @@ class DocumentColorPresentationHandler
       return success([]);
     }
 
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResult((unit) => _getPresentations(params, unit));
+    return withResolvedUnit(
+      textDocument: params.textDocument,
+      token,
+      (unit, _, _) => _getPresentations(params, unit),
+    );
   }
 
   /// Converts individual 0-255 ARGB values into a single int value as

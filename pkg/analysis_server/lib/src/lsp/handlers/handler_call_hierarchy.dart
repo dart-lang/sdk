@@ -83,7 +83,7 @@ class IncomingCallHierarchyHandler
       return failure(serverNotInitializedError);
     }
 
-    return handleCalls(clientCapabilities, params.item);
+    return handleCalls(clientCapabilities, params.item, token);
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyCalls] into the correct LSP
@@ -155,7 +155,7 @@ class OutgoingCallHierarchyHandler
       return failure(serverNotInitializedError);
     }
 
-    return handleCalls(clientCapabilities, params.item);
+    return handleCalls(clientCapabilities, params.item, token);
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyCalls] into the correct LSP
@@ -228,18 +228,22 @@ class PrepareCallHierarchyHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-    return (unit, offset).mapResults((unit, offset) async {
-      var supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
-      var computer = call_hierarchy.DartCallHierarchyComputer(unit);
-      var target = computer.findTarget(offset);
-      if (target == null) {
-        return success(null);
-      }
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) {
+      var offset = toOffset(unit.lineInfo, pos);
+      return offset.mapResult((offset) async {
+        var supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
+        var computer = call_hierarchy.DartCallHierarchyComputer(unit);
+        var target = computer.findTarget(offset);
+        if (target == null) {
+          return success(null);
+        }
 
-      return await _convertTarget(unit.session, target, supportedSymbolKinds);
+        return await _convertTarget(unit.session, target, supportedSymbolKinds);
+      });
     });
   }
 
@@ -291,36 +295,39 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
   Future<ErrorOr<List<C>?>> handleCalls(
     LspClientCapabilities clientCapabilities,
     CallHierarchyItem item,
+    CancellationToken token,
   ) async {
     if (!isDartUri(item.uri)) {
       return success(const []);
     }
 
-    var path = pathOfUri(item.uri);
-    var unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResult((unit) async {
-      var supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
-      var computer = call_hierarchy.DartCallHierarchyComputer(unit);
+    return withResolvedUnit(
+      textDocument: TextDocumentIdentifier(uri: item.uri),
+      token,
+      (unit, _, _) async {
+        var supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
+        var computer = call_hierarchy.DartCallHierarchyComputer(unit);
 
-      // Convert the clients item back to one in the servers format so that we
-      // can use it to get incoming/outgoing calls.
-      var target = toServerItem(
-        item,
-        unit.lineInfo,
-        supportedSymbolKinds: supportedSymbolKinds,
-      );
-
-      if (target == null) {
-        return error(
-          ErrorCodes.ContentModified,
-          'Content was modified since Call Hierarchy node was produced',
+        // Convert the clients item back to one in the servers format so that we
+        // can use it to get incoming/outgoing calls.
+        var target = toServerItem(
+          item,
+          unit.lineInfo,
+          supportedSymbolKinds: supportedSymbolKinds,
         );
-      }
 
-      var calls = await getCalls(computer, target);
-      var results = _convertCalls(unit, calls, supportedSymbolKinds);
-      return success(results);
-    });
+        if (target == null) {
+          return error(
+            ErrorCodes.ContentModified,
+            'Content was modified since Call Hierarchy node was produced',
+          );
+        }
+
+        var calls = await getCalls(computer, target);
+        var results = _convertCalls(unit, calls, supportedSymbolKinds);
+        return success(results);
+      },
+    );
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyCalls] to the appropriate
