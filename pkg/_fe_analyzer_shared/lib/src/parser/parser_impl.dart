@@ -10910,12 +10910,13 @@ class Parser {
     Token beginSwitch = token = ensureBlock(token, BlockKind.switchStatement);
     listener.beginSwitchBlock(beginSwitch);
     int caseCount = 0;
-    Token? defaultKeyword = null;
-    Token? colonAfterDefault = null;
+    bool hasDefault = false;
     while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token beginCase = token.next!;
       int expressionCount = 0;
       int labelCount = 0;
+      Token? defaultKeyword = null;
+      Token? colonAfterDefault = null;
       Token peek = peekPastLabels(beginCase);
       while (true) {
         // Loop until we find something that can't be part of a switch case.
@@ -10925,9 +10926,10 @@ class Parser {
             token = parseLabel(token);
             labelCount++;
           }
-          if (defaultKeyword != null) {
+          if (hasDefault) {
             reportRecoverableError(token.next!, diag.switchHasMultipleDefaults);
           }
+          hasDefault = true;
           defaultKeyword = token.next!;
           colonAfterDefault = token = ensureColon(defaultKeyword);
           peek = token.next!;
@@ -10938,7 +10940,7 @@ class Parser {
             labelCount++;
           }
           Token caseKeyword = token.next!;
-          if (defaultKeyword != null) {
+          if (hasDefault) {
             reportRecoverableError(caseKeyword, diag.switchHasCaseAfterDefault);
           }
           listener.beginCaseExpression(caseKeyword);
