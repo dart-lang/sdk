@@ -63,7 +63,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     return withResolvedUnit(textDocument: textDocument, token, (
       result,
       docIdentifier,
-      _,
+      checkAbort,
     ) {
       var offset = toOffset(result.lineInfo, position);
       return offset.mapResult((offset) async {
@@ -144,6 +144,8 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
             newValueCode,
           ),
         );
+        if (checkAbort() case var reason?) return reason;
+
         return workspaceEdit.mapResult(_sendEditToClient);
       });
     });

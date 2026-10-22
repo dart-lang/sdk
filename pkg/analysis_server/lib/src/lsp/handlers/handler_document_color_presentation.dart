@@ -51,7 +51,7 @@ class DocumentColorPresentationHandler
     return withResolvedUnit(
       textDocument: params.textDocument,
       token,
-      (unit, _, _) => _getPresentations(params, unit),
+      (unit, _, checkAbort) => _getPresentations(params, unit, checkAbort),
     );
   }
 
@@ -122,6 +122,7 @@ class DocumentColorPresentationHandler
   Future<ErrorOr<List<ColorPresentation>>> _getPresentations(
     ColorPresentationParams params,
     ResolvedUnitResult unit,
+    ErrorOr<List<ColorPresentation>>? Function() checkAbort,
   ) async {
     // If this file is outside of analysis roots, we cannot build edits for it
     // so return null to signal to the client that it should not try to modify
@@ -157,6 +158,7 @@ class DocumentColorPresentationHandler
 
       var sessionHelper = AnalysisSessionHelper(unit.session);
       var colorType = await sessionHelper.getFlutterClass('Color');
+      if (checkAbort() case var reason?) return reason;
       if (colorType == null) {
         // If we can't find the class (perhaps because this isn't a Flutter
         // project) we will not include any results. In theory the client should
@@ -183,6 +185,7 @@ class DocumentColorPresentationHandler
         invocationString: '.fromARGB($alpha, $red, $green, $blue)',
         includeConstKeyword: requiresConstKeyword,
       );
+      if (checkAbort() case var reason?) return reason;
 
       var colorFromRGBO = await _createColorPresentation(
         unit: unit,
@@ -192,6 +195,7 @@ class DocumentColorPresentationHandler
         invocationString: '.fromRGBO($red, $green, $blue, $opacityDouble)',
         includeConstKeyword: requiresConstKeyword,
       );
+      if (checkAbort() case var reason?) return reason;
 
       var colorFrom = await _createColorPresentation(
         unit: unit,
@@ -203,6 +207,7 @@ class DocumentColorPresentationHandler
             'green: $greenDoubleRounded, blue: $blueDoubleRounded)',
         includeConstKeyword: requiresConstKeyword,
       );
+      if (checkAbort() case var reason?) return reason;
 
       var colorDefault = await _createColorPresentation(
         unit: unit,
@@ -214,6 +219,7 @@ class DocumentColorPresentationHandler
         invocationString: '($colorValueHex)',
         includeConstKeyword: requiresConstKeyword,
       );
+      if (checkAbort() case var reason?) return reason;
 
       return success([colorFromARGB, colorFromRGBO, colorFrom, colorDefault]);
     });

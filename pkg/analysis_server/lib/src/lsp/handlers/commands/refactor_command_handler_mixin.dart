@@ -70,9 +70,12 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
       docIdentifier,
       checkAbort,
     ) async {
+      var startSessions = await server.currentSessions;
+      if (checkAbort() case var reason?) return reason;
+
       var context = RefactoringContext(
         server: server,
-        startSessions: await server.currentSessions,
+        startSessions: startSessions,
         resolvedLibraryResult: library,
         resolvedUnitResult: unit,
         clientCapabilities: clientCapabilities,

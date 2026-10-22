@@ -134,7 +134,7 @@ class TypeHierarchySubtypesHandler
     return withResolvedUnit(
       textDocument: TextDocumentIdentifier(uri: item.uri),
       token,
-      (unit, _, _) async {
+      (unit, _, checkAbort) async {
         var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
         if (data == null) {
@@ -146,6 +146,8 @@ class TypeHierarchySubtypesHandler
 
         var location = ElementLocation.decode(data.ref);
         var calls = await computer.findSubtypes(location, server.searchEngine);
+        if (checkAbort() case var reason?) return reason;
+
         var results = calls != null ? convert(calls, toLspItem).toList() : null;
         return success(results);
       },
@@ -184,7 +186,7 @@ class TypeHierarchySupertypesHandler
     return withResolvedUnit(
       textDocument: TextDocumentIdentifier(uri: item.uri),
       token,
-      (unit, _, _) async {
+      (unit, _, checkAbort) async {
         var computer = type_hierarchy.DartLazyTypeHierarchyComputer(unit);
 
         if (data == null) {
@@ -196,6 +198,8 @@ class TypeHierarchySupertypesHandler
 
         var location = ElementLocation.decode(data.ref);
         var calls = await computer.findSupertypes(location);
+        if (checkAbort() case var reason?) return reason;
+
         var results = calls != null ? convert(calls, toLspItem).toList() : null;
         return success(results);
       },

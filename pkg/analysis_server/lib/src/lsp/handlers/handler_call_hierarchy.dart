@@ -242,18 +242,18 @@ class PrepareCallHierarchyHandler
           return success(null);
         }
 
-        return await _convertTarget(unit.session, target, supportedSymbolKinds);
+        return _convertTarget(unit.session, target, supportedSymbolKinds);
       });
     });
   }
 
   /// Converts a server [call_hierarchy.CallHierarchyItem] to the LSP protocol
   /// equivalent.
-  Future<ErrorOr<TextDocumentPrepareCallHierarchyResult>> _convertTarget(
+  ErrorOr<TextDocumentPrepareCallHierarchyResult> _convertTarget(
     AnalysisSession session,
     call_hierarchy.CallHierarchyItem target,
     Set<SymbolKind> supportedSymbolKinds,
-  ) async {
+  ) {
     // Since the target might be in a different file (for example if invoked at
     // a call site), we need to get a consistent LineInfo for the target file
     // for this session.
@@ -304,7 +304,7 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
     return withResolvedUnit(
       textDocument: TextDocumentIdentifier(uri: item.uri),
       token,
-      (unit, _, _) async {
+      (unit, _, checkAbort) async {
         var supportedSymbolKinds = clientCapabilities.documentSymbolKinds;
         var computer = call_hierarchy.DartCallHierarchyComputer(unit);
 
@@ -324,6 +324,8 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
         }
 
         var calls = await getCalls(computer, target);
+        if (checkAbort() case var reason?) return reason;
+
         var results = _convertCalls(unit, calls, supportedSymbolKinds);
         return success(results);
       },

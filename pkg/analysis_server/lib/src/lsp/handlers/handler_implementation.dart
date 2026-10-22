@@ -46,12 +46,18 @@ class ImplementationHandler
       textDocument: params.textDocument,
       performance: performance,
       token,
-      (unit, _, _) async {
+      (unit, _, checkAbort) async {
         var offset = toOffset(unit.lineInfo, pos);
         return await performance.runAsync(
           '_getImplementations',
           (performance) => offset.mapResult(
-            (offset) => _getImplementations(unit, offset, token, performance),
+            (offset) => _getImplementations(
+              unit,
+              offset,
+              checkAbort,
+              token,
+              performance,
+            ),
           ),
         );
       },
@@ -61,6 +67,7 @@ class ImplementationHandler
   Future<ErrorOr<List<Location>>> _getImplementations(
     ResolvedUnitResult result,
     int offset,
+    ErrorOr<List<Location>>? Function() checkAbort,
     CancellationToken token,
     OperationPerformanceImpl performance,
   ) async {
@@ -86,6 +93,7 @@ class ImplementationHandler
         performance,
       ),
     );
+    if (checkAbort() case var reason?) return reason;
 
     var locations = performance.run(
       'filter and get location',

@@ -45,9 +45,9 @@ class ImportsHandler
       unit,
       _,
       _,
-    ) {
+    ) async {
       var offset = toOffset(unit.unit.lineInfo, pos);
-      return offset.mapResult((offset) async {
+      return offset.mapResultSync((offset) {
         var node = unit.unit.nodeCovering(offset: offset);
         if (node == null) {
           return success(null);
