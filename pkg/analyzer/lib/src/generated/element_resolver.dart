@@ -7,7 +7,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
-import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -78,52 +77,16 @@ class ElementResolver {
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl _definingLibrary;
 
-  final MethodInvocationResolver _methodInvocationResolver;
-
   late final _commentReferenceResolver = CommentReferenceResolver(
     _typeAnalyzer,
   );
 
   /// Initialize a newly created visitor to work for the given [_typeAnalyzer]
   /// to resolve the nodes in a compilation unit.
-  new(this._typeAnalyzer)
-    : _definingLibrary = _typeAnalyzer.definingLibrary,
-      _methodInvocationResolver = MethodInvocationResolver(_typeAnalyzer);
+  new(this._typeAnalyzer) : _definingLibrary = _typeAnalyzer.definingLibrary;
 
   DiagnosticReporter get _diagnosticReporter =>
       _typeAnalyzer.diagnosticReporter;
-
-  void resolveCascadeInvocation(
-    ParsedValueArgumentsImpl node,
-    CascadeExpressionImpl cascade, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveCascade(
-      node,
-      cascade,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
-  void resolveParsedReceiverInvocation(
-    ParsedValueArgumentsImpl node,
-    NamedReceiverImpl receiver, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveReceiver(
-      node,
-      receiver,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
-  void visitClassDeclaration2(ClassDeclaration2 node) {}
-
-  void visitClassTypeAlias2(ClassTypeAlias2 node) {}
 
   void visitCommentReference(CommentReferenceImpl node) {
     _commentReferenceResolver.resolve(node);
@@ -169,8 +132,6 @@ class ElementResolver {
     }
   }
 
-  void visitDeclaredIdentifier(DeclaredIdentifier node) {}
-
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -183,10 +144,6 @@ class ElementResolver {
     }
   }
 
-  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {}
-
-  void visitEnumDeclaration2(EnumDeclaration2 node) {}
-
   void visitExportDirective(ExportDirectiveImpl node) {
     var exportElement = node.libraryExport;
     if (exportElement != null) {
@@ -196,16 +153,6 @@ class ElementResolver {
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
     }
   }
-
-  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {}
-
-  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {}
-
-  void visitFieldFormalParameter(FieldFormalParameter node) {}
-
-  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {}
-
-  void visitGenericTypeAlias2(GenericTypeAlias2 node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var importElement = node.libraryImport;
@@ -217,34 +164,6 @@ class ElementResolver {
       }
     }
   }
-
-  void visitImportPrefixedFunctionInvocation(
-    ImportPrefixedFunctionInvocationImpl node, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveImportPrefixed(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
-  }
-
-  void visitLibraryDirective(LibraryDirective node) {}
-
-  void visitMixinDeclaration2(MixinDeclaration2 node) {}
-
-  void visitPartDirective(PartDirective node) {}
-
-  void visitPartOfDirective(PartOfDirective node) {}
-
-  void visitRecordTypeAnnotationNamedField(
-    RecordTypeAnnotationNamedField node,
-  ) {}
-
-  void visitRecordTypeAnnotationPositionalField(
-    RecordTypeAnnotationPositionalField node,
-  ) {}
 
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
@@ -275,8 +194,6 @@ class ElementResolver {
       argumentList.correspondingStaticParameters = parameters;
     }
   }
-
-  void visitRegularFormalParameter(RegularFormalParameter node) {}
 
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
@@ -364,20 +281,6 @@ class ElementResolver {
       case SuperContext.extensionType:
         _diagnosticReporter.report(diag.superInExtensionType.at(node));
     }
-  }
-
-  void visitTypeParameter(TypeParameter node) {}
-
-  void visitUnqualifiedFunctionInvocation(
-    UnqualifiedFunctionInvocationImpl node, {
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-  }) {
-    _methodInvocationResolver.resolveUnqualified(
-      node,
-      whyNotPromotedArguments,
-      contextType: contextType,
-    );
   }
 
   /// Given an [argumentList] and the [executableElement] that will be invoked

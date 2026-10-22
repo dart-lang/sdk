@@ -49,15 +49,14 @@ import 'package:analyzer/src/dart/resolver/function_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/increment_or_decrement_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
+import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
-import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/unary_operator_invocation_resolver.dart';
@@ -360,7 +359,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   late final ConstructorInvocationResolver constructorInvocationResolver =
       ConstructorInvocationResolver(this);
 
-  late final PropertyElementResolver _propertyElementResolver =
+  late final MethodInvocationResolver _methodInvocationResolver =
+      MethodInvocationResolver(this);
+
+  late final PropertyElementResolver propertyElementResolver =
       PropertyElementResolver(this);
 
   late final RecordLiteralResolver _recordLiteralResolver =
@@ -1603,7 +1605,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (cascade == null) {
       throw StateError('Cascade index node outside a cascade section.');
     }
-    return _propertyElementResolver.resolveCascadeIndex(
+    return propertyElementResolver.resolveCascadeIndex(
       node: node,
       receiver: cascadeReceiver(cascade),
       isNullAware: cascade.isNullAware,
@@ -1627,7 +1629,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (cascade == null) {
       throw StateError('Cascade property node outside a cascade section.');
     }
-    return _propertyElementResolver.resolveCascadeProperty(
+    return propertyElementResolver.resolveCascadeProperty(
       node: node,
       receiver: cascadeReceiver(cascade),
       isNullAware: cascade.isNullAware,
@@ -1635,25 +1637,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
-  }
-
-  void resolveImportPrefixedAssignmentTarget(
-    ImportPrefixedAssignmentTargetImpl node,
-  ) {
-    _propertyElementResolver.resolveImportPrefixedAssignmentTarget(node);
-  }
-
-  IndexWriteResolutionImpl? resolveIndexDirectAssignmentTarget(
-    ReceiverIndexAssignmentTargetImpl node,
-  ) {
-    return _propertyElementResolver.resolveIndexDirectAssignmentTarget(node);
-  }
-
-  ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
-  resolveIndexReadWriteAssignmentTarget(
-    ReceiverIndexAssignmentTargetImpl node,
-  ) {
-    return _propertyElementResolver.resolveIndexReadWriteAssignmentTarget(node);
   }
 
   PatternResult resolveMapPattern({
@@ -1754,25 +1737,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     return (null, SharedTypeView(typeProvider.dynamicType));
   }
 
-  NamedWriteResolutionImpl? resolveReceiverPropertyDirectAssignmentTarget(
-    ReceiverPropertyAssignmentTargetImpl node,
-  ) {
-    return _propertyElementResolver
-        .resolveReceiverPropertyDirectAssignmentTarget(node);
-  }
-
-  ({
-    NamedReadResolutionImpl read,
-    NamedWriteResolutionImpl write,
-    ExpressionInfo? readExpressionInfo,
-  })?
-  resolveReceiverPropertyReadWriteAssignmentTarget(
-    ReceiverPropertyAssignmentTargetImpl node,
-  ) {
-    return _propertyElementResolver
-        .resolveReceiverPropertyReadWriteAssignmentTarget(node);
-  }
-
   @override
   shared.RelationalOperatorResolution? resolveRelationalPatternOperator(
     covariant RelationalPatternImpl node,
@@ -1832,26 +1796,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
   }
 
-  NamedWriteResolutionImpl resolveUnqualifiedNameAssignmentTarget(
-    UnqualifiedNameAssignmentTargetImpl node,
-  ) {
-    return _propertyElementResolver.resolveUnqualifiedNameAssignmentTarget(
-      node,
-    );
-  }
-
-  ({
-    NamedReadResolutionImpl read,
-    NamedWriteResolutionImpl write,
-    ExpressionInfo? readExpressionInfo,
-  })
-  resolveUnqualifiedNameReadWriteAssignmentTarget(
-    UnqualifiedNameAssignmentTargetImpl node,
-  ) {
-    return _propertyElementResolver
-        .resolveUnqualifiedNameReadWriteAssignmentTarget(node);
-  }
-
   @override
   void setVariableType(PromotableElementImpl variable, SharedTypeView type) {
     if (variable is LocalVariableElementImpl) {
@@ -1879,19 +1823,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       return InvalidTypeImpl.instance;
     }
     return unpromotedThisType ?? InvalidTypeImpl.instance;
-  }
-
-  /// Returns the result of an implicit `this.` lookup for [node] in a getter
-  /// context.
-  LexicalLookupResult? thisLookupGetter2(AstNode node, String name) {
-    return ThisLookup.lookupGetter2(this, node: node, name: name);
-  }
-
-  /// Returns the result of an implicit `this.` lookup for [node].
-  LexicalLookupResult? thisLookupSetter2(
-    UnqualifiedNameAssignmentTargetImpl node,
-  ) {
-    return ThisLookup.lookupSetter2(this, node: node, name: node.name.lexeme);
   }
 
   @override
@@ -2513,7 +2444,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(declaredElement, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitClassDeclaration2(node);
     });
 
     baseOrFinalTypeVerifier.checkElement(
@@ -2533,7 +2463,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitClassTypeAlias2(node);
     baseOrFinalTypeVerifier.checkElement(
       element: declaredElement,
       nameToken: node.name,
@@ -2817,7 +2746,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitDeclaredIdentifier(node);
   }
 
   @override
@@ -3043,8 +2971,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         whyNotPromotedArguments,
       );
     }
-
-    elementResolver.visitEnumConstantDeclaration2(node);
   }
 
   @override
@@ -3055,7 +2981,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitEnumDeclaration2(node);
     });
   }
 
@@ -3118,7 +3043,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitExtensionDeclaration2(node);
     });
   }
 
@@ -3178,7 +3102,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitExtensionTypeDeclaration2(node);
     });
   }
 
@@ -3191,7 +3114,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _visitFormalParameter(node);
-    elementResolver.visitFieldFormalParameter(node);
   }
 
   @override
@@ -3267,7 +3189,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitFunctionTypeAlias2(node);
   }
 
   @override
@@ -3280,7 +3201,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitGenericTypeAlias2(node);
   }
 
   @override
@@ -3464,7 +3384,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    var resolution = _propertyElementResolver
+    var resolution = propertyElementResolver
         .resolveImportPrefixedNameExpression(node);
     node.resolution = resolution;
     node.recordStaticType(resolution.type, typeAnalyzer: this);
@@ -3584,7 +3504,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitLibraryDirective(LibraryDirective node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitLibraryDirective(node);
   }
 
   @override
@@ -3771,7 +3690,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     _withEnclosingInstanceElement(node.declaredFragment!.element, () {
       checkUnreachableNode(node);
       node.visitChildren2(this);
-      elementResolver.visitMixinDeclaration2(node);
     });
 
     baseOrFinalTypeVerifier.checkElement(
@@ -3977,10 +3895,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
     typeArguments?.accept2(this);
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
-    elementResolver.resolveParsedReceiverInvocation(
+    _methodInvocationResolver.resolveReceiver(
       node,
       receiver,
-      whyNotPromotedArguments: whyNotPromotedArguments,
+      whyNotPromotedArguments,
       contextType: contextType,
     );
     // A null-shortened receiver selects no operation, even when member lookup
@@ -4015,14 +3933,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitPartDirective(PartDirective node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitPartDirective(node);
   }
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitPartOfDirective(node);
   }
 
   @override
@@ -4178,7 +4094,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       nullSafetyDeadCodeVerifier.visitNode(node.index);
     }
 
-    var resolution = _propertyElementResolver.resolveReceiverIndexExpression(
+    var resolution = propertyElementResolver.resolveReceiverIndexExpression(
       node,
     );
     node.resolution = resolution;
@@ -4268,7 +4184,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         }
     }
 
-    var (:expressionInfo, :resolution, :type) = _propertyElementResolver
+    var (:expressionInfo, :resolution, :type) = propertyElementResolver
         .resolveReceiverPropertyExtraction(node);
     node.resolution = resolution;
     node.recordStaticType(type, typeAnalyzer: this);
@@ -4316,7 +4232,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     RecordTypeAnnotationNamedField node,
   ) {
     node.visitChildren2(this);
-    elementResolver.visitRecordTypeAnnotationNamedField(node);
   }
 
   @override
@@ -4331,7 +4246,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     RecordTypeAnnotationPositionalField node,
   ) {
     node.visitChildren2(this);
-    elementResolver.visitRecordTypeAnnotationPositionalField(node);
   }
 
   @override
@@ -4367,7 +4281,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   @override
   void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     _visitFormalParameter(node);
-    elementResolver.visitRegularFormalParameter(node);
   }
 
   @override
@@ -4847,7 +4760,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitTypeParameter(TypeParameter node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitTypeParameter(node);
   }
 
   @override
@@ -4886,9 +4798,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    var result = _propertyElementResolver.resolveUnqualifiedNameExpression(
-      node,
-    );
+    var result = propertyElementResolver.resolveUnqualifiedNameExpression(node);
     var resolution = result.resolution;
     node.resolution = resolution;
     if (result.expressionInfo case var expressionInfo?) {
@@ -5424,7 +5334,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     var shorthandContext = _resolveDotShorthandContext();
     node.shorthandContext = shorthandContext;
-    var resolution = _propertyElementResolver.resolveDotShorthand(
+    var resolution = propertyElementResolver.resolveDotShorthand(
       node,
       contextType: contextType,
       shorthandContext: shorthandContext,
@@ -5523,10 +5433,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    elementResolver.resolveCascadeInvocation(
+    _methodInvocationResolver.resolveCascade(
       node,
       _activeCascadeExpression!,
-      whyNotPromotedArguments: whyNotPromotedArguments,
+      whyNotPromotedArguments,
       contextType: contextType,
     );
 
@@ -5713,15 +5623,15 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     switch (node) {
       case ImportPrefixedFunctionInvocationImpl():
-        elementResolver.visitImportPrefixedFunctionInvocation(
+        _methodInvocationResolver.resolveImportPrefixed(
           node,
-          whyNotPromotedArguments: whyNotPromotedArguments,
+          whyNotPromotedArguments,
           contextType: contextType,
         );
       case UnqualifiedFunctionInvocationImpl():
-        elementResolver.visitUnqualifiedFunctionInvocation(
+        _methodInvocationResolver.resolveUnqualified(
           node,
-          whyNotPromotedArguments: whyNotPromotedArguments,
+          whyNotPromotedArguments,
           contextType: contextType,
         );
       default:

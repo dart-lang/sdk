@@ -1378,50 +1378,47 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _handleFor(AstNode node, ForLoopPartsImpl forLoopParts, AstNode body) {
-    if (forLoopParts is ForPartsImpl) {
-      if (forLoopParts is ForPartsWithExpressionImpl) {
-        forLoopParts.initialization2?.accept2(this);
-      } else if (forLoopParts is ForPartsWithDeclarationsImpl) {
-        forLoopParts.variables2.accept2(this);
-      } else if (forLoopParts is ForPartsWithPatternImpl) {
-        forLoopParts.variables.accept2(this);
-      } else {
-        throw StateError('Unrecognized for loop parts');
-      }
-
-      assignedVariables.beginNode();
-      forLoopParts.condition2?.accept2(this);
-      body.accept2(this);
-      forLoopParts.updaters2.accept2(this);
-      assignedVariables.endNode(node);
-    } else if (forLoopParts is ForEachPartsImpl) {
-      var iterable = forLoopParts.iterable2;
-
-      iterable.accept2(this);
-
-      if (forLoopParts is ForEachPartsWithIdentifierImpl) {
-        // Assigned-variable collection runs before expression resolution fills
-        // in the write resolution. [ScopeAnalyzer] has already recorded
-        // the scope lookup used by this prepass.
-        var element = forLoopParts.target.scopeLookupResult?.getter;
-        if (element is PromotableElementImpl) {
-          assignedVariables.write(element);
+    switch (forLoopParts) {
+      case ForPartsImpl():
+        switch (forLoopParts) {
+          case ForPartsWithExpressionImpl():
+            forLoopParts.initialization2?.accept2(this);
+          case ForPartsWithDeclarationsImpl():
+            forLoopParts.variables2.accept2(this);
+          case ForPartsWithPatternImpl():
+            forLoopParts.variables.accept2(this);
         }
-      } else if (forLoopParts is ForEachPartsWithDeclarationImpl) {
-        var variable = forLoopParts.loopVariable.declaredFragment!.element;
-        assignedVariables.declare(variable);
-      } else if (forLoopParts is ForEachPartsWithPatternImpl) {
-        for (var variable in forLoopParts.variables) {
-          assignedVariables.declare(variable);
+
+        assignedVariables.beginNode();
+        forLoopParts.condition2?.accept2(this);
+        body.accept2(this);
+        forLoopParts.updaters2.accept2(this);
+        assignedVariables.endNode(node);
+      case ForEachPartsImpl():
+        var iterable = forLoopParts.iterable2;
+
+        iterable.accept2(this);
+
+        switch (forLoopParts) {
+          case ForEachPartsWithIdentifierImpl():
+            // Assigned-variable collection runs before expression resolution
+            // fills in the write resolution. [ScopeAnalyzer] has already
+            // recorded the scope lookup used by this prepass.
+            var element = forLoopParts.target.scopeLookupResult?.getter;
+            if (element is PromotableElementImpl) {
+              assignedVariables.write(element);
+            }
+          case ForEachPartsWithDeclarationImpl():
+            var variable = forLoopParts.loopVariable.declaredFragment!.element;
+            assignedVariables.declare(variable);
+          case ForEachPartsWithPatternImpl():
+            for (var variable in forLoopParts.variables) {
+              assignedVariables.declare(variable);
+            }
         }
-      } else {
-        throw StateError('Unrecognized for loop parts');
-      }
-      assignedVariables.beginNode();
-      body.accept2(this);
-      assignedVariables.endNode(node);
-    } else {
-      throw StateError('Unrecognized for loop parts');
+        assignedVariables.beginNode();
+        body.accept2(this);
+        assignedVariables.endNode(node);
     }
   }
 

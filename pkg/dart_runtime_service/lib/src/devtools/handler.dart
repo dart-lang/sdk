@@ -40,13 +40,16 @@ const sseKeepAlive = Duration(seconds: 30);
 /// If DTD URI is non-null, but secret is null, then DTD was started by a
 /// client that is not the DevTools server (e.g. an IDE).
 FutureOr<Handler> defaultHandler({
-  String? buildDir,
-  DevToolsClientManager? clientManager,
-  Handler? notFoundHandler,
-  DtdInfo? dtd,
   required ExtensionsManager devtoolsExtensionsManager,
   String? appRoot,
+  String? buildDir,
+  DevToolsClientManager? clientManager,
+  bool disableServiceOriginCheck = false,
+  DtdInfo? dtd,
   bool enableLogging = false,
+  Handler? notFoundHandler,
+  Uri? serverUri,
+  Uri? Function()? serviceUriGetter,
 }) {
   appRoot ??= '/';
   if (!appRoot.endsWith('/')) {
@@ -143,17 +146,34 @@ FutureOr<Handler> defaultHandler({
     clientManager!.acceptClient(sseConnection, enableLogging: enableLogging);
   });
 
+  List<Uri> allowedUris() => <Uri>[?serviceUriGetter?.call(), ?serverUri];
+
   FutureOr<Response> devtoolsHandler(Request request) {
     // If the request isn't of the form api/<method> assume it's a request for
     // DevTools assets.
     if (request.url.pathSegments case ['api', final method, ...]) {
+      if (!disableServiceOriginCheck) {
+        final uris = allowedUris();
+        // Host header check for all api/* requests to prevent DNS rebinding.
+        final hostHeader = request.headers[HttpHeaders.hostHeader];
+        if (hostHeader == null ||
+            !_isAllowedHost(hostHeader, allowedUris: uris)) {
+          return Response.forbidden('forbidden host');
+        }
+
+        // Origin header check for all api/* requests to prevent CSRF.
+        final origin = request.headers['Origin'];
+        if (origin != null && !_isAllowedOrigin(origin, allowedUris: uris)) {
+          return Response.forbidden('forbidden origin');
+        }
+      }
+
       if (method == 'ping') {
         // Note: we have an 'OK' body response, otherwise the response has an
         // incorrect status code (204 instead of 200).
         return Response.ok('OK');
       }
       if (method == 'sse') {
-        print('DevTools server handling SSE request: ${request.url}');
         return devToolsApiHandler.handler(request);
       }
       if (!ServerApi.canHandle(request)) {
@@ -256,4 +276,32 @@ String computeRelativeBaseHref(String absoluteBaseHref, Uri requestUri) {
       ? requestUri.path
       : path.posix.dirname(requestUri.path);
   return path.posix.relative(absoluteBaseHref, from: requestFolderPath);
+}
+
+bool _isAllowedOrigin(String origin, {required List<Uri> allowedUris}) {
+  Uri uri;
+  try {
+    uri = Uri.parse(origin);
+  } catch (_) {
+    return false;
+  }
+
+  final host = uri.host;
+  if (host == 'localhost' ||
+      host == InternetAddress.loopbackIPv4.address ||
+      host == InternetAddress.loopbackIPv6.address) {
+    return true;
+  }
+
+  for (final allowedUri in allowedUris) {
+    if (host == allowedUri.host && uri.port == allowedUri.port) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool _isAllowedHost(String hostHeader, {required List<Uri> allowedUris}) {
+  return _isAllowedOrigin('http://$hostHeader', allowedUris: allowedUris);
 }
