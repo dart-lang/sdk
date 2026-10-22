@@ -207,6 +207,31 @@ class AstToIr extends ast.RecursiveVisitor {
           }
       }
     }
+
+    // Generate 'null' handling for operator ==.
+    final member = function.member;
+    if (function is RegularFunction &&
+        member.name.text == '==' &&
+        member.enclosingClass != coreTypes.objectClass) {
+      final nullBlock = builder.newTargetBlock();
+      final done = builder.newTargetBlock();
+
+      builder.addLoadLocal(
+        localVarIndexer.variableForDeclaration(
+          member.function!.positionalParameters[0],
+        ),
+      );
+      builder.addNullConstant();
+      builder.addComparison(.equal);
+      builder.addBranch(nullBlock, done);
+
+      builder.startBlock(nullBlock);
+      builder.addBoolConstant(false);
+      builder.addReturn();
+
+      builder.startBlock(done);
+    }
+
     for (final param in localVarIndexer.parameters) {
       if (param.isCovariant) {
         if (param.type is TopType) {
