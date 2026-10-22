@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 import 'package:dart_runtime_service_vm/dart_runtime_service_vm.dart';
 import 'package:dart_runtime_service_vm/src/native_bindings.dart';
 import 'package:dart_runtime_service_vm/src/vm_isolate_manager.dart';

@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:logging/logging.dart';
@@ -14,9 +13,14 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'clients.dart';
-import 'dart_runtime_service.dart';
-import 'dart_runtime_service_backend.dart';
+import '../clients.dart';
+import '../dart_runtime_service.dart';
+import 'dart_runtime_service_io_backend.dart';
+
+const _kHostHeader = 'host';
+const _kLoopbackIPv4Address = '127.0.0.1';
+const _kLoopbackIPv6Address = '::1';
+const _kJsonMimeType = 'application/json';
 
 /// Return from a handler to indicate that the request can't be handled by the
 /// current handler.
@@ -88,7 +92,7 @@ Middleware originCheckMiddleware({required DartRuntimeService frontend}) =>
 
 Middleware hostCheckMiddleware({required DartRuntimeService frontend}) =>
     (Handler innerHandler) => (Request request) {
-      final hostHeader = request.headers[HttpHeaders.hostHeader];
+      final hostHeader = request.headers[_kHostHeader];
       if (hostHeader == null) {
         return Response.forbidden('missing Host header');
       }
@@ -115,8 +119,8 @@ bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
   // Explicitly add localhost and 127.0.0.1 on any port (necessary for
   // adb port forwarding).
   if ((uri.host == 'localhost') ||
-      (uri.host == InternetAddress.loopbackIPv6.address) ||
-      (uri.host == InternetAddress.loopbackIPv4.address)) {
+      (uri.host == _kLoopbackIPv6Address) ||
+      (uri.host == _kLoopbackIPv4Address)) {
     return true;
   }
 
@@ -141,11 +145,10 @@ bool _isAllowedHost(String hostHeader, DartRuntimeService frontend) {
 
 /// Creates a [Handler] responsible for processing HTTP requests.
 ///
-/// If [frontend] has a [DartRuntimeServiceBackend] with a
-/// [DartRuntimeServiceBackend.httpHandler] override, the backend's handler
-/// will be invoked first. Otherwise, the HTTP request is treated as a JSON-RPC
-/// invocation.
-Handler httpRequestHandler({required DartRuntimeService frontend}) =>
+/// If [backend] overrides [DartRuntimeServiceIoBackend.httpHandler], the
+/// backend's handler will be invoked first. Otherwise, the HTTP request is
+/// treated as a JSON-RPC invocation.
+Handler httpRequestHandler({required DartRuntimeServiceIoBackend backend}) =>
     (Request request) async {
       final logger = Logger('HttpRequestHandler');
       final method = request.url.pathSegments.firstOrNull ?? '';
@@ -153,7 +156,7 @@ Handler httpRequestHandler({required DartRuntimeService frontend}) =>
       logger.info('(${request.method}) ${request.url}');
 
       try {
-        final backendResult = await frontend.backend.httpHandler(request);
+        final backendResult = await backend.httpHandler(request);
         if (backendResult != null) {
           logger.info(
             'Returning backend provided result: ${backendResult.statusCode}',
@@ -163,7 +166,7 @@ Handler httpRequestHandler({required DartRuntimeService frontend}) =>
 
         final httpClient = StreamChannelController<String>(sync: true);
         try {
-          frontend.addArtificialClient(
+          backend.frontend.addArtificialClient(
             connection: httpClient.foreign,
             name: 'HTTP request',
           );
@@ -177,7 +180,7 @@ Handler httpRequestHandler({required DartRuntimeService frontend}) =>
             headers: {
               // We closed the connection for bad origins earlier.
               'Access-Control-Allow-Origin': '*',
-              'content-type': ContentType.json.mimeType,
+              'content-type': _kJsonMimeType,
             },
           );
         } finally {

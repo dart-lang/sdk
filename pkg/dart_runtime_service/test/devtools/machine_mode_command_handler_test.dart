@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:sse/server/sse_handler.dart';

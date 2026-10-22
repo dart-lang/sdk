@@ -13,9 +13,9 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:vm_service/vm_service.dart' hide Response;
 
-import 'dart_runtime_service.dart';
-import 'dart_runtime_service_rpcs.dart';
-import 'rpc_exceptions.dart';
+import '../dart_runtime_service.dart';
+import '../dart_runtime_service_rpcs.dart';
+import '../rpc_exceptions.dart';
 
 /// A [DevelopmentFileSystem] rooted at [rootUri], providing restricted file
 /// system access to clients.
