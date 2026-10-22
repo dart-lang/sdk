@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 import "dart:collection";
 import "dart:typed_data";
@@ -30,6 +31,70 @@ main() {
 
   new Test<num>(0).test("superclass", <int>[1, 2, 3]);
   new Test<int>(0).test("subclass", <num>[1, 2, 3]);
+
+  testCovariantTypeReification();
+  testSourceMutationIsolation();
+  testInvalidDowncasts();
+}
+
+void testCovariantTypeReification() {
+  const constInts = <int>[1, 2];
+  final alreadyUnmodInts = List<int>.unmodifiable(<int>[1, 2]);
+  for (final source in <Iterable<int>>[
+    const <int>[],
+    constInts,
+    <int>[1, 2],
+    List<int>.filled(2, 1),
+    alreadyUnmodInts,
+    Uint8List.fromList(<int>[1, 2]),
+  ]) {
+    for (final copy in [
+      List<num>.unmodifiable(source),
+      List<num>.unmodifiableOf(source),
+    ]) {
+      Expect.type<List<num>>(copy);
+      Expect.notType<List<int>>(copy);
+    }
+  }
+  Expect.type<List<int>>(constInts);
+  Expect.type<List<int>>(alreadyUnmodInts);
+}
+
+void testSourceMutationIsolation() {
+  final growable = <int>[1, 2];
+  final fromGrowable = List<int>.unmodifiable(growable);
+  final ofGrowable = List<int>.unmodifiableOf(growable);
+  growable[0] = 99;
+  growable.add(3);
+  Expect.listEquals(<int>[1, 2], fromGrowable);
+  Expect.listEquals(<int>[1, 2], ofGrowable);
+
+  final fixed = List<int>.filled(2, 1)..[1] = 2;
+  final fromFixed = List<int>.unmodifiable(fixed);
+  fixed[0] = 99;
+  Expect.listEquals(<int>[1, 2], fromFixed);
+
+  final typed = Uint8List.fromList(<int>[1, 2]);
+  final fromTyped = List<int>.unmodifiable(typed);
+  typed[0] = 99;
+  Expect.listEquals(<int>[1, 2], fromTyped);
+}
+
+void testInvalidDowncasts() {
+  final nullable = <int?>[1, null];
+  final unmodNullable = List<int?>.unmodifiable(nullable);
+  Expect.type<List<int?>>(unmodNullable);
+  Expect.notType<List<int>>(unmodNullable);
+
+  Expect.throwsTypeErrorWhen(checkedImplicitDowncasts, () {
+    List<int>.unmodifiable(<num>[1, 2.5]);
+  });
+  Expect.throwsTypeErrorWhen(checkedImplicitDowncasts, () {
+    List<int>.unmodifiable(nullable);
+  });
+  Expect.throwsTypeErrorWhen(checkedImplicitDowncasts, () {
+    List<int>.unmodifiable(<dynamic>[1, "x"]);
+  });
 }
 
 class Test<E> {
