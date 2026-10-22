@@ -339,7 +339,7 @@ class C<T extends Object>.named(
       Token('extends', .keyword),
       Token('A', .class_),
       Token('with', .keyword),
-      Token('M', .class_),
+      Token('M', .class_, [.mixin]),
       Token('implements', .keyword),
       Token('B', .class_),
       Token('this', .keyword),
@@ -393,22 +393,22 @@ const e = const MyClass();
       Token('factory', .method, [.constructor, .declaration]),
       Token('MyClass', .class_, [.constructor]),
       Token('final', .keyword),
-      Token('a', .variable, [.declaration]),
+      Token('a', .variable, [.declaration, .static]),
       Token('MyClass', .class_, [.constructor]),
       Token('final', .keyword),
-      Token('b', .variable, [.declaration]),
+      Token('b', .variable, [.declaration, .static]),
       Token('MyClass', .class_, [.constructor]),
       Token('named', .method, [.constructor]),
       Token('final', .keyword),
-      Token('c', .variable, [.declaration]),
+      Token('c', .variable, [.declaration, .static]),
       Token('MyClass', .class_, [.constructor]),
       Token('factory', .method, [.constructor]),
       Token('final', .keyword),
-      Token('d', .variable, [.declaration]),
+      Token('d', .variable, [.declaration, .static]),
       Token('MyClass', .class_),
-      Token('named', .method, [.constructor]),
+      Token('named', .method, [.constructor, .tearOff]),
       Token('const', .keyword),
-      Token('e', .variable, [.declaration]),
+      Token('e', .variable, [.declaration, .static]),
       Token('const', .keyword),
       Token('MyClass', .class_, [.constructor]),
     ];
@@ -467,9 +467,9 @@ void f() {
       Token('A', .class_, [.constructor]),
       Token('named', .method, [.constructor]),
       Token('A', .class_),
-      Token('new', .method, [.constructor]),
+      Token('new', .method, [.constructor, .tearOff]),
       Token('A', .class_),
-      Token('named', .method, [.constructor]),
+      Token('named', .method, [.constructor, .tearOff]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -508,7 +508,7 @@ void f() {
       Token('final', .keyword),
       Token('a', .variable, [.declaration]),
       Token('MyClass', .class_, [.constructor]),
-      Token('print', .function),
+      Token('print', .function, [.static]),
       Token('a', .variable),
       Token('myField', .property, [.instance]),
       Token('MyClass', .class_),
@@ -569,7 +569,7 @@ void f() {
       Token('final', .keyword),
       Token('a', .variable, [.declaration]),
       Token('MyClass', .class_, [.constructor]),
-      Token('print', .function),
+      Token('print', .function, [.static]),
       Token('a', .variable),
       Token('myGetter', .property, [.instance]),
       Token('a', .variable),
@@ -626,11 +626,11 @@ void f() {
       Token('final', .keyword),
       Token('b', .variable, [.declaration]),
       Token('a', .variable),
-      Token('myMethod', .method, [.instance]),
+      Token('myMethod', .method, [.tearOff, .instance]),
       Token('final', .keyword),
       Token('c', .variable, [.declaration]),
       Token('MyClass', .class_),
-      Token('myStaticMethod', .method, [.static]),
+      Token('myStaticMethod', .method, [.tearOff, .static]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -871,7 +871,7 @@ void f() {
       Token('as', .keyword),
       Token('math', .variable, [.importPrefix]),
       Token('show', .keyword),
-      Token('max', .function),
+      Token('max', .function, [.tearOff, .static]),
       Token('export', .keyword),
       Token("'dart:async'", .string),
       Token('hide', .keyword),
@@ -881,7 +881,7 @@ void f() {
       Token('void', .keyword, [.void_]),
       Token('f', .function, [.declaration, .static]),
       Token('math', .variable, [.importPrefix]),
-      Token('max', .function),
+      Token('max', .function, [.static]),
       Token('1', .number),
       Token('2', .number),
     ]);
@@ -915,10 +915,10 @@ void f() {
       Token('42', .number),
       Token('A', .class_),
       Token('aTearOff', .variable, [.declaration]),
-      Token('new', .method, [.constructor]),
+      Token('new', .method, [.constructor, .tearOff]),
       Token('A', .class_),
       Token('aTearOff', .variable, [.declaration]),
-      Token('named', .method, [.constructor]),
+      Token('named', .method, [.constructor, .tearOff]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -955,10 +955,10 @@ void f() {
       Token('A', .class_),
       Token('a', .variable, [.declaration]),
       Token('aGetter', .property, [.static]),
-      Token('B', .class_),
+      Token('B', .class_, [.extensionType]),
       Token('b', .variable, [.declaration]),
       Token('bGetter', .property, [.static]),
-      Token('Mixin', .class_),
+      Token('Mixin', .class_, [.mixin]),
       Token('m', .variable, [.declaration]),
       Token('dGetter', .property, [.static]),
     ];
@@ -999,19 +999,19 @@ void f() {
       Token('aMethod', .method, [.static]),
       Token('A', .class_),
       Token('aa', .variable, [.declaration]),
-      Token('aMethod', .method, [.static]),
-      Token('B', .class_),
+      Token('aMethod', .method, [.tearOff, .static]),
+      Token('B', .class_, [.extensionType]),
       Token('b', .variable, [.declaration]),
       Token('bMethod', .method, [.static]),
-      Token('B', .class_),
+      Token('B', .class_, [.extensionType]),
       Token('bb', .variable, [.declaration]),
-      Token('bMethod', .method, [.static]),
-      Token('Mixin', .class_),
+      Token('bMethod', .method, [.tearOff, .static]),
+      Token('Mixin', .class_, [.mixin]),
       Token('m', .variable, [.declaration]),
       Token('dMethod', .method, [.static]),
-      Token('Mixin', .class_),
+      Token('Mixin', .class_, [.mixin]),
       Token('mm', .variable, [.declaration]),
-      Token('dMethod', .method, [.static]),
+      Token('dMethod', .method, [.tearOff, .static]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1031,6 +1031,24 @@ void f() {
     expect(tokens.data, isNotEmpty);
   }
 
+  Future<void> test_enum() async {
+    var content = '''
+enum E { a }
+[!
+E e = E.a;
+!]
+''';
+
+    var expected = [
+      Token('E', .enum_),
+      Token('e', .variable, [.declaration, .static]),
+      Token('E', .enum_),
+      Token('a', .enumMember),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
+  }
+
   Future<void> test_extension() async {
     var content = '''
 extension A on String {}
@@ -1038,7 +1056,7 @@ extension A on String {}
 
     var expected = [
       Token('extension', .keyword),
-      Token('A', .class_),
+      Token('A', .class_, [.extension]),
       Token('on', .keyword),
       Token('String', .class_),
     ];
@@ -1054,7 +1072,7 @@ extension type E(int i) {}
     var expected = [
       Token('extension', .keyword),
       Token('type', .keyword),
-      Token('E', .class_, [.declaration]),
+      Token('E', .class_, [.declaration, .extensionType]),
       Token('int', .class_),
       Token('i', .parameter, [.declaration]),
     ];
@@ -1132,7 +1150,7 @@ extension on void Function()? {
 
     var expected = <Token>[
       Token('this', .keyword),
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1148,7 +1166,7 @@ extension on void Function() {
 ''';
 
     var expected = <Token>[
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1164,7 +1182,7 @@ extension on void Function() {
 ''';
 
     var expected = <Token>[
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1181,7 +1199,7 @@ extension on void Function() {
 ''';
 
     var expected = <Token>[
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1196,7 +1214,7 @@ extension on void Function() {
 ''';
 
     var expected = <Token>[
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1212,7 +1230,7 @@ extension on void Function() {
 ''';
 
     var expected = <Token>[
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1229,7 +1247,7 @@ extension on void Function() {
 ''';
 
     var expected = <Token>[
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1244,7 +1262,7 @@ f(void Function(int) x) {
 
     var expected = [
       Token('x', .parameter),
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1273,7 +1291,7 @@ f(Function x) {
 
     var expected = [
       Token('x', .parameter),
-      Token('call', .method, [.instance]),
+      Token('call', .method, [.tearOff, .instance]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -1403,7 +1421,7 @@ void f() async {
       Token('null', .keyword),
       Token('if', .keyword, [.control]),
       Token('false', .boolean),
-      Token('print', .function),
+      Token('print', .function, [.static]),
       Token("'test'", .string),
       Token('for', .keyword, [.control]),
       Token('var', .keyword),
@@ -1450,7 +1468,7 @@ myLabel:
 
     var expected = [
       Token('String', .class_),
-      Token('bar', .variable, [.declaration]),
+      Token('bar', .variable, [.declaration, .static]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1493,11 +1511,11 @@ void f() {
       Token('func', .function, [.declaration]),
       Token('String', .class_),
       Token('a', .parameter, [.declaration]),
-      Token('print', .function),
+      Token('print', .function, [.static]),
       Token('a', .parameter),
       Token('final', .keyword),
       Token('funcTearOff', .variable, [.declaration]),
-      Token('func', .function),
+      Token('func', .function, [.tearOff]),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
@@ -1592,7 +1610,7 @@ class C {}
 
     var expected = [
       Token('mixin', .keyword),
-      Token('M', .class_),
+      Token('M', .class_, [.mixin]),
       Token('on', .keyword),
       Token('C', .class_),
       Token('class', .keyword),
@@ -1640,7 +1658,7 @@ f({String? a, dynamic b}) {
       Token('a', .parameter, [.declaration]),
       Token('dynamic', .type),
       Token('b', .parameter, [.declaration]),
-      Token('f', .function),
+      Token('f', .function, [.static]),
       Token('a', .parameter, [.label]),
       Token('a', .parameter),
       Token('b', .parameter, [.label]),
@@ -1902,7 +1920,7 @@ void f() {
       Token('isEven', .property, [.instance]),
       Token('var', .keyword),
       Token('isEven', .variable, [.declaration]),
-      Token('toString', .method, [.instance]),
+      Token('toString', .method, [.tearOff, .instance]),
       Token('var', .keyword),
       Token('toString', .variable, [.declaration]),
       Token('when', .keyword, [.control]),
@@ -2067,7 +2085,10 @@ class A {
 }
 ''';
 
-    var expected = [Token('print', .function), Token('x', .variable)];
+    var expected = [
+      Token('print', .function, [.static]),
+      Token('x', .variable),
+    ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
   }
@@ -2099,7 +2120,7 @@ class C {
     var expected = [
       Token('void', .keyword, [.void_]),
       Token('methodB', .method, [.declaration, .instance]),
-      Token('print', .function),
+      Token('print', .function, [.static]),
       Token("'b'", .string),
     ];
 
@@ -2182,17 +2203,17 @@ multi
       Token('c', .parameter),
 
       Token('const', .keyword),
-      Token('string1', .variable, [.declaration]),
+      Token('string1', .variable, [.declaration, .static]),
       Token("'test'", .string),
 
       Token('var', .keyword),
-      Token('string2', .variable, [.declaration]),
+      Token('string2', .variable, [.declaration, .static]),
       Token(r"'test1 ", .string),
       Token(r'$', .source, [.interpolation]),
       Token('string1', .property),
       Token(' test2 ', .string),
       Token(r'${', .source, [.interpolation]),
-      Token('foo', .function),
+      Token('foo', .function, [.static]),
       Token('(', .source, [.interpolation]),
       Token("'a'", .string),
       Token(' + ', .source, [.interpolation]),
@@ -2202,11 +2223,11 @@ multi
 
       // string3 is raw and should be treated as a single string.
       Token('const', .keyword),
-      Token('string3', .variable, [.declaration]),
+      Token('string3', .variable, [.declaration, .static]),
       Token(r"r'$string1 ${string1.length}'", .string),
       Token('const', .keyword),
 
-      Token('string4', .variable, [.declaration]),
+      Token('string4', .variable, [.declaration, .static]),
       Token("'''$eol", .string),
       Token('multi$eol', .string),
       Token('  line$eol', .string),
@@ -2231,7 +2252,7 @@ const string4 = "\"";
 
     var expected = [
       Token('const', .keyword),
-      Token('string1', .variable, [.declaration]),
+      Token('string1', .variable, [.declaration, .static]),
       Token("'it", .string),
       Token(r"\'", .string, [.escape]),
       Token('s escaped', .string),
@@ -2240,14 +2261,14 @@ const string4 = "\"";
       Token(r'\$', .string, [.escape]),
       Token(r"'", .string),
       Token('const', .keyword),
-      Token('string2', .variable, [.declaration]),
+      Token('string2', .variable, [.declaration, .static]),
       Token("'hex ", .string),
       Token(r'\x12', .string, [.escape]),
       Token(r'\x12', .string, [.escape]),
       // The 99 is not part of the escape
       Token("99'", .string),
       Token('const', .keyword),
-      Token('string3', .variable, [.declaration]),
+      Token('string3', .variable, [.declaration, .static]),
       Token("'unicode ", .string),
       Token(r'\u1234', .string, [.escape]),
       Token(r'\u1234', .string, [.escape]),
@@ -2257,7 +2278,7 @@ const string4 = "\"";
       // The 99 makes this invalid so i's not an escape
       Token(r"\u{12345699}'", .string),
       Token('const', .keyword),
-      Token('string4', .variable, [.declaration]),
+      Token('string4', .variable, [.declaration, .static]),
       Token('"', .string),
       Token(r'\"', .string, [.escape]),
       Token('"', .string),
@@ -2274,10 +2295,10 @@ const string1 = 'it\'s $value escaped\\\n';
 
     var expected = [
       Token('const', .keyword),
-      Token('value', .variable, [.declaration]),
+      Token('value', .variable, [.declaration, .static]),
       Token('1', .number),
       Token('const', .keyword),
-      Token('string1', .variable, [.declaration]),
+      Token('string1', .variable, [.declaration, .static]),
       Token("'it", .string),
       Token(r"\'", .string, [.escape]),
       Token('s ', .string),
@@ -2300,10 +2321,10 @@ const string1 = 'it\'s ${value} escaped\\\n';
 
     var expected = [
       Token('const', .keyword),
-      Token('value', .variable, [.declaration]),
+      Token('value', .variable, [.declaration, .static]),
       Token('1', .number),
       Token('const', .keyword),
-      Token('string1', .variable, [.declaration]),
+      Token('string1', .variable, [.declaration, .static]),
       Token("'it", .string),
       Token(r"\'", .string, [.escape]),
       Token('s ', .string),
@@ -2343,7 +2364,7 @@ void f() {
     var expected = [
       Token('/// strings docs', .comment, [.documentation]),
       Token('const', .keyword),
-      Token('strings', .variable, [.declaration]),
+      Token('strings', .variable, [.declaration, .static]),
       Token('String', .class_),
       Token('"test"', .string),
       Token("'test'", .string),
@@ -2353,7 +2374,7 @@ void f() {
       Token('func', .function, [.declaration, .static]),
       Token('String', .class_),
       Token('a', .parameter, [.declaration]),
-      Token('print', .function),
+      Token('print', .function, [.static]),
       Token('a', .parameter),
       Token('/// abc docs', .comment, [.documentation]),
       Token('bool', .class_),
@@ -2361,17 +2382,41 @@ void f() {
       Token('abc', .property, [.declaration]),
       Token('true', .boolean),
       Token('final', .keyword),
-      Token('funcTearOff', .variable, [.declaration]),
-      Token('func', .function),
+      Token('funcTearOff', .variable, [.declaration, .static]),
+      Token('func', .function, [.tearOff, .static]),
       Token('void', .keyword, [.void_]),
       Token('f', .function, [.declaration, .static]),
       Token('strings', .property),
-      Token('func', .function),
+      Token('func', .function, [.tearOff, .static]),
       Token('abc', .property),
       Token('funcTearOff', .property),
     ];
 
     await _initializeAndVerifyTokens(content, expected);
+  }
+
+  Future<void> test_typeAlias() async {
+    var content = '''
+typedef A = List<int>;
+typedef F = void Function();
+typedef G(int a);
+[!
+A? a;
+F? f;
+G? g;
+!]
+''';
+
+    var expected = [
+      Token('A', .type, [.typeAlias]),
+      Token('a', .variable, [.declaration, .static]),
+      Token('F', .type, [.functionTypeAlias]),
+      Token('f', .variable, [.declaration, .static]),
+      Token('G', .type, [.functionTypeAlias]),
+      Token('g', .variable, [.declaration, .static]),
+    ];
+
+    await _initializeAndVerifyTokensInRange(content, expected);
   }
 
   Future<void> test_unresolvedOrInvalid() async {
@@ -2507,7 +2552,7 @@ var [!_!] = 1;
 ''';
 
     var expected = [
-      Token('_', .variable, [.declaration]),
+      Token('_', .variable, [.declaration, .static]),
     ];
 
     await _initializeAndVerifyTokensInRange(content, expected);
@@ -2657,7 +2702,7 @@ void f() {
       Token('_', .parameter, [.declaration, .wildcard]),
       Token('void', .keyword, [.void_]),
       Token('f', .function, [.declaration, .static]),
-      Token('genericFunction', .function),
+      Token('genericFunction', .function, [.static]),
       Token('_', .typeParameter, [.wildcard]),
       Token('true', .boolean),
     ];
