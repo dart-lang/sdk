@@ -1,3 +1,13 @@
+## 3.13.7
+
+This is a patch release that:
+
+- Uses the updatable Conscrypt APEX root certificate store on Android 14+ in
+  `dart:io`, so that root CA additions and distrusts delivered via Google Play
+  system updates are honored. (issue [#64696])
+
+[#64696]: https://github.com/dart-lang/sdk/pull/64696
+
 ## 3.13.6
 
 **Released on:** 2026-10-20

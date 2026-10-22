@@ -48,8 +48,16 @@ void SSLCertContext::TrustBuiltinRoots() {
     // looking for root certs during its trust evaluation. We call
     // SSL_do_handshake directly from the Dart thread so that Dart code can be
     // invoked from the "bad certificate" callback called by SSL_do_handshake.
-    const char* android_cacerts = "/system/etc/security/cacerts";
-    LoadRootCertCache(android_cacerts);
+    //
+    // Since Android 14, the system root store lives in the updatable Conscrypt
+    // APEX module, and /system/etc/security/cacerts is only a fallback.
+    const char* android_apex_cacerts = "/apex/com.android.conscrypt/cacerts";
+    const char* android_system_cacerts = "/system/etc/security/cacerts";
+    if (Directory::Exists(nullptr, android_apex_cacerts) == Directory::EXISTS) {
+      LoadRootCertCache(android_apex_cacerts);
+    } else {
+      LoadRootCertCache(android_system_cacerts);
+    }
     return;
 #else
     // On Linux, we use the compiled-in trusted certs as a last resort. First,
