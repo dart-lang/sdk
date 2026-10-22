@@ -1,3 +1,7 @@
+## v0.1.3
+ - Support the `kernel/ddc/canary/dart_sdk.js` layout in `flutter_web_sdk` when
+   running `dart run dartpad setup flutter`.
+
 ## v0.1.2
  - Support loading Flutter assets from the workspace and dependency packages.
  - Retain Git history when cloning Flutter in `dart run dartpad setup flutter --channel`.
