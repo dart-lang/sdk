@@ -42,23 +42,32 @@ class ImplementationHandler
     }
     var performance = message.performance;
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await performance.runAsync(
-      'requireResolvedUnit',
-      (_) => path.mapResult(requireResolvedUnit),
-    );
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-    return await performance.runAsync(
-      '_getImplementations',
-      (performance) => (unit, offset).mapResults(
-        (unit, offset) => _getImplementations(unit, offset, token, performance),
-      ),
+    return withResolvedUnit(
+      textDocument: params.textDocument,
+      performance: performance,
+      token,
+      (unit, _, checkAbort) async {
+        var offset = toOffset(unit.lineInfo, pos);
+        return await performance.runAsync(
+          '_getImplementations',
+          (performance) => offset.mapResult(
+            (offset) => _getImplementations(
+              unit,
+              offset,
+              checkAbort,
+              token,
+              performance,
+            ),
+          ),
+        );
+      },
     );
   }
 
   Future<ErrorOr<List<Location>>> _getImplementations(
     ResolvedUnitResult result,
     int offset,
+    ErrorOr<List<Location>>? Function() checkAbort,
     CancellationToken token,
     OperationPerformanceImpl performance,
   ) async {
@@ -84,6 +93,7 @@ class ImplementationHandler
         performance,
       ),
     );
+    if (checkAbort() case var reason?) return reason;
 
     var locations = performance.run(
       'filter and get location',

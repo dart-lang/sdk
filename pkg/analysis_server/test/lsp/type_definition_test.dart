@@ -216,7 +216,7 @@ const a = '^';
     newFile(pubspecFilePath, code.code);
     await initialize();
     var results = await getTypeDefinitionAsLocation(
-      mainFileUri,
+      pubspecFileUri,
       code.position.position,
     );
     expect(results, isEmpty);

@@ -834,7 +834,7 @@ class AssignmentExpressionResolver {
       receiverType: readType,
       name: methodName,
       hasRead: true,
-      hasWrite: true,
+      hasWrite: false,
       propertyErrorEntity: node.operator,
       nameErrorEntity: node.operator,
       parentNode: node,

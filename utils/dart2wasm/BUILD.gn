@@ -146,6 +146,7 @@ dartaotruntime_action("wasm_dev_rt") {
 
   outputs = [
     output,
+    depfile,
     "$root_out_dir/wasm_dev_rt.wasm.map",
     "$root_out_dir/wasm_dev_rt.mjs",
     "$root_out_dir/wasm_dev_rt.support.js",

@@ -110,7 +110,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "a631c1445ced72a905b3303b26f148fc706647dd",
-  "boringssl_rev": "5b83e5d1abf0ae0033ae52ab579d906b67633b2c",
+  "boringssl_rev": "c7eb007fd10627f1abb41a3e368b85e24cd20af9",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "85f945ac99379d64d4df6f67d9b011e4cc418e7e",
@@ -483,32 +483,6 @@ deps = {
     # Unfortunately windows-arm64 gclient uses x64 python which lies in
     # host_cpu, so we have to use a variable to not download reclient there.
     'condition': 'download_reclient and (((host_os == "linux" or host_os == "mac" or host_os == "win") and host_cpu == "x64") or (host_os == "mac" and host_cpu == "arm64"))',
-    'dep_type': 'cipd',
-  },
-
-  # windows-arm64 package is not available, use the windows-x64 package and
-  # rely on transparent emulation.
-  Var("dart_root") + '/buildtools/reclient-win': {
-    'packages': [
-      {
-        'package': 'infra/rbe/client/windows-amd64',
-        'version': Var('reclient_version'),
-      }
-    ],
-    'condition': 'host_os == "win"',
-    'dep_type': 'cipd',
-  },
-
-  # linux-arm64 package is not available, use the linux-x64 package and
-  # rely on transparent emulation.
-  Var("dart_root") + '/buildtools/reclient-linux': {
-    'packages': [
-      {
-        'package': 'infra/rbe/client/linux-amd64',
-        'version': Var('reclient_version'),
-      }
-    ],
-    'condition': 'host_os == "linux"',
     'dep_type': 'cipd',
   },
 

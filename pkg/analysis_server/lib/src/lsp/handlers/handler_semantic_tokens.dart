@@ -69,6 +69,8 @@ abstract class AbstractSemanticTokensHandler<T>
     ) async {
       // Always prefer a LineInfo from a resolved unit than server.getLineInfo.
       var resolvedUnit = (await requireResolvedUnit(path)).resultOrNull;
+      if (checkAbort() case var reason?) return reason;
+
       var lineInfo = resolvedUnit?.lineInfo ?? server.getLineInfo(path);
 
       // If there is no lineInfo, the request cannot be translated from LSP

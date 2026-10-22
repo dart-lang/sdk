@@ -60,14 +60,21 @@ class FormatRangeHandler
       return success(null);
     }
 
-    var path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) async {
+    return withPath(textDocument: params.textDocument, token, (
+      path,
+      _,
+      checkAbort,
+    ) async {
       if (!server.lspClientConfiguration.forResource(path).enableSdkFormatter) {
         // Because we now support formatting for just some WorkspaceFolders
         // we should silently do nothing for those that are disabled.
         return success(null);
       }
-      return await formatRange(path, params.range);
+
+      var edits = await formatRange(path, params.range);
+      if (checkAbort() case var reason?) return reason;
+
+      return edits;
     });
   }
 }

@@ -15,6 +15,8 @@ import 'util/test_all.dart' as util;
 import 'utilities/test_all.dart' as utilities;
 import 'verify_diagnostics_test.dart' as verify_diagnostics;
 import 'verify_docs_test.dart' as verify_docs;
+import 'verify_shared_message_examples_test.dart'
+    as verify_shared_message_examples;
 import 'verify_tests_test.dart' as verify_tests;
 
 main() {
@@ -30,6 +32,7 @@ main() {
     utilities.main();
     verify_diagnostics.main();
     verify_docs.main();
+    verify_shared_message_examples.main();
     verify_tests.main();
   }, name: 'analyzer');
 }

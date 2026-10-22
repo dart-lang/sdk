@@ -2962,4 +2962,4 @@ defaultValueAlreadySpecifiedInAugmentationChain:
   hasPublishedDocs: false
   script: |
     void method([int x = 0]);
-    augment void method([int x = 0]);
+    augment void method([int x = 0]) {}

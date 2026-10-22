@@ -8292,6 +8292,124 @@ void useOperator(A a) {
 ''');
   }
 
+  test_searchReferences_MethodElement_operator_ofClass_binary_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a + 1;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  A operator +(other) => this;
+}
+''');
+    var element = result.findElement.method('+');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a + 1;
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_cascadeIndexAssignmentTarget_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0] = 1;
+  a..[1] += 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'read': result.findElement.method('[]'),
+        'write': result.findElement.method('[]='),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0] = 1;
+     ^ write INVOCATION qualified
+  a..[1] += 2;
+     ^ read INVOCATION qualified
+     ^ write INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_cascadeIndexExpression_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0];
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0];
+     ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_equal_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a == b;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  @override
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a == b;
+    ^^ INVOCATION qualified
+}
+''');
+  }
+
   test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
     var result = await resolveTestCode('''
 /// [operator []] and [A.operator []]
@@ -8315,6 +8433,64 @@ void useOperator(A a, A? b) {
    ^ INVOCATION qualified
   b?[1];
     ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A? b) {
+  a[0];
+  b?[1];
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A? b) {
+  a[0];
+   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_notEqual_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a != b;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  @override
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a != b;
+    ^^ INVOCATION qualified
 }
 ''');
   }
@@ -8343,6 +8519,41 @@ void useOperator(A a) {
   ^ INVOCATION qualified
 }
 ''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_prefix_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  ~a;
+  -a;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  A operator ~() => this;
+  A operator -() => this;
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'tilde': result.findElement.method('~'),
+        'negate': result.findElement.method('-'),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  ~a;
+  ^ tilde INVOCATION qualified
+  -a;
+  ^ negate INVOCATION qualified
+}
+''',
+    );
   }
 
   test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget() async {
@@ -8400,6 +8611,42 @@ void useOperator(A a, A? nullableA, B b, B? nullableB) {
   nullableB?[5] ??= 6;
             ^ bRead INVOCATION qualified
             ^ bWrite INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a[0] = 1;
+  a[1] += 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'read': result.findElement.method('[]'),
+        'write': result.findElement.method('[]='),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a[0] = 1;
+   ^ write INVOCATION qualified
+  a[1] += 2;
+   ^ read INVOCATION qualified
+   ^ write INVOCATION qualified
 }
 ''',
     );

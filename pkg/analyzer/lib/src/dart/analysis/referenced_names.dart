@@ -260,6 +260,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   new({required this.includeAnalyzerDiagnosticExpectations});
 
   @override
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    names.add(switch (node.binaryOperator) {
+      BinaryOperator.notEqual => '==',
+      _ => node.operator.lexeme,
+    });
+    super.visitBinaryOperatorInvocation(node);
+  }
+
+  @override
   void visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -268,6 +277,19 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    if (node.hasRead) names.add('[]');
+    names.add('[]=');
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    names.add('[]');
+    super.visitCascadeIndexExpression(node);
   }
 
   @override
@@ -509,6 +531,19 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    if (node.hasRead) names.add('[]');
+    names.add('[]=');
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    names.add('[]');
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -581,6 +616,13 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    // The name of `operator unary-` is `-`.
+    names.add(node.operator.lexeme);
+    super.visitUnaryOperatorInvocation(node);
   }
 
   @override

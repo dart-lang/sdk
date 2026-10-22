@@ -126,6 +126,7 @@ class BulkFixProcessor {
     diag.undefinedUnqualifiedNameReadNotFoundAnnotation: [DataDriven.new],
     diag.undefinedUnqualifiedNameReadNotFoundConstant: [DataDriven.new],
     diag.undefinedUnqualifiedNameWriteNotFound: [DataDriven.new],
+    diag.uriDoesNotExist: [DataDriven.new],
     diag.wrongNumberOfTypeArguments: [DataDriven.new],
     diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
     diag.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
