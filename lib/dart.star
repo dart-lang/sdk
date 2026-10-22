@@ -68,7 +68,7 @@ def _with_rbe_and_siso(rbe, siso, properties):
     updated_properties = dict(properties)
     if rbe == False:
         updated_properties = union({"$dart/build": {"disable_rbe": True}}, properties)
-    if siso == True:
+    if siso != False:
         updated_properties = union({"$dart/build": {"use_siso": True}}, properties)
     return updated_properties
 
