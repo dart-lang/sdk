@@ -616,7 +616,7 @@ class NullRejectionException implements Exception {
   }
 }
 
-/// The JavaScript `Error` type.
+/// A JavaScript `Error`.
 @JS('Error')
 extension type JSError._(JSObject _) implements JSObject {
   /// See [`Error.captureStackTrace()`].
