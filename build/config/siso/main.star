@@ -16,7 +16,7 @@ def init(ctx):
         "platforms": {
             "default": {
                 "OSFamily": "Linux",
-                "container-image": "docker://gcr.io/cloud-marketplace/google/debian11@sha256:69e2789c9f3d28c6a0f13b25062c240ee7772be1f5e6d41bb4680b63eae6b304",
+                "container-image": "docker://gcr.io/cloud-marketplace/google/debian12@sha256:b93235fea71bd454ee11e8f857eb7c1672d033d426d9c0401c53df3c71fd52e7",
             },
         },
         "input_deps": {},
