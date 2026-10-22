@@ -1,3 +1,6 @@
+## v0.1.4
+ - Bundle `cupertino_icons` when running `dart run dartpad setup flutter`.
+
 ## v0.1.3
  - Support the `kernel/ddc/canary/dart_sdk.js` layout in `flutter_web_sdk` when
    running `dart run dartpad setup flutter`.
