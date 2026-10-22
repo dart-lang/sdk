@@ -347,6 +347,7 @@ _vm_builder(
     channels = ["try"],
     dimensions = [mac, arm64],
     location_filters = paths.to_location_filters(paths.modular_aot),
+    notifies = None,
 )
 
 # vm|misc
