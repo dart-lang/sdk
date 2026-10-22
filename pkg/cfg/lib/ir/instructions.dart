@@ -1791,9 +1791,10 @@ enum BinaryDoubleOpcode(final String token) {
   sub('-'),
   mul('*'),
   div('/'),
-  truncatingDiv('~/'),
   mod('%'),
-  rem('remainder');
+  rem('remainder'),
+  pow('pow'),
+  atan2('atan2');
 
   bool get isCommutative => switch (this) {
     add || mul => true,
@@ -1820,10 +1821,7 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   Definition get right => inputDefAt(1);
 
   @override
-  CType get type => switch (op) {
-    BinaryDoubleOpcode.truncatingDiv => const IntType(),
-    _ => const DoubleType(),
-  };
+  CType get type => const DoubleType();
 
   @override
   bool attributesEqual(covariant BinaryDoubleOp other) => op == other.op;
@@ -1836,7 +1834,6 @@ enum UnaryDoubleOpcode(final String token) {
   neg('-'),
   abs('abs'),
   square('square'),
-  sqrt('sqrt'),
   round('round'),
   floor('floor'),
   ceil('ceil'),
@@ -1847,6 +1844,15 @@ enum UnaryDoubleOpcode(final String token) {
   truncateToDouble('truncateToDouble'),
   isNegative('isNegative'),
   isInfinite('isInfinite'),
+  sin('sin'),
+  cos('cos'),
+  tan('tan'),
+  asin('asin'),
+  acos('acos'),
+  atan('atan'),
+  sqrt('sqrt'),
+  exp('exp'),
+  log('log'),
 }
 
 /// Unary operation on the double operand.

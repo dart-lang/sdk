@@ -3916,11 +3916,10 @@ enum BinaryOperator {
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BinaryOperatorInvocation implements Expression {
-  /// The semantic operator derived from [operator].
-  ///
-  /// For invalid recovery tokens `===` and `!==`, this returns [BinaryOperator.equal]
-  /// and [BinaryOperator.notEqual], respectively.
-  BinaryOperator get binaryOperator;
+  /// The semantic operator derived from [operator], or `null` if [operator] is
+  /// not a binary operator that can be invoked, such as in the recovered code
+  /// `a ~ b` or `a === b`.
+  BinaryOperator? get binaryOperator;
 
   /// The method statically selected for this operator application, or `null`
   /// if this node hasn't been resolved or no method was statically selected.
@@ -3985,7 +3984,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
       _binaryExpression ??= BinaryExpressionImpl._operator(this);
 
   @override
-  BinaryOperator get binaryOperator {
+  BinaryOperator? get binaryOperator {
     return switch (operator.type) {
       TokenType.STAR => BinaryOperator.multiply,
       TokenType.SLASH => BinaryOperator.divide,
@@ -4003,11 +4002,9 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
       TokenType.LT_EQ => BinaryOperator.lessThanOrEqual,
       TokenType.GT => BinaryOperator.greaterThan,
       TokenType.GT_EQ => BinaryOperator.greaterThanOrEqual,
-      TokenType.EQ_EQ || TokenType.EQ_EQ_EQ => BinaryOperator.equal,
-      TokenType.BANG_EQ || TokenType.BANG_EQ_EQ => BinaryOperator.notEqual,
-      _ => throw StateError(
-        'Unexpected binary operator ${operator.type.lexeme}',
-      ),
+      TokenType.EQ_EQ => BinaryOperator.equal,
+      TokenType.BANG_EQ => BinaryOperator.notEqual,
+      _ => null,
     };
   }
 
@@ -46110,8 +46107,8 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   @override
   final Token name;
 
-  /// Lexical binding retained when a call's qualifier stays in parsed form
-  /// until type-based member lookup.
+  /// The scope lookup of this name, stored so that scope analysis does it
+  /// only once.
   ScopeLookupResult? scopeLookupResult;
 
   @generated
@@ -46222,6 +46219,11 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
 
   @generated
   ArgumentListImpl _argumentList;
+
+  /// The receiver `C` of a call `C.m()` kept for type analysis, when it is a
+  /// static qualifier. Set by scope analysis, because the selector operand
+  /// cannot hold a static qualifier.
+  StaticQualifierImpl? staticQualifier;
 
   @generated
   new({

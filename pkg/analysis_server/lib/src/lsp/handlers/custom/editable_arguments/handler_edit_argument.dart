@@ -60,7 +60,11 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     var textDocument = params.textDocument;
     var position = params.position;
 
-    return withResolvedUnit(textDocument, token, (result, docIdentifier, _) {
+    return withResolvedUnit(textDocument: textDocument, token, (
+      result,
+      docIdentifier,
+      _,
+    ) {
       var offset = toOffset(result.lineInfo, position);
       return offset.mapResult((offset) async {
         // Locate the invocation we're editing.

@@ -119,57 +119,58 @@ class ApplyCodeActionCommandHandler
     var kind = CodeActionKind(kindParameter as String);
     var loggedAction = loggedActionParameter as String?;
 
-    // Verify the document is still fresh.
-    var filePath = server.uriConverter.fromClientUri(textDocument.uri);
-    if (fileHasBeenModified(filePath, textDocument.version)) {
-      return fileModifiedError;
-    }
+    return withPath(textDocument: textDocument, cancellationToken, (
+      _,
+      _,
+      checkAbort,
+    ) async {
+      // Verify the document is still fresh.
+      if (checkAbort() case var reason?) return reason;
 
-    // Also record the action we're triggering.
-    if (loggedAction != null) {
-      server.analyticsManager.executedCommand(loggedAction);
-    }
+      // Also record the action we're triggering.
+      if (loggedAction != null) {
+        server.analyticsManager.executedCommand(loggedAction);
+      }
 
-    // Fetch the code action to execute.
-    var computer = CodeActionComputer(
-      server,
-      textDocument,
-      range,
-      editorCapabilities: editorCapabilities,
-      callerCapabilities: callerCapabilities,
-      only: [kind],
-      supportedKinds: null, // 'only' overrides this
-      triggerKind: CodeActionTriggerKind.Invoked,
-      performance: performance,
+      // Fetch the code action to execute.
+      var computer = CodeActionComputer(
+        server,
+        textDocument,
+        range,
+        editorCapabilities: editorCapabilities,
+        callerCapabilities: callerCapabilities,
+        only: [kind],
+        supportedKinds: null, // 'only' overrides this
+        triggerKind: CodeActionTriggerKind.Invoked,
+        performance: performance,
 
-      // Always use literals here regardless of the capabilities because we need
-      // to extract edits and cannot handle recursive commands. The editors
-      // ability to applyEdit has been checked at the top of this method.
-      allowCommands: false,
-      allowCodeActionLiterals: true,
+        // Always use literals here regardless of the capabilities because we need
+        // to extract edits and cannot handle recursive commands. The editors
+        // ability to applyEdit has been checked at the top of this method.
+        allowCommands: false,
+        allowCodeActionLiterals: true,
 
-      // We don't support non-standard snippets for `workspace/applyEdit`, only
-      // CodeActionLiterals.
-      allowSnippets: false,
-    );
-    var actions = await computer.compute();
+        // We don't support non-standard snippets for `workspace/applyEdit`, only
+        // CodeActionLiterals.
+        allowSnippets: false,
+      );
+      var actions = await computer.compute();
 
-    if (cancellationToken.isCancellationRequested) {
-      return cancelled(cancellationToken);
-    }
+      if (checkAbort() case var reason?) return reason;
 
-    return actions.mapResult((actions) async {
-      return switch (actions) {
-        null || [] => error(
-          ServerErrorCodes.invalidCommandArguments,
-          'The code action $kind is not valid at this location',
-        ),
-        [var action] => await _applyAction(action),
-        [...] => error(
-          ServerErrorCodes.invalidCommandArguments,
-          'The code action $kind is ambigious at this location',
-        ),
-      };
+      return actions.mapResult((actions) async {
+        return switch (actions) {
+          null || [] => error(
+            ServerErrorCodes.invalidCommandArguments,
+            'The code action $kind is not valid at this location',
+          ),
+          [var action] => await _applyAction(action),
+          [...] => error(
+            ServerErrorCodes.invalidCommandArguments,
+            'The code action $kind is ambigious at this location',
+          ),
+        };
+      });
     });
   }
 

@@ -36,7 +36,6 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/binary_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/constructor_invocation_resolver.dart';
@@ -3954,7 +3953,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       return;
     }
     var (:selector, :typeArguments) = node.namedInvocationParts!;
-    var receiver = AstRewriter.receiverInvocationReceiver(node);
+    NamedReceiverImpl receiver = node.staticQualifier ?? selector.operand;
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     switch (receiver) {

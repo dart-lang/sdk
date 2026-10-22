@@ -48,7 +48,11 @@ class EditableArgumentsHandler
     var textDocument = params.textDocument;
     var position = params.position;
 
-    return withResolvedUnit(textDocument, token, (result, _, _) async {
+    return withResolvedUnit(textDocument: textDocument, token, (
+      result,
+      _,
+      _,
+    ) async {
       var offset = toOffset(result.lineInfo, position);
       return offset.mapResultSync((offset) {
         // Compute the editable arguments for an invocation at `offset`.

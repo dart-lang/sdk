@@ -174,7 +174,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
-      _writeRaw('binaryOperator', node.binaryOperator.name);
+      _writeRaw('binaryOperator', node.binaryOperator?.name);
       _writeElement('element', node.element);
       _writeType('staticType', node.staticType);
     });

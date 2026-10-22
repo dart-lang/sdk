@@ -9,7 +9,6 @@ import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.da
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 
 class SortMembersCommandHandler extends SimpleEditCommandHandler {
   new(super.server);
@@ -36,61 +35,46 @@ class SortMembersCommandHandler extends SimpleEditCommandHandler {
       );
     }
 
-    // Get the version of the doc before we calculate edits so we can send it back
-    // to the client so that they can discard this edit if the document has been
-    // modified since.
     var path = parameters['path'] as String;
-    var docIdentifier = server.getVersionedDocumentIdentifier(path);
     var autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
-    var session = await server.getAnalysisSession(path);
-    var result = session?.getParsedUnit(path);
+    return await withParsedUnit(path: path, cancellationToken, (
+      result,
+      docIdentifier,
+      _,
+    ) async {
+      var code = result.content;
+      var unit = result.unit;
 
-    if (cancellationToken.isCancellationRequested) {
-      return cancelled(cancellationToken);
-    }
+      if (hasScanParseErrors(result.diagnostics)) {
+        // When auto-triggered (such as on save), ignore files that aren't
+        // analyzed.
+        if (autoTriggered) {
+          return success(null);
+        }
+        return ErrorOr.error(
+          ResponseError(
+            code: ServerErrorCodes.fileHasErrors,
+            message:
+                'Unable to $commandName because the file contains parse errors',
+            data: path,
+          ),
+        );
+      }
 
-    if (result is! ParsedUnitResult) {
-      if (autoTriggered) {
+      var sorter = MemberSorter(
+        code,
+        unit,
+        result.analysisOptions.codeStyleOptions,
+        result.lineInfo,
+      );
+      var edits = sorter.sort();
+
+      if (edits.isEmpty) {
         return success(null);
       }
-      return ErrorOr.error(
-        ResponseError(
-          code: ServerErrorCodes.fileNotAnalyzed,
-          message: '$commandName is only available for analyzed files',
-        ),
-      );
-    }
 
-    var code = result.content;
-    var unit = result.unit;
-
-    if (hasScanParseErrors(result.diagnostics)) {
-      if (autoTriggered) {
-        return success(null);
-      }
-      return ErrorOr.error(
-        ResponseError(
-          code: ServerErrorCodes.fileHasErrors,
-          message:
-              'Unable to $commandName because the file contains parse errors',
-          data: path,
-        ),
-      );
-    }
-
-    var sorter = MemberSorter(
-      code,
-      unit,
-      result.analysisOptions.codeStyleOptions,
-      result.lineInfo,
-    );
-    var edits = sorter.sort();
-
-    if (edits.isEmpty) {
-      return success(null);
-    }
-
-    return await sendSourceEditsToClient(docIdentifier, unit, edits);
+      return await sendSourceEditsToClient(docIdentifier, unit, edits);
+    });
   }
 }

@@ -84,9 +84,10 @@ class Merger {
     });
     m2.nodeMap.forEach((k, v) {
       var value = k.value;
-      var mergedKey =
-          merged.keys.firstWhere((key) => key.value == value, orElse: () => k)
-              as YamlScalar;
+      var mergedKey = merged.keys.firstWhere(
+        (key) => key.value == value,
+        orElse: () => k,
+      ) as YamlScalar;
       var o1 = merged[mergedKey];
       if (o1 != null) {
         merged[mergedKey] = merge(o1, v);

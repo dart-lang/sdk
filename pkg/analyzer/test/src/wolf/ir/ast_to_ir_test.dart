@@ -115,9 +115,8 @@ test(List<C> list, int other) => list.first $op= other;
       return result;
     });
     var values = [c];
-    check(
-      runInterpreter(unitResult, [makeList(unitResult, values), 123]),
-    ).identicalTo(result);
+    check(runInterpreter(unitResult, [makeList(unitResult, values), 123]))
+        .identicalTo(result);
     check(values[0]).identicalTo(result);
   }
 
@@ -1769,12 +1768,10 @@ test() => f<int, String>();
     );
     _callHandlers['f'] = (callDescriptor, positinalArguments, namedArguments) {
       check(callDescriptor.typeArguments).length.equals(2);
-      check(
-        callDescriptor.typeArguments[0],
-      ).equals(result.typeProvider.intType);
-      check(
-        callDescriptor.typeArguments[1],
-      ).equals(result.typeProvider.stringType);
+      check(callDescriptor.typeArguments[0])
+          .equals(result.typeProvider.intType);
+      check(callDescriptor.typeArguments[1])
+          .equals(result.typeProvider.stringType);
       return null;
     };
     check(runInterpreter(result, [])).equals(null);
@@ -2159,9 +2156,8 @@ extension E on String {
 }
 ''');
     analyze(result, result.findNode.singleMethodDeclaration);
-    check(
-      astNodes,
-    ).containsNode(result.findNode.unqualifiedNameExpression('length'));
+    check(astNodes)
+        .containsNode(result.findNode.unqualifiedNameExpression('length'));
     check(runInterpreter(result, ['foo'])).equals(3);
   }
 
@@ -2198,9 +2194,8 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(
-      astNodes,
-    ).containsNode(result.findNode.unqualifiedNameExpression('i;'));
+    check(astNodes)
+        .containsNode(result.findNode.unqualifiedNameExpression('i;'));
     check(runInterpreter(result, [])).equals(123);
   }
 
@@ -2209,9 +2204,8 @@ test() {
 test(int i) => i;
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(
-      astNodes,
-    ).containsNode(result.findNode.unqualifiedNameExpression('i;'));
+    check(astNodes)
+        .containsNode(result.findNode.unqualifiedNameExpression('i;'));
     check(runInterpreter(result, [123])).equals(123);
   }
 
@@ -2297,9 +2291,8 @@ test() {
 }
 ''');
     analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
-    check(
-      astNodes,
-    ).containsNode(result.findNode.localVariablesDeclaration('int? i'));
+    check(astNodes)
+        .containsNode(result.findNode.localVariablesDeclaration('int? i'));
     check(runInterpreter(result, [])).identicalTo(null);
   }
 

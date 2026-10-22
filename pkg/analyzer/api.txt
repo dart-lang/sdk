@@ -1364,7 +1364,7 @@ package:analyzer/dart/ast/ast.dart:
     unsignedShiftRight (enum constant: BinaryOperator)
     values (static const getter: List<BinaryOperator>, experimental)
   BinaryOperatorInvocation (class extends Object implements Expression, abstract, final, experimental):
-    binaryOperator (getter: BinaryOperator)
+    binaryOperator (getter: BinaryOperator?)
     element (getter: MethodElement?)
     leftOperand (getter: InstanceReceiver)
     operator (getter: Token)

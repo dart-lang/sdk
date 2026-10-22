@@ -17,7 +17,9 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (_usage == _Usage.reading) {
-      if (node.leftOperand is SuperReference && node.operator.lexeme == name) {
+      if (node.leftOperand is SuperReference &&
+          node.binaryOperator != null &&
+          node.operator.lexeme == name) {
         hasSuperInvocation = true;
         return;
       }

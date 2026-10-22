@@ -50,8 +50,7 @@ linter:
       camel_case_types: true #enable
     pub:
       package_names: false
-''')
-              as YamlMap,
+''') as YamlMap,
         );
         expect(ruleConfigs, hasLength(3));
       });
@@ -63,8 +62,7 @@ linter:
   rules:
     style_guide:
       unnecessary_getters: false
-''')
-              as YamlMap,
+''') as YamlMap,
         )!;
         expect(ruleConfigs, hasLength(1));
         var ruleConfig = ruleConfigs.values.first;

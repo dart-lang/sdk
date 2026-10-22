@@ -126,9 +126,8 @@ Future<TestResult<T>> runTestForConfig<T>(
   var testFiles = <_TestFile>[];
   for (var entry in testData.memorySourceFiles.entries) {
     var uri = _toTestUri(entry.key);
-    var path = ResourceProviderExtension(
-      resourceProvider,
-    ).convertPath(uri.path);
+    var path = ResourceProviderExtension(resourceProvider)
+        .convertPath(uri.path);
     var file = resourceProvider.getFile(path);
     testFiles.add(_TestFile(uri: uri, file: file));
     file.writeAsStringSync(entry.value);

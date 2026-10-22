@@ -309,13 +309,11 @@ class PropertyElementResolver with ScopeHelpers {
             );
         if (elementToInfer != null &&
             elementToInfer.typeParameters.isNotEmpty) {
-          var inferred =
-              _typeAnalyzer.inferenceHelper.inferTearOff(
-                    node,
-                    elementToInfer.asType,
-                    contextType: contextType,
-                  )
-                  as FunctionType;
+          var inferred = _typeAnalyzer.inferenceHelper.inferTearOff(
+            node,
+            elementToInfer.asType,
+            contextType: contextType,
+          ) as FunctionType;
           var inferredType = inferred.returnType;
           var constructorElement = SubstitutedConstructorElementImpl.from2(
             elementToInfer.element.baseElement,

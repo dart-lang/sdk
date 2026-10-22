@@ -1243,7 +1243,7 @@ BinaryOperatorInvocation
       type: int
     correspondingParameter: <null>
     staticType: int
-  binaryOperator: notEqual
+  binaryOperator: null
   element: <null>
   staticType: InvalidType
 V1: BinaryExpression
@@ -1478,7 +1478,7 @@ BinaryOperatorInvocation
       type: int
     correspondingParameter: <null>
     staticType: int
-  binaryOperator: equal
+  binaryOperator: null
   element: <null>
   staticType: InvalidType
 V1: BinaryExpression
@@ -3210,6 +3210,52 @@ V1: BinaryExpression
   element: dart:core::@class::num::@method::*
   staticInvokeType: num Function(num)
   staticType: int
+''');
+  }
+
+  test_tilde() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(int a, int b) {
+  a ~ b;
+//  ^
+// [diag.notBinaryOperator] '~' isn't a binary operator.
+}
+''');
+
+    var node = result.findNode.singleBinaryOperatorInvocation;
+    assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
+    staticType: int
+  operator: ~
+  rightOperand: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: int
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: null
+  element: <null>
+  staticType: InvalidType
+V1: BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    element: <testLibrary>::@function::f::@formalParameter::a
+    staticType: int
+  operator: ~
+  rightOperand: SimpleIdentifier
+    token: b
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::b
+    staticType: int
+  element: <null>
+  staticInvokeType: null
+  staticType: InvalidType
 ''');
   }
 }

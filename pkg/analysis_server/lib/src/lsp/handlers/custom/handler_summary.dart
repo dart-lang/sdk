@@ -36,22 +36,21 @@ class SummaryHandler
       return success(DocumentSummary());
     }
 
-    var path = pathOfUri(params.uri);
-    var resultOr = await path.mapResult(requireResolvedLibrary);
-    if (resultOr.isError) {
-      return ErrorOr.error(resultOr.errorOrNull!);
-    }
-    return resultOr.mapResultSync((result) {
-      try {
-        var summary = SummaryWriter(result).summarize();
-        return success(DocumentSummary(summary: summary));
-      } catch (e) {
-        return error(
-          ErrorCodes.InternalError,
-          'Failed to create a summary: $e',
-        );
-      }
-    });
+    return withResolvedLibrary(
+      token,
+      textDocument: TextDocumentIdentifier(uri: params.uri),
+      (library, _, _, _) async {
+        try {
+          var summary = SummaryWriter(library).summarize();
+          return success(DocumentSummary(summary: summary));
+        } catch (e) {
+          return error(
+            ErrorCodes.InternalError,
+            'Failed to create a summary: $e',
+          );
+        }
+      },
+    );
   }
 }
 

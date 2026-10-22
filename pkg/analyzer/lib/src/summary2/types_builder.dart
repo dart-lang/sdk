@@ -54,9 +54,8 @@ class TypesBuilder {
 
   /// Build types for all type annotations, and set types for declarations.
   void build(NodesToBuildType nodes) {
-    DefaultTypesBuilder(
-      getTypeParameterNode: _linker.getLinkingNode,
-    ).build(nodes.declarations);
+    DefaultTypesBuilder(getTypeParameterNode: _linker.getLinkingNode)
+        .build(nodes.declarations);
 
     for (var builder in nodes.typeBuilders) {
       builder.build();
@@ -620,10 +619,9 @@ class _MixinInference {
           supertypeConstraints = rawType.superclassConstraints;
           instantiate = (typeArguments) {
             return mixinElement.instantiateImpl(
-                  typeArguments: typeArguments,
-                  nullabilitySuffix: mixinType.nullabilitySuffix,
-                )
-                as InterfaceTypeImpl;
+              typeArguments: typeArguments,
+              nullabilitySuffix: mixinType.nullabilitySuffix,
+            ) as InterfaceTypeImpl;
           };
         }
       }

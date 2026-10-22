@@ -206,12 +206,10 @@ final class _ApplyState {
 
   void _applyEnableExperiments(_ParsedEnableExperimentsData enableExperiments) {
     if (enableExperiments.flags case var flags?) {
-      builder.contextFeatures =
-          FeatureSet.fromEnableFlags2(
-                sdkLanguageVersion: ExperimentStatus.currentVersion,
-                flags: flags,
-              )
-              as ExperimentStatus;
+      builder.contextFeatures = FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: ExperimentStatus.currentVersion,
+        flags: flags,
+      ) as ExperimentStatus;
       builder.nonPackageFeatureSet = builder.contextFeatures;
     }
   }
@@ -269,9 +267,8 @@ final class _ApplyState {
         ? localNode
         : Merger().merge(_legacyPluginsNode!, localNode);
 
-    var pluginName = _ParsedLegacyPluginsData.parse(
-      _legacyPluginsNode,
-    ).firstPluginName;
+    var pluginName = _ParsedLegacyPluginsData.parse(_legacyPluginsNode)
+        .firstPluginName;
     builder.enabledLegacyPluginNames = [?pluginName];
   }
 

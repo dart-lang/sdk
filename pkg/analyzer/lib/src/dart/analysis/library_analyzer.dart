@@ -468,9 +468,8 @@ class LibraryAnalyzer {
     var diagnosticReporter = fileAnalysis.diagnosticReporter;
     var unit = fileAnalysis.unit;
 
-    UnicodeTextVerifier(
-      diagnosticReporter,
-    ).verify(unit, fileAnalysis.file.content);
+    UnicodeTextVerifier(diagnosticReporter)
+        .verify(unit, fileAnalysis.file.content);
 
     unit.accept2(DeadCodeVerifier(diagnosticReporter, _libraryElement));
 

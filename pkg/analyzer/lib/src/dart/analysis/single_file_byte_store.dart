@@ -2333,9 +2333,8 @@ class _WriteTransaction {
       );
 
     // Mark the entry as recently used so CLOCK gives it a second chance.
-    _getBucketClockBits(
-      index,
-    ).setBit(entry.entryIndex % _tableEntriesPerPage, true);
+    _getBucketClockBits(index)
+        .setBit(entry.entryIndex % _tableEntriesPerPage, true);
 
     // If replaced a value, schedule freeing old pages.
     _pagesToFree.addAll([

@@ -1629,11 +1629,16 @@ class LibraryManifestBuilder {
 /// Recording requirements, and checking them in detail, needs only [ids].
 /// Only building the next manifest needs the whole [instance].
 ///
-/// This class has several states:
-/// 1. Has incomplete [_instance], during building; [ids] is `null`.
-/// 2. Has bytes and complete [_instance], after [finishBuilding].
-/// 3. Has bytes, no [_ids] and [_instance], after [discardDecoded] or `read`.
-/// 4. Has bytes, and [_ids] or [_instance], after reading them.
+/// This class has two lifecycle phases:
+/// 1. Building, from [LibraryManifestHandle.building] until [finishBuilding]:
+///    has the incomplete [instance], no bytes, and no [hashForRequirements];
+///    [ids] is `null`.
+/// 2. Built, after [finishBuilding] or [LibraryManifestHandle.read]: has
+///    [hashForRequirements], and bytes for [ids] and [instance]. The decoded
+///    [_ids] and [_instance] are caches, set by [finishBuilding] or decoded on
+///    demand. [discardDecoded] discards both; [discardDecodedOnIdle] discards
+///    [_instance], and also [_ids] unless they are still requested, see its
+///    documentation.
 class LibraryManifestHandle {
   bool _isBuilding;
 
@@ -1641,6 +1646,12 @@ class LibraryManifestHandle {
 
   late final Uint8List _idsBytes;
   LibraryManifestIds? _ids;
+
+  /// Whether [ids] was requested during the current period of work.
+  bool _idsRequested = false;
+
+  /// Whether [ids] was requested during the previous period of work.
+  bool _idsRequestedBefore = false;
 
   late final Uint8List _instanceBytes;
   LibraryManifest? _instance;
@@ -1669,8 +1680,12 @@ class LibraryManifestHandle {
     if (_isBuilding) {
       return null;
     }
+    _idsRequested = true;
     return _ids ??= LibraryManifestIds.fromBytes(_idsBytes);
   }
+
+  /// Whether [ids] was requested during the current period of work.
+  bool get idsRequested => _idsRequested;
 
   LibraryManifest get instance {
     return _instance ??= LibraryManifest.fromBytes(_instanceBytes);
@@ -1680,7 +1695,35 @@ class LibraryManifestHandle {
   void discardDecoded() {
     assert(!_isBuilding);
     _ids = null;
+    _idsRequested = false;
+    _idsRequestedBefore = false;
     _instance = null;
+  }
+
+  /// Discards [instance], keeping its bytes to read it again. Must be invoked
+  /// when the analysis goes idle.
+  ///
+  /// If [endsPeriod], the current period of work ends, and [ids] are
+  /// discarded unless they were requested during each of the last two
+  /// periods. Resolving a library records requirements against the IDs of
+  /// every library it uses, so while the user edits a library, the IDs of
+  /// the libraries it uses stay decoded. But the IDs requested only once,
+  /// for example during the initial analysis, are discarded. And the IDs
+  /// not requested during the last period, for example when the user
+  /// switched to editing other libraries, are discarded too.
+  ///
+  /// Returns whether [ids] stay decoded.
+  bool discardDecodedOnIdle({required bool endsPeriod}) {
+    assert(!_isBuilding);
+    _instance = null;
+    if (endsPeriod) {
+      if (!(_idsRequested && _idsRequestedBefore)) {
+        _ids = null;
+      }
+      _idsRequestedBefore = _idsRequested;
+      _idsRequested = false;
+    }
+    return _ids != null;
   }
 
   /// Serializes the [instance] that the builder has filled, and its [ids].

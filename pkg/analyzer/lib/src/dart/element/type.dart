@@ -852,9 +852,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return null;
     }
 
-    return Substitution.fromInterfaceType(
-      this,
-    ).mapInterfaceType(supertype).withNullability(nullabilitySuffix);
+    return Substitution.fromInterfaceType(this)
+        .mapInterfaceType(supertype)
+        .withNullability(nullabilitySuffix);
   }
 
   @override

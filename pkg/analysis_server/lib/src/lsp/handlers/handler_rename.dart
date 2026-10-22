@@ -135,7 +135,11 @@ class RenameHandler extends SharedMessageHandler<RenameParams, WorkspaceEdit?> {
     var pos = params.position;
     var textDocument = params.textDocument;
 
-    return withResolvedUnit(textDocument, token, (result, _, checkAbort) {
+    return withResolvedUnit(textDocument: textDocument, token, (
+      result,
+      _,
+      checkAbort,
+    ) {
       var offset = toOffset(result.lineInfo, pos);
       return offset.mapResult((offset) async {
         var node = result.unit.nodeCovering(offset: offset);

@@ -87,13 +87,12 @@ class ScopeAnalyzerTest {
     check(
       affectedStateVariables(labelToScope['inner block']!),
     ).unorderedEquals([labelToStateVar['alloc0']!, labelToStateVar['alloc2']!]);
-    check(
-      affectedStateVariables(labelToScope['outer block']!),
-    ).unorderedEquals([
-      labelToStateVar['alloc0']!,
-      labelToStateVar['alloc1']!,
-      labelToStateVar['alloc2']!,
-    ]);
+    check(affectedStateVariables(labelToScope['outer block']!))
+        .unorderedEquals([
+          labelToStateVar['alloc0']!,
+          labelToStateVar['alloc1']!,
+          labelToStateVar['alloc2']!,
+        ]);
   }
 
   void test_affectedStateVariables_ignoresUnusedVariables() {
@@ -165,12 +164,10 @@ class ScopeAnalyzerTest {
         ..release(1)
         ..end(),
     );
-    check(
-      affectedStateVariables(labelToScope['inner block']!),
-    ).unorderedEquals([labelToStateVar['x']!]);
-    check(
-      affectedStateVariables(labelToScope['outer block']!),
-    ).unorderedEquals([labelToStateVar['x']!]);
+    check(affectedStateVariables(labelToScope['inner block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
+    check(affectedStateVariables(labelToScope['outer block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
   }
 
   void
@@ -191,12 +188,10 @@ class ScopeAnalyzerTest {
         ..release(1)
         ..end(),
     );
-    check(
-      affectedStateVariables(labelToScope['inner block']!),
-    ).unorderedEquals([labelToStateVar['x']!]);
-    check(
-      affectedStateVariables(labelToScope['outer block']!),
-    ).unorderedEquals([labelToStateVar['x']!]);
+    check(affectedStateVariables(labelToScope['inner block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
+    check(affectedStateVariables(labelToScope['outer block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
   }
 
   void
@@ -233,27 +228,20 @@ class ScopeAnalyzerTest {
         ..release(4)
         ..end(),
     );
-    check(
-      scopeAnalysisResult.allocIndexToStateVar(0),
-    ).equals(labelToStateVar['x0']!);
-    check(
-      scopeAnalysisResult.allocIndexToStateVar(1),
-    ).equals(labelToStateVar['x1']!);
-    check(
-      scopeAnalysisResult.allocIndexToStateVar(2),
-    ).equals(labelToStateVar['y0']!);
-    check(
-      scopeAnalysisResult.allocIndexToStateVar(3),
-    ).equals(labelToStateVar['y1']!);
-    check(
-      scopeAnalysisResult.allocIndexToStateVar(4),
-    ).equals(labelToStateVar['y2']!);
-    check(
-      scopeAnalysisResult.allocIndexToStateVar(5),
-    ).equals(labelToStateVar['z0']!);
-    check(
-      scopeAnalysisResult.allocIndexToStateVar(6),
-    ).equals(labelToStateVar['z1']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(0))
+        .equals(labelToStateVar['x0']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(1))
+        .equals(labelToStateVar['x1']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(2))
+        .equals(labelToStateVar['y0']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(3))
+        .equals(labelToStateVar['y1']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(4))
+        .equals(labelToStateVar['y2']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(5))
+        .equals(labelToStateVar['z0']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(6))
+        .equals(labelToStateVar['z1']!);
   }
 
   void test_ancestorContainingAddress() {
@@ -325,9 +313,8 @@ class ScopeAnalyzerTest {
         ..end()
         ..end(),
     );
-    check(
-      scopeAnalysisResult.endAddress(labelToScope['block']!),
-    ).equals(ir.labelToAddress('end')!);
+    check(scopeAnalysisResult.endAddress(labelToScope['block']!))
+        .equals(ir.labelToAddress('end')!);
   }
 
   void test_lastDescendant() {
@@ -387,33 +374,24 @@ class ScopeAnalyzerTest {
         ..end()
         ..end(),
     );
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('function')!),
-    ).equals(labelToScope['function']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block1')! - 1),
-    ).equals(labelToScope['function']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block1')!),
-    ).equals(labelToScope['block1']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block2')! - 1),
-    ).equals(labelToScope['block1']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block2')!),
-    ).equals(labelToScope['block2']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block3')! - 1),
-    ).equals(labelToScope['block2']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block3')!),
-    ).equals(labelToScope['block3']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block4')! - 1),
-    ).equals(labelToScope['block3']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block4')!),
-    ).equals(labelToScope['block4']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('function')!))
+        .equals(labelToScope['function']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block1')! - 1))
+        .equals(labelToScope['function']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block1')!))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block2')! - 1))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block2')!))
+        .equals(labelToScope['block2']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block3')! - 1))
+        .equals(labelToScope['block2']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block3')!))
+        .equals(labelToScope['block3']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block4')! - 1))
+        .equals(labelToScope['block3']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('block4')!))
+        .equals(labelToScope['block4']!);
   }
 
   void test_mostRecentScope_oneScope() {
@@ -424,12 +402,10 @@ class ScopeAnalyzerTest {
         ..label('end')
         ..end(),
     );
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('function')!),
-    ).equals(labelToScope['function']!);
-    check(
-      scopeAnalysisResult.mostRecentScope(ir.labelToAddress('end')!),
-    ).equals(labelToScope['function']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('function')!))
+        .equals(labelToScope['function']!);
+    check(scopeAnalysisResult.mostRecentScope(ir.labelToAddress('end')!))
+        .equals(labelToScope['function']!);
   }
 
   void test_onAlloc_distinguishesAllocations() {
@@ -466,18 +442,14 @@ class ScopeAnalyzerTest {
         ..end(),
     );
     check(scopeAnalysisResult.parent(labelToScope['function']!)).equals(-1);
-    check(
-      scopeAnalysisResult.parent(labelToScope['block1']!),
-    ).equals(labelToScope['function']!);
-    check(
-      scopeAnalysisResult.parent(labelToScope['block2']!),
-    ).equals(labelToScope['block1']!);
-    check(
-      scopeAnalysisResult.parent(labelToScope['block3']!),
-    ).equals(labelToScope['block1']!);
-    check(
-      scopeAnalysisResult.parent(labelToScope['block4']!),
-    ).equals(labelToScope['function']!);
+    check(scopeAnalysisResult.parent(labelToScope['block1']!))
+        .equals(labelToScope['function']!);
+    check(scopeAnalysisResult.parent(labelToScope['block2']!))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.parent(labelToScope['block3']!))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.parent(labelToScope['block4']!))
+        .equals(labelToScope['function']!);
   }
 
   void test_scopeCount() {
@@ -512,9 +484,8 @@ class ScopeAnalyzerTest {
         ..end()
         ..end(),
     );
-    check(
-      affectedStateVariables(labelToScope['block1']!),
-    ).not(.it()..contains(stateVar));
+    check(affectedStateVariables(labelToScope['block1']!))
+        .not(.it()..contains(stateVar));
     check(affectedStateVariables(labelToScope['block2']!)).contains(stateVar);
   }
 
