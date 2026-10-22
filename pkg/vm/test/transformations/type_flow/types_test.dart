@@ -38,6 +38,10 @@ class TestTypeHierarchy extends TypeHierarchy {
       classes[c] ??= TFClass(++classIdCounter, c, {}, null);
 
   @override
+  TFClass getRecordClass(RecordShape shape) =>
+      throw "getRecordClass is not supported in the types test.";
+
+  @override
   List<DartType> flattenedTypeArgumentsFor(Class klass) =>
       throw "flattenedTypeArgumentsFor is not supported in the types test.";
 

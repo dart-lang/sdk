@@ -324,6 +324,16 @@ class _SummaryNormalizer implements StatementVisitor {
   }
 
   @override
+  void visitCreateRecordType(CreateRecordType expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
+    for (int i = 0; i < expr.fieldTypes.length; ++i) {
+      expr.fieldTypes[i] = _normalizeExpr(expr.fieldTypes[i], true);
+      if (_inLoop) return;
+    }
+  }
+
+  @override
   void visitCreateRuntimeType(CreateRuntimeType expr) {
     visitStatement(expr);
     if (_inLoop) return;
@@ -1599,7 +1609,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _addUse(arg.arg1);
       _addUse(arg.arg2);
     } else {
-      assert(arg is Type || arg is Parameter);
+      assert(
+        arg is Type ||
+            arg is Parameter ||
+            arg is CreateConcreteType ||
+            arg is CreateRecordType,
+      );
     }
   }
 
@@ -2124,13 +2139,15 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitRecordLiteral(RecordLiteral node) {
     final recordShape = RecordShape(node.recordType);
-    final Type receiver = _typesBuilder.getRecordType(recordShape, true);
+    final receiver = _entryPointsListener.addAllocatedRecord(recordShape);
+    final fieldValues = List<TypeExpr>.filled(recordShape.numFields, emptyType);
     for (int i = 0; i < node.positional.length; ++i) {
       final Field f = _entryPointsListener.getRecordPositionalField(
         recordShape,
         i,
       );
       final TypeExpr value = _visit(node.positional[i]);
+      fieldValues[i] = value;
       final args = Args.two(receiver, value);
       _makeCall(
         node,
@@ -2138,12 +2155,14 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         args,
       );
     }
-    for (var expr in node.named) {
+    for (int i = 0; i < node.named.length; ++i) {
+      final expr = node.named[i];
       final Field f = _entryPointsListener.getRecordNamedField(
         recordShape,
         expr.name,
       );
       final TypeExpr value = _visit(expr.value);
+      fieldValues[recordShape.numPositionalFields + i] = value;
       final args = Args.two(receiver, value);
       _makeCall(
         node,
@@ -2152,7 +2171,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       );
     }
     callSites.remove(node);
-    return receiver;
+    return _summary.add(
+      CreateRecordType(receiver.cls, fieldValues)
+        ..condition = _currentCondition,
+    );
   }
 
   @override
@@ -3052,6 +3074,7 @@ class RuntimeTypeTranslatorImpl
       functionTypeVariables = null {}
 
   TypeExpr instantiateConcreteType(ConcreteType type, List<DartType> typeArgs) {
+    assert(!type.cls.isRecord);
     if (typeArgs.isEmpty) return type;
 
     // This function is very similar to 'visitInterfaceType', but with
@@ -3077,7 +3100,7 @@ class RuntimeTypeTranslatorImpl
     if (allUnknown) return type;
 
     if (createConcreteType) {
-      return ConcreteType(type.cls, List<Type>.from(flattenedTypeExprs));
+      return ClassConcreteType(type.cls, List<Type>.from(flattenedTypeExprs));
     } else {
       final instantiate = new CreateConcreteType(type.cls, flattenedTypeExprs);
       summary!.add(instantiate);
@@ -3231,6 +3254,8 @@ class RuntimeTypeTranslatorImpl
   TypeExpr visitFunctionType(FunctionType type) => unknownType;
 
   @override
+  // TODO: Translate RecordType to RuntimeType to allow eliding type checks
+  // against record types.
   TypeExpr visitRecordType(RecordType type) => unknownType;
 
   @override
@@ -3276,7 +3301,7 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
               ),
               typeArgs,
             )
-            as ConcreteType;
+            as ClassConcreteType;
     return concreteType.cls.constantConcreteType(
       constant,
       concreteType.typeArgs,
@@ -3371,23 +3396,29 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
   Type visitRecordConstant(RecordConstant constant) {
     final epl = summaryCollector._entryPointsListener;
     final recordShape = RecordShape(constant.recordType);
-    final Type receiver = summaryCollector._typesBuilder.getRecordType(
-      recordShape,
-      true,
-    );
+    final receiver = epl.addAllocatedRecord(recordShape);
+    final fieldTypes = List<Type>.filled(recordShape.numFields, emptyType);
     for (int i = 0; i < constant.positional.length; ++i) {
       final Field f = epl.getRecordPositionalField(recordShape, i);
       final Type value = typeFor(constant.positional[i]);
+      // All [ConcreteType]s must be specialized, including
+      // [RecordConcreteType].
+      fieldTypes[i] = value.isSpecialized ? value : anyInstanceType;
       assert(!f.isCovariantByClass);
       epl.addFieldUsedInConstant(f, receiver, value);
     }
+    int namedIndex = constant.positional.length;
     constant.named.forEach((String fieldName, Constant fieldValue) {
       final Field f = epl.getRecordNamedField(recordShape, fieldName);
       final Type value = typeFor(fieldValue);
+      // All [ConcreteType]s must be specialized, including
+      // [RecordConcreteType].
+      fieldTypes[namedIndex++] = value.isSpecialized ? value : anyInstanceType;
       assert(!f.isCovariantByClass);
       epl.addFieldUsedInConstant(f, receiver, value);
     });
-    return receiver;
+    // TODO: Preserve constant value in TypeAttributes on RecordConcreteType.
+    return receiver.cls.recordConcreteType(fieldTypes);
   }
 
   @override

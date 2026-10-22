@@ -6,6 +6,9 @@ import "dart:core" as core;
 [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>?]
 static field dynamic list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>] core::_GrowableList::_literal2<core::Object>("abc", (42, {foo42: "foo42"}));
 
+[@vm.inferred-type.metadata=dart.core::_Record (inexact type args)]
+static field core::Object deepRecordField = (1);
+
 [@vm.inferred-return-type.metadata=dart.core::_Record (inexact type args)]
 static method recordLiteral() → dynamic
   return (#C1, #C2, {bar: #C3});
@@ -13,31 +16,124 @@ static method recordLiteral() → dynamic
 [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 10)]
 [@vm.unboxing-info.metadata=(b)->i]
 static method recordFieldAccess1([@vm.inferred-arg-type.metadata=dart.core::_Record (inexact type args)](core::int, core::String) rec) → dynamic
-  return rec.$1{core::int};
+  return [@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] rec.$1{core::int};
 
 [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 20)]
 [@vm.unboxing-info.metadata=(b)->i]
 static method recordFieldAccess2([@vm.inferred-arg-type.metadata=dart.core::_Record (inexact type args)]({required a: core::int, required b: core::String}) rec) → dynamic
-  return rec.a{core::int};
+  return [@vm.inferred-type.metadata=dart.core::_Smi (value: 20)] rec.a{core::int};
 
 [@vm.inferred-return-type.metadata=dart.core::_OneByteString (value: "foo42")]
 static method recordDynamicFieldAccess([@vm.inferred-arg-type.metadata=!] dynamic x) → dynamic
   return [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] x{dynamic}.foo42;
 
+[@vm.inferred-return-type.metadata=dart.core::_Record (inexact type args)]
+[@vm.unboxing-info.metadata=()->r<2>]
+static method getLists() → (core::List<core::int>, core::List<core::String>)
+  return ([@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::_literal3<core::int>(1, 2, 3), [@vm.inferred-type.metadata=dart.core::_List<dart.core::String>] core::_List::filled<core::String>(2, "a"));
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method iterateLists() → void {
+  final hoisted has-declared-initializer core::List<core::int> list1;
+  final hoisted has-declared-initializer core::List<core::String> list2;
+  {
+    final synthesized(core::List<core::int>, core::List<core::String>) #0#0 = [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::getLists();
+    list1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] #0#0.$1{core::List<core::int>};
+    list2 = [@vm.inferred-type.metadata=dart.core::_List<dart.core::String>] #0#0.$2{core::List<core::String>};
+  }
+  {
+    synthesized core::Iterator<core::int> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int>] list1.{core::Iterable::iterator}{core::Iterator<core::int>};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::int x = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=int] :sync-for-iterator.{core::Iterator::current}{core::int};
+      {
+        core::print(x);
+      }
+    }
+  }
+  {
+    synthesized core::Iterator<core::String> :sync-for-iterator##1 = [@vm.direct-call.metadata=dart.core::_Array.iterator] [@vm.inferred-type.metadata=dart.core::_ArrayIterator<dart.core::String>] list2.{core::Iterable::iterator}{core::Iterator<core::String>};
+    for (; [@vm.direct-call.metadata=dart.core::_ArrayIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator##1.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final core::String x##1 = [@vm.direct-call.metadata=dart.core::_ArrayIterator.current] [@vm.inferred-type.metadata=dart.core::_StringBase (inexact)] :sync-for-iterator##1.{core::Iterator::current}{core::String};
+      {
+        core::print(x##1);
+      }
+    }
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Record (inexact type args)]
+[@vm.unboxing-info.metadata=(b,b,b,b)->r<2>]
+static method wrapRecord([@vm.inferred-arg-type.metadata=!] dynamic x, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool b1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool b2, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool b3) → dynamic {
+  final(dynamic, core::int) r = (x, 10);
+  if(b1)
+    return [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::wrapRecord(r, b2, b3, false);
+  return r;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testRecursiveRecords() → void {
+  final dynamic d0 = [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::wrapRecord(1, false, false, false);
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 1) (receiver not int)] d0{dynamic}.$1);
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 10) (receiver not int)] d0{dynamic}.$2);
+  final dynamic d1 = [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::wrapRecord(2, true, false, false);
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 2) (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args) (receiver not int)] d1{dynamic}.$1{dynamic}.$1);
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 10) (receiver not int)] d1{dynamic}.$2);
+  final dynamic d2 = [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::wrapRecord(3, true, true, false);
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 3) (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args) (receiver not int)] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args) (receiver not int)] d2{dynamic}.$1{dynamic}.$1{dynamic}.$1);
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 10) (receiver not int)] d2{dynamic}.$2);
+  final dynamic d3 = [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::wrapRecord(4, true, true, true);
+  core::print([@vm.inferred-type.metadata=! (receiver not int)] d3{dynamic}.$1);
+  core::print([@vm.inferred-type.metadata=! (receiver not int)] d3{dynamic}.$2);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method pumpRecordField() → void {
+  self::deepRecordField = ([@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::deepRecordField);
+}
+
+[@vm.inferred-return-type.metadata=!]
+static method createRecordWithThrow() → (core::int, core::int)
+  return (42, [@vm.inferred-type.metadata=!] self::maybeThrow());
+
+[@vm.inferred-return-type.metadata=!]
+static method maybeThrow() → core::int
+  return #C4 ?{core::int} 1 : throw "";
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testEmptyRecordField() → void {
+  final hoisted has-declared-initializer core::int a;
+  final hoisted has-declared-initializer core::int b;
+  {
+    final synthesized(core::int, core::int) #0#0 = [@vm.inferred-type.metadata=!] self::createRecordWithThrow();
+    a = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+    b = throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  }
+  throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+}
+
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
-  core::print(#C7);
+  core::print(#C8);
   core::print([@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::recordLiteral());
   core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] self::recordFieldAccess1((10, "hi")));
   core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 20)] self::recordFieldAccess2(({a: 20, b: "bye"})));
   core::print([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] self::recordDynamicFieldAccess([@vm.direct-call.metadata=dart.core::_GrowableList.[]??] [@vm.inferred-type.metadata=! (receiver not int)] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>?] self::list{dynamic}.[](1)));
+  core::print((#C9, [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::String>] core::_GrowableList::_literal1<core::String>("a")));
+  self::iterateLists();
+  self::testRecursiveRecords();
+  self::pumpRecordField();
+  core::print([@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::deepRecordField);
+  self::testEmptyRecordField();
 }
 constants  {
   #C1 = 1
   #C2 = 2
   #C3 = 3
-  #C4 = 42
-  #C5 = "Hey"
-  #C6 = "foo"
-  #C7 = (#C4, #C5, {foo:#C6})
+  #C4 = false
+  #C5 = 42
+  #C6 = "Hey"
+  #C7 = "foo"
+  #C8 = (#C5, #C6, {foo:#C7})
+  #C9 = <core::int>[#C1]
 }
