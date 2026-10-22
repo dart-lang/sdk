@@ -190,12 +190,13 @@ final class SetupFlutterCommand extends Command<void> {
         _runSync(flutterBin, ['pub', 'add', sdkPkg, '--sdk=flutter'], myappDir);
       }
 
-      print('Adding material_ui and cupertino_ui dependencies...');
+      print('Adding material_ui, cupertino_ui, cupertino_icons');
       _runSync(flutterBin, [
         'pub',
         'add',
         'material_ui',
         'cupertino_ui',
+        'cupertino_icons',
       ], myappDir);
 
       print('Running flutter pub get...');

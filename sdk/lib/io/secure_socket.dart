@@ -330,21 +330,57 @@ abstract interface class RawSecureSocket implements RawSocket {
     bool Function(X509Certificate certificate)? onBadCertificate,
     void Function(String line)? keyLog,
     List<String>? supportedProtocols,
-  }) {
-    return RawSocket.startConnect(host, port).then((
-      ConnectionTask<RawSocket> rawState,
-    ) {
-      Future<RawSecureSocket> socket = rawState.socket.then((rawSocket) {
-        return secure(
-          rawSocket,
+  }) async {
+    final tcpTask = await RawSocket.startConnect(host, port);
+    final result = Completer<RawSecureSocket>();
+    var cancelled = false;
+    RawSocket? connected;
+
+    SocketException cancelledException() => SocketException(
+      "Connection attempt cancelled, host: $host, port: $port",
+    );
+
+    Future<void> connectAndSecure() async {
+      try {
+        final socket = await tcpTask.socket;
+        if (cancelled) {
+          socket.close();
+          throw cancelledException();
+        }
+        connected = socket;
+        final secureSocket = await secure(
+          socket,
           context: context,
           onBadCertificate: onBadCertificate,
           keyLog: keyLog,
           supportedProtocols: supportedProtocols,
         );
-      });
-      return ConnectionTask<RawSecureSocket>._(socket, rawState._onCancel);
-    });
+        if (result.isCompleted) {
+          secureSocket.close();
+        } else {
+          result.complete(secureSocket);
+        }
+      } catch (error, stackTrace) {
+        if (!result.isCompleted) result.completeError(error, stackTrace);
+      }
+    }
+
+    void cancel() {
+      cancelled = true;
+      tcpTask.cancel();
+      // Once TCP has connected, cancelling the connect does nothing, so close
+      // the socket too; otherwise a stalled handshake leaks it. Closing the
+      // socket does not complete the handshake, so complete the result here.
+      // After the handshake has completed, cancel does nothing.
+      final socket = connected;
+      if (socket != null && !result.isCompleted) {
+        socket.close();
+        result.completeError(cancelledException(), StackTrace.current);
+      }
+    }
+
+    unawaited(connectAndSecure());
+    return ConnectionTask<RawSecureSocket>._(result.future, cancel);
   }
 
   /// Initiates TLS on an existing connection.
