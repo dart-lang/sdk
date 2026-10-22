@@ -1,5 +1,7 @@
 ## 3.13.7
 
+**Released on:** 2026-10-22
+
 This is a patch release that:
 
 - Uses the updatable Conscrypt APEX root certificate store on Android 14+ in
