@@ -554,6 +554,11 @@ def __step_config(ctx, step_config):
             "action": ".*_dartpad_worker_.*",
             "remote": False,
         },
+        {
+            "name": "dart/wasm_dev_rt",
+            "action": ".*wasm_dev_rt.*",
+            "remote": False,
+        }
     ])
 
 
