@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
@@ -31,6 +33,134 @@ class GetFixesTest extends AbstractLspAnalysisServerTest {
     // Enable this so we can verify we get annotations back (which would allow
     // grouping, etc but also show up in our edit verifier strings below).
     setChangeAnnotationSupport();
+  }
+
+  @override
+  Future<void> tearDown() async {
+    TransformSetManager.instance.clearCache();
+    await super.tearDown();
+  }
+
+  Future<void>
+  test_dataDriven_replacedLibrary_duplicateAndSymbolRename() async {
+    failTestOnErrorDiagnostic = false;
+
+    var pkgRoot = join(packagesRootPath, 'p');
+    newFile(join(pkgRoot, 'lib', 'new.dart'), '''
+class NewClass {}
+class Helper {}
+''');
+    newFile(join(pkgRoot, 'lib', TransformSetManager.dataFileName), '''
+version: 1
+transforms:
+- title: 'Replace old.dart with new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+- title: 'Rename OldClass to NewClass'
+  date: 2026-01-01
+  element:
+    uris: ['package:p/new.dart']
+    class: 'OldClass'
+  changes:
+    - kind: 'rename'
+      newName: 'NewClass'
+''');
+
+    writePackageConfig2(
+      projectFolderPath,
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder(pkgRoot)),
+    );
+
+    // File a: imports both new.dart and deleted old.dart (duplicate import after pass 0).
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), '''
+import 'package:p/new.dart';
+import 'package:p/old.dart';
+
+void f(NewClass x, Helper y) {}
+''');
+
+    // File b: imports only deleted old.dart AND references OldClass (pass 0 fixes URI, pass 1 renames OldClass).
+    newFile(join(projectFolderPath, 'lib', 'b.dart'), '''
+import 'package:p/old.dart';
+
+void g(OldClass x) {}
+''');
+
+    // File c: imports bare new.dart + `old.dart show Helper` (unnecessary_import after pass 0).
+    newFile(join(projectFolderPath, 'lib', 'c.dart'), '''
+import 'package:p/new.dart';
+import 'package:p/old.dart' show Helper;
+
+void h(NewClass x, Helper y) {}
+''');
+
+    // File d: disjoint `show` combinators on new.dart and old.dart (both preserved).
+    newFile(join(projectFolderPath, 'lib', 'd.dart'), '''
+import 'package:p/new.dart' show NewClass;
+import 'package:p/old.dart' show Helper;
+
+void k(NewClass x, Helper y) {}
+''');
+
+    // File e: exports both new.dart and old.dart (rewrites old.dart -> new.dart; duplicate_export has no bulk fix).
+    newFile(join(projectFolderPath, 'lib', 'e.dart'), '''
+export 'package:p/new.dart';
+export 'package:p/old.dart';
+''');
+
+    await initialize();
+
+    var result = await getWorkspaceFixes();
+
+    verifyResult(
+      result,
+      '''
+>>>>>>>>>> lib/a.dart
+>>>>>>>>>>   {0}, Remove unused import: lines 2-3
+import 'package:p/new.dart';
+
+void f(NewClass x, Helper y) {}
+>>>>>>>>>> lib/b.dart
+>>>>>>>>>>   {0}: line 1, line 3
+import 'package:p/new.dart';
+
+void g(NewClass x) {}
+>>>>>>>>>> lib/c.dart
+>>>>>>>>>>   {0}, Remove unused import: lines 2-3
+import 'package:p/new.dart';
+
+void h(NewClass x, Helper y) {}
+>>>>>>>>>> lib/d.dart
+>>>>>>>>>>   {0}: line 2
+import 'package:p/new.dart' show NewClass;
+import 'package:p/new.dart' show Helper;
+
+void k(NewClass x, Helper y) {}
+>>>>>>>>>> lib/e.dart
+>>>>>>>>>>   {0}: line 2
+export 'package:p/new.dart';
+export 'package:p/new.dart';
+''',
+      '''
+lib/a.dart:
+    uri_does_not_exist: 1
+    duplicate_import: 1
+lib/b.dart:
+    uri_does_not_exist: 1
+    undefined_class: 1
+lib/c.dart:
+    uri_does_not_exist: 1
+    unnecessary_import: 1
+lib/d.dart:
+    uri_does_not_exist: 1
+lib/e.dart:
+    uri_does_not_exist: 1
+''',
+    );
   }
 
   Future<void> test_diagnosticCodes_enabled() async {
