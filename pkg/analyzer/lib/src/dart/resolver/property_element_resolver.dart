@@ -1573,32 +1573,6 @@ class PropertyElementResolver with ScopeHelpers {
       targetType = _typeSystem.promoteToNonNull(targetType);
     }
 
-    if (target is TypeLiteralImpl && target.type.type is FunctionType) {
-      // There is no possible resolution for a property access of a function
-      // type literal (which can only be a type instantiation of a type alias
-      // of a function type).
-      if (hasRead) {
-        _lookupFailureReporter.reportReadFailure(
-          domain: FunctionTypeAliasLookupDomain(
-            importPrefix: target.type.importPrefix,
-            name: target.type.name,
-          ),
-          name: propertyName,
-          foundInstead: null,
-        );
-      } else {
-        _lookupFailureReporter.reportWriteFailure(
-          domain: FunctionTypeAliasLookupDomain(
-            importPrefix: target.type.importPrefix,
-            name: target.type.name,
-          ),
-          name: propertyName,
-          foundInstead: null,
-        );
-      }
-      return PropertyElementResolverResult();
-    }
-
     var result = _typeAnalyzer.typePropertyResolver.resolve(
       receiver: target,
       receiverType: targetType,
