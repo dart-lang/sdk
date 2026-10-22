@@ -337,7 +337,9 @@ class Linker {
       },
     );
 
-    _buildExportScopes();
+    performance.run('buildExportScopes', (_) {
+      _buildExportScopes();
+    });
   }
 
   void _computeRedirectingConstructorCycles() {
