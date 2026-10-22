@@ -557,6 +557,11 @@ abstract class Target {
   /// with the accessed getter or field as the interface target.
   bool get supportsExplicitGetterCalls;
 
+  /// Whether mixin in bodies should be included in outlines.
+  ///
+  /// This is currently experimental.
+  bool get enabledMixinInOutline => false;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(
@@ -823,6 +828,7 @@ class TestTargetFlags extends TargetFlags {
   final bool? forceStaticFieldLoweringForTesting;
   final bool? forceNoExplicitGetterCallsForTesting;
   final int? forceConstructorTearOffLoweringForTesting;
+  final bool? forceMixinInOutlineForTesting;
   final Set<String> supportedDartLibraries;
   final Set<String> unsupportedDartLibraries;
 
@@ -833,6 +839,7 @@ class TestTargetFlags extends TargetFlags {
     this.forceStaticFieldLoweringForTesting,
     this.forceNoExplicitGetterCallsForTesting,
     this.forceConstructorTearOffLoweringForTesting,
+    this.forceMixinInOutlineForTesting,
     this.supportedDartLibraries = const {},
     this.unsupportedDartLibraries = const {},
     bool isClosureContextLoweringEnabled = false,
@@ -869,6 +876,10 @@ mixin TestTargetMixin on Target {
   int get enabledConstructorTearOffLowerings =>
       flags.forceConstructorTearOffLoweringForTesting ??
       super.enabledConstructorTearOffLowerings;
+
+  @override
+  bool get enabledMixinInOutline =>
+      flags.forceMixinInOutlineForTesting ?? super.enabledMixinInOutline;
 
   @override
   late final DartLibrarySupport dartLibrarySupport = new TestDartLibrarySupport(

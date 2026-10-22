@@ -203,8 +203,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     ClassHierarchy classHierarchy,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
-    DeclarationBuilder? declarationBuilder = this.declarationBuilder;
     if (!hasBuiltOutlineExpressions) {
+      bool includeBody =
+          isMixinInstanceMember &&
+          libraryBuilder.loader.target.backendTarget.enabledMixinInOutline;
       for (int index = 0; index < _fieldDeclarations.length; index++) {
         _fieldDeclarations[index].buildFieldOutlineExpressions(
           classHierarchy: classHierarchy,
@@ -216,10 +218,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
               writeTarget as Annotatable,
           ],
           annotatablesFileUri: readTarget!.fileUri,
-          forConstantConstructor:
-              declarationBuilder is SourceClassBuilder &&
-              !isStatic &&
-              declarationBuilder.declaresConstConstructor,
+          includeBody: isConstClassInstanceMember || includeBody,
         );
       }
       for (int index = 0; index < _getterDeclarations.length; index++) {
@@ -230,6 +229,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           propertyBuilder: this,
           annotatable: readTarget as Annotatable,
           annotatableFileUri: readTarget!.fileUri,
+          includeBody: includeBody,
         );
       }
       for (int index = 0; index < _setterDeclarations.length; index++) {
@@ -240,6 +240,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
           propertyBuilder: this,
           annotatable: writeTarget as Annotatable,
           annotatableFileUri: writeTarget!.fileUri,
+          includeBody: includeBody,
         );
       }
       hasBuiltOutlineExpressions = true;

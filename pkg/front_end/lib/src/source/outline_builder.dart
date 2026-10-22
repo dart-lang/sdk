@@ -2082,7 +2082,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    pop() as Token; // Method body token
+    Token bodyToken = pop() as Token;
     MethodBody kind = pop() as MethodBody;
     AsyncModifier asyncModifier = pop() as AsyncModifier;
     List<FormalParameterBuilder>? formals =
@@ -2136,6 +2136,7 @@ class OutlineBuilder extends StackListenerImpl {
             isInstanceMember: false,
             isExtensionMember: false,
             isExtensionTypeMember: false,
+            bodyToken: bodyToken,
           );
         case ProcedureKind.Getter:
           _builderFactory.addGetter(
@@ -2158,6 +2159,7 @@ class OutlineBuilder extends StackListenerImpl {
             isInstanceMember: false,
             isExtensionMember: false,
             isExtensionTypeMember: false,
+            bodyToken: bodyToken,
           );
         case ProcedureKind.Setter:
           _builderFactory.addSetter(
@@ -2180,6 +2182,7 @@ class OutlineBuilder extends StackListenerImpl {
             isInstanceMember: false,
             isExtensionMember: false,
             isExtensionTypeMember: false,
+            bodyToken: bodyToken,
           );
         // Coverage-ignore(suite): Not run.
         case ProcedureKind.Factory:
@@ -2582,6 +2585,7 @@ class OutlineBuilder extends StackListenerImpl {
       asyncModifier: asyncModifier,
       nativeMethodName: nativeMethodName,
       kind: procedureKind,
+      bodyToken: beginParam,
     );
 
     nativeMethodName = null;

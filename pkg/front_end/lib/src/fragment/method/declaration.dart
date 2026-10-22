@@ -60,6 +60,7 @@ abstract class MethodDeclaration {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   });
 
   void buildOutlineNode({
@@ -152,6 +153,7 @@ class MethodDeclarationImpl
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -162,6 +164,7 @@ class MethodDeclarationImpl
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
+      includeBody: includeBody,
     );
   }
 

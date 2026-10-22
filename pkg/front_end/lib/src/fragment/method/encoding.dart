@@ -63,6 +63,7 @@ sealed class MethodEncoding implements InferredTypeListener {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   });
 
   void buildOutlineNode({
@@ -181,6 +182,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -204,6 +206,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override
@@ -483,6 +486,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -524,6 +528,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       delayedDefaultValueCloners.add(_extensionTearOffDefaultValueCloner!);
       _extensionTearOffDefaultValueCloner = null;
     }
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override

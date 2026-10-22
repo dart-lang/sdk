@@ -150,6 +150,9 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
     if (!hasBuiltOutlineExpressions) {
+      bool includeBody =
+          isMixinInstanceMember &&
+          libraryBuilder.loader.target.backendTarget.enabledMixinInOutline;
       for (int i = 0; i < _declarations.length; i++) {
         _declarations[i].buildOutlineExpressions(
           classHierarchy: classHierarchy,
@@ -159,6 +162,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
           annotatable: _invokeTarget,
           annotatableFileUri: _invokeTarget.fileUri,
           delayedDefaultValueCloners: delayedDefaultValueCloners,
+          includeBody: includeBody,
         );
       }
       hasBuiltOutlineExpressions = true;

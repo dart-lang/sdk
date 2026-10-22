@@ -334,6 +334,7 @@ abstract class FragmentFactory {
     required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
+    required Token bodyToken,
   });
 
   void addConstructor({
@@ -427,6 +428,7 @@ abstract class FragmentFactory {
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required bool isOperator,
+    required Token bodyToken,
   });
 
   void addGetter({
@@ -447,6 +449,7 @@ abstract class FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   });
 
   void addSetter({
@@ -467,6 +470,7 @@ abstract class FragmentFactory {
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
+    required Token bodyToken,
   });
 
   void addFields(

@@ -485,6 +485,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   }) {
     Name toStringName = new Name(
       _enumToStringName,
@@ -691,7 +692,7 @@ class _EnumValuesFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   }) {
     List<Expression> values = <Expression>[];
     for (EnumElementFragment enumElement in _sourceEnumBuilder._enumElements) {
@@ -826,6 +827,7 @@ class _EnumValuesFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
