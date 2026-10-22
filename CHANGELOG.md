@@ -5,8 +5,12 @@ This is a patch release that:
 - Uses the updatable Conscrypt APEX root certificate store on Android 14+ in
   `dart:io`, so that root CA additions and distrusts delivered via Google Play
   system updates are honored. (issue [#64696])
+- Updates BoringSSL to pick up upstream security fixes, including blocking a
+  number of compromised intermediate certificates and X.509 path validation
+  fixes. (issue [#568000])
 
 [#64696]: https://github.com/dart-lang/sdk/pull/64696
+[#568000]: https://dart-review.googlesource.com/c/sdk/+/568000
 
 ## 3.13.6
 
