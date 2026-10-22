@@ -38,11 +38,11 @@ if (is_linux) {
     outputs = [ "$root_out_dir/dart_${version}-1_${debian_arch}.deb" ]
     script = "../../build/gn_run_binary.py"
     args = [
-      rebase_path("create_debian_package.py"),
+      rebase_path("create_debian_package.py", root_build_dir),
       "--version=$version",
       "--timestamp=$timestamp",
       "--arch=$debian_arch",
-      "--lib_dir=" + rebase_path(lib_dir),
+      "--lib_dir=" + rebase_path(lib_dir, root_build_dir),
     ]
   }
 }

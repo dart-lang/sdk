@@ -64,7 +64,7 @@ def Main():
 
     cmd = ['dpkg-buildpackage', '-B', '-a', options.arch, '-us', '-uc']
     env = os.environ.copy()
-    env["LIB_DIR"] = options.lib_dir
+    env["LIB_DIR"] = abspath(options.lib_dir)
     process = subprocess.check_call(cmd, cwd=versiondir, env=env)
 
 
