@@ -205,6 +205,8 @@ class _MatcherBuilder {
       _buildFromArgumentList(node);
     } else if (node is BinaryExpression) {
       _buildFromBinaryExpression(node);
+    } else if (node is Comment) {
+      _buildFromComment(node);
     } else if (node is ConstructorName) {
       _buildFromConstructorName(node);
     } else if (node is ExtensionOverride) {
@@ -316,6 +318,16 @@ class _MatcherBuilder {
   void _buildFromBinaryExpression(BinaryExpression node) {
     // TODO(brianwilkerson): Implement this method in order to support changes
     //  to operators.
+  }
+
+  /// Build matchers for the `@docImport` directives in [node].
+  void _buildFromComment(Comment node) {
+    for (var docImport in node.docImports) {
+      _addMatcher(
+        components: [docImport.import.uri.stringValue ?? ''],
+        kinds: const [ElementKind.libraryKind],
+      );
+    }
   }
 
   /// Build a matcher for the constructor being referenced.
