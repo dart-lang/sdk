@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+# XXX
+
 # This file is used by the gn meta-buildsystem find the root of the source tree
 # and to set startup options.
 
