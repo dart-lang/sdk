@@ -1,15 +1,7 @@
-- Thanks for your contribution! Please replace this text with a description of what this PR is changing or adding and why, list any relevant issues, and review the contribution guidelines below.
+**This repository does not accept changes via PRs.**
 
----
+Thank you for considering a contribution!
 
-- [ ] I’ve reviewed the contributor guide and applied the relevant portions to this PR.
+All changes should be submitted to Gerrit via `git cl upload`.
 
-<details>
-  <summary>Contribution guidelines:</summary><br>
-
-- See our [contributor guide](https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md) for general expectations for PRs.
-- Larger or significant changes should be discussed in an issue before creating a PR.
-- Contributions to our repos should follow the [Dart style guide](https://dart.dev/guides/language/effective-dart) and use `dart format`.
-
-Note that this repository uses Gerrit for code reviews. Your pull request will be automatically converted into a Gerrit CL and a link to the CL written into this PR. The review will happen on Gerrit but you can also push additional commits to this PR to update the code review.
-</details>
+See [CONTRIBUTING.md](https://github.com/dart-lang/sdk/blob/main/CONTRIBUTING.md) for more details.
