@@ -149,7 +149,7 @@ _ANALYZER_END_USER_PATHS = [
 ]
 
 _DART2WASM_PATHS = _CFE_PATHS + [
-    "pkg/(dart2wasm|vm|wasm_builder|_js_interop_checks)/.+",
+    "pkg/(cfg|dart2wasm|vm|wasm_builder|wasm_dev_rt|_js_interop_checks)/.+",
     "sdk/lib/_internal/vm_shared/.+",
     "sdk/lib/_internal/vm/lib/ffi_.+",
     "sdk/lib/_internal/vm/lib/typed_data_patch.dart",

@@ -93,3 +93,8 @@ _dart2wasm_builder(
     category = "dart2wasm|sc",
     properties = [chrome],
 )
+
+_dart2wasm_builder(
+    "dart2wasm-dev-linux-d8",
+    category = "dart2wasm|dev|d",
+)
