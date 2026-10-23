@@ -113,9 +113,30 @@ class ReplacedBy extends Change<_Data> {
         range.startOffsetEndOffset(uri.contentsOffset, uri.contentsEnd),
       );
     }
+    if (node is Comment) {
+      return _docImportUri(node, fix);
+    }
     var sourceRange = _rangeWithTarget(node, fix);
     if (sourceRange != null) {
       return _Data(sourceRange);
+    }
+    return null;
+  }
+
+  /// Replacement range for the `@docImport` URI selected by [fix] in [node].
+  _Data? _docImportUri(Comment node, DataDrivenFix fix) {
+    var elements = fix.element.components;
+    if (elements.isEmpty) return null;
+    var simpleName = elements[0];
+    for (var docImport in node.docImports) {
+      if (docImport.import.uri case SimpleStringLiteral uri
+          when uri.value == simpleName &&
+              uri.offset <= fix.selectionOffset &&
+              fix.selectionEnd <= uri.end) {
+        return _Data(
+          range.startOffsetEndOffset(uri.contentsOffset, uri.contentsEnd),
+        );
+      }
     }
     return null;
   }

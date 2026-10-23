@@ -1388,6 +1388,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forTypeOrMember,
   ],
   diag.uriDoesNotExist: [DataDriven.new],
+  diag.uriDoesNotExistInDocImport: [DataDriven.new],
   diag.useOfPrivateParameterName: [ChangeArgumentName.new],
   diag.wrongNumberOfTypeArguments: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],

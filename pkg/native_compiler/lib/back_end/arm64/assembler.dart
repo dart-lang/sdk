@@ -140,7 +140,7 @@ const Set<Register> allRegisters = {
 const List<Register> abiArgumentRegisters = [R0, R1, R2, R3, R4, R5, R6, R7];
 
 /// Registers preserved by a call according to C ABI.
-const List<Register> abiPreservedRegisters = [
+const List<Register> abiCalleeSaveRegisters = [
   R19,
   R20,
   R21,
@@ -184,6 +184,10 @@ final prologueScratchRegisters = allocatableRegisters
       (r) =>
           r != argumentsDescriptorReg && r.index > argumentRegisters.last.index,
     )
+    .toList();
+
+final calleeSaveAllocatableRegisters = abiCalleeSaveRegisters
+    .where((r) => !reservedRegisters.contains(r))
     .toList();
 
 /// Floating-point registers.
@@ -803,8 +807,20 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
 
   @override
   void callLeafRuntime(LeafRuntimeEntry entry) {
-    final savedSP = abiPreservedRegisters.first;
-    mov(savedSP, SP);
+    // Save SP and stackPointerReg, other reserved registers are callee-save.
+    assert(
+      [
+        poolPointerReg,
+        dispatchTableReg,
+        threadReg,
+        heapBitsReg,
+        nullReg,
+      ].every(abiCalleeSaveRegisters.contains),
+    );
+    final calleeSave1 = calleeSaveAllocatableRegisters[0];
+    final calleeSave2 = calleeSaveAllocatableRegisters[1];
+    mov(calleeSave1, SP);
+    mov(calleeSave2, stackPointerReg);
 
     // TODO: align stack on entry to Dart code and remove this stack alignment.
     const stackAlignment = 16;
@@ -824,7 +840,8 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     loadImmediate(LR, vmOffsets.VMTag_kDartTagId);
     str(LR, address(threadReg, vmOffsets.Thread_vm_tag_offset));
 
-    mov(SP, savedSP);
+    mov(SP, calleeSave1);
+    mov(stackPointerReg, calleeSave2);
   }
 
   @override

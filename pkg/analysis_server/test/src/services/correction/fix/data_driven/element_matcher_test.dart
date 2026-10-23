@@ -201,6 +201,36 @@ class C {
     );
   }
 
+  Future<void> test_docImport() async {
+    await resolveTestCode('''
+/// @docImport 'package:test/a.dart';
+library;
+''');
+    _assertMatcher(
+      'a.dart',
+      expectedComponents: ['package:test/a.dart'],
+      expectedKinds: [.libraryKind],
+    );
+  }
+
+  Future<void> test_docImport_multiple() async {
+    await resolveTestCode('''
+/// @docImport 'package:test/a.dart';
+/// @docImport 'package:test/b.dart';
+library;
+''');
+    _assertHasMatcher(
+      'a.dart',
+      expectedComponents: ['package:test/a.dart'],
+      expectedKinds: [.libraryKind],
+    );
+    _assertHasMatcher(
+      'b.dart',
+      expectedComponents: ['package:test/b.dart'],
+      expectedKinds: [.libraryKind],
+    );
+  }
+
   Future<void> test_dotShorthand_constructor_named() async {
     await resolveTestCode('''
 class A {
