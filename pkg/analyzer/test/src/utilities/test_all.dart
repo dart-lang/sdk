@@ -6,10 +6,12 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'extensions/test_all.dart' as extensions;
 import 'fuzzy_matcher_test.dart' as fuzzy_matcher;
+import 'hash/test_all.dart' as hash;
 
 main() {
   defineReflectiveSuite(() {
     extensions.main();
     fuzzy_matcher.main();
+    hash.main();
   }, name: 'utilities');
 }
