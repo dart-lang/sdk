@@ -657,7 +657,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     }
     BYTECODE(Load2CurrentChars, cp_offset, on_failure) {
       int pos = current + cp_offset;
-      if (pos + 2 > subject.length() || pos < 0) {
+      if (pos > subject.length() - 2 || pos < 0) {
         SET_PC_FROM_OFFSET(on_failure);
       } else {
         ADVANCE();
@@ -674,7 +674,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     BYTECODE(Load4CurrentChars, cp_offset, on_failure) {
       DCHECK_EQ(1, sizeof(Char));
       int pos = current + cp_offset;
-      if (pos + 4 > subject.length() || pos < 0) {
+      if (pos > subject.length() - 4 || pos < 0) {
         SET_PC_FROM_OFFSET(on_failure);
       } else {
         ADVANCE();
@@ -830,7 +830,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       int from = registers[start_reg];
       int len = registers[start_reg + 1] - from;
       if (from >= 0 && len > 0) {
-        if (current + len > subject.length() ||
+        if (current > subject.length() - len ||
             !CompareCharsEqual(&subject[from], &subject[current], len)) {
           SET_PC_FROM_OFFSET(on_not_equal);
           DISPATCH();
@@ -858,7 +858,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       int from = registers[start_reg];
       int len = registers[start_reg + 1] - from;
       if (from >= 0 && len > 0) {
-        if (current + len > subject.length() ||
+        if (current > subject.length() - len ||
             !BackRefMatchesNoCase(thread, from, current, len, subject, true)) {
           SET_PC_FROM_OFFSET(on_not_equal);
           DISPATCH();
@@ -872,7 +872,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       int from = registers[start_reg];
       int len = registers[start_reg + 1] - from;
       if (from >= 0 && len > 0) {
-        if (current + len > subject.length() ||
+        if (current > subject.length() - len ||
             !BackRefMatchesNoCase(thread, from, current, len, subject, false)) {
           SET_PC_FROM_OFFSET(on_not_equal);
           DISPATCH();
