@@ -5,12 +5,11 @@
 [ $compiler != dart2js ]
 dart2js/*: SkipByDesign # tests specific to dart2js
 
-[ $compiler == dart2wasm ]
-(?!wasm)*: SkipByDesign
-wasm/multi_module_stress_test: Slow, Pass # Large stress test by design
-
 [ $compiler != dart2wasm ]
-wasm/*: SkipByDesign
+wasm/cfg/*: SkipByDesign
+
+[ $compiler != dart2wasm_dev ]
+wasm/cfg_dev/*: SkipByDesign
 
 [ $compiler == ddc ]
 async_stacktrace_test: Skip # Issue 53555
@@ -87,6 +86,13 @@ wasm/multi_module_stress_test: SkipByDesign # DataView fails to load necessary i
 wasm/deferred_shared_memory_test: SkipByDesign # Safari doesn't support multi memory proposal yet.
 wasm/shared_memory_test: SkipByDesign # Safari doesn't support multi memory proposal yet.
 
+[ $compiler != dart2wasm && $compiler != dart2wasm_dev ]
+wasm/*: SkipByDesign
+
 [ $compiler == dartk && $runtime == vm ]
 new_from_env_test: SkipByDesign # dart2js only test
 unconditional_dartio_import_test: SkipByDesign # dart2js only test
+
+[ $compiler == dart2wasm || $compiler == dart2wasm_dev ]
+(?!wasm)*: SkipByDesign
+wasm/multi_module_stress_test: Slow, Pass # Large stress test by design
