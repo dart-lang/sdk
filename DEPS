@@ -534,7 +534,6 @@ deps = {
           "package": "build/siso/${{platform}}",
           "version": Var("siso_version"),
       }],
-      "condition": "host_cpu == 'x64' or host_cpu == 'arm64'",
       "dep_type": "cipd",
   },
 
