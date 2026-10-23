@@ -170,6 +170,14 @@ abstract class RuntimeConfiguration {
     TestUtils.ensureExists(jsshell, _configuration);
     return jsshell;
   }
+
+  String get wasmRunScriptFileName {
+    var script = _configuration.compiler == Compiler.dart2wasmDev
+        ? 'pkg/dart2wasm/tool/run_dev'
+        : 'pkg/dart2wasm/tool/run_benchmark';
+    TestUtils.ensureExists(script, _configuration);
+    return script;
+  }
 }
 
 /// The 'none' runtime configuration.
@@ -217,11 +225,11 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
   ) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact!);
-    if (compiler == Compiler.dart2wasm) {
+    if (compiler == Compiler.dart2wasm || compiler == Compiler.dart2wasmDev) {
       return [
         Dart2WasmCommandLineCommand(
           moniker,
-          'pkg/dart2wasm/tool/run_benchmark',
+          wasmRunScriptFileName,
           // Default stack trace limit in V8 is 10, which hides some of the
           // stack frames we check in stack trace tests.
           ['--d8', '--shell-option=--stack-trace-limit=20', ...arguments],
@@ -264,11 +272,11 @@ class JSCRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     bool isCrashExpected,
   ) {
     checkArtifact(artifact!);
-    if (compiler != Compiler.dart2wasm) {
+    if (compiler != Compiler.dart2wasm && compiler != Compiler.dart2wasmDev) {
       throw 'No test runner setup for jsc + dart2js yet';
     }
     return [
-      Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark', [
+      Dart2WasmCommandLineCommand(moniker, wasmRunScriptFileName, [
         '--jsc',
         ...arguments,
       ], environmentOverrides),
@@ -291,14 +299,12 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
     bool isCrashExpected,
   ) {
     checkArtifact(artifact!);
-    if (compiler == Compiler.dart2wasm) {
+    if (compiler == Compiler.dart2wasm || compiler == Compiler.dart2wasmDev) {
       return [
-        Dart2WasmCommandLineCommand(
-          moniker,
-          'pkg/dart2wasm/tool/run_benchmark',
-          ['--jsshell', ...arguments],
-          environmentOverrides,
-        ),
+        Dart2WasmCommandLineCommand(moniker, wasmRunScriptFileName, [
+          '--jsshell',
+          ...arguments,
+        ], environmentOverrides),
       ];
     } else {
       return [

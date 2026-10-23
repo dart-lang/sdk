@@ -7,7 +7,7 @@
 //
 // Run as follows on D8:
 //
-// $> d8 run.js \
+// $> d8 run_wasm_dev.js \
 //       -- /abs/path/to/wasm_dev_rt.mjs wasm_dev_rt.wasm <dart_module>.wasm
 //
 // Adapted from `pkg/dart2wasm/bin/run_wasm.js`.

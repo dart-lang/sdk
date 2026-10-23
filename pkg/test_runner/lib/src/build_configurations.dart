@@ -91,6 +91,7 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.ddc: ['ddc_stable_test'],
     Compiler.dart2js: ['dart2js_bot'],
     Compiler.dart2wasm: ['dart2wasm_bot'],
+    Compiler.dart2wasmDev: ['dart2wasm_dev'],
     Compiler.dart2analyzer: ['analyzer_bot'],
     Compiler.specParser: <String>[],
   };
