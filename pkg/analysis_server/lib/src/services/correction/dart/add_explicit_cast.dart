@@ -155,7 +155,8 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
       } else {
         return null;
       }
-    } else if (parent is ArgumentList) {
+    } else if (parent is ArgumentList ||
+        (parent is IndexExpression && target == parent.index)) {
       var staticType = target.correspondingParameter?.type;
       if (staticType == null) return null;
       toType = staticType;
@@ -163,8 +164,8 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
       return null;
     }
     if (typeSystem.isAssignableTo(
-      toType,
       typeSystem.promoteToNonNull(fromType),
+      toType,
       strictCasts: analysisOptions.strictCasts,
     )) {
       // The only reason that `fromType` can't be assigned to `toType` is
