@@ -29,6 +29,7 @@ final Uri pkgVmDir = Platform.script.resolve('../../..');
 
 class FakeTypesBuilder extends TypesBuilder {
   final Map<Class, TFClass> _classes = <Class, TFClass>{};
+  final Map<RecordShape, TFClass> _recordClasses = <RecordShape, TFClass>{};
   int _classIdCounter = 0;
 
   FakeTypesBuilder(CoreTypes coreTypes, Target target)
@@ -37,6 +38,19 @@ class FakeTypesBuilder extends TypesBuilder {
   @override
   TFClass getTFClass(Class c) =>
       _classes[c] ??= new TFClass(++_classIdCounter, c, {}, null);
+
+  @override
+  TFClass getRecordClass(RecordShape shape) =>
+      _recordClasses[shape] ??= TFClass(
+        ++_classIdCounter,
+        target.getRecordImplementationClass(
+          coreTypes,
+          shape.numPositionalFields,
+          shape.namedFields,
+        ),
+        {},
+        shape,
+      );
 }
 
 class FakeEntryPointsListener implements EntryPointsListener {
@@ -53,6 +67,12 @@ class FakeEntryPointsListener implements EntryPointsListener {
   @override
   ConcreteType addAllocatedClass(Class c) {
     return _typesBuilder.getTFClass(c).concreteType;
+  }
+
+  @override
+  RecordConcreteType addAllocatedRecord(RecordShape shape) {
+    return _typesBuilder.getRecordClass(shape).concreteType
+        as RecordConcreteType;
   }
 
   @override

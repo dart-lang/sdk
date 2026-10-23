@@ -1309,6 +1309,9 @@ class _FieldValue extends _DependencyTracker {
   }
 
   Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type? receiverType) {
+    if (receiverType is RecordConcreteType && !receiverType.isRaw) {
+      return receiverType.getFieldType(field.name);
+    }
     ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
     final typeGuardSummary = this.typeGuardSummary;
@@ -1752,11 +1755,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
   }
 
   @override
-  Type getRecordType(RecordShape shape, bool allocated) {
-    final cls = getRecordClass(shape);
-    return allocated ? addAllocatedClass(cls) : cls.coneType;
-  }
-
   _TFClassImpl getRecordClass(RecordShape shape) =>
       recordClasses[shape] ??= _createRecordClass(shape);
 
@@ -2383,6 +2381,17 @@ class TypeFlowAnalysis
       debugPrint("ADD ALLOCATED CLASS: $c");
     }
     return hierarchyCache.addAllocatedClass(hierarchyCache.getTFClass(c));
+  }
+
+  @override
+  RecordConcreteType addAllocatedRecord(RecordShape shape) {
+    if (kPrintDebug) {
+      debugPrint("ADD ALLOCATED RECORD: $shape");
+    }
+    return hierarchyCache.addAllocatedClass(
+          hierarchyCache.getRecordClass(shape),
+        )
+        as RecordConcreteType;
   }
 
   @override

@@ -6,6 +6,7 @@
 library;
 
 import 'dart:core' hide Type;
+import 'dart:math' show max;
 
 import 'package:kernel/ast.dart' hide Variance;
 import 'package:kernel/core_types.dart';
@@ -28,7 +29,8 @@ class TFClass {
   final Class classNode;
   final Set<TFClass> supertypes; // List of super-types including this.
   final RecordShape? recordShape;
-  final Map<TypeAttributes, ConcreteType> _concreteTypesWithAttributes = {};
+  final Map<TypeAttributes, ClassConcreteType> _concreteTypesWithAttributes =
+      {};
 
   /// TFClass should not be instantiated directly.
   /// Instead, [TypeHierarchy.getTFClass] should be used to obtain [TFClass]
@@ -39,20 +41,48 @@ class TFClass {
 
   /// Returns ConcreteType corresponding to this class without
   /// any extra attributes.
-  late final ConcreteType concreteType = ConcreteType._(this, null, null);
+  late final ConcreteType concreteType = recordShape != null
+      ? RecordConcreteType._(
+          this,
+          List<Type>.filled(recordShape!.numFields, nullableAnyType),
+          recordShape!.numFields == 0 ? 0 : RecordConcreteType.maxRecordDepth,
+        )
+      : ClassConcreteType._(this, null, null);
 
   /// Returns ConcreteType corresponding to this class,
   /// [constant] value and [typeArgs].
   ConcreteType constantConcreteType(Constant constant, [List<Type>? typeArgs]) {
+    assert(!isRecord);
     final attr = TypeAttributes._(constant, _closureForConstant(constant));
     return typeArgs == null
         ? _concreteTypeWithAttributes(attr)
-        : ConcreteType._(this, typeArgs, attr);
+        : ClassConcreteType._(this, typeArgs, attr);
+  }
+
+  /// Returns ConcreteType corresponding to this record class and
+  /// given [fieldTypes].
+  RecordConcreteType recordConcreteType(List<Type> fieldTypes) {
+    assert(isRecord);
+    assert(fieldTypes.length == recordShape!.numFields);
+    bool allNullableAny = true;
+    int maxFieldDepth = 0;
+    for (int i = 0; i < fieldTypes.length; ++i) {
+      final fieldType = fieldTypes[i];
+      if (fieldType != nullableAnyType) {
+        allNullableAny = false;
+        maxFieldDepth = max(maxFieldDepth, _recordDepth(fieldType));
+      }
+    }
+    if (allNullableAny || maxFieldDepth >= RecordConcreteType.maxRecordDepth) {
+      return concreteType as RecordConcreteType;
+    }
+    return RecordConcreteType._(this, fieldTypes, maxFieldDepth + 1);
   }
 
   /// Returns ConcreteType corresponding to this class and
   /// given [function] in [member].
   ConcreteType closureConcreteType(Member member, LocalFunction? function) {
+    assert(!isRecord);
     assert(
       function != null ||
           (member is Procedure &&
@@ -94,7 +124,11 @@ class TFClass {
       : nodeToText(classNode);
 
   ConcreteType _concreteTypeWithAttributes(TypeAttributes attr) =>
-      _concreteTypesWithAttributes[attr] ??= ConcreteType._(this, null, attr);
+      _concreteTypesWithAttributes[attr] ??= ClassConcreteType._(
+        this,
+        null,
+        attr,
+      );
 
   Closure? _closureForConstant(Constant c) {
     if (c is InstantiationConstant) {
@@ -114,13 +148,24 @@ class TFClass {
     }
     return null;
   }
+
+  static int _recordDepth(Type type) => switch (type) {
+    RecordConcreteType(:final depth) => depth,
+    NullableType(:final baseType) => _recordDepth(baseType),
+    SetType(:final types) => types.fold(0, (d, t) => max(d, _recordDepth(t))),
+    EmptyType() ||
+    AnyInstanceType() ||
+    ConeType() ||
+    ClassConcreteType() ||
+    RuntimeType() ||
+    UnknownType() => 0,
+  };
 }
 
 /// Shape of a record (number of positional fields and a set of named fields).
 class RecordShape {
   final int numPositionalFields;
   final List<String> namedFields; // Sorted.
-  final int _hash = 0;
 
   RecordShape(RecordType type)
     : numPositionalFields = type.positional.length,
@@ -136,6 +181,19 @@ class RecordShape {
     } else {
       return namedFields[i - numPositionalFields];
     }
+  }
+
+  int fieldIndex(String name) {
+    final index = namedFields.indexOf(name);
+    if (index >= 0) {
+      return numPositionalFields + index;
+    }
+    assert(name.startsWith(r'$'));
+    final posIndex = (name.length == 2)
+        ? (name.codeUnitAt(1) - '1'.codeUnitAt(0))
+        : (int.parse(name.substring(1)) - 1);
+    assert(0 <= posIndex && posIndex < numPositionalFields);
+    return posIndex;
   }
 
   RecordShape.readFromBinary(BinarySource source)
@@ -155,15 +213,10 @@ class RecordShape {
   }
 
   @override
-  int get hashCode => (_hash == 0) ? _computeHashCode() : _hash;
-
-  int _computeHashCode() {
-    int hash = combineHashes(numPositionalFields, listHashCode(namedFields));
-    if (hash == 0) {
-      hash = 1;
-    }
-    return hash;
-  }
+  late final int hashCode = combineHashes(
+    numPositionalFields,
+    listHashCode(namedFields),
+  );
 
   @override
   bool operator ==(other) =>
@@ -210,11 +263,8 @@ abstract class TypesBuilder {
   /// Return [TFClass] corresponding to the given [classNode].
   TFClass getTFClass(Class classNode);
 
-  /// Return [Type] corresponding to the given record shape.
-  /// [allocated] flag indicates that an instance of
-  /// this record shape is allocated.
-  Type getRecordType(RecordShape shape, bool allocated) =>
-      getTFClass(coreTypes.recordClass).coneType;
+  /// Return [TFClass] corresponding to the given record [shape].
+  TFClass getRecordClass(RecordShape shape);
 
   late final Type functionType = getTFClass(coreTypes.functionClass).coneType;
 
@@ -246,7 +296,7 @@ abstract class TypesBuilder {
     } else if (type is FunctionType) {
       result = functionType;
     } else if (type is RecordType) {
-      result = getRecordType(RecordShape(type), false);
+      result = getRecordClass(RecordShape(type)).coneType;
     } else if (type is FutureOrType) {
       // TODO(alexmarkov): support FutureOr types
       result = anyInstanceType;
@@ -329,7 +379,7 @@ abstract class TypeExpr {
 /// [Type] describes a specific set of values (Dart instances) and does not
 /// directly correspond to a Dart type.
 /// TODO(alexmarkov): consider detaching Type hierarchy from TypeExpr/Statement.
-abstract class Type extends TypeExpr {
+sealed class Type extends TypeExpr {
   const Type._();
 
   /// Returns a nullable type, union of [this] and the `null` object.
@@ -614,7 +664,7 @@ class SetType extends Type {
   @override
   int get order => TypeOrder.Set.index;
 
-  static final ConcreteType _placeholderType = ConcreteType._(
+  static final ConcreteType _placeholderType = ClassConcreteType._(
     TFClass(-1, Class(name: '', fileUri: Uri()), {}, null),
     null,
     null,
@@ -623,6 +673,7 @@ class SetType extends Type {
   static List<ConcreteType> _unionLists(
     List<ConcreteType> types1,
     List<ConcreteType> types2,
+    TypeHierarchy typeHierarchy,
   ) {
     int i1 = 0;
     int i2 = 0;
@@ -666,7 +717,7 @@ class SetType extends Type {
         types[newLength++] = t2;
         ++i2;
       } else {
-        types[newLength++] = t1.unionSameClass(t2);
+        types[newLength++] = t1.unionSameClass(t2, typeHierarchy);
         ++i1;
         ++i2;
       }
@@ -740,7 +791,7 @@ class SetType extends Type {
       } else if (id1 > id2) {
         ++i2;
       } else {
-        final intersect = t1.intersection(t2, typeHierarchy);
+        final intersect = t1.intersectionSameClass(t2, typeHierarchy);
         if (intersect is! EmptyType) {
           types.add(intersect as ConcreteType);
         }
@@ -751,7 +802,11 @@ class SetType extends Type {
     return types;
   }
 
-  bool _isSubList(List<ConcreteType> sublist, List<ConcreteType> list) {
+  bool _isSubList(
+    List<ConcreteType> sublist,
+    List<ConcreteType> list,
+    TypeHierarchy typeHierarchy,
+  ) {
     int i1 = 0;
     int i2 = 0;
     while ((i1 < sublist.length) && (i2 < list.length)) {
@@ -762,7 +817,8 @@ class SetType extends Type {
         ++i2;
       } else if (t1.cls.id > t2.cls.id) {
         ++i2;
-      } else if (t1.cls.id == t2.cls.id && t2.unionSameClass(t1) == t2) {
+      } else if (t1.cls.id == t2.cls.id &&
+          t2.unionSameClass(t1, typeHierarchy) == t2) {
         ++i1;
         ++i2;
       } else {
@@ -788,21 +844,21 @@ class SetType extends Type {
     }
     if (other is SetType) {
       if (types.length >= other.types.length) {
-        if (_isSubList(other.types, types)) {
+        if (_isSubList(other.types, types, typeHierarchy)) {
           return this;
         }
       } else {
-        if (_isSubList(types, other.types)) {
+        if (_isSubList(types, other.types, typeHierarchy)) {
           return other;
         }
       }
-      return SetType(_unionLists(types, other.types));
+      return SetType(_unionLists(types, other.types, typeHierarchy));
     } else if (other is ConcreteType) {
       // Use binary search since types is sorted by class id.
       int index = _binarySearch(types, other.cls.id);
       if (index >= 0) {
         final type = types[index];
-        final unioned = type.unionSameClass(other);
+        final unioned = type.unionSameClass(other, typeHierarchy);
         if (unioned == type) return this;
         return SetType(List.of(types, growable: false)..[index] = unioned);
       }
@@ -844,7 +900,7 @@ class SetType extends Type {
       for (var type in types) {
         if (type == other) return other;
         if (identical(type.cls, other.cls)) {
-          return type.intersection(other, typeHierarchy);
+          return type.intersectionSameClass(other, typeHierarchy);
         }
       }
       return emptyType;
@@ -1221,9 +1277,9 @@ class TypeAttributes {
   }
 }
 
-/// Type representing a set of instances of a specific Dart class (no subtypes
-/// or `null` object).
-class ConcreteType extends Type implements Comparable<ConcreteType> {
+/// Type representing a set of instances of a specific Dart class or record
+/// shape (no subtypes or `null` object).
+sealed class ConcreteType extends Type implements Comparable<ConcreteType> {
   final TFClass cls;
 
   late final NullableType _nullableType = NullableType._(this);
@@ -1232,8 +1288,69 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   NullableType nullable() => _nullableType;
 
   @override
+  // ignore: hash_and_equals
   late final int hashCode = _computeHashCode();
 
+  ConcreteType._(this.cls) : super._() {
+    assert(!cls.classNode.isAbstract);
+    assert(cls.isRecord == (this is RecordConcreteType));
+  }
+
+  int _computeHashCode();
+
+  ConcreteType get raw => cls.concreteType;
+  bool get isRaw;
+
+  TypeAttributes? get attributes => null;
+
+  @override
+  bool isSubtypeOf(TFClass other) => cls.isSubtypeOf(other);
+
+  // Note that this may return 0 for concrete types which are not equal if the
+  // difference is only in type arguments, attributes, or record field types.
+  @override
+  int compareTo(ConcreteType other) => cls.id.compareTo(other.cls.id);
+
+  @override
+  int get order => TypeOrder.Concrete.index;
+
+  @override
+  Type union(Type other, TypeHierarchy typeHierarchy) {
+    if (other.order < this.order) {
+      return other.union(this, typeHierarchy);
+    }
+    if (other is ConcreteType) {
+      if (!identical(this.cls, other.cls)) {
+        final types = (this.cls.id < other.cls.id)
+            ? (List.filled(2, this)..[1] = other)
+            : (List.filled(2, other)..[1] = this);
+        return SetType(types);
+      }
+      return unionSameClass(other, typeHierarchy);
+    } else {
+      throw 'Unexpected type $other';
+    }
+  }
+
+  ConcreteType unionSameClass(ConcreteType other, TypeHierarchy typeHierarchy);
+
+  @override
+  Type intersection(Type other, TypeHierarchy typeHierarchy) {
+    if (other.order < this.order) {
+      return other.intersection(this, typeHierarchy);
+    }
+    if (other is ConcreteType) {
+      if (!identical(this.cls, other.cls)) return emptyType;
+      return intersectionSameClass(other, typeHierarchy);
+    } else {
+      throw 'Unexpected type $other';
+    }
+  }
+
+  Type intersectionSameClass(ConcreteType other, TypeHierarchy typeHierarchy);
+}
+
+final class ClassConcreteType extends ConcreteType {
   // May be null if there are no type arguments constraints. The type arguments
   // should represent type sets, i.e. `UnknownType` or `RuntimeType`. The type
   // arguments vector is factored against the generic interfaces implemented by
@@ -1249,30 +1366,30 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
   // Additional type attributes such as constant value and
   // inferred closure.
+  @override
   final TypeAttributes? attributes;
 
-  ConcreteType._(this.cls, List<Type>? typeArgs_, this.attributes)
+  ClassConcreteType._(super.cls, List<Type>? typeArgs_, this.attributes)
     : typeArgs = typeArgs_,
       numImmediateTypeArgs = typeArgs_ != null
           ? cls.classNode.typeParameters.length
           : 0,
       super._() {
-    assert(!cls.classNode.isAbstract);
+    assert(!cls.isRecord);
     assert(typeArgs == null || cls.classNode.typeParameters.isNotEmpty);
     assert(typeArgs == null || typeArgs!.any((t) => t is RuntimeType));
   }
 
-  ConcreteType(TFClass cls, List<Type> typeArgs) : this._(cls, typeArgs, null);
+  ClassConcreteType(TFClass cls, List<Type> typeArgs)
+    : this._(cls, typeArgs, null);
 
-  ConcreteType get raw => cls.concreteType;
+  @override
   bool get isRaw => typeArgs == null && attributes == null;
 
   @override
   Closure? get closure => attributes?.closure;
 
   @override
-  bool isSubtypeOf(TFClass other) => cls.isSubtypeOf(other);
-
   bool isSubtypeOfRuntimeType(
     TypeHierarchy typeHierarchy,
     RuntimeType runtimeType,
@@ -1355,9 +1472,11 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs![0]);
       }
     }
+    assert(rhs is NeverType || rhs is NullType);
     return false;
   }
 
+  @override
   int _computeHashCode() {
     const int seed = 43;
     int hash = combineHashes(seed, cls.hashCode);
@@ -1371,14 +1490,15 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   }
 
   @override
+  // ignore: hash_and_equals
   bool operator ==(other) =>
       identical(this, other) ||
-      (other is ConcreteType &&
+      (other is ClassConcreteType &&
           identical(this.cls, other.cls) &&
           identical(this.attributes, other.attributes) &&
           _hasSameTypeArgs(other));
 
-  bool _hasSameTypeArgs(ConcreteType other) {
+  bool _hasSameTypeArgs(ClassConcreteType other) {
     assert(identical(this.cls, other.cls));
     final thisTypeArgs = this.typeArgs;
     final otherTypeArgs = other.typeArgs;
@@ -1393,11 +1513,6 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     }
     return true;
   }
-
-  // Note that this may return 0 for concrete types which are not equal if the
-  // difference is only in type arguments.
-  @override
-  int compareTo(ConcreteType other) => cls.id.compareTo(other.cls.id);
 
   @override
   String toString() {
@@ -1417,28 +1532,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   }
 
   @override
-  int get order => TypeOrder.Concrete.index;
-
-  @override
-  Type union(Type other, TypeHierarchy typeHierarchy) {
-    if (other.order < this.order) {
-      return other.union(this, typeHierarchy);
-    }
-    if (other is ConcreteType) {
-      if (!identical(this.cls, other.cls)) {
-        final types = (this.cls.id < other.cls.id)
-            ? (List.filled(2, this)..[1] = other)
-            : (List.filled(2, other)..[1] = this);
-        return SetType(types);
-      }
-      return unionSameClass(other);
-    } else {
-      throw 'Unexpected type $other';
-    }
-  }
-
-  ConcreteType unionSameClass(ConcreteType other) {
+  ConcreteType unionSameClass(ConcreteType other, TypeHierarchy typeHierarchy) {
     assert(identical(this.cls, other.cls));
+    other as ClassConcreteType;
     if (this == other) return this;
     if (this.isRaw) return this;
     if (other.isRaw) return other;
@@ -1452,56 +1548,212 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (typeArgs != null && _hasSameTypeArgs(other)) {
       if (attributes == null) return this;
       if (other.attributes == null) return other;
-      return ConcreteType(cls, typeArgs!);
+      return ClassConcreteType(cls, typeArgs!);
     }
     return raw;
   }
 
   @override
-  Type intersection(Type other, TypeHierarchy typeHierarchy) {
-    if (other.order < this.order) {
-      return other.intersection(this, typeHierarchy);
-    }
-    if (other is ConcreteType) {
-      if (this == other) return this;
-      if (!identical(this.cls, other.cls)) return emptyType;
-      if (this.isRaw) return other;
-      if (other.isRaw) return this;
+  Type intersectionSameClass(ConcreteType other, TypeHierarchy typeHierarchy) {
+    assert(identical(this.cls, other.cls));
+    other as ClassConcreteType;
+    if (this == other) return this;
+    if (this.isRaw) return other;
+    if (other.isRaw) return this;
 
-      if (attributes != null &&
-          other.attributes != null &&
-          attributes != other.attributes) {
+    if (attributes != null &&
+        other.attributes != null &&
+        attributes != other.attributes) {
+      return emptyType;
+    }
+    final mergedAttributes = attributes ?? other.attributes;
+
+    final thisTypeArgs = this.typeArgs;
+    final otherTypeArgs = other.typeArgs;
+    assert(thisTypeArgs != null || otherTypeArgs != null);
+
+    List<Type> mergedTypeArgs;
+    if (thisTypeArgs == null) {
+      mergedTypeArgs = otherTypeArgs!;
+    } else if (otherTypeArgs == null) {
+      mergedTypeArgs = thisTypeArgs;
+    } else {
+      assert(thisTypeArgs.length == otherTypeArgs.length);
+      mergedTypeArgs = List<Type>.filled(thisTypeArgs.length, emptyType);
+      for (int i = 0; i < thisTypeArgs.length; ++i) {
+        final merged = thisTypeArgs[i].intersection(
+          otherTypeArgs[i],
+          typeHierarchy,
+        );
+        if (merged is EmptyType) {
+          return emptyType;
+        }
+        mergedTypeArgs[i] = merged;
+      }
+    }
+    return ClassConcreteType._(cls, mergedTypeArgs, mergedAttributes);
+  }
+}
+
+/// Concrete type representing a record with a specific [RecordShape] and
+/// [fieldTypes].
+///
+/// Invariants:
+///
+///   * Like all [ConcreteType]s, a [RecordConcreteType] is always specialized
+///     (so all [fieldTypes] have to be specialized as well).
+///
+///   * To ensure the type lattice has finite height, we bound record nesting by
+///     [maxRecordDepth].
+///
+///       - the top of the `shape`-specific lattice is a [RecordConcreteType]
+///         with all field types `nullableAnyType` (aka `raw` or
+///         `cls.concreteType`). It has `depth` of `maxRecordDepth` (except the
+///         empty record which has `0`).
+///
+///       - any non-top `shape`-specific [RecordConcreteType] can therefore not
+///         directly or indirectly refer to a non-empty top one.
+///
+///     This prevents infinite recursion of e.g.
+///     ```
+///     Object deepRecordField = (1,);
+///     void pumpRecordField() {
+///       deepRecordField = (deepRecordField,);
+///     }
+///     ```
+///     where the following would happen without a depth limit:
+///
+///       * Field value starts at V0 = R(int,)
+///       * Apply pumpRecordField
+///          - reads  V0                              (creates dependency)
+///          - writes R(V0,) -> V1 = R({int, V0},)    (invalidates dependency)
+///       * Apply pumpRecordField (N'th time)
+///          - reads  VN                              (creates dependency)
+///          - writes R(VN,) -> VN+1 = R({int, VN},)  (invalidates dependency)
+///
+// TODO: Support TypeAttributes (constant values) on RecordConcreteType.
+final class RecordConcreteType extends ConcreteType {
+  static const int maxRecordDepth = 3;
+
+  // The types of record fields (positionals followed by named).
+  final List<Type> fieldTypes;
+
+  // Nesting depth of this record type:
+  //   * 0 for empty `()` record
+  //   * maxRecordDepth for non-empty `raw` records (`cls.concreteType`)
+  //   * 1 for non-raw records whose field types don't contain non-empty records
+  //   * N iff the max depth of a field record type is N-1
+  final int depth;
+
+  RecordConcreteType._(super.cls, this.fieldTypes, this.depth)
+    : assert(cls.isRecord),
+      assert(fieldTypes.length == cls.recordShape!.numFields),
+      assert(fieldTypes.every((t) => t.isSpecialized)),
+      assert(0 <= depth && depth <= maxRecordDepth),
+      super._();
+
+  @override
+  bool get isRaw => identical(this, cls.concreteType);
+
+  Type getFieldType(Name name) =>
+      fieldTypes[cls.recordShape!.fieldIndex(name.text)];
+
+  @override
+  bool isSubtypeOfRuntimeType(
+    TypeHierarchy typeHierarchy,
+    RuntimeType runtimeType,
+  ) {
+    final rhs = runtimeType._type;
+    if (rhs is DynamicType || rhs is VoidType) return true;
+    if (rhs is InterfaceType) {
+      return typeHierarchy.isSubtype(this.cls.classNode, rhs.classNode);
+    }
+    if (rhs is FutureOrType) {
+      return isSubtypeOfRuntimeType(typeHierarchy, runtimeType.typeArgs![0]);
+    }
+    assert(rhs is NeverType || rhs is NullType);
+    return false;
+  }
+
+  @override
+  int _computeHashCode() {
+    const int seed = 47;
+    int hash = combineHashes(seed, cls.hashCode);
+    for (final fieldType in fieldTypes) {
+      hash = combineHashes(hash, fieldType.hashCode);
+    }
+    return hash;
+  }
+
+  @override
+  // ignore: hash_and_equals
+  bool operator ==(other) =>
+      identical(this, other) ||
+      (other is RecordConcreteType &&
+          identical(this.cls, other.cls) &&
+          listEquals(this.fieldTypes, other.fieldTypes));
+
+  @override
+  String toString() =>
+      isRaw ? "_T ($cls)" : "_T ($cls(${fieldTypes.join(', ')}))";
+
+  @override
+  ConcreteType unionSameClass(ConcreteType other, TypeHierarchy typeHierarchy) {
+    assert(identical(this.cls, other.cls));
+    other as RecordConcreteType;
+    if (this == other) return this;
+    if (this.isRaw) return this;
+    if (other.isRaw) return other;
+
+    final thisFields = this.fieldTypes;
+    final otherFields = other.fieldTypes;
+    assert(thisFields.length == otherFields.length);
+    bool sameAsThis = true;
+    bool sameAsOther = true;
+    final unionedFields = List<Type>.filled(thisFields.length, emptyType);
+    for (int i = 0; i < thisFields.length; ++i) {
+      final thisField = thisFields[i];
+      final otherField = otherFields[i];
+      final unioned = thisField
+          .union(otherField, typeHierarchy)
+          .specialize(typeHierarchy);
+      if (!identical(unioned, thisField)) sameAsThis = false;
+      if (!identical(unioned, otherField)) sameAsOther = false;
+      unionedFields[i] = unioned;
+    }
+    if (sameAsThis) return this;
+    if (sameAsOther) return other;
+    return cls.recordConcreteType(unionedFields);
+  }
+
+  @override
+  Type intersectionSameClass(ConcreteType other, TypeHierarchy typeHierarchy) {
+    assert(identical(this.cls, other.cls));
+    other as RecordConcreteType;
+    if (this == other) return this;
+    if (this.isRaw) return other;
+    if (other.isRaw) return this;
+
+    final thisFields = this.fieldTypes;
+    final otherFields = other.fieldTypes;
+    assert(thisFields.length == otherFields.length);
+    bool sameAsThis = true;
+    bool sameAsOther = true;
+    final mergedFields = List<Type>.filled(thisFields.length, emptyType);
+    for (int i = 0; i < thisFields.length; ++i) {
+      final thisField = thisFields[i];
+      final otherField = otherFields[i];
+      final merged = thisField.intersection(otherField, typeHierarchy);
+      if (merged is EmptyType) {
         return emptyType;
       }
-      final mergedAttributes = attributes ?? other.attributes;
-
-      final thisTypeArgs = this.typeArgs;
-      final otherTypeArgs = other.typeArgs;
-      assert(thisTypeArgs != null || otherTypeArgs != null);
-
-      List<Type> mergedTypeArgs;
-      if (thisTypeArgs == null) {
-        mergedTypeArgs = otherTypeArgs!;
-      } else if (otherTypeArgs == null) {
-        mergedTypeArgs = thisTypeArgs;
-      } else {
-        assert(thisTypeArgs.length == otherTypeArgs.length);
-        mergedTypeArgs = List<Type>.filled(thisTypeArgs.length, emptyType);
-        for (int i = 0; i < thisTypeArgs.length; ++i) {
-          final merged = thisTypeArgs[i].intersection(
-            otherTypeArgs[i],
-            typeHierarchy,
-          );
-          if (merged is EmptyType) {
-            return emptyType;
-          }
-          mergedTypeArgs[i] = merged;
-        }
-      }
-      return ConcreteType._(cls, mergedTypeArgs, mergedAttributes);
-    } else {
-      throw 'Unexpected type $other';
+      if (!identical(merged, thisField)) sameAsThis = false;
+      if (!identical(merged, otherField)) sameAsOther = false;
+      mergedFields[i] = merged;
     }
+    if (sameAsThis) return this;
+    if (sameAsOther) return other;
+    return cls.recordConcreteType(mergedFields);
   }
 }
 
@@ -1528,6 +1780,9 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 //
 // So, the invariant about 'typeArgs' is that they will be 'null' iff the class
 // is non-generic, and non-null (with at least one vector) otherwise.
+//
+// TODO: Support RecordType in RuntimeType and isSubtypeOfRuntimeType to allow
+// eliding type checks against record types.
 class RuntimeType extends Type {
   final DartType _type; // Doesn't contain type args.
 
@@ -1548,6 +1803,13 @@ class RuntimeType extends Type {
       DartType typeArgument = _type.typeArgument;
       assert(typeArgument == const DynamicType());
     } else {
+      assert(
+        _type is InterfaceType ||
+            _type is DynamicType ||
+            _type is VoidType ||
+            _type is NeverType ||
+            _type is NullType,
+      );
       assert(typeArgs == null);
     }
   }

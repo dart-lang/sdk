@@ -37,13 +37,7 @@ class VerifySharedMessageExamplesTest {
   ///
   /// When assertions are enabled, these examples are treated like the ones in
   /// [knownFailures]. When assertions are disabled, they're expected to pass.
-  static const Map<String, String> knownAssertionFailures = {
-    'switchHasCaseAfterDefault/script1':
-        'Parser.parseSwitchBlock passes the `default` keyword to '
-        'endSwitchCase for subsequent cases too, so AstBuilder creates a '
-        'duplicate SwitchDefault with an out-of-order offset, which trips an '
-        'assertion in flow analysis',
-  };
+  static const Map<String, String> knownAssertionFailures = {};
 
   /// Examples that are known not to work with the analyzer, mapped to the
   /// reason why.
