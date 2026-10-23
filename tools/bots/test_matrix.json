@@ -2905,6 +2905,32 @@
     },
     {
       "builders": [
+        "dart2wasm-dev-linux-d8"
+      ],
+      "meta": {
+        "description": "dart2wasm dev tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart2wasm_dev"
+          ]
+        },
+        {
+          "name": "wasm dev tests",
+          "arguments": [
+            "-nwasm-dev-${system}-${runtime}",
+            "web/wasm/(cfg_shared|cfg_dev)/"
+          ],
+          "shards": 1,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
         "dart2wasm-mac-safari"
       ],
       "meta": {

@@ -5,6 +5,12 @@
 [ $compiler != dart2js ]
 dart2js/*: SkipByDesign # tests specific to dart2js
 
+[ $compiler != dart2wasm ]
+wasm/cfg/*: SkipByDesign
+
+[ $compiler != dart2wasm_dev ]
+wasm/cfg_dev/*: SkipByDesign
+
 [ $compiler == ddc ]
 async_stacktrace_test: Skip # Issue 53555
 js_error_stack_trace_test: SkipByDesign # Stack trace discrepancy between dart2js/wasm and ddc
