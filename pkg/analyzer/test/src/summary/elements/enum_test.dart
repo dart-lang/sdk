@@ -17940,7 +17940,7 @@ library
               initializer: expression_2
                 IntegerLiteral
                   literal: 0 @32
-                  staticType: null
+                  staticType: int
               inducedGetter: #F8
               nextFragment: #F9
           constructors
@@ -18098,7 +18098,7 @@ library
               initializer: expression_2
                 IntegerLiteral
                   literal: 0 @32
-                  staticType: null
+                  staticType: int
               inducedGetter: #F8
               nextFragment: #F9
           constructors
@@ -18265,7 +18265,7 @@ library
               initializer: expression_2
                 IntegerLiteral
                   literal: 0 @32
-                  staticType: null
+                  staticType: int
               inducedGetter: #F8
               nextFragment: #F9
           constructors
@@ -18441,7 +18441,7 @@ library
               initializer: expression_2
                 IntegerLiteral
                   literal: 0 @32
-                  staticType: null
+                  staticType: int
               inducedGetter: #F8
               nextFragment: #F9
           constructors
@@ -18908,7 +18908,7 @@ library
               initializer: expression_2
                 IntegerLiteral
                   literal: 0 @32
-                  staticType: null
+                  staticType: int
               inducedGetter: #F8
               nextFragment: #F9
           constructors
@@ -18936,7 +18936,7 @@ library
               initializer: expression_3
                 IntegerLiteral
                   literal: 1 @82
-                  staticType: null
+                  staticType: int
               inducedGetter: #F11
               previousFragment: #F7
               nextFragment: #F13
