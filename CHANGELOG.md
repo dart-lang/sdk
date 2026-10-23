@@ -5,7 +5,8 @@
 ### Language
 
 Dart 3.15 allows [`this` to be type promoted][this-promotion-issue], just like
-a local variable. To use this feature, set your package's
+a local variable, and [preserves more type promotions][#4757] at control flow
+join points. To use these features, set your package's
 [SDK constraint][language version] lower bound to 3.15 or greater
 (`sdk: '^3.15.0'`).
 
@@ -59,7 +60,36 @@ The new [`unnecessary_this_alias`][unnecessary_this_alias] lint flags local
 variables that only exist to work around the old behavior, and `dart fix` can
 remove them.
 
+#### Improved type promotion at join points
+
+Previously, if two branches of the control flow promoted a variable to the same
+type, but did so by way of different intermediate types, all promotions were
+discarded after the branches joined:
+
+```dart
+class B {}
+class C {}
+class D implements B, C {
+  void f() {}
+}
+
+void test(Object o, bool condition) {
+  if (condition) {
+    o as B;
+    o as D;
+  } else {
+    o as C;
+    o as D;
+  }
+  o.f(); // Previously an error: `o` was demoted to `Object`.
+}
+```
+
+Now, the promotions that are common to both branches are preserved, so after
+the `if` statement above, `o` has type `D`.
+
 [this-promotion-issue]: https://github.com/dart-lang/language/issues/1397
+[#4757]: https://github.com/dart-lang/language/issues/4757
 [language version]: https://dart.dev/to/language-version
 [unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
 

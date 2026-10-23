@@ -174,9 +174,6 @@ features:
   single-combinators:
     help: "Allow at most one `show` or `hide` combinator per import or export directive."
 
-  promotion-chain-intersection-join:
-    help: "Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)"
-
 # Experiment flag only used for testing.
   test-experiment:
     help: >-
@@ -189,6 +186,30 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+  promotion-chain-intersection-join:
+    enabledIn: '3.15.0'
+    help: "Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)"
+    validation: |
+      class A {}
+      class B implements A {}
+      class C implements A {}
+      class D implements B, C {
+        String get message => 'feature enabled';
+      }
+      bool condition = true;
+      Object object = D();
+      main() {
+        Object o = object;
+        if (condition) {
+          o as B;
+          o as D;
+        } else {
+          o as C;
+          o as D;
+        }
+        print(o.message);
+      }
+
   this-promotion:
     enabledIn: '3.15.0'
     help: "Type promotion for `this`."

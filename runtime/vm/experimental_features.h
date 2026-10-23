@@ -12,6 +12,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  promotion_chain_intersection_join,
   this_promotion,
   record_use,
   primary_constructors,

@@ -650,7 +650,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.promotion_chain_intersection_join,
     documentation: 'Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.15.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -937,7 +937,7 @@ class IsEnabledByDefault {
   static const bool private_named_parameters = true;
 
   /// Default state of the experiment "promotion-chain-intersection-join"
-  static const bool promotion_chain_intersection_join = false;
+  static const bool promotion_chain_intersection_join = true;
 
   /// Default state of the experiment "receiver-type-inference"
   static const bool receiver_type_inference = false;

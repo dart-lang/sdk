@@ -5165,7 +5165,7 @@ class PromotionModel {
     List<SharedTypeView> chain1,
     List<SharedTypeView> chain2,
     FlowAnalysisTypeOperations typeOperations, {
-    bool promotionChainIntersectionJoinEnabled = false,
+    bool promotionChainIntersectionJoinEnabled = true,
   }) {
     if (!promotionChainIntersectionJoinEnabled) {
       return _legacyJoinPromotedTypes(chain1, chain2, typeOperations);
