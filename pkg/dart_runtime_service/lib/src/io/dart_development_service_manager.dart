@@ -11,7 +11,7 @@ import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
-import '../dart_runtime_service.dart';
+import '../../dart_runtime_service.dart';
 
 /// Manages the lifecycle of the [DartDevelopmentService] (DDS).
 ///

@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:browser_launcher/browser_launcher.dart';
-import 'package:dart_runtime_service/dart_runtime_service.dart' as drs;
+import 'package:dart_runtime_service/dart_runtime_service_io.dart' as drs;
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_shared.dart';
 import 'package:http_multi_server/http_multi_server.dart';

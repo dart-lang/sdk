@@ -10,6 +10,7 @@ for more details about the presubmit API built into gcl.
 
 import datetime
 import importlib.util
+import json
 import importlib.machinery
 import os
 import os.path
@@ -559,6 +560,39 @@ def _CheckDartApiWinCSync(input_api, output_api):
     return []
 
 
+def _CheckStressTestListEntriesExist(input_api, output_api):
+    """Ensure that stress_test_list.json only lists files that exist."""
+    STRESS_TEST_LIST = "runtime/tests/concurrency/stress_test_list.json"
+
+    # Run only if the list was modified or the CL deletes (or renames) files.
+    if not any(f.LocalPath() == STRESS_TEST_LIST or f.Action() == 'D'
+               for f in input_api.AffectedFiles()):
+        return []
+
+    local_root = input_api.change.RepositoryRoot()
+    list_path = os.path.join(local_root, STRESS_TEST_LIST)
+    if not os.path.isfile(list_path):
+        return []
+
+    # Entries are relative to the directory containing the list.
+    list_dir = os.path.dirname(list_path)
+    with open(list_path, encoding='utf-8') as f:
+        entries = json.load(f)
+    missing = [
+        entry for entry in entries
+        if not os.path.isfile(os.path.join(list_dir, entry))
+    ]
+    if not missing:
+        return []
+
+    return [
+        output_api.PresubmitError(
+            f"{STRESS_TEST_LIST} lists files that do not exist. Remove these "
+            "entries (or update them if the tests were moved):",
+            long_text="\n".join(missing))
+    ]
+
+
 # Directories whose changes require a TEST=/Tested: description. Keep in sync
 # with the Gerrit "Commit-Message-Has-TEST" submit requirement, which is the
 # source of truth and lives in the project config on refs/meta/config:
@@ -782,6 +816,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckAnalyzerFiles(input_api, output_api))
     results.extend(_CheckDevCompilerSync(input_api, output_api))
     results.extend(_CheckDartApiWinCSync(input_api, output_api))
+    results.extend(_CheckStressTestListEntriesExist(input_api, output_api))
     return results
 
 

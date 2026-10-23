@@ -88,21 +88,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -1017,21 +1017,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -1952,21 +1952,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -2880,21 +2880,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -3818,21 +3818,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -4752,21 +4752,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -5687,21 +5687,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -6617,21 +6617,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -7550,21 +7550,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -8471,21 +8471,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -9398,21 +9398,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -10318,21 +10318,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -11248,21 +11248,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -12174,21 +12174,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -13101,21 +13101,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -14023,21 +14023,21 @@ static constexpr dart::compiler::target::word Class_kClassFinalizedBitsSize =
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsPos = 0x4;
 static constexpr dart::compiler::target::word Class_kClassLoadingBitsSize = 0x2;
 static constexpr dart::compiler::target::word Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0x10;
+    Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word Class_kIsIsolateUnsendableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word Class_kIsDeeplyImmutableBitPos =
-    0x15;
+    0x14;
 static constexpr dart::compiler::target::word Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word Field_kFinalBitPos = 0x2;
@@ -14961,21 +14961,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -15989,21 +15989,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -17028,21 +17028,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -18063,21 +18063,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -19098,21 +19098,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -20135,21 +20135,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -21164,21 +21164,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -22195,21 +22195,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -23214,21 +23214,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -24244,21 +24244,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -25270,21 +25270,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -26296,21 +26296,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -27324,21 +27324,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;
@@ -28344,21 +28344,21 @@ static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsPos =
 static constexpr dart::compiler::target::word AOT_Class_kClassLoadingBitsSize =
     0x2;
 static constexpr dart::compiler::target::word AOT_Class_kAbstractBitPos = 0x6;
-static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kEnumBitPos = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_Class_kTransformedMixinApplicationBitPos = 0xa;
-static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xc;
-static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xd;
-static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xe;
-static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xf;
-static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0x10;
+    AOT_Class_kTransformedMixinApplicationBitPos = 0x9;
+static constexpr dart::compiler::target::word AOT_Class_kIsLoadedBitPos = 0xb;
+static constexpr dart::compiler::target::word AOT_Class_kHasPragmaBitPos = 0xc;
+static constexpr dart::compiler::target::word AOT_Class_kSealedBitPos = 0xd;
+static constexpr dart::compiler::target::word AOT_Class_kMixinClassBitPos = 0xe;
+static constexpr dart::compiler::target::word AOT_Class_kBaseClassBitPos = 0xf;
 static constexpr dart::compiler::target::word AOT_Class_kInterfaceClassBitPos =
-    0x11;
-static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x12;
+    0x10;
+static constexpr dart::compiler::target::word AOT_Class_kFinalBitPos = 0x11;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsIsolateUnsendableBitPos = 0x13;
+    AOT_Class_kIsIsolateUnsendableBitPos = 0x12;
 static constexpr dart::compiler::target::word
-    AOT_Class_kIsDeeplyImmutableBitPos = 0x15;
+    AOT_Class_kIsDeeplyImmutableBitPos = 0x14;
 static constexpr dart::compiler::target::word AOT_Field_kConstBitPos = 0x0;
 static constexpr dart::compiler::target::word AOT_Field_kStaticBitPos = 0x1;
 static constexpr dart::compiler::target::word AOT_Field_kFinalBitPos = 0x2;

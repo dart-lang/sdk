@@ -177,6 +177,53 @@ B0 = EntryBlock()
   DirectCall _F&E&M.(v1)
   Return(v4)
 
+--- OperatorEquals.
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(x)
+  StoreInstanceField(OperatorEquals.x, v1, v2)
+  DirectCall Object.(v1)
+  Return(v8)
+
+--- OperatorEquals.==
+B0 = EntryBlock() dominates:(B4, B3)
+  v6 = Constant(null)
+  v9 = Constant(false)
+  v1 = Parameter(this)
+  v2 = Parameter(other)
+  v7 = Comparison ==(v2, v6)
+  Branch(v7, true: B3, false: B4)
+B3 = TargetBlock() idom:B0
+  Return(v9)
+B4 = TargetBlock() idom:B0 dominates:(B14, B17, B13)
+  v12 = TypeTest(v2, OperatorEquals)
+  Branch(v12, true: B13, false: B14)
+B13 = TargetBlock() idom:B4
+  v20 = InterfaceCall getter OperatorEquals.x(v1)
+  v22 = TypeCast(v2, OperatorEquals, unchecked)
+  v23 = InterfaceCall getter OperatorEquals.x(v22)
+  v24 = Comparison int ==(v20, v23)
+  Goto(B17)
+B14 = TargetBlock() idom:B4
+  Goto(B17)
+B17 = JoinBlock(B14, B13) idom:B4
+  v29 = Phi(v9, v24)
+  Return(v29)
+
+--- getter OperatorEquals.hashCode
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = InterfaceCall getter OperatorEquals.x(v1)
+  v4 = InterfaceCall getter num.hashCode(v3)
+  Return(v4)
+
+--- getter OperatorEquals.x
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(OperatorEquals.x, v1)
+  Return(v3)
+
 --- _F&E&M.
 B0 = EntryBlock()
   v4 = Constant(null)

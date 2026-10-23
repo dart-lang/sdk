@@ -76,7 +76,7 @@ vars = {
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
   "d8_tag": "version:15.7.111",
-  "jsshell_tag": "version:157.0.1",
+  "jsshell_tag": "version:158.0.1",
   "jsc_tag": "version:323425",
 
   # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/gcloud
@@ -86,7 +86,7 @@ vars = {
   "clang_version": "git_revision:32e6b5082d000a0da4a5af148d63f30d29e95a18",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:f90c3d9df882a9da4a66457f47dd3d99b3df3dd5",
+  "gn_version": "git_revision:3ef636ac7c21b85571c86628507260ec582bef8e",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -166,9 +166,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "156.0.8078.12",
+  "chrome_tag": "157.0.8103.6",
   "download_firefox": False,
-  "firefox_tag": "157.0.1",
+  "firefox_tag": "158.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
