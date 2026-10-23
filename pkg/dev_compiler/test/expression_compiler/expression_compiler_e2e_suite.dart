@@ -997,6 +997,10 @@ class ExpressionEvaluationTestDriver {
         ownProperties: true,
       );
       for (var prop in response) {
+        // Variables whose values are unavailable (e.g. stack-allocated in an
+        // outer function and not captured by the paused closure) are reported
+        // without a value.
+        if (prop.value == null) continue;
         var propKey = prop.name;
         var propValue = '${prop.value?.value}';
         if (prop.value?.type == 'string') {
