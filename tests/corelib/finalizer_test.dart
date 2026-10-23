@@ -11,9 +11,8 @@ final invalidObjects = [true, 1, 1.2, 'a'];
 main() async {
   testFinalizerAttachDetachArgumentValidation();
 
-  // This test doesn't work reliably on the web yet as it's hard to trigger GC
-  // that will run finalizer and weak reference processing.
-  if (isVmConfiguration) {
+  // Commandline JS engines lack an event loop that runs finalizers during timers.
+  if (!isJSCommandLineConfiguration) {
     asyncStart();
     await testFinalizerInvocation();
     asyncEnd();
@@ -59,18 +58,7 @@ Future testFinalizerInvocation() async {
     invokedPeers.add(peer);
     asyncEnd();
   });
-  {
-    for (int i = 0; i < 10; ++i) {
-      final peer = Foo();
-      finalizer.attach(Foo(), peer, detach: peer);
-      if (i % 3 == 0) {
-        finalizer.detach(peer);
-      } else {
-        asyncStart();
-        expectedPeersInvoked.add(peer);
-      }
-    }
-  }
+  attachToFinalizer(finalizer, expectedPeersInvoked);
   asyncStart();
   while (invokedPeers.length < expectedPeersInvoked.length) {
     produceGarbage();
@@ -81,6 +69,26 @@ Future testFinalizerInvocation() async {
     Expect.isTrue(invokedPeers.contains(peer));
   }
   asyncEnd();
+}
+
+// Avoid keeping target temporaries alive in the caller's async state machine.
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:noInline')
+void attachToFinalizer(
+  Finalizer<Foo> finalizer,
+  Set<Foo> expectedPeersInvoked,
+) {
+  for (int i = 0; i < 10; ++i) {
+    final peer = Foo();
+    finalizer.attach(Foo(), peer, detach: peer);
+    if (i % 3 == 0) {
+      finalizer.detach(peer);
+    } else {
+      asyncStart();
+      expectedPeersInvoked.add(peer);
+    }
+  }
 }
 
 void produceGarbage() {

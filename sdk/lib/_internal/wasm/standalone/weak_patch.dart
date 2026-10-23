@@ -102,9 +102,13 @@ final class _EmbedderFinalizer<T> implements Finalizer<T> {
     finalizerDetach(_finalizer, WasmAnyRef.fromObject(detach));
   }
 
+  void _invokeCallback(Object? token) {
+    _callback(unsafeCast<T>(token));
+  }
+
   static WasmVoid _entrypoint(WasmAnyRef finalizer, WasmAnyRef? token) {
     final dartFinalizer = unsafeCast<_EmbedderFinalizer>(finalizer.toObject());
-    dartFinalizer._callback(token?.toObject());
+    dartFinalizer._invokeCallback(token?.toObject());
     return WasmVoid();
   }
 }
