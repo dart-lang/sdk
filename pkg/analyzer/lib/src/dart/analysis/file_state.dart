@@ -575,6 +575,14 @@ class FileState {
     return _fsState.resourceProvider.getFile(path);
   }
 
+  /// The [featureSet] restricted to the [packageLanguageVersion].
+  ///
+  /// This is the feature set of the file, unless it has a `@dart` language
+  /// override token in the file header.
+  FeatureSet get restrictedFeatureSet {
+    return featureSet.restrictToVersion(packageLanguageVersion);
+  }
+
   @visibleForTesting
   FileStateTestView get test => FileStateTestView(this);
 
@@ -624,7 +632,7 @@ class FileState {
           Scanner(inputText: code, reportError: diagnosticReporter.report)
             ..configureFeatures(
               featureSetForOverriding: featureSet,
-              featureSet: featureSet.restrictToVersion(packageLanguageVersion),
+              featureSet: restrictedFeatureSet,
             );
       scanner.preserveComments = scanComments;
       Token token = scanner.tokenize();

@@ -259,6 +259,9 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       ),
     });
 
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+    _createSourceFactory();
+
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
@@ -313,7 +316,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     check(
       uriStr: 'package:ddd/a.dart',
       posixPath: '/packages/ddd/d.dart',
-      expected: ExperimentStatus.currentVersion,
+      expected: Version.parse('3.13.0'),
     );
   }
 
