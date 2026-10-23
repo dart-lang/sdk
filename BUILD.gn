@@ -179,6 +179,7 @@ group("dart2wasm") {
 
 group("dart2wasm_dev") {
   deps = [
+    "utils/dart2wasm:dart2wasm_dev_platform",
     "utils/dart2wasm:dart2wasm_dev_snapshot",
     "utils/dart2wasm:wasm_dev_rt",
   ]
@@ -245,6 +246,8 @@ group("dart2js_bot") {
 
 group("dart2wasm_bot") {
   deps = [
+    ":dart2wasm",
+    ":dart2wasm_dev",
     "sdk:create_most_sdk",
     "utils/dart2wasm:test_wasm_modules",
   ]

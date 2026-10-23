@@ -121,12 +121,10 @@ final class ProdWasmInstructionLowerer
     if (member is! ast.Procedure || member.isInstanceMember) return false;
     // TODO(nshahan): Support generic calls (TypeArguments input).
     if (target.hasFunctionTypeParameters) return false;
-    // TODO(nshahan): Support optional and named parameters.
+    // TODO(nshahan): Support named parameters.
     final function = member.function;
     final shape = instr.argumentsShape;
-    if (function.namedParameters.isNotEmpty ||
-        shape.named.isNotEmpty ||
-        shape.positional != function.positionalParameters.length) {
+    if (function.namedParameters.isNotEmpty || shape.named.isNotEmpty) {
       return false;
     }
     // TODO(nshahan): Support intrinsics and external effects (see
@@ -168,14 +166,24 @@ final class ProdWasmInstructionLowerer
   void visitDirectCall(DirectCall instr) {
     final reference = instr.target.member.reference;
     final signature = translator.signatureForDirectCall(reference);
+    final paramInfo = translator.paramInfoForDirectCall(reference);
     // TODO(nshahan): Needs adjustment when adding support for type arguments
-    // and optional/named parameters.
-    assert(signature.inputs.length == instr.inputCount);
+    // and named parameters.
+    assert(signature.inputs.length == paramInfo.positional.length);
     for (int i = 0; i < instr.inputCount; ++i) {
       final argLocal = gen.getLocal(instr.inputDefAt(i));
       b.local_get(argLocal);
       // Ensure the argument types match the expected funcction parameter types.
       translator.convertType(b, argLocal.type, signature.inputs[i]);
+    }
+    // Push default values for omitted optional positional parameters.
+    for (int i = instr.inputCount; i < paramInfo.positional.length; ++i) {
+      translator.constants.instantiateConstant(
+        b,
+        paramInfo.positional[i]!,
+        signature.inputs[i],
+        dummyValueIfIncompatible: true,
+      );
     }
 
     final outputs = translator.callReference(reference, b);

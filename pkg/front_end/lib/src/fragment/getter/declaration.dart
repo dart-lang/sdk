@@ -54,6 +54,7 @@ abstract class GetterDeclaration {
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   });
 
   void buildGetterOutlineNode({
@@ -166,6 +167,7 @@ class RegularGetterDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -175,6 +177,7 @@ class RegularGetterDeclaration
       bodyBuilderContext: createBodyBuilderContext(propertyBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
+      includeBody: includeBody,
     );
   }
 

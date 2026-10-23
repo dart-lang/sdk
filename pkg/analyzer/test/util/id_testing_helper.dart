@@ -126,9 +126,8 @@ Future<TestResult<T>> runTestForConfig<T>(
   var testFiles = <_TestFile>[];
   for (var entry in testData.memorySourceFiles.entries) {
     var uri = _toTestUri(entry.key);
-    var path = ResourceProviderExtension(
-      resourceProvider,
-    ).convertPath(uri.path);
+    var path = ResourceProviderExtension(resourceProvider)
+        .convertPath(uri.path);
     var file = resourceProvider.getFile(path);
     testFiles.add(_TestFile(uri: uri, file: file));
     file.writeAsStringSync(entry.value);
@@ -258,11 +257,11 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       ).unit;
       if (className != null) {
         for (var declaration in unit.declarations2) {
-          if (declaration is ClassDeclaration &&
+          if (declaration is ClassDeclaration2 &&
               declaration.namePart.typeName.lexeme == className) {
-            if (declaration.body case BlockClassBody body) {
-              for (var member in body.members2) {
-                if (member is ConstructorDeclaration) {
+            if (declaration.body case BlockInstanceDeclarationBody body) {
+              for (var member in body.members) {
+                if (member is ConstructorDeclaration2) {
                   if (member.name!.lexeme == name) {
                     return member.offset;
                   }
@@ -302,8 +301,8 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
-        } else if (declaration is TopLevelVariableDeclaration) {
-          for (var variable in declaration.variables.variables) {
+        } else if (declaration is TopLevelVariablesDeclaration) {
+          for (var variable in declaration.variables) {
             if (variable.name.lexeme == name) {
               return variable.offset;
             }
@@ -318,7 +317,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         throwIfDiagnostics: false,
       ).unit;
       for (var declaration in unit.declarations2) {
-        if (declaration is ClassDeclaration &&
+        if (declaration is ClassDeclaration2 &&
             declaration.namePart.typeName.lexeme == className) {
           return declaration.offset;
         }

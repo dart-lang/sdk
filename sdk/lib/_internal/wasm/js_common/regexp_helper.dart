@@ -24,7 +24,7 @@ String quoteStringForRegExp(String string) =>
 
 // TODO(srujzs): Add this to `JSObject`.
 @interop.JS('Object.keys')
-external JSArray objectKeys(JSObject o);
+external JSArray<JSString> objectKeys(JSObject o);
 
 extension type JSNativeMatch._(JSArray _) implements JSArray {
   external JSString get input;
@@ -232,7 +232,7 @@ class _MatchImplementation implements RegExpMatch {
   Iterable<String> get groupNames {
     JSObject? groups = _match.groups;
     if (groups != null) {
-      return JSArrayIterableAdapter<String>(objectKeys(groups));
+      return objectKeys(groups).toDart.map((s) => s.toDart);
     }
     return Iterable.empty();
   }

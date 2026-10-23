@@ -173,6 +173,6 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
       );
     }
     var workspaceEdit = toWorkspaceEdit(clientCapabilities, fileEdits);
-    return sendWorkspaceEditToClient(workspaceEdit);
+    return await sendWorkspaceEditToClient(workspaceEdit);
   }
 }

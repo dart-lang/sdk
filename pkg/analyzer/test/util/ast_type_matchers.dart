@@ -35,11 +35,11 @@ const isCascadeExpression = TypeMatcher<CascadeExpression>();
 
 const isCatchClause = TypeMatcher<CatchClause>();
 
-const isClassDeclaration = TypeMatcher<ClassDeclaration>();
+const isClassDeclaration2 = TypeMatcher<ClassDeclaration2>();
 
 const isClassMember = TypeMatcher<ClassMember>();
 
-const isClassTypeAlias = TypeMatcher<ClassTypeAlias>();
+const isClassTypeAlias2 = TypeMatcher<ClassTypeAlias2>();
 
 const isCombinator = TypeMatcher<Combinator>();
 
@@ -55,7 +55,7 @@ const isConditionalExpression = TypeMatcher<ConditionalExpression>();
 
 const isConfiguration = TypeMatcher<Configuration>();
 
-const isConstructorDeclaration = TypeMatcher<ConstructorDeclaration>();
+const isConstructorDeclaration2 = TypeMatcher<ConstructorDeclaration2>();
 
 const isConstructorFieldInitializer =
     TypeMatcher<ConstructorFieldInitializer>();
@@ -80,9 +80,9 @@ const isEmptyFunctionBody = TypeMatcher<EmptyFunctionBody>();
 
 const isEmptyStatement = TypeMatcher<EmptyStatement>();
 
-const isEnumConstantDeclaration = TypeMatcher<EnumConstantDeclaration>();
+const isEnumConstantDeclaration2 = TypeMatcher<EnumConstantDeclaration2>();
 
-const isEnumDeclaration = TypeMatcher<EnumDeclaration>();
+const isEnumDeclaration2 = TypeMatcher<EnumDeclaration2>();
 
 const isExportDirective = TypeMatcher<ExportDirective>();
 
@@ -159,7 +159,7 @@ const isMethodDeclaration2 = TypeMatcher<MethodDeclaration2>();
 
 const isMethodReferenceExpression = TypeMatcher<MethodReferenceExpression>();
 
-const isMixinDeclaration = TypeMatcher<MixinDeclaration>();
+const isMixinDeclaration2 = TypeMatcher<MixinDeclaration2>();
 
 const isMixinOnClause = TypeMatcher<MixinOnClause>();
 

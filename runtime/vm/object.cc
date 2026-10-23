@@ -5454,7 +5454,6 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     // 'is_allocate_finalized' and finalization of member types will not occur.
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
-    cls.set_is_synthesized_class();
     cls.set_is_isolate_unsendable(true);
     cls.set_is_deeply_immutable(true);
     NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
@@ -5892,15 +5891,6 @@ void Class::set_is_type_finalized() const {
   ASSERT(!is_type_finalized());
   set_state_bits(
       ClassLoadingBits::update(UntaggedClass::kTypeFinalized, state_bits()));
-}
-
-void Class::set_is_synthesized_class() const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_is_synthesized_class_unsafe();
-}
-
-void Class::set_is_synthesized_class_unsafe() const {
-  set_state_bits(SynthesizedClassBit::update(true, state_bits()));
 }
 
 void Class::set_is_enum_class() const {

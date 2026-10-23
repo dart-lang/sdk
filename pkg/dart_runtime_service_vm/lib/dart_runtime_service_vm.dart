@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 
 import 'package:dds/dds.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -26,7 +26,8 @@ import 'src/vm_expression_evaluator.dart';
 import 'src/vm_isolate_manager.dart';
 
 class DartRuntimeServiceVMBackend
-    extends DartRuntimeServiceBackend<VmIsolateManager> {
+    extends DartRuntimeServiceBackend<VmIsolateManager>
+    with DartRuntimeServiceIoBackend {
   /// The backend implementation for the Dart VM Service.
   ///
   /// [signalWatch] is the internal implementation of [ProcessSignal.watch],
@@ -201,10 +202,8 @@ class DartRuntimeServiceVMBackend
   }
 
   @override
-  Future<void> onServerStarted({
-    required Uri httpUri,
-    required Uri wsUri,
-  }) async {
+  Future<void> onServerStarted() async {
+    var httpUri = frontend.httpUri;
     if (_ddsManager.launchOnStart) {
       try {
         await _ddsManager.start(vmServiceUri: httpUri);

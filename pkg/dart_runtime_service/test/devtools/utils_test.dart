@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 import 'package:test/test.dart';
 
 void main() {

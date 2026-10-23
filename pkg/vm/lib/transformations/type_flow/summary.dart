@@ -72,6 +72,7 @@ abstract class StatementVisitor {
   void visitExtract(Extract expr);
   void visitApplyNullability(ApplyNullability expr);
   void visitCreateConcreteType(CreateConcreteType expr);
+  void visitCreateRecordType(CreateRecordType expr);
   void visitCreateRuntimeType(CreateRuntimeType expr);
   void visitTypeCheck(TypeCheck expr);
   void visitUnaryOperation(UnaryOperation expr);
@@ -582,7 +583,7 @@ class Extract extends Statement {
     Type? extractedType;
 
     void extractType(ConcreteType c) {
-      final typeArgs = c.typeArgs;
+      final typeArgs = c is ClassConcreteType ? c.typeArgs : null;
       if (typeArgs == null) {
         extractedType = unknownType;
       } else {
@@ -657,7 +658,7 @@ class CreateConcreteType extends Statement {
   final TFClass cls;
   final List<TypeExpr> flattenedTypeArgs;
 
-  CreateConcreteType(this.cls, this.flattenedTypeArgs);
+  CreateConcreteType(this.cls, this.flattenedTypeArgs) : assert(!cls.isRecord);
 
   @override
   void accept(StatementVisitor visitor) =>
@@ -683,7 +684,54 @@ class CreateConcreteType extends Statement {
       if (computed is RuntimeType) hasRuntimeType = true;
       return computed;
     });
-    return hasRuntimeType ? ConcreteType(cls, types) : cls.concreteType;
+    return hasRuntimeType ? ClassConcreteType(cls, types) : cls.concreteType;
+  }
+}
+
+class CreateRecordType extends Statement {
+  final TFClass cls;
+  final List<TypeExpr> fieldTypes;
+
+  CreateRecordType(this.cls, this.fieldTypes) {
+    assert(cls.isRecord);
+    assert(fieldTypes.length == cls.recordShape!.numFields);
+  }
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitCreateRecordType(this);
+
+  @override
+  String dump() =>
+      "$label = _CreateRecordType ($cls @ $fieldTypes)$_conditionSuffix";
+
+  @override
+  TypeExpr? simplify(TypesBuilder typesBuilder) {
+    bool allSpecializedTypes = true;
+    for (final fieldType in fieldTypes) {
+      if (fieldType is EmptyType) return emptyType;
+      if (fieldType is! Type || !fieldType.isSpecialized) {
+        allSpecializedTypes = false;
+      }
+    }
+    if (condition != null || !allSpecializedTypes) return null;
+    return cls.recordConcreteType(List<Type>.from(fieldTypes, growable: false));
+  }
+
+  @override
+  Type apply(
+    List<Type?> computedTypes,
+    TypeHierarchy typeHierarchy,
+    CallHandler callHandler,
+  ) {
+    final types = List<Type>.filled(fieldTypes.length, emptyType);
+    for (int i = 0; i < fieldTypes.length; ++i) {
+      final computed = fieldTypes[i]
+          .getComputedType(computedTypes)
+          .specialize(typeHierarchy);
+      if (computed is EmptyType) return emptyType;
+      types[i] = computed;
+    }
+    return cls.recordConcreteType(types);
   }
 }
 

@@ -1041,6 +1041,54 @@ Future<void> main() async {
     expect(result.exitCode, 0);
   });
 
+  test('from path-dependency with cyclic dependency', () async {
+    p = project(name: 'foo');
+    final bar = project(name: 'bar');
+    p.file('pubspec.yaml', '''
+name: foo
+environment:
+  sdk: '>=2.12.0<3.0.0'
+
+dependencies: { 'bar': {'path': '${bar.dir.path}'}}
+''');
+    p.file('lib/foo.dart', r'''
+import 'package:bar/bar.dart';
+final b = "FOO $bar";
+''');
+
+    bar.file('lib/bar.dart', 'final bar = "BAR";');
+
+    bar.file('bin/main.dart', r'''
+import 'package:foo/foo.dart';
+void main(List<String> args) => print("$b $args");
+''');
+    bar.deleteFile('.dart_tool/package_config.json');
+
+    final cachedDillFile = File(
+      computeCachedDillAndCompilerOptionsPaths(
+        path.join(bar.dirPath, 'bin', 'main.dart'),
+      ).cachedDillPath,
+    );
+    addTearDown(() {
+      if (cachedDillFile.existsSync()) {
+        cachedDillFile.deleteSync();
+      }
+    });
+
+    final result = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      'bar:main',
+      '--arg1',
+      'arg2',
+    ]);
+
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('FOO BAR [--arg1, arg2]'));
+    expect(result.exitCode, 0);
+  });
+
   test(
     'resident compiler invocation has working Platform.script',
     () async {

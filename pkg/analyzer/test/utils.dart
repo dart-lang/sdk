@@ -28,10 +28,10 @@ typedef AsserterBuilderBuilder<R, S, T> = AsserterBuilder<S, T> Function(R arg);
 class AstFinder {
   /// Return the declaration of the class with the given [className] in the
   /// given compilation [unit].
-  static ClassDeclaration getClass(CompilationUnit unit, String className) {
+  static ClassDeclaration2 getClass(CompilationUnit unit, String className) {
     NodeList<AnnotatedNode> unitMembers = unit.declarations2;
     for (AnnotatedNode unitMember in unitMembers) {
-      if (unitMember is ClassDeclaration &&
+      if (unitMember is ClassDeclaration2 &&
           unitMember.namePart.typeName.lexeme == className) {
         return unitMember;
       }
@@ -43,15 +43,15 @@ class AstFinder {
   /// Return the declaration of the constructor with the given [constructorName]
   /// in the class with the given [className] in the given compilation [unit].
   /// If constructorName is null, return the default constructor;
-  static ConstructorDeclaration getConstructorInClass(
+  static ConstructorDeclaration2 getConstructorInClass(
     CompilationUnit unit,
     String className,
     String? constructorName,
   ) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    var classBody = unitMember.body as BlockClassBody;
-    for (var classMember in classBody.members2) {
-      if (classMember is ConstructorDeclaration) {
+    ClassDeclaration2 unitMember = getClass(unit, className);
+    var classBody = unitMember.body as BlockInstanceDeclarationBody;
+    for (var classMember in classBody.members) {
+      if (classMember is ConstructorDeclaration2) {
         if (classMember.name?.lexeme == constructorName) {
           return classMember;
         }
@@ -67,9 +67,9 @@ class AstFinder {
     String className,
     String fieldName,
   ) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    var classBody = unitMember.body as BlockClassBody;
-    for (var classMember in classBody.members2) {
+    ClassDeclaration2 unitMember = getClass(unit, className);
+    var classBody = unitMember.body as BlockInstanceDeclarationBody;
+    for (var classMember in classBody.members) {
       if (classMember is FieldsDeclaration) {
         for (var field in classMember.fields) {
           if (field.name.lexeme == fieldName) {
@@ -88,9 +88,9 @@ class AstFinder {
     String className,
     String getterName,
   ) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    var classBody = unitMember.body as BlockClassBody;
-    for (var classMember in classBody.members2) {
+    ClassDeclaration2 unitMember = getClass(unit, className);
+    var classBody = unitMember.body as BlockInstanceDeclarationBody;
+    for (var classMember in classBody.members) {
       if (classMember is GetterDeclaration) {
         if (classMember.name.lexeme == getterName) {
           return classMember;
@@ -107,9 +107,9 @@ class AstFinder {
     String className,
     String methodName,
   ) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    var classBody = unitMember.body as BlockClassBody;
-    for (var classMember in classBody.members2) {
+    ClassDeclaration2 unitMember = getClass(unit, className);
+    var classBody = unitMember.body as BlockInstanceDeclarationBody;
+    for (var classMember in classBody.members) {
       if (classMember is MethodDeclaration2) {
         if (classMember.name.lexeme == methodName) {
           return classMember;

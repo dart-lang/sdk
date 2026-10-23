@@ -54,7 +54,7 @@ class AstBuilder extends StackListener {
   final Uri fileUri;
   ScriptTagImpl? scriptTag;
   final List<DirectiveImpl> directives = [];
-  final List<TopLevelDeclarationV1OrV2Impl> declarations = [];
+  final List<TopLevelDeclarationImpl> declarations = [];
   final List<AstNodeImpl> invalidNodes = [];
 
   @override
@@ -573,7 +573,7 @@ class AstBuilder extends StackListener {
 
   @override
   void beginPrimaryConstructorBody(Token beginToken, Token? augmentToken) {
-    debugEvent("PrimaryConstructorBody");
+    debugEvent("PrimaryConstructorBody2");
     push(_Modifiers()..augmentKeyword = augmentToken);
   }
 
@@ -1323,7 +1323,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassDeclaration(Token beginToken, Token endToken) {
-    debugEvent("ClassDeclaration");
+    debugEvent("ClassDeclaration2");
 
     var builder = _classLikeBuilder as _ClassDeclarationBuilder;
     declarations.add(builder.build());
@@ -2597,7 +2597,7 @@ class AstBuilder extends StackListener {
 
   @override
   void endMixinDeclaration(Token beginToken, Token endToken) {
-    debugEvent("MixinDeclaration");
+    debugEvent("MixinDeclaration2");
 
     var builder = _classLikeBuilder as _MixinDeclarationBuilder;
     declarations.add(builder.build());
@@ -2689,10 +2689,10 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(
-      ClassTypeAliasImpl(
+      ClassTypeAlias2Impl(
         comment: comment,
         metadata: metadata,
-        typedefKeyword: classKeyword,
+        classKeyword: classKeyword,
         name: name,
         typeParameters: typeParameters,
         equals: equalsToken,
@@ -2706,7 +2706,7 @@ class AstBuilder extends StackListener {
         superclass: superclass,
         withClause: withClause,
         implementsClause: implementsClause,
-        semicolon: semicolon,
+        body: SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon),
       ),
     );
   }
@@ -2901,7 +2901,7 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, beginToken);
 
     _classLikeBuilder!.members.add(
-      PrimaryConstructorBodyImpl(
+      PrimaryConstructorBody2Impl(
         comment: comment,
         metadata: metadata,
         augmentKeyword: modifiers.augmentKeyword,
@@ -4227,7 +4227,7 @@ class AstBuilder extends StackListener {
     debugEvent("EnumElement");
     var argumentList = pop() as ArgumentListImpl?;
     var tmpConstructor = pop() as ConstructorReference2Impl?;
-    var constant = pop() as EnumConstantDeclarationImpl;
+    var constant = pop() as EnumConstantDeclaration2Impl;
 
     if (!enableEnhancedEnums &&
         (argumentList != null ||
@@ -4260,7 +4260,7 @@ class AstBuilder extends StackListener {
 
     // Replace the constant to include arguments.
     if (argumentList != null) {
-      constant = EnumConstantDeclarationImpl(
+      constant = EnumConstantDeclaration2Impl(
         comment: constant.documentationComment,
         metadata: constant.metadata,
         augmentKeyword: augmentToken,
@@ -4281,7 +4281,7 @@ class AstBuilder extends StackListener {
     debugEvent("EnumElements");
     var builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    var constants = popTypedList2<EnumConstantDeclarationImpl>(elementsCount);
+    var constants = popTypedList2<EnumConstantDeclaration2Impl>(elementsCount);
     builder.constants.addAll(constants);
 
     if (optional(';', elementsEndToken)) {
@@ -4647,7 +4647,7 @@ class AstBuilder extends StackListener {
       }
 
       push(
-        EnumConstantDeclarationImpl(
+        EnumConstantDeclaration2Impl(
           comment: comment,
           metadata: metadata,
           augmentKeyword: augmentKeyword,
@@ -6077,7 +6077,7 @@ class AstBuilder extends StackListener {
     push(modifiers);
   }
 
-  ConstructorDeclarationImpl _buildConstructorDeclaration({
+  ConstructorDeclaration2Impl _buildConstructorDeclaration({
     required Token beginToken,
     required Token endToken,
   }) {
@@ -6165,7 +6165,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var constructor = ConstructorDeclarationImpl(
+    var constructor = ConstructorDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: modifiers?.augmentKeyword,
@@ -6173,10 +6173,10 @@ class AstBuilder extends StackListener {
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
       newKeyword: modifiers?.newKeyword,
-      typeName2: typeName,
+      typeName: typeName,
       period: period,
       name: constructorNameToken,
-      parameters: parameters,
+      formalParameters: parameters,
       separator: separator,
       initializers: initializers,
       factoryRedirectionTarget: factoryRedirectionTarget,
@@ -6185,7 +6185,7 @@ class AstBuilder extends StackListener {
     return constructor;
   }
 
-  ConstructorDeclarationImpl _buildFactoryConstructorDeclaration({
+  ConstructorDeclaration2Impl _buildFactoryConstructorDeclaration({
     required Token beginToken,
     required Token factoryKeyword,
     required Token endToken,
@@ -6258,7 +6258,7 @@ class AstBuilder extends StackListener {
         throw StateError('Unexpected constructor name: $preliminaryName');
     }
 
-    var constructor = ConstructorDeclarationImpl(
+    var constructor = ConstructorDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: modifiers?.augmentKeyword,
@@ -6266,10 +6266,10 @@ class AstBuilder extends StackListener {
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: factoryKeyword,
       newKeyword: null,
-      typeName2: typeName,
+      typeName: typeName,
       period: period,
       name: constructorNameToken,
-      parameters: parameters,
+      formalParameters: parameters,
       separator: separator,
       initializers: [],
       factoryRedirectionTarget: factoryRedirectionTarget,
@@ -6921,19 +6921,19 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.nativeClause,
   });
 
-  ClassDeclarationImpl build() {
-    ClassBodyImpl body;
+  ClassDeclaration2Impl build() {
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return ClassDeclarationImpl(
+    return ClassDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
@@ -6964,7 +6964,7 @@ abstract class _ClassLikeDeclarationBuilder {
 
   Token? emptyClassBodySemicolon;
   Token leftBracket;
-  final List<ClassMemberV1OrV2Impl> members = [];
+  final List<MemberDeclarationImpl> members = [];
   Token rightBracket;
 
   new({
@@ -7009,7 +7009,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
   final WithClauseImpl? withClause;
   final ImplementsClauseImpl? implementsClause;
-  final List<EnumConstantDeclarationImpl> constants = [];
+  final List<EnumConstantDeclaration2Impl> constants = [];
   Token? semicolon;
 
   new({
@@ -7027,21 +7027,21 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.semicolon,
   });
 
-  EnumDeclarationImpl build() {
-    EnumBodyImpl body;
+  EnumDeclaration2Impl build() {
+    EnumDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyEnumBodyImpl(semicolon: semicolon);
+      body = SemicolonEnumDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockEnumBodyImpl(
+      body = BlockEnumDeclarationBodyImpl(
         leftBracket: leftBracket,
         constants: constants,
-        semicolon: semicolon,
-        members2: members,
+        membersSeparator: semicolon,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return EnumDeclarationImpl(
+    return EnumDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
@@ -7074,22 +7074,22 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.name,
   });
 
-  ExtensionDeclarationImpl build({
+  ExtensionDeclaration2Impl build({
     required Token? typeKeyword,
     required ExtensionOnClauseImpl? onClause,
   }) {
-    ClassBodyImpl body;
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return ExtensionDeclarationImpl(
+    return ExtensionDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
@@ -7121,19 +7121,19 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.name,
   });
 
-  ExtensionTypeDeclarationImpl build({
+  ExtensionTypeDeclaration2Impl build({
     required Token typeKeyword,
     required Token? constKeyword,
     required _PrimaryConstructorBuilder? primaryConstructorBuilder,
     required ImplementsClauseImpl? implementsClause,
   }) {
-    ClassBodyImpl body;
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
@@ -7143,7 +7143,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       primaryConstructorBuilder: primaryConstructorBuilder,
     );
 
-    return ExtensionTypeDeclarationImpl(
+    return ExtensionTypeDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,
@@ -7201,19 +7201,19 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.implementsClause,
   });
 
-  MixinDeclarationImpl build() {
-    ClassBodyImpl body;
+  MixinDeclaration2Impl build() {
+    InstanceDeclarationBodyImpl body;
     if (emptyClassBodySemicolon case var semicolon?) {
-      body = EmptyClassBodyImpl(semicolon: semicolon);
+      body = SemicolonInstanceDeclarationBodyImpl(semicolon: semicolon);
     } else {
-      body = BlockClassBodyImpl(
+      body = BlockInstanceDeclarationBodyImpl(
         leftBracket: leftBracket,
-        members2: members,
+        members: members,
         rightBracket: rightBracket,
       );
     }
 
-    return MixinDeclarationImpl(
+    return MixinDeclaration2Impl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

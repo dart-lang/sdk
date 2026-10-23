@@ -805,7 +805,10 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   void callLeafRuntime(LeafRuntimeEntry entry) {
     final savedSP = abiPreservedRegisters.first;
     mov(savedSP, SP);
-    mov(SP, stackPointerReg);
+
+    // TODO: align stack on entry to Dart code and remove this stack alignment.
+    const stackAlignment = 16;
+    and(SP, stackPointerReg, Immediate(~(stackAlignment - 1)));
 
     ldr(
       LR,

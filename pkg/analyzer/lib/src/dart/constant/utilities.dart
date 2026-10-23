@@ -11,8 +11,9 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
-typedef ReferenceFinderCallback =
-    void Function(ConstantEvaluationTarget dependency);
+typedef ReferenceFinderCallback = void Function(
+  ConstantEvaluationTarget dependency,
+);
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build the full set of dependencies for all constant
@@ -133,7 +134,7 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   new({required this.configuration});
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
     if (node.declaredFragment!.constructors.any((e) => e.isConst) &&
         node.namePart is! PrimaryConstructorDeclaration) {
@@ -143,15 +144,17 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
       treatFinalInstanceVarAsConst = true;
     }
     try {
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       treatFinalInstanceVarAsConst = prevTreatFinalInstanceVarAsConst;
     }
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    super.visitConstructorDeclaration(node);
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
+    super.visitConstructorDeclaration2(node);
     if (node.constKeyword != null) {
       var fragment = node.declaredFragment;
       if (fragment != null) {
@@ -163,10 +166,10 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
+  void visitEnumConstantDeclaration2(
+    covariant EnumConstantDeclaration2Impl node,
   ) {
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
 
     var element = node.declaredFragment!.element;
     constantsToCompute.add(element);

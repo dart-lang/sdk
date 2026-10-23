@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io' show Directory, Platform;
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
@@ -80,7 +81,7 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
           .dataForTesting!
           .exhaustivenessData;
 
-  Features? computeExhaustivenessData(TreeNode node) {
+  FutureOr<Features?> computeExhaustivenessData(TreeNode node) async {
     ExhaustivenessResult? result = _exhaustivenessData.switchResults[node];
     if (result != null) {
       Features features = new Features();
@@ -121,7 +122,16 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
         );
       }
       if (result.nonExhaustiveness case NonExhaustiveness nonExhaustiveness) {
-        features[Tags.error] = nonExhaustivenessToText(nonExhaustiveness);
+        String nonExhaustivenessText = nonExhaustivenessToText(
+          nonExhaustiveness,
+        );
+        features[Tags.error] = nonExhaustivenessText;
+        String reducedText = await reducedNonExhaustivenessToText(
+          nonExhaustiveness,
+        );
+        if (nonExhaustivenessText != reducedText) {
+          features[Tags.reduced] = reducedText;
+        }
       }
       Uri uri = node.location!.file;
       for (int i = 0; i < result.caseSpaces.length; i++) {
@@ -145,7 +155,7 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
   }
 
   @override
-  Features? computeNodeValue(Id id, TreeNode node) {
+  FutureOr<Features?> computeNodeValue(Id id, TreeNode node) {
     if (node is SwitchStatement || node is Block || node is BlockExpression) {
       return computeExhaustivenessData(node);
     }

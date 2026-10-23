@@ -38,7 +38,7 @@ JSStringImpl? _useTextDecoder(
   // decoding, or report the problem better than `TextDecoder`.
   try {
     return JSStringImpl.fromRefUnchecked(
-      js.JS<WasmExternRef?>(
+      js.JS<WasmExternRef>(
         '(decoder, codeUnits) => decoder.decode(codeUnits)',
         decoder,
         codeUnits,

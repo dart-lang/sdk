@@ -56,7 +56,7 @@ extension AstNodeExtension on AstNode {
         case FunctionExpression():
           return node;
         case LocalFunctionDeclaration() ||
-            ConstructorDeclaration() ||
+            ConstructorDeclaration2() ||
             GetterDeclaration() ||
             MethodDeclaration2() ||
             OperatorDeclaration() ||
@@ -93,7 +93,7 @@ extension AstNodeExtension on AstNode {
       if (node is LocalFunctionDeclaration) {
         return node.declaredFragment?.element;
       }
-      if (node is ConstructorDeclaration) {
+      if (node is ConstructorDeclaration2) {
         return node.declaredFragment?.element;
       }
       if (node is MethodDeclarationV1OriginImpl) {
@@ -237,7 +237,7 @@ extension AstNodeNullableExtension on AstNode? {
     return switch (self) {
       BlockClassBody() => self.members,
       BlockEnumBody() => self.members,
-      ClassDeclarationImpl() => self.body.members,
+      ClassDeclaration() => self.body.members,
       EnumDeclaration() => self.body.members,
       ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
@@ -249,13 +249,13 @@ extension AstNodeNullableExtension on AstNode? {
   List<AnnotatedNode> get classMembers2 {
     var self = this;
     return switch (self) {
-      BlockClassBody() => self.members2,
-      BlockEnumBody() => self.members2,
-      ClassDeclarationImpl() => self.body.members2,
-      EnumDeclaration() => self.body.members2,
-      ExtensionDeclaration() => self.body.members2,
-      ExtensionTypeDeclarationImpl() => self.body.members2,
-      MixinDeclaration() => self.body.members2,
+      BlockEnumDeclarationBody() => self.members,
+      BlockInstanceDeclarationBody() => self.members,
+      ClassDeclaration2Impl() => self.body.members,
+      EnumDeclaration2() => self.body.members,
+      ExtensionDeclaration2() => self.body.members,
+      ExtensionTypeDeclaration2Impl() => self.body.members,
+      MixinDeclaration2() => self.body.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }

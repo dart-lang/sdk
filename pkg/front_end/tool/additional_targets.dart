@@ -4,7 +4,7 @@
 
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:dart2wasm/target.dart' as wasm show Mode;
-import 'package:dart2wasm/target.dart' show WasmTarget;
+import 'package:dart2wasm/target.dart' show WasmDevTarget, WasmTarget;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:kernel/target/targets.dart' show TargetFlags, targets;
 import 'package:vm/modular/target/install.dart'
@@ -24,5 +24,6 @@ void installAdditionalTargets() {
       new WasmTarget(mode: wasm.Mode.jsCompatibility);
   targets["dart2wasm_standalone"] = (TargetFlags flags) =>
       new WasmTarget(mode: wasm.Mode.standalone);
+  targets["dart2wasm_dev"] = (TargetFlags flags) => new WasmDevTarget();
   vm_target_install.installAdditionalTargets();
 }

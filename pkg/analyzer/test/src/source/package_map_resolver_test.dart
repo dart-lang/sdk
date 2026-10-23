@@ -47,11 +47,13 @@ class _PackageMapUriResolverTest {
     String pkgFileB = convertPath('/pkgB/lib/src/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, Folder>{
-          'pkgA': provider.getFolder(convertPath('/pkgA/lib')),
-          'pkgB': provider.getFolder(convertPath('/pkgB/lib')),
-        });
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, Folder>{
+        'pkgA': provider.getFolder(convertPath('/pkgA/lib')),
+        'pkgB': provider.getFolder(convertPath('/pkgB/lib')),
+      },
+    );
     {
       var path = convertPath('/pkgA/lib/libA.dart');
       var uri = resolver.pathToUri(path);
@@ -76,11 +78,13 @@ class _PackageMapUriResolverTest {
 
     provider.newFile(nestedPkgFile, '');
 
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, Folder>{
-          'root': provider.getFolder(rootPkgLib),
-          'nested': provider.getFolder(nestedPkgLib),
-        });
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, Folder>{
+        'root': provider.getFolder(rootPkgLib),
+        'nested': provider.getFolder(nestedPkgLib),
+      },
+    );
 
     var uri = resolver.pathToUri(nestedPkgFile);
     expect(uri, Uri.parse('package:nested/nested.dart'));
@@ -98,11 +102,13 @@ class _PackageMapUriResolverTest {
     String pkgFileB = convertPath('/pkgB/lib/libB.dart');
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver =
-        PackageMapUriResolver(provider, <String, Folder>{
-          'pkgA': provider.getFolder(convertPath('/pkgA/lib')),
-          'pkgB': provider.getFolder(convertPath('/pkgB/lib')),
-        });
+    PackageMapUriResolver resolver = PackageMapUriResolver(
+      provider,
+      <String, Folder>{
+        'pkgA': provider.getFolder(convertPath('/pkgA/lib')),
+        'pkgB': provider.getFolder(convertPath('/pkgB/lib')),
+      },
+    );
     {
       Uri uri = Uri.parse('package:pkgA/libA.dart');
       var result = resolver.resolveAbsolute(uri)!;

@@ -3,10 +3,10 @@
     (field $#classId i32)))
   (type $JSExternWrapper (sub $#Top (struct
     (field $#classId i32)
-    (field $_externRef externref))))
+    (field $_externRef (ref extern)))))
   (global $".hello world" (import "" "hello world") (ref extern))
   (global $"\"hello world\"" (ref $JSExternWrapper)
-    (i32.const 65)
+    (i32.const 67)
     (global.get $".hello world")
     (struct.new $JSExternWrapper))
   (@binaryen.inline 0)

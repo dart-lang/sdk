@@ -42,6 +42,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   final Map<Token, String> _tokenIdMap = Map.identity();
 
+  /// The V1 parents of shared nodes, requested bottom-up before any V1 child
+  /// entities are read.
+  ///
+  /// Reading V1 child entities can establish V1 parent links, so checking
+  /// parents top-down cannot detect a link that is established only by a V1
+  /// getter. Clients that reach a shared node through V2 and then ask for its
+  /// V1 parent depend on the link existing without that getter.
+  final Map<AstNode, AstNode?> _bottomUpV1Parents = Map.identity();
+
   new({
     required this._sink,
     required this._elementPrinter,
@@ -165,7 +174,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
-      _writeRaw('binaryOperator', node.binaryOperator.name);
+      _writeRaw('binaryOperator', node.binaryOperator?.name);
       _writeElement('element', node.element);
       _writeType('staticType', node.staticType);
     });
@@ -197,8 +206,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
+    _sink.writeln('BlockEnumDeclarationBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _sink.writeln('BlockFunctionBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    _sink.writeln('BlockInstanceDeclarationBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -371,8 +396,26 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitClassDeclaration2(ClassDeclaration2 node) {
+    _sink.writeln('ClassDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _sink.writeln('ClassTypeAlias');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _sink.writeln('ClassTypeAlias2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -515,12 +558,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (_view == _AstView.v2) {
-      _writeConstructorDeclarationAsConstructorDeclaration2(node);
-      return;
-    }
-
     _sink.writeln('ConstructorDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
+    _sink.writeln('ConstructorDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -838,8 +885,30 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
+    _checkChildrenEntitiesLinking(node);
+    _sink.writeln('EnumConstantDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        _writeElement('constructorElement', node.constructorElement);
+        _writeDeclaredFragment(node.declaredFragment);
+      }
+    });
+  }
+
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _sink.writeln('EnumDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
+    _sink.writeln('EnumDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -892,6 +961,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
+    _sink.writeln('ExtensionDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitExtensionOnClause(ExtensionOnClause node) {
     _sink.writeln('ExtensionOnClause');
     _sink.withIndent(() {
@@ -926,6 +1004,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _sink.writeln('ExtensionTypeDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
+    _sink.writeln('ExtensionTypeDeclaration2');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -1705,6 +1792,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
+    _sink.writeln('MixinDeclaration2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitMixinOnClause(MixinOnClause node) {
     _sink.writeln('MixinOnClause');
     _sink.withIndent(() {
@@ -2008,6 +2104,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
+    _sink.writeln('PrimaryConstructorBody2');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _sink.writeln('PrimaryConstructorDeclaration');
     _sink.withIndent(() {
@@ -2234,6 +2338,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   @override
   void visitScriptTag(ScriptTag node) {
     _sink.writeln('ScriptTag');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {
+    _sink.writeln('SemicolonEnumDeclarationBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    _sink.writeln('SemicolonInstanceDeclarationBody');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -2658,6 +2780,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   void writeNode(AstNode node) {
+    _recordBottomUpV1Parents(node);
     var view = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
         ? _AstView.v1
         : _AstView.v2;
@@ -2679,6 +2802,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   /// Writes [node] and its V1 compatibility view when the V2 root has a
   /// distinct projection.
   void writeNodeWithV1Projection(AstNode node) {
+    _recordBottomUpV1Parents(node);
     AstNode? v1;
     if (node case TopLevelDeclarationImpl declaration) {
       // ignore: analyzer_v1_ast_use
@@ -2686,21 +2810,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     } else if (node case MemberDeclarationImpl declaration) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1ClassMember(declaration);
+    } else if (node case EnumConstantDeclaration2Impl declaration) {
+      // ignore: analyzer_v1_ast_use
+      v1 = declaration.v1Projection;
     } else if (node case ExpressionImpl expression) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Expression(expression);
     } else if (node case StatementImpl statement) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Statement(statement);
-    }
-
-    // TODO(scheglov): Remove when constructors are parsed as
-    // ConstructorDeclaration2, which has a distinct V1 projection.
-    if (node is ConstructorDeclaration) {
-      _withInlineV1ChildEntities(false, () => writeNode(node));
-      _sink.writeWithIndent('V1: ');
-      _withView(_AstView.v1, () => _acceptInView(node));
-      return;
     }
 
     if (v1 == null || identical(v1, node)) {
@@ -2749,6 +2867,18 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   /// Check that the actual parent of [child] is [parent].
   void _checkParentOfChild(AstNode parent, AstNode child) {
+    if (_view == _AstView.v1 && _bottomUpV1Parents.containsKey(child)) {
+      var bottomUpParent = _bottomUpV1Parents[child];
+      if (!identical(bottomUpParent, parent)) {
+        fail('''
+Wrong bottom-up V1 parent.
+Child: (${child.runtimeType}) $child
+Bottom-up parent: (${bottomUpParent.runtimeType}) $bottomUpParent
+Expected parent: (${parent.runtimeType}) $parent
+''');
+      }
+    }
+
     var actualParent = _viewParent(child);
     if (actualParent == null) {
       fail('''
@@ -2806,6 +2936,29 @@ Expected parent: (${parent.runtimeType}) $parent
     };
   }
 
+  /// Requests the V1 parents of the shared nodes under [root], reaching them
+  /// only through V2, so that [_checkParentOfChild] can compare them with the
+  /// parents seen top-down.
+  void _recordBottomUpV1Parents(AstNode root) {
+    if (root is! AstNodeImpl || root.astNodeApi == AstNodeApi.v1) {
+      return;
+    }
+
+    void recordChildren(AstNode node) {
+      for (var entity in node.childEntities2) {
+        if (entity is AstNodeImpl) {
+          if (entity.astNodeApi == AstNodeApi.shared) {
+            // ignore: analyzer_v1_ast_use
+            _bottomUpV1Parents.putIfAbsent(entity, () => entity.parent);
+          }
+          recordChildren(entity);
+        }
+      }
+    }
+
+    recordChildren(root);
+  }
+
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
     return switch (_view) {
       // ignore: analyzer_v1_ast_use
@@ -2840,28 +2993,6 @@ Expected parent: (${parent.runtimeType}) $parent
     } finally {
       _view = previousView;
     }
-  }
-
-  /// Writes a constructor [node] as it will be printed once constructors are
-  /// parsed as `ConstructorDeclaration2`.
-  // TODO(scheglov): Remove when constructors are parsed as
-  // ConstructorDeclaration2.
-  void _writeConstructorDeclarationAsConstructorDeclaration2(
-    ConstructorDeclaration node,
-  ) {
-    node as ConstructorDeclarationImpl;
-    _sink.writeln('ConstructorDeclaration2');
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        var name = switch (entity.name) {
-          'typeName2' => 'typeName',
-          'parameters' => 'formalParameters',
-          var name => name,
-        };
-        _writeNamedChildEntity(node, entity, name: name);
-      }
-      _writeDeclaredFragment(node.declaredFragment);
-    });
   }
 
   void _writeDeclaredFragment(Fragment? fragment) {
@@ -3217,8 +3348,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasConstructorDeclarations(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3557,7 +3687,7 @@ Expected parent: (${parent.runtimeType}) $parent
     FormalParameter node,
   ) {
     var parametersParent = node.parentFormalParameterList2.parent2;
-    if (parametersParent is ConstructorDeclaration) {
+    if (parametersParent is ConstructorDeclaration2) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is FormalParameter) {
@@ -3589,16 +3719,6 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a member list with a [ConstructorDeclaration], which
-  /// will differ from its V1 projection once constructors are parsed as
-  /// `ConstructorDeclaration2`.
-  // TODO(scheglov): Remove when constructors are parsed as
-  // ConstructorDeclaration2.
-  static bool _hasConstructorDeclarations(Object value) {
-    return value is List<AstNode> &&
-        value.any((node) => node is ConstructorDeclaration);
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

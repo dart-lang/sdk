@@ -397,6 +397,88 @@ class UnionFind {
   int get size => _elements.length;
 }
 
+/// Compact representation of Set.
+///
+/// Only set additions are supported and only of elements that are not `List` or
+/// `Set`s themselves.
+///
+/// Represent the set with
+///
+///   * 0 elements: `null`
+///   * 1 element: the [T] instance directly
+///   * 2..16 elements: fixed-length `List<Object?>` (capacities 4, 8, 16)
+///   * >16 elements: `Set<T>`
+extension type const SmallSet<T extends Object>._(Object? _storage) {
+  const SmallSet.empty() : _storage = null;
+
+  bool get isEmpty => _storage == null;
+
+  @pragma('vm:prefer-inline')
+  SmallSet<T> add(T item) {
+    final storage = _storage;
+    if (storage == null) {
+      return SmallSet<T>._(item);
+    }
+    if (storage is T) {
+      if (identical(storage, item)) return this;
+      final list = List<Object?>.filled(4, null);
+      list[0] = storage;
+      list[1] = item;
+      return SmallSet<T>._(list);
+    }
+    if (storage is List<Object?>) {
+      return SmallSet<T>._(_addToList<T>(storage, item));
+    }
+    (storage as Set<T>).add(item);
+    return this;
+  }
+
+  static Object _addToList<T extends Object>(List<Object?> list, T item) {
+    final int len = list.length;
+    for (int i = 0; i < len; i++) {
+      final existing = list[i];
+      if (identical(existing, item)) return list;
+      if (existing == null) {
+        list[i] = item;
+        return list;
+      }
+    }
+    if (len < 16) {
+      final newList = List<Object?>.filled(len << 1, null);
+      for (int i = 0; i < len; i++) {
+        newList[i] = list[i];
+      }
+      newList[len] = item;
+      return newList;
+    }
+    final set = <T>{};
+    for (int i = 0; i < len; i++) {
+      set.add(list[i] as T);
+    }
+    set.add(item);
+    return set;
+  }
+
+  @pragma('vm:prefer-inline')
+  void forEach(void Function(T) action) {
+    final storage = _storage;
+    if (storage == null) return;
+    if (storage is T) {
+      action(storage);
+      return;
+    }
+    if (storage is List<Object?>) {
+      for (int i = 0; i < storage.length; i++) {
+        final item = storage[i];
+        if (item == null) return;
+        action(item as T);
+      }
+      return;
+    }
+    (storage as Set<T>).forEach(action);
+  }
+}
+
 const nullabilitySuffix = {
   Nullability.nullable: '?',
   Nullability.undetermined: '',

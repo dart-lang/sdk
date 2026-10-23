@@ -1730,7 +1730,6 @@ class _Property {
         '$name: Expected a v1 projection.',
       ),
       _V1ProjectionKind.argument => 'V1Projection.toV1Argument',
-      _V1ProjectionKind.classMember => 'V1Projection.toV1ClassMember',
       _V1ProjectionKind.collectionElement =>
         'V1Projection.toV1CollectionElement',
       _V1ProjectionKind.combinatorName => 'V1Projection.toV1CombinatorName',
@@ -1763,7 +1762,6 @@ class _Property {
     return switch (v1Projection) {
       _V1ProjectionKind.none => expression,
       _V1ProjectionKind.argument ||
-      _V1ProjectionKind.classMember ||
       _V1ProjectionKind.collectionElement ||
       _V1ProjectionKind.combinatorName ||
       _V1ProjectionKind.expression ||
@@ -1866,7 +1864,6 @@ class _Replacement {
 enum _V1ProjectionKind {
   none,
   argument,
-  classMember,
   collectionElement,
   combinatorName,
   expression,

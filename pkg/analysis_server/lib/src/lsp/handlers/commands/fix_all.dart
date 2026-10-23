@@ -38,49 +38,31 @@ class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
       );
     }
 
-    // Get the version of the doc before we calculate edits so we can send it
-    // back to the client so that they can discard this edit if the document has
-    // been modified since.
     var path = parameters['path'] as String;
-    var docIdentifier = server.getVersionedDocumentIdentifier(path);
     var autoTriggered = parameters['autoTriggered'] == true;
 
-    var operation = FixAllInFileOperation(
-      server: server,
-      message: message,
-      path: path,
-      cancellationToken: cancellationToken,
-      autoTriggered: autoTriggered,
-    );
-    var edit = await operation.compute();
+    return withPath(path: path, cancellationToken, (path, _, checkAbort) async {
+      var operation = FixAllInFileOperation(
+        server: server,
+        message: message,
+        path: path,
+        cancellationToken: cancellationToken,
+        autoTriggered: autoTriggered,
+      );
+      var edit = await operation.compute();
 
-    return edit.mapResult((result) async {
-      var (edit, _) = result;
-      if (edit == null) {
-        return success(null);
-      }
+      if (checkAbort() case var reason?) return reason;
 
-      // Before we send an edit back, ensure the original file didn't change
-      // (or the request cancelled) while we were computing changes.
-      if (cancellationToken.isCancellationRequested) {
-        return cancelled(cancellationToken);
-      }
-      // If the client modified the file, it's possible (though unlikely since
-      // we only just unlocked the queue and having had many 'await's) that the
-      // document has already been updated, in which case we can fail the
-      // request early.
-      //
-      // In the case of the modification not yet being processed, we will send
-      // an edit to the client, but it contains the version number of the
-      // document we had, so the client will notice that the versions don't
-      // match and refuse to apply the edits.
-      if (fileHasBeenModified(path, docIdentifier.version)) {
-        return fileModifiedError;
-      }
+      return edit.mapResult((result) async {
+        var (edit, _) = result;
+        if (edit == null) {
+          return success(null);
+        }
 
-      // Sending the edit to the client must be outside of the lock because
-      // otherwise the response will not be processed.
-      return sendWorkspaceEditToClient(edit);
+        // Sending the edit to the client must be outside of the lock because
+        // otherwise the response will not be processed.
+        return await sendWorkspaceEditToClient(edit);
+      });
     });
   }
 }

@@ -19,7 +19,7 @@ static method main() → void {
   {
     final synthesized(self::A, core::bool) #0#0 = [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] self::b();
     :a:finalizableValue = a = block {
-      final synthesized self::A :expressionValueWrappedFinalizable = #0#0.$1{self::A};
+      final synthesized self::A :expressionValueWrappedFinalizable = [@vm.inferred-type.metadata=#lib::A] #0#0.$1{self::A};
       _in::reachabilityFence(:a:finalizableValue);
     } =>:expressionValueWrappedFinalizable;
   }

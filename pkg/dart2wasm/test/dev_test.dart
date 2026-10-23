@@ -15,6 +15,17 @@ Future<void> main(List<String> args) async {
 
   final options = (ArgParser()..addFlag('src', negatable: false)).parse(args);
   await withTempDir((String directory) async {
+    final dartFile = '$directory/app.dart';
+    File(dartFile).writeAsStringSync('''
+class Greeter {
+  static String greeting() => 'Hello, world!';
+}
+
+void greet(String message) => print(message);
+
+void main() => greet(Greeter.greeting());
+''');
+
     final runtime = '$directory/wasm_dev_rt';
     final app = '$directory/app.wasm';
     await run([
@@ -28,6 +39,11 @@ Future<void> main(List<String> args) async {
     await run([
       Platform.resolvedExecutable,
       'pkg/dart2wasm/bin/dart2wasm_dev.dart',
+      if (options.flag('src'))
+        '--libraries-spec=sdk/lib/libraries.json'
+      else
+        '--platform=${_findPlatformFile()}',
+      dartFile,
       app,
     ]);
 
@@ -45,4 +61,25 @@ Future<void> main(List<String> args) async {
       throw 'Unexpected result:\n${result.stdout}\n${result.stderr}';
     }
   });
+}
+
+/// This test may be run from the built Dart SDK (e.g.
+/// out/ReleaseX64/dart-sdk/bin/dart) but the dart2wasm_dev_platform.dill file
+/// isn't shipped (yet) with the SDK and is only available in the normal build
+/// folder (e.g. out/ReleaseX64).
+///
+/// => We walk up the parent directory chain to find it, so it will work as long
+/// as the `dart` binary is either the one in build dir or the one in the built
+/// Dart SDK dir.
+String _findPlatformFile() {
+  Directory dir = File(Platform.resolvedExecutable).parent;
+  while (true) {
+    final file = File('${dir.path}/dart2wasm_dev_platform.dill');
+    if (file.existsSync()) return file.path;
+    final parent = dir.parent;
+    if (parent.path == dir.path) {
+      throw StateError('Could not find dart2wasm_dev_platform.dill');
+    }
+    dir = parent;
+  }
 }

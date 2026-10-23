@@ -81,7 +81,7 @@ class _ReachabilityDataExtractor
       _checkBodyCompletion(node.body, result);
     } else if (node is TopLevelSetterDeclaration) {
       _checkBodyCompletion(node.body, result);
-    } else if (node is ConstructorDeclaration) {
+    } else if (node is ConstructorDeclaration2) {
       _checkBodyCompletion(node.body, result);
     } else if (node is MethodDeclaration2) {
       _checkBodyCompletion(node.body, result);

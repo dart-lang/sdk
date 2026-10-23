@@ -1,0 +1,38 @@
+class Class {
+  static void staticMethod() {}
+  void instanceMethod() {}
+}
+
+enum Enum {
+  a;
+
+  void instanceMethod() {
+    print('instanceMethod');
+  }
+
+  static void staticMethod() {
+    print('staticMethod');
+  }
+}
+
+extension Extension on int {
+  static void staticMethod() {}
+  void instanceMethod() {}
+}
+
+extension type ExtensionType(int it) {
+  static void staticMethod() {}
+  void instanceMethod() {}
+}
+
+mixin Mixin {
+  static void staticMethod() {}
+  void instanceMethod() {}
+}
+
+mixin class MixinClass {
+  static void staticMethod() {}
+  void instanceMethod() {}
+}
+
+void topLevelMethod() {}

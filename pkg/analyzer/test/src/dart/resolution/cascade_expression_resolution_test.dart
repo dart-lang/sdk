@@ -969,4 +969,178 @@ V1: FunctionExpressionInvocation
   staticType: int
 ''');
   }
+
+  test_typeLiteral_functionTypeAlias_compoundAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f() {
+  F..foo += 1;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: F
+      element: <testLibrary>::@typeAlias::F
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CompoundAssignment
+        target: CascadePropertyAssignmentTarget
+          name: foo
+          read: GetterInvocationResolution
+            element: <testLibrary>::@extension::#0::@getter::foo
+            invokeType: int Function()
+            type: int
+          write: SetterInvocationResolution
+            element: <testLibrary>::@extension::#0::@setter::foo
+            acceptedType: int
+        operator: +=
+        value: IntegerLiteral
+          literal: 1
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+  cascadeSections
+    AssignmentExpression
+      leftHandSide: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: null
+        staticType: null
+      operator: +=
+      rightHandSide: IntegerLiteral
+        literal: 1
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      readElement: <testLibrary>::@extension::#0::@getter::foo
+      readType: int
+      writeElement: <testLibrary>::@extension::#0::@setter::foo
+      writeType: int
+      element: dart:core::@class::num::@method::+
+      staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_functionTypeAlias_propertyGet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F..hashCode;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: F
+      element: <testLibrary>::@typeAlias::F
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: hashCode
+        resolution: GetterInvocationResolution
+          element: dart:core::@class::Object::@getter::hashCode
+          invokeType: int Function()
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: hashCode
+        element: dart:core::@class::Object::@getter::hashCode
+        staticType: int
+      staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_functionTypeAlias_propertySet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  set foo(int _) {}
+}
+
+void f() {
+  F..foo = 0;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: F
+      element: <testLibrary>::@typeAlias::F
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          name: foo
+          read: <null>
+          write: SetterInvocationResolution
+            element: <testLibrary>::@extension::#0::@setter::foo
+            acceptedType: int
+        operator: =
+        value: IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@extension::#0::@setter::foo::@formalParameter::_
+          staticType: int
+        staticType: int
+  cascadeSections
+    AssignmentExpression
+      leftHandSide: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: null
+        staticType: null
+      operator: =
+      rightHandSide: IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extension::#0::@setter::foo::@formalParameter::_
+        staticType: int
+      readElement: <null>
+      readType: null
+      writeElement: <testLibrary>::@extension::#0::@setter::foo
+      writeType: int
+      element: <null>
+      staticType: int
+  staticType: Type
+''');
+  }
 }

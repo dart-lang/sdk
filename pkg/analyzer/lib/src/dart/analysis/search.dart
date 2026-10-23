@@ -693,13 +693,16 @@ class Search {
       var index = await _driver.getIndex(file.path);
       if (index != null) {
         _IndexRequest request = _IndexRequest(index);
-        var fileResults = await request
-            .getUnresolvedMemberReferences(name, const {
-              IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
-              IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
-              IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
-              IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
-            }, () => _getUnitElement(file.path));
+        var fileResults = await request.getUnresolvedMemberReferences(
+          name,
+          const {
+            IndexRelationKind.IS_READ_BY: SearchResultKind.READ,
+            IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
+            IndexRelationKind.IS_READ_WRITTEN_BY: SearchResultKind.READ_WRITE,
+            IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+          },
+          () => _getUnitElement(file.path),
+        );
         results.addAll(fileResults);
       }
     }

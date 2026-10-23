@@ -407,11 +407,10 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
   @override
   @nonVirtual
   void visitReturn(Return instr) {
-    final valueDef = instr.value;
-    final valueLocal = gen.getLocal(valueDef);
     final returnType = gen.returnType;
 
     if (returnType != null) {
+      final valueLocal = gen.getLocal(instr.value);
       b.local_get(valueLocal);
       gen.convertType(valueLocal.type, returnType);
     }

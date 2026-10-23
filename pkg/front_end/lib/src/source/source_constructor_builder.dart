@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart';
@@ -22,6 +20,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/property_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/constructor/declaration.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
@@ -29,9 +28,11 @@ import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../util/helpers.dart';
 import '../util/reference_map.dart';
+import 'augmented_parameters.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 
@@ -104,6 +105,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final bool isPrimaryConstructor;
 
+  final AugmentedParameters _parameters;
+
   new({
     required this.name,
     required this.libraryBuilder,
@@ -114,6 +117,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     required this._nameScheme,
     required this._declarations,
     required this._implementation,
+    required this._parameters,
     required this.isConst,
   }) : _memberName = _nameScheme.getDeclaredName(name),
        isPrimaryConstructor = _declarations.first.isPrimaryConstructor,
@@ -362,7 +366,13 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    _implementation.checkTypes(problemReporting, nameSpace, typeEnvironment);
+    _parameters.processOutlineExpressions(
+      problemReporting,
+      typeEnvironment,
+      isAbstract: false,
+      isExternal: _implementation.isExternal,
+      libraryFeatures: libraryFeatures,
+    );
   }
 
   @override

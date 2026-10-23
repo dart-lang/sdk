@@ -50,21 +50,21 @@ class SuperContext {
           node is FunctionExpression ||
           node is LocalFunctionDeclaration) {
         inDefaultValue = false;
-      } else if (node is ClassDeclaration ||
-          node is EnumDeclaration ||
-          node is MixinDeclaration) {
+      } else if (node is ClassDeclaration2 ||
+          node is EnumDeclaration2 ||
+          node is MixinDeclaration2) {
         return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;
-      } else if (node is ConstructorDeclaration) {
+      } else if (node is ConstructorDeclaration2) {
         if (node.factoryKeyword != null) {
           return SuperContext.static;
         }
       } else if (node is ConstructorInitializer) {
         return SuperContext.static;
-      } else if (node is ExtensionDeclaration) {
+      } else if (node is ExtensionDeclaration2) {
         return SuperContext.extension;
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         return SuperContext.extensionType;
       } else if (node is FieldsDeclaration) {
         if (node.staticKeyword != null) {

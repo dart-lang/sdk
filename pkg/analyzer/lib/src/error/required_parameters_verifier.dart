@@ -71,7 +71,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     _check(
       parameters: node.constructorElement?.formalParameters,
       arguments: node.arguments?.argumentList.arguments2 ?? <Argument>[],

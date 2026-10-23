@@ -265,6 +265,7 @@ class ListeningSocketRegistry {
     while (current != nullptr) {
       ASSERT(current->address.addr.sa_family == AF_UNIX);
       if (current->address.is_abstract_unix_socket()) {
+        current = current->next;
         continue;
       }
 

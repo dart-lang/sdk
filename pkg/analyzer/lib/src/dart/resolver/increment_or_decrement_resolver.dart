@@ -229,6 +229,8 @@ class IncrementOrDecrementResolver {
     required TypeImpl writeAcceptedType,
     required InternalVariableElement? variableElement,
   }) {
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(node.target);
+
     if (identical(readType, NeverTypeImpl.instance)) {
       node.operatorResultType = NeverTypeImpl.instance;
       node.recordStaticType(

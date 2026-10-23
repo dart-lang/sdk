@@ -35,6 +35,7 @@ class PluginServerErrorTest extends PluginServerTestBase {
 
   @override
   Future<void> setUp() async {
+    failOnPluginErrors = false;
     await super.setUp();
     newAnalysisOptionsYamlFile(packagePath, '''
 plugins:
@@ -135,6 +136,86 @@ plugins:
     expect(
       pluginErrorParams.stackTrace,
       contains('_ThrowsSyncErrorVisitor.visitBooleanLiteral'),
+    );
+  }
+
+  Future<void>
+  test_handleAnalysisSetContextRoots_argumentsMismatch_tooMany() async {
+    pluginServer = PluginServer(
+      resourceProvider: resourceProvider,
+      plugins: [_RuleMismatchedArgumentsTooManyPlugin()],
+    );
+    await startPlugin();
+
+    var filePath = join(packagePath, 'lib', 'test.dart');
+    newFile(filePath, 'bool b = false;');
+    var contextRoot = protocol.ContextRoot(packagePath, []);
+
+    await _setRoots([contextRoot]);
+
+    var pluginErrorParamsQueue = StreamQueue(
+      channel.notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
+          .map((n) => protocol.PluginErrorParams.fromNotification(n)),
+    );
+    var pluginErrorParams = await pluginErrorParamsQueue.next;
+    expect(pluginErrorParams.isFatal, false);
+    expect(
+      pluginErrorParams.message,
+      contains('requires 0 arguments, but 1 argument was provided'),
+    );
+  }
+
+  Future<void>
+  test_handleAnalysisSetContextRoots_argumentsMismatch_tooFew() async {
+    pluginServer = PluginServer(
+      resourceProvider: resourceProvider,
+      plugins: [_RuleMismatchedArgumentsTooFewPlugin()],
+    );
+    await startPlugin();
+
+    var filePath = join(packagePath, 'lib', 'test.dart');
+    newFile(filePath, 'bool b = false;');
+    var contextRoot = protocol.ContextRoot(packagePath, []);
+
+    await _setRoots([contextRoot]);
+
+    var pluginErrorParamsQueue = StreamQueue(
+      channel.notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
+          .map((n) => protocol.PluginErrorParams.fromNotification(n)),
+    );
+    var pluginErrorParams = await pluginErrorParamsQueue.next;
+    expect(pluginErrorParams.isFatal, false);
+    expect(
+      pluginErrorParams.message,
+      contains('requires 1 argument, but 0 arguments were provided'),
+    );
+  }
+
+  Future<void> test_handleAnalysisSetContextRoots_argumentsWrongType() async {
+    pluginServer = PluginServer(
+      resourceProvider: resourceProvider,
+      plugins: [_RuleWrongArgumentTypePlugin()],
+    );
+    await startPlugin();
+
+    var filePath = join(packagePath, 'lib', 'test.dart');
+    newFile(filePath, 'bool b = false;');
+    var contextRoot = protocol.ContextRoot(packagePath, []);
+
+    await _setRoots([contextRoot]);
+
+    var pluginErrorParamsQueue = StreamQueue(
+      channel.notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
+          .map((n) => protocol.PluginErrorParams.fromNotification(n)),
+    );
+    var pluginErrorParams = await pluginErrorParamsQueue.next;
+    expect(pluginErrorParams.isFatal, false);
+    expect(
+      pluginErrorParams.message,
+      contains('Tried to format a diagnostic using Object'),
     );
   }
 
@@ -520,5 +601,134 @@ class _ThrowsSyncErrorVisitor extends SimpleAstVisitor<void> {
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
     throw StateError('A message.');
+  }
+}
+
+class _RuleMismatchedArgumentsTooManyPlugin extends Plugin {
+  @override
+  String get name => 'Rule Mismatched Arguments Too Many Plugin';
+
+  @override
+  void register(PluginRegistry registry) {
+    registry.registerWarningRule(_MismatchedArgumentsTooManyRule());
+  }
+}
+
+class _MismatchedArgumentsTooManyRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_bools',
+    'No bools message',
+    uniqueName: 'LintCode.no_bools',
+  );
+
+  new() : super(name: 'no_bools', description: 'No bools desc');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _MismatchedArgumentsTooManyVisitor(this);
+    registry.addBooleanLiteral(this, visitor);
+  }
+}
+
+class _MismatchedArgumentsTooManyVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    rule.reportAtNode(node, arguments: ['extra']);
+  }
+}
+
+class _RuleMismatchedArgumentsTooFewPlugin extends Plugin {
+  @override
+  String get name => 'Rule Mismatched Arguments Too Few Plugin';
+
+  @override
+  void register(PluginRegistry registry) {
+    registry.registerWarningRule(_MismatchedArgumentsTooFewRule());
+  }
+}
+
+class _MismatchedArgumentsTooFewRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_bools',
+    'No bools message {0}',
+    uniqueName: 'LintCode.no_bools',
+  );
+
+  new() : super(name: 'no_bools', description: 'No bools desc');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _MismatchedArgumentsTooFewVisitor(this);
+    registry.addBooleanLiteral(this, visitor);
+  }
+}
+
+class _MismatchedArgumentsTooFewVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    rule.reportAtNode(node);
+  }
+}
+
+class _RuleWrongArgumentTypePlugin extends Plugin {
+  @override
+  String get name => 'Rule Wrong Argument Type Plugin';
+
+  @override
+  void register(PluginRegistry registry) {
+    registry.registerWarningRule(_WrongArgumentTypeRule());
+  }
+}
+
+class _WrongArgumentTypeRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'no_bools',
+    'No bools message {0}',
+    uniqueName: 'LintCode.no_bools',
+  );
+
+  new() : super(name: 'no_bools', description: 'No bools desc');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _WrongArgumentTypeVisitor(this);
+    registry.addBooleanLiteral(this, visitor);
+  }
+}
+
+class _WrongArgumentTypeVisitor extends SimpleAstVisitor<void> {
+  final AnalysisRule rule;
+
+  new(this.rule);
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    rule.reportAtNode(node, arguments: [Object()]);
   }
 }

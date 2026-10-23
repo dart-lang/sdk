@@ -22,16 +22,16 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
   new(this._errorReporter);
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     _currentClass = node.declaredFragment?.element;
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
     _currentClass = null;
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _currentClass = node.declaredFragment?.element;
-    super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration2(node);
     _currentClass = null;
   }
 
@@ -57,9 +57,9 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
     _currentClass = node.declaredFragment?.element;
-    super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration2(node);
     _currentClass = null;
   }
 

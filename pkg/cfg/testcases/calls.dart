@@ -116,4 +116,12 @@ class E implements D {
 
 class F extends E with M {}
 
+class OperatorEquals(final int x) {
+  @override
+  bool operator ==(Object other) =>
+      other is OperatorEquals && this.x == other.x;
+  @override
+  int get hashCode => x.hashCode;
+}
+
 void main() {}

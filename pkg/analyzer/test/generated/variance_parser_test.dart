@@ -39,7 +39,27 @@ class VarianceParserTest extends ParserDiagnosticsTest {
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+        TypeParameter
+          varianceKeyword: inout
+          name: U
+        TypeParameter
+          varianceKeyword: out
+          name: V
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
@@ -72,7 +92,21 @@ ClassDeclaration
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: out
+          name: T
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
@@ -97,7 +131,29 @@ ClassDeclaration
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+        TypeParameter
+          varianceKeyword: inout
+          name: U
+        TypeParameter
+          varianceKeyword: out
+          name: V
+        TypeParameter
+          name: W
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
@@ -134,7 +190,21 @@ ClassDeclaration
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
@@ -159,7 +229,21 @@ ClassDeclaration
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: in
+          name: T
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
@@ -394,7 +478,23 @@ V1: TopLevelVariableDeclaration
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+      TypeParameter
+        varianceKeyword: out
+        name: U
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   typeParameters: TypeParameterList
@@ -423,7 +523,20 @@ MixinDeclaration
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   typeParameters: TypeParameterList
@@ -447,7 +560,20 @@ MixinDeclaration
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        varianceKeyword: inout
+        name: T
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   typeParameters: TypeParameterList

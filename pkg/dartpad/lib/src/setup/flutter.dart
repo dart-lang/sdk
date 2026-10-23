@@ -190,12 +190,13 @@ final class SetupFlutterCommand extends Command<void> {
         _runSync(flutterBin, ['pub', 'add', sdkPkg, '--sdk=flutter'], myappDir);
       }
 
-      print('Adding material_ui and cupertino_ui dependencies...');
+      print('Adding material_ui, cupertino_ui, cupertino_icons');
       _runSync(flutterBin, [
         'pub',
         'add',
         'material_ui',
         'cupertino_ui',
+        'cupertino_icons',
       ], myappDir);
 
       print('Running flutter pub get...');
@@ -745,9 +746,19 @@ _WebSdk _copyWebSdk(_BuildContext ctx) {
     'flutter_web_sdk',
     'kernel',
   );
+  // Flutter 3.43+ (flutter/flutter#193193) moved the DDC library bundle SDK
+  // from `ddcLibraryBundle-canvaskit/dart_sdk.js` to `ddc/canary/dart_sdk.js`.
+  final canaryDartSdkJs = p.join(kernel, 'ddc', 'canary', 'dart_sdk.js');
+  final legacyDartSdkJs = p.join(
+    kernel,
+    'ddcLibraryBundle-canvaskit',
+    'dart_sdk.js',
+  );
   return _WebSdk(
     outlineDill: p.join(kernel, 'ddc_outline.dill'),
-    dartSdkJs: p.join(kernel, 'ddcLibraryBundle-canvaskit', 'dart_sdk.js'),
+    dartSdkJs: File(canaryDartSdkJs).existsSync()
+        ? canaryDartSdkJs
+        : legacyDartSdkJs,
     dartSdkRoot: p.join(ctx.flutterRoot, 'bin', 'cache', 'dart-sdk'),
   );
 }

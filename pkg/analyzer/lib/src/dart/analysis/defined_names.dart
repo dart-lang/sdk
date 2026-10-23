@@ -16,7 +16,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     }
   }
 
-  void appendClassMemberName(ClassMemberV1OrV2Impl member) {
+  void appendClassMemberName(MemberDeclarationImpl member) {
     if (member is MethodDeclarationV1OriginImpl) {
       appendName(names.classMemberNames, member.nameToken);
     } else if (member is FieldsDeclarationImpl) {
@@ -41,16 +41,16 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     }
   }
 
-  void appendTopLevelName(TopLevelDeclarationV1OrV2Impl member) {
+  void appendTopLevelName(TopLevelDeclarationImpl member) {
     switch (member) {
-      case ClassDeclarationImpl():
+      case ClassDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl constructor) {
           appendDeclaringFormalParameterNames(constructor);
         }
-        member.body.members2.forEach(appendClassMemberName);
-      case EnumDeclarationImpl():
+        member.body.members.forEach(appendClassMemberName);
+      case EnumDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl constructor) {
@@ -59,11 +59,11 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
         for (var constant in member.body.constants) {
           appendName(names.classMemberNames, constant.name);
         }
-        member.body.members2.forEach(appendClassMemberName);
-      case ExtensionDeclarationImpl():
+        member.body.members.forEach(appendClassMemberName);
+      case ExtensionDeclaration2Impl():
         appendName(names.topLevelNames, member.name);
-        member.body.members2.forEach(appendClassMemberName);
-      case ExtensionTypeDeclarationImpl():
+        member.body.members.forEach(appendClassMemberName);
+      case ExtensionTypeDeclaration2Impl():
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
@@ -72,10 +72,10 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
             isExtensionType: true,
           );
         }
-        member.body.members2.forEach(appendClassMemberName);
-      case MixinDeclarationImpl():
+        member.body.members.forEach(appendClassMemberName);
+      case MixinDeclaration2Impl():
         appendName(names.topLevelNames, member.name);
-        member.body.members2.forEach(appendClassMemberName);
+        member.body.members.forEach(appendClassMemberName);
       case TopLevelFunctionDeclarationImpl():
         appendName(names.topLevelNames, member.name);
       case TopLevelVariablesDeclarationImpl():
@@ -86,7 +86,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
         appendName(names.topLevelNames, member.name);
       case TopLevelSetterDeclarationImpl():
         appendName(names.topLevelNames, member.name);
-      case ClassTypeAliasImpl():
+      case ClassTypeAlias2Impl():
         appendName(names.topLevelNames, member.name);
       case FunctionTypeAlias2Impl():
         appendName(names.topLevelNames, member.name);

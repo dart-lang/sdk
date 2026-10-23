@@ -23,6 +23,7 @@ class Flags {
       "--force-constructor-tear-off-lowering";
   static const String forceClosureContextLowering =
       "--force-closure-context-lowering";
+  static const String forceMixinInOutline = "--force-mixin-in-outline";
 
   static const String target = "--target";
 
@@ -114,6 +115,10 @@ class Options {
   );
   static const Option<bool> forceClosureContextLowering = const Option(
     Flags.forceClosureContextLowering,
+    const BoolValue(false),
+  );
+  static const Option<bool> forceMixinInOutline = const Option(
+    Flags.forceMixinInOutline,
     const BoolValue(false),
   );
   static const Option<bool> help = const Option(

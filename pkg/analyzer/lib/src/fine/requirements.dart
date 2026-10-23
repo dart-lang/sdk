@@ -71,17 +71,18 @@ class ExportRequirement {
     required LinkedElementFactory elementFactory,
     required Set<LookupName> declaredTopNames,
   }) {
-    var libraryElement = elementFactory.libraryOfUri(exportedUri);
-    if (libraryElement == null) {
+    var libraryManifestHandle = elementFactory.libraryManifestOfUri(
+      exportedUri,
+    );
+    if (libraryManifestHandle == null) {
       return ExportLibraryMissing(uri: exportedUri);
     }
 
-    // SAFETY: every library has the manifest.
-    var libraryManifest = libraryElement.manifest!.ids!;
-
-    if (libraryManifest.hashForRequirements == hashForRequirements) {
+    if (libraryManifestHandle.hashForRequirements == hashForRequirements) {
       return null;
     }
+
+    var libraryManifest = libraryManifestHandle.ids!;
 
     // Every now exported ID must be previously exported.
     var actualCount = 0;

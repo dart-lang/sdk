@@ -254,7 +254,6 @@ extension NotInstantiatedExtensionsExtensions<R>
         freshTypeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-        strictInference: false,
         typeSystemOperations: typeSystemOperations,
         dataForTesting: null,
       );

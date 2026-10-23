@@ -30,17 +30,20 @@ class PackageDetailsCache {
   static const _writeCacheDebounceDuration = Duration(seconds: 3);
 
   final Map<String, PubPackage> _packages;
-  DateTime lastUpdatedUtc;
+  final DateTime lastUpdatedUtc;
 
   @visibleForTesting
-  factory empty() => PackageDetailsCache._({}, DateTime.utc(2000));
+  factory empty({DateTime? lastUpdated}) =>
+      PackageDetailsCache._({}, lastUpdated ?? DateTime.utc(2000));
 
   @visibleForTesting
-  factory fromApiResults(List<PubApiPackage> apiPackages) =>
-      PackageDetailsCache._({
-        for (var package in apiPackages)
-          package.packageName: PubPackage.fromName(package),
-      }, DateTime.now().toUtc());
+  factory fromApiResults(
+    List<PubApiPackage> apiPackages, {
+    DateTime? lastUpdated,
+  }) => PackageDetailsCache._({
+    for (var package in apiPackages)
+      package.packageName: PubPackage.fromName(package),
+  }, lastUpdated ?? DateTime.now().toUtc());
 
   new _(this._packages, DateTime lastUpdated)
     : lastUpdatedUtc = lastUpdated.toUtc();
@@ -143,7 +146,9 @@ class PubPackage {
 class PubPackageService {
   final InstrumentationService _instrumentationService;
   final SessionLogger _sessionLogger;
-  final PubApi _api;
+
+  /// The [PubApi] used by this service.
+  final PubApi api;
 
   /// A wrapper over the "pub" command line too.
   ///
@@ -174,7 +179,7 @@ class PubPackageService {
     this._instrumentationService,
     this._sessionLogger,
     this.resourceProvider,
-    this._api,
+    this.api,
     this._command,
   );
 
@@ -315,7 +320,7 @@ class PubPackageService {
             PackageDetailsCache._maxPackageDetailsRequestsInFlight) {
       _packageDetailsRequestsInFlight++;
       try {
-        var details = await _api.packageInfo(packageName);
+        var details = await api.packageInfo(packageName);
         if (details != null) {
           packageData = PubPackage.fromDetails(details);
           packageCache?._packages[packageName] = packageData;
@@ -368,7 +373,7 @@ class PubPackageService {
 
   Future<void> _fetchFromServer() async {
     try {
-      var packages = await _api.allPackages();
+      var packages = await api.allPackages();
 
       // If we never got a valid response, just skip until the next refresh.
       if (packages == null) {

@@ -29,67 +29,61 @@ class FlutterWidgetPreviewsHandler
     TextDocumentIdentifier params,
     MessageInfo message,
     CancellationToken token,
-  ) async {
-    var path = pathOfDoc(params);
-    if (path.isError) {
-      return failure(path);
-    }
+  ) {
+    return withResolvedUnit(textDocument: params, token, (result, _, _) async {
+      var graph = <Uri, LibraryPreviewNode>{};
+      var processed = <Uri>{};
+      var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
 
-    var pathResult = path.resultOrNull!;
-    var result = await server.getResolvedUnit(pathResult);
-    if (result == null) {
-      return success(null);
-    }
+      // Build a graph starting from this library to track dependencies and errors.
+      Future<void> buildGraph(ResolvedUnitResult unit) async {
+        var fileUri = unit.uri;
+        if (processed.contains(fileUri)) return;
+        processed.add(fileUri);
 
-    var graph = <Uri, LibraryPreviewNode>{};
-    var processed = <Uri>{};
-    var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
+        // Scan all units in the library.
+        var libraryElement = unit.libraryElement;
+        for (var unitPath in libraryElement.fragments.map(
+          (f) => f.source.fullName,
+        )) {
+          var resolvedUnit = await server.getResolvedUnit(unitPath);
+          if (resolvedUnit != null) {
+            flutterWidgetPreviewDetector.findPreviews(
+              resolvedUnit,
+              graph: graph,
+            );
+          }
+        }
 
-    // Build a graph starting from this library to track dependencies and errors.
-    Future<void> buildGraph(ResolvedUnitResult unit) async {
-      var fileUri = unit.uri;
-      if (processed.contains(fileUri)) return;
-      processed.add(fileUri);
+        var node = graph[libraryElement.uri]!;
+        for (var dependency in node.dependsOn) {
+          if (processed.contains(dependency.uri)) continue;
 
-      // Scan all units in the library.
-      var libraryElement = unit.libraryElement;
-      for (var unitPath in libraryElement.fragments.map(
-        (f) => f.source.fullName,
-      )) {
-        var resolvedUnit = await server.getResolvedUnit(unitPath);
-        if (resolvedUnit != null) {
-          flutterWidgetPreviewDetector.findPreviews(resolvedUnit, graph: graph);
+          var depPath = dependency.path;
+          var driver = server.getAnalysisDriver(depPath);
+          if (driver == null || !driver.addedFiles.contains(depPath)) {
+            continue;
+          }
+
+          var depResult = await server.getResolvedUnit(depPath);
+          if (depResult != null) {
+            await buildGraph(depResult);
+          }
         }
       }
 
-      var node = graph[libraryElement.uri]!;
-      for (var dependency in node.dependsOn) {
-        if (processed.contains(dependency.uri)) continue;
+      await buildGraph(result);
+      flutterWidgetPreviewDetector.propagateErrors(graph);
 
-        var depPath = dependency.path;
-        var driver = server.getAnalysisDriver(depPath);
-        if (driver == null || !driver.addedFiles.contains(depPath)) {
-          continue;
-        }
-
-        var depResult = await server.getResolvedUnit(depPath);
-        if (depResult != null) {
-          await buildGraph(depResult);
-        }
-      }
-    }
-
-    await buildGraph(result);
-    flutterWidgetPreviewDetector.propagateErrors(graph);
-
-    var node = graph[result.libraryElement.uri]!;
-    return success(
-      FlutterWidgetPreviews(
-        scriptUris: node.previews.map((e) => e.scriptUri).toSet().toList(),
-        previews: node.previews,
-        namespaces: flutterWidgetPreviewDetector.namespaces,
-      ),
-    );
+      var node = graph[result.libraryElement.uri]!;
+      return success(
+        FlutterWidgetPreviews(
+          scriptUris: node.previews.map((e) => e.scriptUri).toSet().toList(),
+          previews: node.previews,
+          namespaces: flutterWidgetPreviewDetector.namespaces,
+        ),
+      );
+    });
   }
 }
 

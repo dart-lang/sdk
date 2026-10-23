@@ -39,30 +39,33 @@ class DocumentHighlightsHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) {
+      var offset = toOffset(unit.lineInfo, pos);
+      return offset.mapResult((requestedOffset) async {
+        var computer = DartDocumentHighlightsComputer(unit.unit);
+        var matchingTokens = computer.compute(requestedOffset);
 
-    return (unit, offset).mapResults((unit, requestedOffset) async {
-      var computer = DartDocumentHighlightsComputer(unit.unit);
-      var matchingTokens = computer.compute(requestedOffset);
-
-      // No matches will return an empty list (not null) because that prevents
-      // the editor falling back to a text search.
-      var highlights = matchingTokens
-          .map(
-            (item) => DocumentHighlight(
-              range: toRange(
-                unit.lineInfo,
-                item.token.offset,
-                item.token.length,
+        // No matches will return an empty list (not null) because that prevents
+        // the editor falling back to a text search.
+        var highlights = matchingTokens
+            .map(
+              (item) => DocumentHighlight(
+                range: toRange(
+                  unit.lineInfo,
+                  item.token.offset,
+                  item.token.length,
+                ),
+                kind: item.kind,
               ),
-              kind: item.kind,
-            ),
-          )
-          .toList();
+            )
+            .toList();
 
-      return success(highlights);
+        return success(highlights);
+      });
     });
   }
 }

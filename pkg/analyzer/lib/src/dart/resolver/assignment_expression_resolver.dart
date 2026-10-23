@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -23,15 +24,13 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 /// Helper for resolving V2 assignment expressions and their targets.
 class AssignmentExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
+  final PropertyElementResolver _propertyElementResolver;
   final TypePropertyResolver _typePropertyResolver;
-  final AssignmentExpressionShared _assignmentShared;
 
   new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
-      _typePropertyResolver = typeAnalyzer.typePropertyResolver,
-      _assignmentShared = AssignmentExpressionShared(
-        typeAnalyzer: typeAnalyzer,
-      );
+      _propertyElementResolver = typeAnalyzer.propertyElementResolver,
+      _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 
   DiagnosticReporter get _diagnosticReporter =>
       _typeAnalyzer.diagnosticReporter;
@@ -174,6 +173,7 @@ class AssignmentExpressionResolver {
       node.value,
       whyNotPromoted: whyNotPromoted,
     );
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(node.target);
 
     var flow = _typeAnalyzer.flowAnalysis.flow;
     if (flow == null) return;
@@ -279,9 +279,8 @@ class AssignmentExpressionResolver {
           );
           _typeAnalyzer.nullSafetyDeadCodeVerifier.visitNode(target.index);
         }
-        var resolution = _typeAnalyzer.resolveIndexDirectAssignmentTarget(
-          target,
-        );
+        var resolution = _propertyElementResolver
+            .resolveIndexDirectAssignmentTarget(target);
         target.write = resolution;
 
         _typeAnalyzer.analyzeExpression(
@@ -317,7 +316,7 @@ class AssignmentExpressionResolver {
         writeAcceptedType = resolution.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var resolution = _typeAnalyzer
+        var resolution = _propertyElementResolver
             .resolveReceiverPropertyDirectAssignmentTarget(target);
         target.write = resolution;
         if (resolution == null) {
@@ -334,18 +333,16 @@ class AssignmentExpressionResolver {
         }
         writeAcceptedType = resolution.acceptedType;
       case ImportPrefixedAssignmentTargetImpl():
-        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
+        _propertyElementResolver.resolveImportPrefixedAssignmentTarget(target);
         writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
-        var resolution = _typeAnalyzer.resolveUnqualifiedNameAssignmentTarget(
-          target,
-        );
+        var resolution = _propertyElementResolver
+            .resolveUnqualifiedNameAssignmentTarget(target);
         target.write = resolution;
         writeAcceptedType = resolution.acceptedType;
         if (resolution case VariableWriteResolutionImpl(:var element)) {
           variableElement = element;
         }
-        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidExtensionOverrideAssignmentTargetImpl():
@@ -385,6 +382,7 @@ class AssignmentExpressionResolver {
       valueType,
       whyNotPromoted: whyNotPromoted,
     );
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(target);
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
@@ -477,6 +475,7 @@ class AssignmentExpressionResolver {
       valueType,
       whyNotPromoted: whyNotPromoted,
     );
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(node.target);
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
@@ -528,7 +527,7 @@ class AssignmentExpressionResolver {
         );
       case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var result = _typeAnalyzer
+        var result = _propertyElementResolver
             .resolveReceiverPropertyReadWriteAssignmentTarget(target);
         if (result == null) return const UnresolvedReadWriteTarget();
         target.read = result.read;
@@ -539,7 +538,7 @@ class AssignmentExpressionResolver {
           readExpressionInfo: result.readExpressionInfo,
         );
       case ImportPrefixedAssignmentTargetImpl():
-        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
+        _propertyElementResolver.resolveImportPrefixedAssignmentTarget(target);
         var read = target.read!;
         var write = target.write!;
         return ResolvedReadWriteTarget(
@@ -547,11 +546,10 @@ class AssignmentExpressionResolver {
           writeAcceptedType: write.acceptedType,
         );
       case UnqualifiedNameAssignmentTargetImpl():
-        var result = _typeAnalyzer
+        var result = _propertyElementResolver
             .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
         target.read = result.read;
         target.write = result.write;
-        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
         return ResolvedReadWriteTarget(
           readType: operatorReadType(result.read, result.write),
           writeAcceptedType: result.write.acceptedType,
@@ -836,7 +834,7 @@ class AssignmentExpressionResolver {
       receiverType: readType,
       name: methodName,
       hasRead: true,
-      hasWrite: true,
+      hasWrite: false,
       propertyErrorEntity: node.operator,
       nameErrorEntity: node.operator,
       parentNode: node,
@@ -874,7 +872,9 @@ class AssignmentExpressionResolver {
       _typeAnalyzer.nullSafetyDeadCodeVerifier.visitNode(target.index);
     }
 
-    var result = _typeAnalyzer.resolveIndexReadWriteAssignmentTarget(target);
+    var result = _propertyElementResolver.resolveIndexReadWriteAssignmentTarget(
+      target,
+    );
     target.read = result?.read;
     target.write = result?.write;
 
@@ -1003,55 +1003,6 @@ class AssignmentExpressionResolver {
       return InvalidTypeImpl.instance;
     }
     return read.type;
-  }
-}
-
-class AssignmentExpressionShared {
-  final TypeAnalyzer _typeAnalyzer;
-
-  new({required this._typeAnalyzer});
-
-  DiagnosticReporter get _errorReporter => _typeAnalyzer.diagnosticReporter;
-
-  /// Reports a write to [target] if it is a final local variable that might
-  /// already be assigned.
-  void checkFinalTargetAlreadyAssigned(
-    UnqualifiedNameAssignmentTargetImpl target, {
-    bool isWrittenRepeatedly = false,
-  }) {
-    if (_typeAnalyzer.flowAnalysis.flow == null) return;
-    var element = target.scopeLookupResult?.getter;
-    if (element is PromotableElementImpl) {
-      _checkFinalAlreadyAssigned(
-        target,
-        element,
-        isWrittenRepeatedly: isWrittenRepeatedly,
-      );
-    }
-  }
-
-  void _checkFinalAlreadyAssigned(
-    AstNode node,
-    PromotableElementImpl element, {
-    required bool isWrittenRepeatedly,
-  }) {
-    var flowAnalysis = _typeAnalyzer.flowAnalysis;
-    var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
-    var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
-
-    if (element.isFinal) {
-      if (element.isLate) {
-        if (isWrittenRepeatedly || assigned) {
-          _errorReporter.report(diag.lateFinalLocalAlreadyAssigned.at(node));
-        }
-      } else if (isWrittenRepeatedly || !unassigned) {
-        _errorReporter.report(
-          diag.assignmentToFinalLocal
-              .withArguments(variableName: element.name!)
-              .at(node),
-        );
-      }
-    }
   }
 }
 

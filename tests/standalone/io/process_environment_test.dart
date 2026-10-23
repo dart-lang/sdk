@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 import "process_test_util.dart";
 
 runEnvironmentProcess(
-  Map<String, String> environment,
+  Map<String, String>? environment,
   name,
   includeParent,
   callback,
@@ -75,6 +75,12 @@ testNoIncludeEnvironment() async {
   env = new Map.from(env);
   env.remove('PATH');
   await runEnvironmentProcess(env, "PATH", false, (output) {
+    Expect.isTrue(output.startsWith("null"));
+  });
+  await runEnvironmentProcess({}, "PATH", false, (output) {
+    Expect.isTrue(output.startsWith("null"));
+  });
+  await runEnvironmentProcess(null, "PATH", false, (output) {
     Expect.isTrue(output.startsWith("null"));
   });
 }

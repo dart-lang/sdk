@@ -78,7 +78,6 @@ enum PredefinedClusters {
   ints,
   doubles,
   records,
-  instantiatedClosures,
   typeParameters,
   interfaceTypes,
   functionTypes,
@@ -409,7 +408,7 @@ class SnapshotSerializer {
     ast.RecordConstant() => getPredefinedCluster(PredefinedClusters.records),
     ast.InstanceConstant() => getInstanceCluster(obj.classNode),
     ast.InstantiationConstant() => getPredefinedCluster(
-      PredefinedClusters.instantiatedClosures,
+      PredefinedClusters.closures,
     ),
     ast.TearOffConstant() => getPredefinedCluster(
       _declaredLibraries.contains(obj.target.enclosingLibrary)
@@ -491,7 +490,6 @@ class SnapshotSerializer {
         .maps => MapSerializationCluster(),
         .sets => SetSerializationCluster(),
         .records => RecordSerializationCluster(),
-        .instantiatedClosures => throw 'Unimplemented cluster $clusterId',
         .typeParameters => TypeParametersSerializationCluster(),
         .typeArguments => TypeArgumentsSerializationCluster(),
         .interfaceTypes => InterfaceTypeSerializationCluster(),
@@ -1176,20 +1174,31 @@ final class ClosureRefSerializationCluster extends SerializationCluster {
   }
 }
 
+typedef _ClosureFields = ({TearOffFunction function, ast.Constant? typeArgs});
+
 final class ClosureSerializationCluster extends SerializationCluster {
-  final List<ast.TearOffConstant> _objects = [];
-  final List<TearOffFunction> _functions = [];
+  final List<ast.Constant> _objects = [];
+  final List<_ClosureFields> _fields = [];
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
-    final closure = object as ast.TearOffConstant;
+    final closure = object as ast.Constant;
     _objects.add(closure);
+    final (target, typeArgs) = switch (closure) {
+      ast.TearOffConstant() => (closure.target, SentinelConstant()),
+      ast.InstantiationConstant() => (
+        (closure.tearOffConstant as ast.TearOffConstant).target,
+        TypeArgumentsConstant(closure.types),
+      ),
+      _ => throw 'Unexpected closure ${closure.runtimeType} $closure',
+    };
     final function = serializer.functionRegistry.getFunction(
-      closure.target,
+      target,
       isTearOff: true,
     ) as TearOffFunction;
-    _functions.add(function);
+    _fields.add((function: function, typeArgs: typeArgs));
     serializer.push(function);
+    serializer.push(typeArgs);
   }
 
   @override
@@ -1202,7 +1211,7 @@ final class ClosureSerializationCluster extends SerializationCluster {
     serializer.writeUint(_objects.length);
     for (var i = 0; i < _objects.length; ++i) {
       final closure = _objects[i];
-      final function = _functions[i];
+      final function = _fields[i].function;
       serializer.assignRef(closure);
       final hasDelayedTypeArgs = function.hasFunctionTypeParameters;
       final length = hasDelayedTypeArgs ? 1 : 0;
@@ -1212,7 +1221,8 @@ final class ClosureSerializationCluster extends SerializationCluster {
 
   @override
   void writeFill(SnapshotSerializer serializer) {
-    for (final function in _functions) {
+    for (final fields in _fields) {
+      final function = fields.function;
       final hasDelayedTypeArgs = function.hasFunctionTypeParameters;
       final length = hasDelayedTypeArgs ? 1 : 0;
       serializer.writeUint(length);
@@ -1225,6 +1235,11 @@ final class ClosureSerializationCluster extends SerializationCluster {
         ),
       );
       serializer.writeRefId(function);
+      if (hasDelayedTypeArgs) {
+        serializer.writeRefId(fields.typeArgs);
+      } else {
+        assert(fields.typeArgs == SentinelConstant());
+      }
     }
   }
 }

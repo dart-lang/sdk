@@ -82,7 +82,13 @@ mixin M;
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody
@@ -101,7 +107,13 @@ mixin M;
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@22
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody

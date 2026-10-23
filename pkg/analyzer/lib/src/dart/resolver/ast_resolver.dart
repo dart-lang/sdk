@@ -123,7 +123,6 @@ class AstResolver {
       nameScope: nameScope,
       docImportScope: docImportScope,
       diagnosticListener: diagnosticListener,
-      strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
       dataForTesting: testingData != null
           ? TypeConstraintGenerationDataForTesting()
@@ -176,7 +175,7 @@ class AstResolver {
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
-  void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void resolveConstructorDeclaration(ConstructorDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
@@ -249,7 +248,7 @@ class AstResolver {
 
   void resolvePrimaryConstructor(
     PrimaryConstructorDeclarationImpl node,
-    PrimaryConstructorBodyImpl body,
+    PrimaryConstructorBody2Impl body,
   ) {
     var element = node.declaredFragment!.element;
 

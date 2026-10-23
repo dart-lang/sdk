@@ -33,6 +33,7 @@ void main() {
     defineReflectiveTests(UndefinedMethodTest);
     defineReflectiveTests(UndefinedNamedParameterTest);
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(UriDoesNotExistTest);
     defineReflectiveTests(UriTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsConstructorTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
@@ -2030,6 +2031,163 @@ void f(C a, C b) {
   a.new = b.new = 1;
 }
 ''');
+  }
+}
+
+@reflectiveTest
+class UriDoesNotExistTest extends _DataDrivenTest {
+  Future<void> test_export_replacedBy_deprecated() async {
+    newFile('$workspaceRootPath/p/lib/old.dart', '''
+@deprecated
+library;
+class A {}
+''');
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+export 'package:p/old.dart' show A;
+''');
+    await assertHasFix('''
+export 'package:p/new.dart' show A;
+''');
+  }
+
+  Future<void> test_export_replacedBy_removed() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+export 'package:p/old.dart' show A;
+''');
+    await assertHasFix('''
+export 'package:p/new.dart' show A;
+''');
+  }
+
+  Future<void> test_import_replacedBy_deprecated() async {
+    newFile('$workspaceRootPath/p/lib/old.dart', '''
+@deprecated
+library;
+class A {}
+''');
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+import 'package:p/old.dart';
+void f(A a) {}
+''');
+    await assertHasFix('''
+import 'package:p/new.dart';
+void f(A a) {}
+''');
+  }
+
+  Future<void> test_import_replacedBy_removed() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    newFile('$workspaceRootPath/p2/lib/other.dart', '''
+class B {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
+        ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+- title: 'Replace by package:p2/other.dart'
+  date: 2026-01-01
+  library: 'package:p/old_other.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p2/other.dart'
+''');
+    await resolveTestCode('''
+import 'package:p/old.dart' as p show A;
+import 'package:p/old_other.dart' deferred as p2 hide C;
+void f(p.A a) {}
+''');
+    await assertHasFix('''
+import 'package:p/new.dart' as p show A;
+import 'package:p2/other.dart' deferred as p2 hide C;
+void f(p.A a) {}
+''');
+  }
+
+  Future<void> test_part_missing_ignored() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+part 'missing_part.dart';
+''');
+    await assertNoFix();
   }
 }
 

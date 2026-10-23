@@ -21,6 +21,44 @@ main() {
 
 @reflectiveTest
 class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
+  @V1Ast('Tests the V1 projection.')
+  test_classDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A extends Object {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'class A extends Object {void foo() {}}',
+      result.findNodeV1.singleClassDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_classTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin M {}
+class A = Object with M;
+''');
+    _assertSource(
+      'class A = Object with M;',
+      result.findNodeV1.singleClassTypeAlias,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_constructorDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named(int a) : assert(a > 0);
+}
+''');
+    _assertSource(
+      'A.named(int a) : assert (a > 0);',
+      result.findNodeV1.singleConstructorDeclaration,
+    );
+  }
+
   test_dotShorthandMethodInvocation() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -67,6 +105,51 @@ class A {
 A x = .foo.bar;
 ''');
     _assertSource('.foo', result.findNode.singleDotShorthandNameExpression);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_enumConstantDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum E {
+  v(0);
+  const E(int a);
+}
+''');
+    _assertSource('v(0)', result.findNodeV1.singleEnumConstantDeclaration);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_enumDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum E { v }
+''');
+    _assertSource('enum E {v}', result.findNodeV1.singleEnumDeclaration);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_extensionDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'extension E on int {void foo() {}}',
+      result.findNodeV1.singleExtensionDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_extensionTypeDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'extension type A(int it) {void foo() {}}',
+      result.findNodeV1.singleExtensionTypeDeclaration,
+    );
   }
 
   @V1Ast('Tests the V1 projection.')
@@ -189,6 +272,19 @@ var x = math.pi;
     _assertSource(
       'math.pi',
       result.findNode.singleImportPrefixedNameExpression,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_mixinDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin M on Object {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'mixin M on Object {void foo() {}}',
+      result.findNodeV1.singleMixinDeclaration,
     );
   }
 

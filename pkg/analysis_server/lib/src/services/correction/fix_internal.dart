@@ -805,6 +805,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.superInvocationNotLast: [MakeSuperInvocationLast.new],
   diag.switchCaseCompletesNormally: [AddSwitchCaseBreak.new],
   diag.typeTestWithUndefinedName: [ChangeTo.classOrMixin],
+  diag.uncheckedInstantiationOfNullableValue: [AddNullCheck.new],
   diag.uncheckedInvocationOfNullableValue: [
     AddNullCheck.new,
     ReplaceWithNullAware.single,

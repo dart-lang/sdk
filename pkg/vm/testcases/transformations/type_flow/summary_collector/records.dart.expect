@@ -2,16 +2,31 @@
 %x = _Parameter #0 [_T ANY?]
 %y = _Parameter #1 [_T ANY?]
 %z = _Parameter #2 [_T ANY?]
-t3 = _Call direct set [$1] (_T (dart.core::Record)+, %x)
-t4 = _Call direct set [$2] (_T (dart.core::Record)+, %y)
-t5 = _Call direct set [bar] (_T (dart.core::Record)+, %z)
-RESULT: _T (dart.core::Record)+
+t3 = _Call direct set [$1] (_T (dart.core::_Record[2,bar]), %x)
+t4 = _Call direct set [$2] (_T (dart.core::_Record[2,bar]), %y)
+t5 = _Call direct set [bar] (_T (dart.core::_Record[2,bar]), %z)
+t6 = _CreateRecordType (dart.core::_Record[2,bar] @ [%x, %y, %z])
+RESULT: t6
+------------ recordLiteralSpecialized ------------
+t0 = _Call direct set [$1] (_T (dart.core::_Record[2,foo]), _T (dart.core::_Smi, 10))
+t1 = _Call direct set [$2] (_T (dart.core::_Record[2,foo]), _T (dart.core::_OneByteString, "abc"))
+t2 = _Call direct set [foo] (_T (dart.core::_Record[2,foo]), _T (dart.core::_ImmutableList<dart.core::int>, const <dart.core::int>[1]))
+RESULT: _T (dart.core::_Record[2,foo](_T (dart.core::_Smi, 10), _T (dart.core::_OneByteString, "abc"), _T (dart.core::_ImmutableList<dart.core::int>, const <dart.core::int>[1])))
+------------ recordLiteralUnspecialized ------------
+%x = _Parameter #0 [_T (dart.core::String)+]
+t1 = _Call direct set [$1] (_T (dart.core::_Record[2]), _T (dart.core::String)+)
+t2 = _Call direct set [$2] (_T (dart.core::_Record[2]), _T (dart.core::_Smi, 42))
+t3 = _CreateRecordType (dart.core::_Record[2] @ [_T (dart.core::String)+, _T (dart.core::_Smi, 42)])
+RESULT: t3
+------------ recordLiteralEmpty ------------
+t0 = _Call direct set [$1] (_T (dart.core::_Record[2]), _T (dart.core::_Smi, 42))
+RESULT: _T {}
 ------------ recordFieldAccess1 ------------
-%rec = _Parameter #0 [_T (dart.core::Record)+]
+%rec = _Parameter #0 [_T (dart.core::_Record[2])+]
 t1* = _Call direct get [$2] (%rec)
 RESULT: t1
 ------------ recordFieldAccess2 ------------
-%rec = _Parameter #0 [_T (dart.core::Record)+]
+%rec = _Parameter #0 [_T (dart.core::_Record[0,a,b])+]
 t1* = _Call direct get [b] (%rec)
 RESULT: t1
 ------------ main ------------
@@ -19,4 +34,4 @@ RESULT: t1
 RESULT: _T {}?
 ------------ recordConstant ------------
 
-RESULT: _T (dart.core::Record)+
+RESULT: _T (dart.core::_Record[2,foo](_T (dart.core::_Smi, 42), _T (dart.core::_OneByteString, "Hey"), _T (dart.core::_OneByteString, "foo")))

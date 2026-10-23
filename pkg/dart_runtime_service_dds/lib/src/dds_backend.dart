@@ -7,7 +7,7 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 import 'package:dds/dds.dart' show DartDevelopmentServiceException;
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
@@ -36,7 +36,8 @@ final _logger = Logger('DartRuntimeServiceDdsBackend');
 /// A [DartRuntimeServiceBackend] implementation that provides the Dart
 /// Development Service (DDS) for a remote VM Service.
 class DartRuntimeServiceDdsBackend
-    extends DartRuntimeServiceBackend<DdsIsolateManager> {
+    extends DartRuntimeServiceBackend<DdsIsolateManager>
+    with DartRuntimeServiceIoBackend {
   /// Creates a new [DartRuntimeServiceDdsBackend] connecting to the VM
   /// Service at [remoteVmServiceUri].
   DartRuntimeServiceDdsBackend(
@@ -172,11 +173,13 @@ class DartRuntimeServiceDdsBackend
       final buildDir = (customDevToolsPath ?? _getDevToolsAssetPath())
           .toFilePath();
       _httpHandler = await defaultHandler(
-        buildDir: buildDir,
-        notFoundHandler: notFoundHandler,
         devtoolsExtensionsManager: ExtensionsManager(),
         appRoot: appRoot,
+        buildDir: buildDir,
+        disableServiceOriginCheck: frontend.config.disableOriginCheck,
         enableLogging: frontend.config.enableLogging,
+        notFoundHandler: notFoundHandler,
+        serviceUriGetter: () => frontend.isServerRunning ? frontend.uri : null,
       );
     } else {
       _httpHandler = (shelf.Request request) {
@@ -322,10 +325,8 @@ class DartRuntimeServiceDdsBackend
   Future<void> clearState() async {}
 
   @override
-  Future<void> onServerStarted({
-    required Uri httpUri,
-    required Uri wsUri,
-  }) async {
+  Future<void> onServerStarted() async {
+    final DartRuntimeService(:httpUri, uri: wsUri) = frontend;
     try {
       await vmServiceClient.yieldControlToDds(uri: httpUri);
     } on vm.RPCError catch (e, st) {

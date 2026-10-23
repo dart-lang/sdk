@@ -36,17 +36,17 @@ class VarianceBuilder {
     for (var builder in _linker.builders.values) {
       for (var linkingUnit in builder.units) {
         for (var node in linkingUnit.node.declarations2) {
-          if (node is ClassTypeAliasImpl) {
+          if (node is ClassTypeAlias2Impl) {
             _typeParameters(node.typeParameters);
-          } else if (node is ClassDeclarationImpl) {
+          } else if (node is ClassDeclaration2Impl) {
             _typeParameters(node.namePart.typeParameters);
-          } else if (node is EnumDeclarationImpl) {
+          } else if (node is EnumDeclaration2Impl) {
             _typeParameters(node.namePart.typeParameters);
           } else if (node is FunctionTypeAlias2Impl) {
             _functionTypeAlias(node);
           } else if (node is GenericTypeAlias2Impl) {
             _genericTypeAlias(node);
-          } else if (node is MixinDeclarationImpl) {
+          } else if (node is MixinDeclaration2Impl) {
             _typeParameters(node.typeParameters);
           }
         }

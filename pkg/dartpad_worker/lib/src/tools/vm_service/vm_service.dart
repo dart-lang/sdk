@@ -108,10 +108,7 @@ final class _DartPadVmServiceBackend
   Future<void> onServiceReady(DartRuntimeService service) async {}
 
   @override
-  Future<void> onServerStarted({
-    required Uri httpUri,
-    required Uri wsUri,
-  }) async {}
+  Future<void> onServerStarted() async {}
 
   @override
   Future<void> onServerShutdown() async {}

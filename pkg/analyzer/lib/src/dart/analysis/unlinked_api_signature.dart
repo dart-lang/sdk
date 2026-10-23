@@ -40,15 +40,15 @@ class _UnitApiSignatureComputer {
     signature.addInt(unit.declarations2.length);
     for (var declaration in unit.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           _addClass(declaration);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _addEnum(declaration);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _addExtension(declaration);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           _addNode(declaration);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           _addMixin(declaration);
         case TopLevelFunctionDeclarationImpl():
           _addTokens(
@@ -73,7 +73,7 @@ class _UnitApiSignatureComputer {
           _addFunctionBodyModifiers(declaration.body);
         case TopLevelVariablesDeclarationImpl():
           _topLevelVariablesDeclaration(declaration);
-        case ClassTypeAliasImpl() ||
+        case ClassTypeAlias2Impl() ||
             FunctionTypeAlias2Impl() ||
             GenericTypeAlias2Impl():
           _addNode(declaration);
@@ -81,24 +81,24 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addClass(ClassDeclarationImpl node) {
+  void _addClass(ClassDeclaration2Impl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    bool hasConstConstructor = node.body.members2.any(
-      (m) => m is ConstructorDeclarationImpl && m.constKeyword != null,
+    bool hasConstConstructor = node.body.members.any(
+      (m) => m is ConstructorDeclaration2Impl && m.constKeyword != null,
     );
-    _addClassMembers(node.body.members2, hasConstConstructor);
+    _addClassMembers(node.body.members, hasConstConstructor);
   }
 
   void _addClassMembers(List<AnnotatedNode> members, bool hasConstConstructor) {
     signature.addInt(members.length);
     for (var member in members) {
-      if (member is ConstructorDeclarationImpl) {
+      if (member is ConstructorDeclaration2Impl) {
         _addConstructorDeclaration(member);
       } else if (member is FieldsDeclaration) {
         _addFieldsDeclaration(member, hasConstConstructor);
       } else if (member is MethodDeclarationV1OriginImpl) {
         _addMethodDeclaration(member);
-      } else if (member is PrimaryConstructorBody) {
+      } else if (member is PrimaryConstructorBody2) {
         _addPrimaryConstructorBody(member);
       } else {
         throw UnimplementedError('(${member.runtimeType}) $member');
@@ -106,16 +106,16 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void _addConstructorDeclaration(ConstructorDeclaration2Impl node) {
     signature.addInt(_kindConstructorDeclaration);
-    _addTokens(node.beginToken, node.parameters.endToken);
+    _addTokens(node.beginToken, node.formalParameters.endToken);
     _addNodeList(node.initializers);
     _addNode(node.factoryRedirectionTarget);
     signature.addBool(node.isComplete);
   }
 
-  void _addEnum(EnumDeclarationImpl node) {
-    var members = node.body.members2;
+  void _addEnum(EnumDeclaration2Impl node) {
+    var members = node.body.members;
 
     // If not enhanced, include the whole node.
     var firstMember = members.firstOrNull;
@@ -128,9 +128,9 @@ class _UnitApiSignatureComputer {
     _addClassMembers(members, true);
   }
 
-  void _addExtension(ExtensionDeclarationImpl node) {
+  void _addExtension(ExtensionDeclaration2Impl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members2, false);
+    _addClassMembers(node.body.members, false);
   }
 
   void _addFieldsDeclaration(FieldsDeclaration node, bool hasConstConstructor) {
@@ -184,9 +184,9 @@ class _UnitApiSignatureComputer {
     signature.addBool(node.invokesSuperSelf);
   }
 
-  void _addMixin(MixinDeclarationImpl node) {
+  void _addMixin(MixinDeclaration2Impl node) {
     _addTokens(node.beginToken, node.body.beginToken);
-    _addClassMembers(node.body.members2, false);
+    _addClassMembers(node.body.members, false);
     signature.addStringList(node.superInvokedNames);
   }
 
@@ -205,7 +205,7 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _addPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void _addPrimaryConstructorBody(PrimaryConstructorBody2 node) {
     signature.addInt(_kindPrimaryConstructorBody);
     _addTokens(node.beginToken, node.body.beginToken);
   }
@@ -268,7 +268,7 @@ class _UnitApiSignatureComputer {
   }
 }
 
-extension on MixinDeclaration {
+extension on MixinDeclaration2 {
   List<String> get superInvokedNames {
     var names = <String>{};
     var collector = MixinSuperInvokedNamesCollector(names);

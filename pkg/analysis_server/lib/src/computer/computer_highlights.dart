@@ -1155,7 +1155,7 @@ class _DartUnitHighlightsComputerVisitor extends UnifyingAstVisitor<void> {
     computer._addRegion_token(
       node.namePart.typeName,
       HighlightRegionType.EXTENSION_TYPE,
-      semanticTokenModifiers: {SemanticTokenModifiers.declaration},
+      additionalSemanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
 
     super.visitExtensionTypeDeclaration(node);

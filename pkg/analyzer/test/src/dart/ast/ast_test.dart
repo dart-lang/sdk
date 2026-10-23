@@ -299,9 +299,9 @@ class C<E> {
 ''');
     var offset = result.content.indexOf('<int>');
     var node = result.unit.nodeCovering(offset: offset, length: 5);
-    var invocation =
-        result.findNode.constructorInvocation('C.named<int>')
-            as ConstructorInvocationImpl;
+    var invocation = result.findNode.constructorInvocation(
+      'C.named<int>',
+    ) as ConstructorInvocationImpl;
 
     expect(node, isA<TypeArgumentListImpl>());
     expect(invocation.constructorReference.typeReference.typeArguments, null);
@@ -317,9 +317,9 @@ class C<T> {
   C.named(T value);
 }
 ''');
-    var v2 =
-        result.findNode.constructorInvocation('C<int>')
-            as ConstructorInvocationImpl;
+    var v2 = result.findNode.constructorInvocation(
+      'C<int>',
+    ) as ConstructorInvocationImpl;
     var reference = v2.constructorReference;
     var v1 = v2.instanceCreationExpression;
 
@@ -1675,7 +1675,7 @@ library myLib;
     var node = await coveringNode('''
 ^class A {}
 ''');
-    node as ClassDeclaration;
+    node as ClassDeclaration2;
   }
 
   Future<void> test_atBOF_atComment() async {
@@ -1732,7 +1732,7 @@ class C {
   void b() {}
 }
 ''');
-    node as ClassBody;
+    node as BlockInstanceDeclarationBody;
   }
 
   Future<void> test_between_colonAndIdentifier_namedExpression() async {

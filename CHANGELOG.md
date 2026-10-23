@@ -63,6 +63,21 @@ remove them.
 [language version]: https://dart.dev/to/language-version
 [unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
 
+### Libraries
+
+#### `dart:core`
+
+- Added `double.maxSafeInteger` (`9007199254740991`, `2^53 - 1`) and
+  `double.minSafeInteger` (`-9007199254740991`, `-(2^53 - 1)`).
+  For more details, see SDK issue [#64491][].
+
+#### `dart:math`
+
+- Added `imul32(int a, int b)` for 32-bit signed wrapping multiplication.
+  For more details, see SDK issue [#64491][].
+
+[#64491]: https://github.com/dart-lang/sdk/issues/64491
+
 ### Tools
 
 #### Analyzer
@@ -74,6 +89,21 @@ remove them.
   For more details, see SDK issue [#64561][].
 
 [#64561]: https://github.com/dart-lang/sdk/issues/64561
+
+#### Pub
+
+- `dart pub publish` now creates reproducible `.tar.gz` package archives with
+  deterministic entry ordering, zeroed modification timestamps, and normalized
+  permissions ([dart-lang/pub#4885][]).
+- On Windows, `dart pub` now requires `git.exe` on `PATH` and no longer invokes
+  `git.cmd` or `git.bat` batch wrappers ([dart-lang/pub#4941][]).
+- Deprecated the `--[no-]precompile` flag on `dart pub get`, `upgrade`, `add`,
+  and `remove` ([dart-lang/pub#4910][]). `dart run` and `dart test` now cache
+  precompiled executables directly in `.dart_tool/dartdev/bin/`.
+
+[dart-lang/pub#4885]: https://github.com/dart-lang/pub/pull/4885
+[dart-lang/pub#4910]: https://github.com/dart-lang/pub/pull/4910
+[dart-lang/pub#4941]: https://github.com/dart-lang/pub/pull/4941
 
 ## 3.14.0
 

@@ -9,6 +9,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:pool/pool.dart' as pool;
@@ -28,6 +29,66 @@ void main(List<String> args) async {
     exit(1);
   }
 
+  final parser = ArgParser()
+    ..addFlag(
+      'help',
+      abbr: 'h',
+      negatable: false,
+      help: 'Show usage information.',
+    )
+    ..addOption(
+      'repo',
+      abbr: 'r',
+      help: 'Roll a single repository (e.g. "test" or "third_party/pkg/test").',
+      valueHelp: 'repository',
+    );
+
+  final ArgResults argResults;
+  try {
+    argResults = parser.parse(args);
+  } on FormatException catch (e) {
+    stderr.writeln(e.message);
+    stderr
+        .writeln('Usage: dart tools/rev_sdk_deps.dart [options] [repository]');
+    exit(1);
+  }
+
+  if (argResults.flag('help')) {
+    print('Usage: dart tools/rev_sdk_deps.dart [options] [repository]');
+    print('');
+    print('Automatically updates revisions in the DEPS file.');
+    print('');
+    print(parser.usage);
+    return;
+  }
+
+  if (argResults.wasParsed('repo') && argResults.rest.isNotEmpty) {
+    stderr.writeln(
+      'Cannot specify both --repo and a positional repository argument.',
+    );
+    exit(1);
+  }
+
+  if (argResults.rest.length > 1) {
+    stderr.writeln(
+      'Unexpected arguments: ${argResults.rest.sublist(1).join(' ')}',
+    );
+    stderr
+        .writeln('Usage: dart tools/rev_sdk_deps.dart [options] [repository]');
+    exit(1);
+  }
+
+  String? targetRepo = argResults.option('repo');
+  if (targetRepo == null && argResults.rest.isNotEmpty) {
+    targetRepo = argResults.rest.first;
+  }
+  if (targetRepo != null) {
+    targetRepo = path.basename(path.normalize(targetRepo));
+    if (targetRepo.endsWith('.git')) {
+      targetRepo = targetRepo.substring(0, targetRepo.length - '.git'.length);
+    }
+  }
+
   final gclient = GClientHelper();
 
   final deps = await gclient.getPackageDependencies();
@@ -35,11 +96,26 @@ void main(List<String> args) async {
 
   // Remove pinned deps.
   final pinnedDeps = calculatePinnedDeps();
-  deps.removeWhere((dep) => pinnedDeps.contains(dep.name));
-
-  print('Not attempting to move forward the revisions for: '
-      '${pinnedDeps.toList().join(', ')}.');
-  print('');
+  if (targetRepo != null) {
+    if (pinnedDeps.contains(targetRepo)) {
+      stderr.writeln(
+        'Repository "$targetRepo" is pinned in DEPS. Remove the pin before rolling.',
+      );
+      exit(1);
+    }
+    deps.retainWhere((dep) => dep.name == targetRepo);
+    if (deps.isEmpty) {
+      stderr.writeln(
+        'Repository "$targetRepo" not found in package dependencies.',
+      );
+      exit(1);
+    }
+  } else {
+    deps.removeWhere((dep) => pinnedDeps.contains(dep.name));
+    print('Not attempting to move forward the revisions for: '
+        '${pinnedDeps.toList().join(', ')}.');
+    print('');
+  }
 
   deps.sort((a, b) => a.name.compareTo(b.name));
 
@@ -63,19 +139,28 @@ void main(List<String> args) async {
   );
 
   if (revDepsToCommits.isEmpty) {
-    print('No new revisions.');
+    if (targetRepo != null) {
+      print('No new revisions for $targetRepo.');
+    } else {
+      print('No new revisions.');
+    }
     return;
   }
 
-  final separateReviewDeps = revDepsToCommits.keys
-      .where((dep) => individuallyReviewedPackages.contains(dep.name))
-      .toList();
-  revDepsToCommits
-      .removeWhere((dep, _) => individuallyReviewedPackages.contains(dep.name));
+  final List<PackageDependency> separateReviewDeps;
+  if (targetRepo != null) {
+    separateReviewDeps = const [];
+  } else {
+    separateReviewDeps = revDepsToCommits.keys
+        .where((dep) => individuallyReviewedPackages.contains(dep.name))
+        .toList();
+    revDepsToCommits.removeWhere(
+        (dep, _) => individuallyReviewedPackages.contains(dep.name));
+  }
 
   final depsToRevNames = revDepsToCommits.keys.map((e) => e.name).join(', ');
 
-  print('Move moving forward revisions for: $depsToRevNames.');
+  print('Moving forward revisions for: $depsToRevNames.');
   if (separateReviewDeps.isNotEmpty) {
     print('(additional, individually reviewed updates are also available for: '
         '${separateReviewDeps.map((dep) => dep.name).join(', ')})');
@@ -85,7 +170,10 @@ void main(List<String> args) async {
   print('');
   print('[deps] rev $depsToRevNames');
   print('');
-  print('Revisions updated by `dart tools/rev_sdk_deps.dart`.');
+  final commandRan = targetRepo != null
+      ? 'dart tools/rev_sdk_deps.dart $targetRepo'
+      : 'dart tools/rev_sdk_deps.dart';
+  print('Revisions updated by `$commandRan`.');
   print('');
 
   for (final MapEntry(key: dep, value: commit) in revDepsToCommits.entries) {
@@ -128,7 +216,7 @@ void main(List<String> args) async {
     print('');
     for (var dep in separateReviewDeps) {
       print('${dep.name} from ${dep.url}:');
-      print('  dart tools/manage_deps.dart bump third_party/pkg/${dep.name}');
+      print('  dart tools/rev_sdk_deps.dart ${dep.name}');
       print('');
     }
   }

@@ -112,7 +112,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 746;
+  static const int DATA_VERSION = 749;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -371,9 +371,8 @@ class AnalysisDriver {
     // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(
-            rootOptionsFile,
-          ).enabledLegacyPluginNames.toSet()
+        ? getAnalysisOptionsForFile(rootOptionsFile).enabledLegacyPluginNames
+              .toSet()
         : const {};
   }
 
@@ -687,13 +686,17 @@ class AnalysisDriver {
     _libraryContext = null;
   }
 
+  /// Discards data that is expensive to keep in memory, and can be computed
+  /// or read again when needed.
   void discardMemoryExpensiveData() {
-    if (_hasDiscardedMemoryExpensiveData) {
-      return;
+    if (_libraryContext case var libraryContext?) {
+      var elementFactory = libraryContext.elementFactory;
+      elementFactory.analysisSession.clearHierarchies();
+      elementFactory.discardDecodedLibraryManifests();
+      _scheduler.eventsController.add(
+        events.DiscardMemoryExpensiveData(driver: this, keptIds: const []),
+      );
     }
-    _hasDiscardedMemoryExpensiveData = true;
-    currentSession.clearHierarchies();
-    libraryContext.elementFactory.discardDecodedLibraryManifests();
   }
 
   /// Completes after all potentially available files have been added to
@@ -1713,6 +1716,25 @@ class AnalysisDriver {
       unit: unitResult.unit,
       diagnostics: unitResult.diagnostics,
     );
+  }
+
+  /// Like [discardMemoryExpensiveData], but keeps decoded data that the
+  /// analysis keeps using. The scheduler invokes it once after each period
+  /// of work of this driver.
+  void _discardMemoryExpensiveDataOnIdle() {
+    if (_hasDiscardedMemoryExpensiveData) {
+      return;
+    }
+    _hasDiscardedMemoryExpensiveData = true;
+
+    if (_libraryContext case var libraryContext?) {
+      var elementFactory = libraryContext.elementFactory;
+      elementFactory.analysisSession.clearHierarchies();
+      var keptIds = elementFactory.discardDecodedLibraryManifestsOnIdle();
+      _scheduler.eventsController.add(
+        events.DiscardMemoryExpensiveData(driver: this, keptIds: keptIds),
+      );
+    }
   }
 
   /// When we look at a part that has a `part of name;` directive, we
@@ -2748,7 +2770,7 @@ class AnalysisDriverScheduler {
         if (priority == AnalysisDriverPriority.nothing) {
           if (driver.withFineDependencies &&
               shouldDiscardMemoryExpensiveDataOnIdle) {
-            driver.discardMemoryExpensiveData();
+            driver._discardMemoryExpensiveDataOnIdle();
           }
         } else {
           driver._hasDiscardedMemoryExpensiveData = false;

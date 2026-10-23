@@ -1816,13 +1816,13 @@ class Foo {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: Foo
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           FieldsDeclaration
             type: NamedType
               name: String
@@ -1874,7 +1874,15 @@ CompilationUnit
                   literal: 0
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      body: BlockClassBody
+        leftBracket: {
+        members
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -1941,13 +1949,13 @@ class Foo {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: Foo
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           FieldsDeclaration
             type: NamedType
               name: String
@@ -2015,7 +2023,15 @@ CompilationUnit
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      body: BlockClassBody
+        leftBracket: {
+        members
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType
@@ -2093,13 +2109,13 @@ class Foo {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: Foo
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
-        members2
+        members
           FieldsDeclaration
             type: NamedType
               name: String
@@ -2166,7 +2182,15 @@ CompilationUnit
                   literal: null
             body: EmptyFunctionBody
               semicolon: ;
-        members(v1)
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      body: BlockClassBody
+        leftBracket: {
+        members
           FieldDeclaration
             fields: VariableDeclarationList
               type: NamedType

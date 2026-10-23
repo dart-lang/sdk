@@ -13,7 +13,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
-    if (node.leftOperand is SuperReference) {
+    if (node.leftOperand is SuperReference && node.binaryOperator != null) {
       _names.add(node.operator.lexeme);
     }
     super.visitBinaryOperatorInvocation(node);

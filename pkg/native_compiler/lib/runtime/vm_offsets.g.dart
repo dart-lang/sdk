@@ -753,27 +753,27 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Class_kAbstractBitPos => 0x6;
   @override
-  int get Class_kEnumBitPos => 0x9;
+  int get Class_kEnumBitPos => 0x8;
   @override
-  int get Class_kTransformedMixinApplicationBitPos => 0xa;
+  int get Class_kTransformedMixinApplicationBitPos => 0x9;
   @override
-  int get Class_kIsLoadedBitPos => 0xc;
+  int get Class_kIsLoadedBitPos => 0xb;
   @override
-  int get Class_kHasPragmaBitPos => 0xd;
+  int get Class_kHasPragmaBitPos => 0xc;
   @override
-  int get Class_kSealedBitPos => 0xe;
+  int get Class_kSealedBitPos => 0xd;
   @override
-  int get Class_kMixinClassBitPos => 0xf;
+  int get Class_kMixinClassBitPos => 0xe;
   @override
-  int get Class_kBaseClassBitPos => 0x10;
+  int get Class_kBaseClassBitPos => 0xf;
   @override
-  int get Class_kInterfaceClassBitPos => 0x11;
+  int get Class_kInterfaceClassBitPos => 0x10;
   @override
-  int get Class_kFinalBitPos => 0x12;
+  int get Class_kFinalBitPos => 0x11;
   @override
-  int get Class_kIsIsolateUnsendableBitPos => 0x13;
+  int get Class_kIsIsolateUnsendableBitPos => 0x12;
   @override
-  int get Class_kIsDeeplyImmutableBitPos => 0x15;
+  int get Class_kIsDeeplyImmutableBitPos => 0x14;
   @override
   int get Field_kConstBitPos => 0x0;
   @override
@@ -1924,27 +1924,27 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Class_kAbstractBitPos => 0x6;
   @override
-  int get Class_kEnumBitPos => 0x9;
+  int get Class_kEnumBitPos => 0x8;
   @override
-  int get Class_kTransformedMixinApplicationBitPos => 0xa;
+  int get Class_kTransformedMixinApplicationBitPos => 0x9;
   @override
-  int get Class_kIsLoadedBitPos => 0xc;
+  int get Class_kIsLoadedBitPos => 0xb;
   @override
-  int get Class_kHasPragmaBitPos => 0xd;
+  int get Class_kHasPragmaBitPos => 0xc;
   @override
-  int get Class_kSealedBitPos => 0xe;
+  int get Class_kSealedBitPos => 0xd;
   @override
-  int get Class_kMixinClassBitPos => 0xf;
+  int get Class_kMixinClassBitPos => 0xe;
   @override
-  int get Class_kBaseClassBitPos => 0x10;
+  int get Class_kBaseClassBitPos => 0xf;
   @override
-  int get Class_kInterfaceClassBitPos => 0x11;
+  int get Class_kInterfaceClassBitPos => 0x10;
   @override
-  int get Class_kFinalBitPos => 0x12;
+  int get Class_kFinalBitPos => 0x11;
   @override
-  int get Class_kIsIsolateUnsendableBitPos => 0x13;
+  int get Class_kIsIsolateUnsendableBitPos => 0x12;
   @override
-  int get Class_kIsDeeplyImmutableBitPos => 0x15;
+  int get Class_kIsDeeplyImmutableBitPos => 0x14;
   @override
   int get Field_kConstBitPos => 0x0;
   @override

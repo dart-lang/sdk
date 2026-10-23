@@ -48,7 +48,7 @@ class A<T> {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T> {}'));
-    expect(node, isClassDeclaration);
+    expect(node, isClassDeclaration2);
   }
 
   void test_searchWithin_constructor_afterName_beforeParameters() {
@@ -60,7 +60,7 @@ class A {
     var unit = parseTestCodeWithDiagnostics(source).unit;
     // TODO(dantup): Update these tests to use markers.
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration);
+    expect(node, isConstructorDeclaration2);
   }
 
   void test_searchWithin_function_afterName_beforeParameters() {
@@ -111,7 +111,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration);
+    expect(node, isConstructorDeclaration2);
   }
 
   void test_searchWithin_setter_afterName_beforeParameters() {

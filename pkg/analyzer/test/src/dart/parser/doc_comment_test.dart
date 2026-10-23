@@ -263,13 +263,26 @@ Comment
 
     var node = parseResult.findNode.classDeclaration('class A');
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   documentationComment: Comment
     references
       CommentReference
         components
           CommentReferenceComponent
             name: String @5
+    tokens
+      /** [String] */ @0
+  abstractKeyword: abstract @16
+  classKeyword: class @25
+  namePart: NameWithTypeParameters
+    typeName: A @31
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @33
+    rightBracket: } @34
+V1: ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
         expression: SimpleIdentifier
           token: String @5
     tokens
@@ -294,27 +307,21 @@ abstract class A {}
 
     var node = parseResult.findNode.classDeclaration('class A');
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   documentationComment: Comment
     references
       CommentReference
         components
           CommentReferenceComponent
             name: int @9
-        expression: SimpleIdentifier
-          token: int @9
       CommentReference
         components
           CommentReferenceComponent
             name: String @19
-        expression: SimpleIdentifier
-          token: String @19
       CommentReference
         components
           CommentReferenceComponent
             name: Object @36
-        expression: SimpleIdentifier
-          token: Object @36
     tokens
       /// See [int] and [String] @0
       /// and [Object]. @27
@@ -323,6 +330,31 @@ ClassDeclaration
       atSign: @ @45
       expression: ParsedUnqualifiedName
         name: Annotation @46
+  abstractKeyword: abstract @57
+  classKeyword: class @66
+  namePart: NameWithTypeParameters
+    typeName: A @72
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @74
+    rightBracket: } @75
+V1: ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @9
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @19
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @36
+    tokens
+      /// See [int] and [String] @0
+      /// and [Object]. @27
+  metadata
+    Annotation
+      atSign: @ @45
       name: SimpleIdentifier
         token: Annotation @46
   abstractKeyword: abstract @57
@@ -372,33 +404,25 @@ abstract class A {}
 
     var node = parseResult.findNode.classDeclaration('class A');
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
   documentationComment: Comment
     references
       CommentReference
         components
           CommentReferenceComponent
             name: included @86
-        expression: SimpleIdentifier
-          token: included @86
       CommentReference
         components
           CommentReferenceComponent
             name: int @143
-        expression: SimpleIdentifier
-          token: int @143
       CommentReference
         components
           CommentReferenceComponent
             name: String @153
-        expression: SimpleIdentifier
-          token: String @153
       CommentReference
         components
           CommentReferenceComponent
             name: Object @240
-        expression: SimpleIdentifier
-          token: Object @240
     tokens
       /// This dartdoc comment is [included]. @57
       /// See [int] and [String] but `not [a]` @134
@@ -425,6 +449,52 @@ ClassDeclaration
       atSign: @ @45
       expression: ParsedUnqualifiedName
         name: Annotation @46
+  abstractKeyword: abstract @249
+  classKeyword: class @258
+  namePart: NameWithTypeParameters
+    typeName: A @264
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @266
+    rightBracket: } @267
+V1: ClassDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: included @86
+      CommentReference
+        expression: SimpleIdentifier
+          token: int @143
+      CommentReference
+        expression: SimpleIdentifier
+          token: String @153
+      CommentReference
+        expression: SimpleIdentifier
+          token: Object @240
+    tokens
+      /// This dartdoc comment is [included]. @57
+      /// See [int] and [String] but `not [a]` @134
+      /// ``` @175
+      /// This [code] block should be ignored @183
+      /// ``` @223
+      /// and [Object]. @231
+    codeBlocks
+      MdCodeBlock
+        infoString: <empty>
+        type: CodeBlockType.fenced
+        lines
+          MdCodeBlockLine
+            offset: 179
+            length: 3
+          MdCodeBlockLine
+            offset: 187
+            length: 35
+          MdCodeBlockLine
+            offset: 227
+            length: 3
+  metadata
+    Annotation
+      atSign: @ @45
       name: SimpleIdentifier
         token: Annotation @46
   abstractKeyword: abstract @249

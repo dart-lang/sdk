@@ -120,6 +120,27 @@ class LinkedElementFactory {
     }
   }
 
+  /// See [LibraryManifestHandle.discardDecodedOnIdle].
+  ///
+  /// The period of work ends only if it requested any IDs. Work that does
+  /// not use IDs, for example only completion or indexing, would otherwise
+  /// discard the IDs of the libraries that the user edits.
+  ///
+  /// Returns the URIs of the libraries whose IDs stay decoded.
+  List<Uri> discardDecodedLibraryManifestsOnIdle() {
+    var endsPeriod = libraryManifests.values.any(
+      (handle) => handle.idsRequested,
+    );
+
+    var keptIds = <Uri>[];
+    for (var MapEntry(key: uri, value: handle) in libraryManifests.entries) {
+      if (handle.discardDecodedOnIdle(endsPeriod: endsPeriod)) {
+        keptIds.add(uri);
+      }
+    }
+    return keptIds;
+  }
+
   void dispose() {
     for (var libraryReference in rootReference.children) {
       _disposeLibrary(libraryReference.element);

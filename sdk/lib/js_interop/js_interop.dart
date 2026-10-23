@@ -1236,8 +1236,8 @@ extension NullableObjectUtilExtension on Object? {
   ///   [FunctionToJSExportedDartFunction.toJS] or
   ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call and that the
   ///   Dart function the value forwards to is a function of type `U`.
-  /// - `JSError`: `isA<JSError>` will use [`Error.isError`][] on browsers where
-  ///   it's supported. Because Safari has [known bugs][] in its implementation,
+  /// - `JSError`: `isA<JSError>` will use [`Error.isError`] on browsers where
+  ///   it's supported. Because Safari has [known bugs] in its implementation,
   ///   `isA<JSError>()` will return true if either `Error.isError()` or
   ///   `instanceof Error` returns true.
   /// - User interop types whose representation types are JS primitive types:

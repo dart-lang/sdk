@@ -253,9 +253,8 @@ class ValidatorTest {
         ..end()
         ..end(),
     );
-    _checkInvalidMessageAt(
-      'bad',
-    ).equals('Cannot branch outside of enclosing function');
+    _checkInvalidMessageAt('bad')
+        .equals('Cannot branch outside of enclosing function');
   }
 
   test_brIf_controlFlowStackUnderflow() {
@@ -368,9 +367,8 @@ class ValidatorTest {
         ..end()
         ..end(),
     );
-    _checkInvalidMessageAt(
-      'bad',
-    ).equals('Cannot branch outside of enclosing function');
+    _checkInvalidMessageAt('bad')
+        .equals('Cannot branch outside of enclosing function');
   }
 
   test_call_ok() {
@@ -727,9 +725,8 @@ class ValidatorTest {
         ..end()
         ..end(),
     );
-    _checkInvalidMessageAt(
-      'bad',
-    ).equals('Instance function may only be used at instruction address 0');
+    _checkInvalidMessageAt('bad')
+        .equals('Instance function may only be used at instruction address 0');
   }
 
   test_function_nested_notInstanceFunction_ok() {

@@ -123,9 +123,8 @@ abstract class AbstractTypeSystemTest with ResourceProviderMixin {
     String input, {
     List<LibraryElementImpl>? libraries,
   }) {
-    return _typeParsingScope(
-      libraries: libraries,
-    ).parseTypeParameterType(input);
+    return _typeParsingScope(libraries: libraries)
+        .parseTypeParameterType(input);
   }
 
   void setUp() {

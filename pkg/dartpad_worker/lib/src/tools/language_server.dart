@@ -29,6 +29,8 @@ import 'package:linter/src/rules.dart' as linter;
 import 'package:unified_analytics/unified_analytics.dart' show NoOpAnalytics;
 
 class LanguageServer {
+  static bool _hasRegisteredLintRulesAndGenerators = false;
+
   late final lsp.LspAnalysisServer _server;
 
   final _closed = Completer<void>();
@@ -40,9 +42,12 @@ class LanguageServer {
     required DartPadConfig config,
     required ByteStore byteStore,
   }) {
-    linter.registerLintRules();
-    registerBuiltInAssistGenerators();
-    registerBuiltInFixGenerators();
+    if (!_hasRegisteredLintRulesAndGenerators) {
+      _hasRegisteredLintRulesAndGenerators = true;
+      linter.registerLintRules();
+      registerBuiltInAssistGenerators();
+      registerBuiltInFixGenerators();
+    }
 
     _server = lsp.LspAnalysisServer(
       _LspServerCommunicationChannel(_input.stream, _output.sink),

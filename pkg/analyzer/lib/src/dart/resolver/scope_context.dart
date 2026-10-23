@@ -44,8 +44,8 @@ class ScopeContext {
     return element.instantiate(nullabilitySuffix: nullability);
   }
 
-  void visitClassDeclaration(
-    ClassDeclarationImpl node, {
+  void visitClassDeclaration2(
+    ClassDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -72,8 +72,8 @@ class ScopeContext {
     });
   }
 
-  void visitClassTypeAlias(
-    ClassTypeAliasImpl node, {
+  void visitClassTypeAlias2(
+    ClassTypeAlias2Impl node, {
     required AstVisitor2 visitor,
     void Function(NamedTypeImpl)? visitSuperclass,
   }) {
@@ -82,7 +82,6 @@ class ScopeContext {
     node.metadata.accept2(visitor);
 
     withTypeParameterScope(element.typeParameters, () {
-      node.typeParameterScope = nameScope;
       node.typeParameters?.accept2(visitor);
       node.superclass.visitWithOverride(visitor, visitSuperclass);
       node.withClause.accept2(visitor);
@@ -94,8 +93,8 @@ class ScopeContext {
     });
   }
 
-  void visitConstructorDeclaration(
-    ConstructorDeclarationImpl node, {
+  void visitConstructorDeclaration2(
+    ConstructorDeclaration2Impl node, {
     required AstVisitor2 visitor,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
     void Function(ConstructorReference2Impl)? visitFactoryRedirectionTarget,
@@ -103,7 +102,7 @@ class ScopeContext {
     var fragment = node.declaredFragment!;
 
     node.metadata.accept2(visitor);
-    node.parameters.accept2(visitor);
+    node.formalParameters.accept2(visitor);
 
     withScope(_constructorInitializerScope(fragment), () {
       node.formalParameterInitializerScope = nameScope;
@@ -135,8 +134,8 @@ class ScopeContext {
     });
   }
 
-  void visitEnumDeclaration(
-    EnumDeclarationImpl node, {
+  void visitEnumDeclaration2(
+    EnumDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -161,8 +160,8 @@ class ScopeContext {
     });
   }
 
-  void visitExtensionDeclaration(
-    ExtensionDeclarationImpl node, {
+  void visitExtensionDeclaration2(
+    ExtensionDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -182,8 +181,8 @@ class ScopeContext {
     });
   }
 
-  void visitExtensionTypeDeclaration(
-    ExtensionTypeDeclarationImpl node, {
+  void visitExtensionTypeDeclaration2(
+    ExtensionTypeDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -394,8 +393,8 @@ class ScopeContext {
     });
   }
 
-  void visitMixinDeclaration(
-    MixinDeclarationImpl node, {
+  void visitMixinDeclaration2(
+    MixinDeclaration2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -416,8 +415,8 @@ class ScopeContext {
     });
   }
 
-  void visitPrimaryConstructorBody(
-    PrimaryConstructorBodyImpl node, {
+  void visitPrimaryConstructorBody2(
+    PrimaryConstructorBody2Impl node, {
     required AstVisitor2 visitor,
     void Function(NodeList<ConstructorInitializer>)? visitInitializers,
   }) {
@@ -642,9 +641,9 @@ extension LocalScopeExtension on LocalScope {
 extension _FieldsDeclarationExtension on FieldsDeclaration {
   PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
     return switch (parent2?.parent2) {
-      ClassDeclarationImpl(:var namePart) => namePart.tryCast(),
-      EnumDeclarationImpl(:var namePart) => namePart.tryCast(),
-      ExtensionTypeDeclarationImpl(:var namePart) => namePart.tryCast(),
+      ClassDeclaration2Impl(:var namePart) => namePart.tryCast(),
+      EnumDeclaration2Impl(:var namePart) => namePart.tryCast(),
+      ExtensionTypeDeclaration2Impl(:var namePart) => namePart.tryCast(),
       _ => null,
     };
   }

@@ -1720,9 +1720,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #else
       body += LoadDartStream();
-      body += LoadNativeField(Slot::StreamInfo_enabled());
-      // StreamInfo::enabled_ is a std::atomic<intptr_t>. This is effectively
-      // relaxed order access, which is acceptable for this use case.
+      body += LoadNativeField(Slot::TimelineStream_enabled());
+      // TimelineStream::enabled_ is a RelaxedAtomic<uintptr_t>.
+      // This is effectively relaxed order access, which is acceptable
+      // for this use case.
       body += IntToBool();
 #endif  // SUPPORT_TIMELINE
     } break;

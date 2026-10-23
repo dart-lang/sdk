@@ -50,6 +50,10 @@
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2wasm.snapshot",
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_dev.snapshot",
+      "out/ReleaseX64/dart2wasm_dev_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_dev_outline.dill",
+      "out/ReleaseX64/dart2wasm_dev_platform.dill",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_outline.dill",
@@ -59,6 +63,8 @@
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/wasm/",
       "out/ReleaseX64/wasm-opt",
+      "out/ReleaseX64/wasm_dev_rt.mjs",
+      "out/ReleaseX64/wasm_dev_rt.wasm",
       "pkg/",
       "runtime/tests/",
       "samples/",
@@ -1078,18 +1084,20 @@
           ]
         },
         {
-          "name": "vm aot ffi tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-arm-qemu",
-            "ffi"
+            "ffi",
+            "lib/typed_data"
           ]
         },
         {
-          "name": "vm jit ffi tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-linux-${mode}-arm-qemu",
-            "vm/cc",
-            "ffi"
+            "ffi",
+            "lib/typed_data",
+            "vm/cc"
           ],
           "fileset": "vm",
           "shards": 2
@@ -1114,18 +1122,20 @@
           ]
         },
         {
-          "name": "vm aot ffi tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-riscv64-qemu",
-            "ffi"
+            "ffi",
+            "lib/typed_data"
           ]
         },
         {
-          "name": "vm jit ffi tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-linux-${mode}-riscv64-qemu",
-            "vm/cc",
-            "ffi"
+            "ffi",
+            "lib/typed_data",
+            "vm/cc"
           ],
           "fileset": "vm",
           "shards": 2

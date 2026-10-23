@@ -345,8 +345,9 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
 
     // Write a cache that should be considered stale.
     server.pubPackageService.writeDiskCache(
-      PackageDetailsCache.fromApiResults([PubApiPackage('stalePackage1')])
-        ..lastUpdatedUtc = DateTime.utc(1990),
+      PackageDetailsCache.fromApiResults([
+        PubApiPackage('stalePackage1'),
+      ], lastUpdated: DateTime.utc(1990)),
     );
 
     await initialize();
@@ -498,8 +499,7 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_packageCache_timeRemaining() async {
     void expectHoursRemaining(DateTime cacheTime, int expectedHoursRemaining) {
-      var cache = PackageDetailsCache.empty();
-      cache.lastUpdatedUtc = cacheTime.toUtc();
+      var cache = PackageDetailsCache.empty(lastUpdated: cacheTime.toUtc());
 
       var remainingHours = cache.cacheTimeRemaining.inHours;
       expect(remainingHours, isNonNegative);

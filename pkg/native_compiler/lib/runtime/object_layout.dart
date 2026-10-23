@@ -102,7 +102,7 @@ class ObjectLayout {
   }
 
   void _computeLayout(ast.Class cls) {
-    if (_computeLayoutOfBuiltInClass(cls)) {
+    if (_computeLayoutOfBuiltinClass(cls)) {
       return;
     }
 
@@ -150,7 +150,7 @@ class ObjectLayout {
     return field;
   }
 
-  CField _createBuiltInField(
+  CField _createBuiltinField(
     ast.Class cls,
     String name,
     ast.DartType type,
@@ -190,6 +190,22 @@ class ObjectLayout {
   late final ast.Class _growableListClass = _libraryIndex.getClass(
     'dart:core',
     '_GrowableList',
+  );
+  late final ast.Class _closureClass = _libraryIndex.getClass(
+    'dart:core',
+    '_Closure',
+  );
+  late final ast.Class _abstractTypeClass = _libraryIndex.getClass(
+    'dart:core',
+    '_AbstractType',
+  );
+  late final ast.Class _weakPropertyClass = _libraryIndex.getClass(
+    'dart:core',
+    '_WeakProperty',
+  );
+  late final ast.Class _weakReferenceClass = _libraryIndex.getClass(
+    'dart:core',
+    '_WeakReference',
   );
   late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
     'dart:_compact_hash',
@@ -235,7 +251,7 @@ class ObjectLayout {
   );
 
   // dart:core
-  late final CField Object_classId = _createBuiltInField(
+  late final CField Object_classId = _createBuiltinField(
     _coreTypes.objectClass,
     '#classId',
     _coreTypes.intNonNullableRawType,
@@ -243,65 +259,95 @@ class ObjectLayout {
     isFinal: true,
     isUnboxed: true,
   );
-  late final CField StringBase_length = _createBuiltInField(
+  late final CField StringBase_length = _createBuiltinField(
     _stringBaseClass,
     'length',
     _coreTypes.intNonNullableRawType,
     vmOffsets.String_length_offset,
     isFinal: true,
   );
-  late final CField Array_length = _createBuiltInField(
+  late final CField Array_length = _createBuiltinField(
     _arrayClass,
     'length',
     _coreTypes.intNonNullableRawType,
     vmOffsets.Array_length_offset,
     isFinal: true,
   );
-  late final CField GrowableList_length = _createBuiltInField(
+  late final CField GrowableList_length = _createBuiltinField(
     _growableListClass,
     'length',
     _coreTypes.intNonNullableRawType,
     vmOffsets.GrowableObjectArray_length_offset,
   );
-  late final CField GrowableList_data = _createBuiltInField(
+  late final CField GrowableList_data = _createBuiltinField(
     _growableListClass,
     'data',
     _coreTypes.nonNullableRawType(_arrayClass),
     vmOffsets.GrowableObjectArray_data_offset,
   );
+  late final CField WeakProperty_key = _createBuiltinField(
+    _weakPropertyClass,
+    'key',
+    const ast.DynamicType(),
+    vmOffsets.WeakProperty_key_offset,
+  );
+  late final CField WeakProperty_value = _createBuiltinField(
+    _weakPropertyClass,
+    'value',
+    const ast.DynamicType(),
+    vmOffsets.WeakProperty_value_offset,
+  );
+  late final CField WeakReference_target = _createBuiltinField(
+    _weakReferenceClass,
+    'target',
+    ast.TypeParameterType(_weakReferenceClass.typeParameters.single, .nullable),
+    vmOffsets.WeakReference_target_offset,
+  );
+  late final CField Closure_hash = _createBuiltinField(
+    _closureClass,
+    'hash',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.Closure_hash_offset,
+  );
+  late final CField AbstractType_hash = _createBuiltinField(
+    _abstractTypeClass,
+    'hash',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.AbstractType_hash_offset,
+  );
 
   // dart:_compact_hash
-  late final CField LinkedHashBase_index = _createBuiltInField(
+  late final CField LinkedHashBase_index = _createBuiltinField(
     _linkedHashBaseClass,
     'index',
     _coreTypes.nonNullableRawType(_uint32ListClass),
     vmOffsets.LinkedHashBase_index_offset,
   );
-  late final CField LinkedHashBase_hashMask = _createBuiltInField(
+  late final CField LinkedHashBase_hashMask = _createBuiltinField(
     _linkedHashBaseClass,
     'hashMask',
     _coreTypes.intNonNullableRawType,
     vmOffsets.LinkedHashBase_hash_mask_offset,
   );
-  late final CField LinkedHashBase_data = _createBuiltInField(
+  late final CField LinkedHashBase_data = _createBuiltinField(
     _linkedHashBaseClass,
     'data',
     _coreTypes.listNonNullableRawType,
     vmOffsets.LinkedHashBase_data_offset,
   );
-  late final CField LinkedHashBase_usedData = _createBuiltInField(
+  late final CField LinkedHashBase_usedData = _createBuiltinField(
     _linkedHashBaseClass,
     'usedData',
     _coreTypes.intNonNullableRawType,
     vmOffsets.LinkedHashBase_used_data_offset,
   );
-  late final CField LinkedHashBase_deletedKeys = _createBuiltInField(
+  late final CField LinkedHashBase_deletedKeys = _createBuiltinField(
     _linkedHashBaseClass,
     'deletedKeys',
     _coreTypes.intNonNullableRawType,
     vmOffsets.LinkedHashBase_deleted_keys_offset,
   );
-  late final CField LinkedHashImmutableBase_index = _createBuiltInField(
+  late final CField LinkedHashImmutableBase_index = _createBuiltinField(
     _linkedHashImmutableBaseClass,
     'index',
     _coreTypes.nullableRawType(_uint32ListClass),
@@ -310,13 +356,13 @@ class ObjectLayout {
   );
 
   // dart:async
-  late final CField SuspendState_functionData = _createBuiltInField(
+  late final CField SuspendState_functionData = _createBuiltinField(
     _suspendStateClass,
     'functionData',
     _coreTypes.objectNonNullableRawType,
     vmOffsets.SuspendState_function_data_offset,
   );
-  late final CField SuspendState_thenCallback = _createBuiltInField(
+  late final CField SuspendState_thenCallback = _createBuiltinField(
     _suspendStateClass,
     'thenCallback',
     ast.FunctionType(
@@ -326,7 +372,7 @@ class ObjectLayout {
     ),
     vmOffsets.SuspendState_then_callback_offset,
   );
-  late final CField SuspendState_errorCallback = _createBuiltInField(
+  late final CField SuspendState_errorCallback = _createBuiltinField(
     _suspendStateClass,
     'errorCallback',
     ast.FunctionType(
@@ -341,13 +387,13 @@ class ObjectLayout {
   );
 
   // dart:isolate
-  late final CField RawReceivePort_handler = _createBuiltInField(
+  late final CField RawReceivePort_handler = _createBuiltinField(
     _rawReceivePortClass,
     'handler',
     _coreTypes.functionNullableRawType,
     vmOffsets.ReceivePort_handler_offset,
   );
-  late final CField RawReceivePort_sendPort = _createBuiltInField(
+  late final CField RawReceivePort_sendPort = _createBuiltinField(
     _rawReceivePortClass,
     'sendPort',
     _coreTypes.nonNullableRawType(_sendPortClass),
@@ -356,7 +402,7 @@ class ObjectLayout {
   );
 
   // dart:typed_data
-  late final CField PointerBase_data = _createBuiltInField(
+  late final CField PointerBase_data = _createBuiltinField(
     _pointerBaseClass,
     'data',
     _coreTypes.intNonNullableRawType,
@@ -364,21 +410,21 @@ class ObjectLayout {
     isFinal: true,
     isUnboxed: true,
   );
-  late final CField TypedListBase_length = _createBuiltInField(
+  late final CField TypedListBase_length = _createBuiltinField(
     _typedListBaseClass,
     'length',
     _coreTypes.intNonNullableRawType,
     vmOffsets.TypedDataBase_length_offset,
     isFinal: true,
   );
-  late final CField TypedListView_typedData = _createBuiltInField(
+  late final CField TypedListView_typedData = _createBuiltinField(
     _typedListViewClass,
     'typedData',
     _coreTypes.nonNullableRawType(_typedListClass),
     vmOffsets.TypedDataView_typed_data_offset,
     isFinal: true,
   );
-  late final CField TypedListView_offsetInBytes = _createBuiltInField(
+  late final CField TypedListView_offsetInBytes = _createBuiltinField(
     _typedListViewClass,
     'offsetInBytes',
     _coreTypes.intNonNullableRawType,
@@ -392,24 +438,62 @@ class ObjectLayout {
     supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
     fileUri: ast.dummyUri,
   )..parent = _vmLibrary;
-  late final CField Thread_threadLocals = _createBuiltInField(
+  late final CField Thread_threadLocals = _createBuiltinField(
     _threadClass,
     'threadLocals',
     _coreTypes.listNonNullableRawType,
     vmOffsets.Thread_thread_locals_offset,
   );
-  late final CField Thread_nextTaskId = _createBuiltInField(
+  late final CField Thread_nextTaskId = _createBuiltinField(
     _threadClass,
     'nextTaskId',
     _coreTypes.intNonNullableRawType,
     vmOffsets.Thread_next_task_id_offset,
     isUnboxed: true,
   );
-  late final CField Thread_predefined_symbols_address = _createBuiltInField(
+  late final CField Thread_dartStream = _createBuiltinField(
+    _threadClass,
+    'dartStream',
+    _coreTypes.intNonNullableRawType, // Address.
+    vmOffsets.Thread_dart_stream_offset,
+    isUnboxed: true,
+  );
+  late final CField Thread_serviceExtensionStream = _createBuiltinField(
+    _threadClass,
+    'serviceExtensionStream',
+    _coreTypes.intNonNullableRawType, // Address.
+    vmOffsets.Thread_service_extension_stream_offset,
+    isUnboxed: true,
+  );
+  late final CField Thread_predefined_symbols_address = _createBuiltinField(
     _threadClass,
     'predefinedSymbolsAddress',
     _coreTypes.intNonNullableRawType, // Address.
     vmOffsets.Thread_predefined_symbols_address_offset,
+    isUnboxed: true,
+  );
+  late final ast.Class _timelineStreamClass = ast.Class(
+    name: '#TimelineStream',
+    supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
+    fileUri: ast.dummyUri,
+  )..parent = _vmLibrary;
+  late final CField TimelineStream_enabled = _createBuiltinField(
+    _timelineStreamClass,
+    'enabled',
+    _coreTypes.intNonNullableRawType, // uintptr_t
+    vmOffsets.TimelineStream_enabled_offset,
+    isUnboxed: true,
+  );
+  late final ast.Class _streamInfoClass = ast.Class(
+    name: '#StreamInfo',
+    supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
+    fileUri: ast.dummyUri,
+  )..parent = _vmLibrary;
+  late final CField StreamInfo_enabled = _createBuiltinField(
+    _streamInfoClass,
+    'enabled',
+    _coreTypes.intNonNullableRawType, // intptr_t
+    vmOffsets.StreamInfo_enabled_offset,
     isUnboxed: true,
   );
 
@@ -471,7 +555,7 @@ class ObjectLayout {
   );
   late final ast.Library _vmLibrary = _libraryIndex.getLibrary('dart:_vm');
 
-  bool _computeLayoutOfBuiltInClass(ast.Class cls) {
+  bool _computeLayoutOfBuiltinClass(ast.Class cls) {
     final library = cls.enclosingLibrary;
     if (!library.importUri.isScheme('dart')) {
       return false;

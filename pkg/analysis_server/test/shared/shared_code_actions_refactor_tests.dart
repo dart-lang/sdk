@@ -8,7 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
-import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -231,7 +231,7 @@ void f() {
 
     // Use a Completer to control when the refactor handler starts computing.
     var completer = Completer<void>();
-    PerformRefactorCommandHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       // Send an edit request immediately after the refactor request.
       var req1 = executeCommand(codeAction.command!);
@@ -246,7 +246,7 @@ void f() {
       await req2;
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
-      PerformRefactorCommandHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
   }
 

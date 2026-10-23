@@ -37,10 +37,10 @@ class MemberDuplicateDefinitionVerifier {
     this.context,
   );
 
-  void _checkClass(ClassDeclarationImpl node) {
+  void _checkClass(ClassDeclaration2Impl node) {
     _checkClassMembers(
       node.declaredFragment!,
-      node.body.members2,
+      node.body.members,
       primaryConstructor: node.namePart.tryCast(),
     );
   }
@@ -48,7 +48,7 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkClassMembers(
     InstanceFragmentImpl fragment,
-    List<ClassMemberV1OrV2Impl> members, {
+    List<MemberDeclarationImpl> members, {
     PrimaryConstructorDeclaration? primaryConstructor,
   }) {
     var firstFragment = fragment.element.firstFragment;
@@ -95,14 +95,14 @@ class MemberDuplicateDefinitionVerifier {
 
     for (var member in members) {
       switch (member) {
-        case ConstructorDeclarationImpl():
+        case ConstructorDeclaration2Impl():
           // Augmentations are not declarations, can have multiple.
           if (member.augmentKeyword != null) {
             continue;
           }
 
           // Skip if the typeName is wrong.
-          if (member.typeName2 case var typeName?) {
+          if (member.typeName case var typeName?) {
             if (typeName.lexeme != firstFragment.name) {
               continue;
             }
@@ -162,7 +162,7 @@ class MemberDuplicateDefinitionVerifier {
               _checkValuesDeclarationInEnum(member.nameToken);
             }
           }
-        case PrimaryConstructorBodyImpl():
+        case PrimaryConstructorBody2Impl():
           // Not an actual declaration.
           break;
       }
@@ -346,7 +346,7 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   /// Check that there are no members with the same name.
-  void _checkEnum(EnumDeclarationImpl node) {
+  void _checkEnum(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
 
@@ -367,7 +367,7 @@ class MemberDuplicateDefinitionVerifier {
 
     _checkClassMembers(
       fragment,
-      node.body.members2,
+      node.body.members,
       primaryConstructor: node.namePart.tryCast(),
     );
 
@@ -420,7 +420,7 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  void _checkEnumStatic(EnumDeclarationImpl node) {
+  void _checkEnumStatic(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
     var declarationName = firstFragment.name;
@@ -479,18 +479,18 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   /// Check that there are no members with the same name.
-  void _checkExtension(covariant ExtensionDeclarationImpl node) {
+  void _checkExtension(covariant ExtensionDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
-    _checkClassMembers(fragment, node.body.members2);
+    _checkClassMembers(fragment, node.body.members);
   }
 
-  void _checkExtensionStatic(covariant ExtensionDeclarationImpl node) {
+  void _checkExtensionStatic(covariant ExtensionDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
 
     var elementContext = _getElementContext(firstFragment);
     var instanceScope = elementContext.instanceScope;
-    for (var member in node.body.members2) {
+    for (var member in node.body.members) {
       if (member is FieldsDeclarationImpl) {
         if (member.staticKeyword != null) {
           for (var field in member.fields) {
@@ -521,32 +521,32 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
+  void _checkExtensionType(ExtensionTypeDeclaration2Impl node) {
     _checkClassMembers(
       node.declaredFragment!,
-      node.body.members2,
+      node.body.members,
       primaryConstructor: node.namePart.tryCast(),
     );
   }
 
-  void _checkMixin(MixinDeclarationImpl node) {
-    _checkClassMembers(node.declaredFragment!, node.body.members2);
+  void _checkMixin(MixinDeclaration2Impl node) {
+    _checkClassMembers(node.declaredFragment!, node.body.members);
   }
 
   void _checkUnit(CompilationUnitImpl node) {
     for (var node in node.declarations2) {
       switch (node) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           _checkClass(node);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _checkExtension(node);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _checkEnum(node);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           _checkExtensionType(node);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           _checkMixin(node);
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
         case TopLevelFunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
         case TopLevelSetterDeclarationImpl():
@@ -562,20 +562,20 @@ class MemberDuplicateDefinitionVerifier {
   void _checkUnitStatic(CompilationUnitImpl node) {
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.body.members2);
-        case EnumDeclarationImpl():
+          _checkClassStatic(fragment, declaration.body.members);
+        case EnumDeclaration2Impl():
           _checkEnumStatic(declaration);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _checkExtensionStatic(declaration);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.body.members2);
-        case MixinDeclarationImpl():
+          _checkClassStatic(fragment, declaration.body.members);
+        case MixinDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.body.members2);
-        case ClassTypeAliasImpl():
+          _checkClassStatic(fragment, declaration.body.members);
+        case ClassTypeAlias2Impl():
         case TopLevelFunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
         case TopLevelSetterDeclarationImpl():

@@ -473,7 +473,6 @@ class TypedLiteralResolver {
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled:
           _typeAnalyzer.inferenceUsingBoundsIsEnabled,
-      strictInference: _typeAnalyzer.analysisOptions.strictInference,
       strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
       typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
       dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
@@ -544,7 +543,6 @@ class TypedLiteralResolver {
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled:
           _typeAnalyzer.inferenceUsingBoundsIsEnabled,
-      strictInference: _typeAnalyzer.analysisOptions.strictInference,
       strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
       typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
       dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
@@ -656,7 +654,6 @@ class TypedLiteralResolver {
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled:
           _typeAnalyzer.inferenceUsingBoundsIsEnabled,
-      strictInference: _typeAnalyzer.analysisOptions.strictInference,
       strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
       typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
       dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,

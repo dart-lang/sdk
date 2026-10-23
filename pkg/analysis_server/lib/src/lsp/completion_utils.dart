@@ -5,9 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
-import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
@@ -18,9 +16,7 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart' as server;
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
-import 'package:analyzer_plugin/src/utilities/documentation.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
@@ -167,24 +163,6 @@ Future<TypeImportData?> createTypedSuggestionData(
     selectionOffset,
     selectionRange?.length,
   );
-}
-
-/// Return the cleaned dartdoc for [element] to be sent to the client.
-String? getCleanElementDocumentation(
-  Element element,
-  DartCompletionRequest request,
-  DocumentationPreference includeDocumentation,
-) {
-  if (includeDocumentation == DocumentationPreference.none) return null;
-  var docs = _getDocsFromComputer(element, request);
-
-  var doc = removeDartDocDelimiters(docs?.full);
-  var rawDoc = includeDocumentation == DocumentationPreference.full
-      ? doc
-      : includeDocumentation == DocumentationPreference.summary
-      ? getDartDocSummary(docs?.summary)
-      : null;
-  return cleanDartdoc(rawDoc);
 }
 
 // TODO(keertip): Move over completions for plugins and snippets to use
@@ -760,24 +738,6 @@ String _getDisplayText(
   };
 }
 
-/// If the [element] has a documentation comment, return it.
-_ElementDocumentation? _getDocsFromComputer(
-  Element element,
-  DartCompletionRequest request,
-) {
-  var doc = request.documentationComputer.compute(
-    element,
-    includeSummary: true,
-  );
-  if (doc is DocumentationWithSummary) {
-    return _ElementDocumentation(full: doc.full, summary: doc.summary);
-  }
-  if (doc is Documentation) {
-    return _ElementDocumentation(full: doc.full, summary: null);
-  }
-  return null;
-}
-
 /// Additional details about a completion that may be formatted differently
 /// depending on the client capabilities.
 typedef CompletionDetail = ({
@@ -805,10 +765,3 @@ typedef CompletionDetail = ({
   /// URI).
   Uri? autoImportUri,
 });
-
-class _ElementDocumentation {
-  final String full;
-  final String? summary;
-
-  new({required this.full, required this.summary});
-}

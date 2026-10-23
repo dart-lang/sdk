@@ -76,7 +76,7 @@ vars = {
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
   "d8_tag": "version:15.7.111",
-  "jsshell_tag": "version:157.0.1",
+  "jsshell_tag": "version:158.0.1",
   "jsc_tag": "version:323425",
 
   # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/gcloud
@@ -110,7 +110,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "a631c1445ced72a905b3303b26f148fc706647dd",
-  "boringssl_rev": "5b83e5d1abf0ae0033ae52ab579d906b67633b2c",
+  "boringssl_rev": "c7eb007fd10627f1abb41a3e368b85e24cd20af9",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "85f945ac99379d64d4df6f67d9b011e4cc418e7e",
@@ -136,24 +136,24 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "4d80610a878cdb3f9f10e6a16a2af6631251a3c6",
-  "dartdoc_rev": "e1859cfc70702d65476b087b0d577db18c67abfa",
-  "ecosystem_rev": "622ef61a7edd5de7df38661e163e55c57606c96a",
+  "core_rev": "04da6763aa399607ddd1778ef9318a05276cbc01",
+  "dartdoc_rev": "c0e19cf6f46446ce479295732fee80b3ede3e4b7",
+  "ecosystem_rev": "0ab0cfd2f092d09eb20081f81b5e75cb50611b40",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "7d7aae2fb8777f2bb31599fdde18b11e3dd6f986",
+  "http_rev": "a8a24a0385156e259f817212767709703204d289",
   "i18n_rev": "1f5ea2fb2381bdf7bab054a43c0d69771f104561",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "cc7e4b076efadf9705de472bcbed05bf32a87d6a",
+  "native_rev": "3cbe319e3c1ec0f9253c126ba3e465e55229c3a4",
   "protobuf_rev": "a73edc98c98fb25152aa3f12c1b9db91594c1369",
   "pub_rev": "9df389a76385f82c1165c7cf93b78807b5ea8890", # rolled manually
-  "shelf_rev": "b2cb503d3ba2f0ce6320b820f2b3b0c2b1777485",
+  "shelf_rev": "b66665b8b405e883b203fd401f25e0bde47cdb01",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
-  "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "9bf69a88002d96855abf0a27ff09ca28ce087332",
-  "tools_rev": "c1471db9c0fead64394eab4834d0fb640403b42a",
+  "tar_rev": "201952a191be34a993f4ae182612c891ea4ef0a2",
+  "test_rev": "d1afeb14cc57a0487227f9c4e9485eece327b2af",
+  "tools_rev": "4d7715ac1c0c243f443c0455d2fe14971af92ff4",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "63e6662dc7022a54439d4da6016685c49a0d6018",
+  "web_rev": "4e60e61e55e1e2111f0fec9d19efff577c0dc671",
   "webdriver_rev": "8e5c611ea242efdc9f597a8a37c38a9c586120ee",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
@@ -166,9 +166,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "156.0.8078.12",
+  "chrome_tag": "157.0.8103.6",
   "download_firefox": False,
-  "firefox_tag": "157.0.1",
+  "firefox_tag": "158.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
@@ -483,32 +483,6 @@ deps = {
     # Unfortunately windows-arm64 gclient uses x64 python which lies in
     # host_cpu, so we have to use a variable to not download reclient there.
     'condition': 'download_reclient and (((host_os == "linux" or host_os == "mac" or host_os == "win") and host_cpu == "x64") or (host_os == "mac" and host_cpu == "arm64"))',
-    'dep_type': 'cipd',
-  },
-
-  # windows-arm64 package is not available, use the windows-x64 package and
-  # rely on transparent emulation.
-  Var("dart_root") + '/buildtools/reclient-win': {
-    'packages': [
-      {
-        'package': 'infra/rbe/client/windows-amd64',
-        'version': Var('reclient_version'),
-      }
-    ],
-    'condition': 'host_os == "win"',
-    'dep_type': 'cipd',
-  },
-
-  # linux-arm64 package is not available, use the linux-x64 package and
-  # rely on transparent emulation.
-  Var("dart_root") + '/buildtools/reclient-linux': {
-    'packages': [
-      {
-        'package': 'infra/rbe/client/linux-amd64',
-        'version': Var('reclient_version'),
-      }
-    ],
-    'condition': 'host_os == "linux"',
     'dep_type': 'cipd',
   },
 

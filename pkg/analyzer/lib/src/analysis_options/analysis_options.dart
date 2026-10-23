@@ -279,9 +279,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     "'AnalysisContext.contextRoot.analyzedFiles' instead.",
   )
   @override
-  List<String> get excludePatterns => {
-    for (var excludePattern in excludePatterns2) excludePattern.pattern,
-  }.toList();
+  List<String> get excludePatterns =>
+      {for (var excludePattern in excludePatterns2) excludePattern.pattern}
+          .toList();
 
   /// The language version to use for libraries that are not in a package.
   ///

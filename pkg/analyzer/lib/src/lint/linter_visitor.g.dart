@@ -1290,21 +1290,23 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitBlockClassBody(BlockClassBody node) {
-    _runSubscriptions(node, _registry._forBlockClassBody);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitBlockEnumBody(BlockEnumBody node) {
-    _runSubscriptions(node, _registry._forBlockEnumBody);
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
+    _runSubscriptions(node, _registry._forBlockEnumDeclarationBody);
     node.visitChildren2(this);
   }
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _runSubscriptions(node, _registry._forBlockFunctionBody);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
+    _runSubscriptions(node, _registry._forBlockInstanceDeclarationBody);
     node.visitChildren2(this);
   }
 
@@ -1401,15 +1403,17 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    _runSubscriptions(node, _registry._forClassDeclaration);
+  void visitClassDeclaration2(ClassDeclaration2 node) {
+    _runSubscriptions(node, _registry._forClassDeclaration2);
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    _runSubscriptions(node, _registry._forClassTypeAlias);
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _runSubscriptions(node, _registry._forClassTypeAlias2);
     node.visitChildren2(this);
   }
 
@@ -1470,9 +1474,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _runSubscriptions(node, _registry._forConstructorDeclaration);
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
+    _runSubscriptions(node, _registry._forConstructorDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -1590,18 +1595,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {
-    _runSubscriptions(node, _registry._forEmptyClassBody);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {
-    _runSubscriptions(node, _registry._forEmptyEnumBody);
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _runSubscriptions(node, _registry._forEmptyFunctionBody);
     node.visitChildren2(this);
@@ -1619,15 +1612,17 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    _runSubscriptions(node, _registry._forEnumConstantDeclaration);
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
+    _runSubscriptions(node, _registry._forEnumConstantDeclaration2);
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
-    _runSubscriptions(node, _registry._forEnumDeclaration);
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
+    _runSubscriptions(node, _registry._forEnumDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -1655,9 +1650,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _runSubscriptions(node, _registry._forExtensionDeclaration);
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
+    _runSubscriptions(node, _registry._forExtensionDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -1674,9 +1670,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _runSubscriptions(node, _registry._forExtensionTypeDeclaration);
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
+    _runSubscriptions(node, _registry._forExtensionTypeDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -2104,9 +2101,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
-    _runSubscriptions(node, _registry._forMixinDeclaration);
+  void visitMixinDeclaration2(MixinDeclaration2 node) {
+    _runSubscriptions(node, _registry._forMixinDeclaration2);
     node.visitChildren2(this);
   }
 
@@ -2304,9 +2302,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
-    _runSubscriptions(node, _registry._forPrimaryConstructorBody);
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
+    _runSubscriptions(node, _registry._forPrimaryConstructorBody2);
     node.visitChildren2(this);
   }
 
@@ -2448,6 +2447,22 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitScriptTag(ScriptTag node) {
     _runSubscriptions(node, _registry._forScriptTag);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {
+    _runSubscriptions(node, _registry._forSemicolonEnumDeclarationBody);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {
+    _runSubscriptions(node, _registry._forSemicolonInstanceDeclarationBody);
     node.visitChildren2(this);
   }
 
@@ -4526,13 +4541,15 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<BinaryOperatorInvocation>>
   _forBinaryOperatorInvocation = [];
 
-  final List<_Subscription2<BlockClassBody>> _forBlockClassBody = [];
-
-  final List<_Subscription2<BlockEnumBody>> _forBlockEnumBody = [];
+  final List<_Subscription2<BlockEnumDeclarationBody>>
+  _forBlockEnumDeclarationBody = [];
 
   final List<_Subscription2<BlockFunctionBody>> _forBlockFunctionBody = [];
 
   final List<_Subscription2<Block>> _forBlock = [];
+
+  final List<_Subscription2<BlockInstanceDeclarationBody>>
+  _forBlockInstanceDeclarationBody = [];
 
   final List<_Subscription2<BooleanLiteral>> _forBooleanLiteral = [];
 
@@ -4568,9 +4585,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<CatchClauseParameter>> _forCatchClauseParameter =
       [];
 
-  final List<_Subscription2<ClassDeclaration>> _forClassDeclaration = [];
+  final List<_Subscription2<ClassDeclaration2>> _forClassDeclaration2 = [];
 
-  final List<_Subscription2<ClassTypeAlias>> _forClassTypeAlias = [];
+  final List<_Subscription2<ClassTypeAlias2>> _forClassTypeAlias2 = [];
 
   final List<_Subscription2<CombinatorName>> _forCombinatorName = [];
 
@@ -4592,8 +4609,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ConstantPattern>> _forConstantPattern = [];
 
-  final List<_Subscription2<ConstructorDeclaration>>
-  _forConstructorDeclaration = [];
+  final List<_Subscription2<ConstructorDeclaration2>>
+  _forConstructorDeclaration2 = [];
 
   final List<_Subscription2<ConstructorFieldInitializer>>
   _forConstructorFieldInitializer = [];
@@ -4638,10 +4655,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<DoubleLiteral>> _forDoubleLiteral = [];
 
-  final List<_Subscription2<EmptyClassBody>> _forEmptyClassBody = [];
-
-  final List<_Subscription2<EmptyEnumBody>> _forEmptyEnumBody = [];
-
   final List<_Subscription2<EmptyFunctionBody>> _forEmptyFunctionBody = [];
 
   final List<_Subscription2<EmptyStatement>> _forEmptyStatement = [];
@@ -4649,10 +4662,10 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<EnumConstantArguments>> _forEnumConstantArguments =
       [];
 
-  final List<_Subscription2<EnumConstantDeclaration>>
-  _forEnumConstantDeclaration = [];
+  final List<_Subscription2<EnumConstantDeclaration2>>
+  _forEnumConstantDeclaration2 = [];
 
-  final List<_Subscription2<EnumDeclaration>> _forEnumDeclaration = [];
+  final List<_Subscription2<EnumDeclaration2>> _forEnumDeclaration2 = [];
 
   final List<_Subscription2<ExportDirective>> _forExportDirective = [];
 
@@ -4663,15 +4676,15 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ExtendsClause>> _forExtendsClause = [];
 
-  final List<_Subscription2<ExtensionDeclaration>> _forExtensionDeclaration =
+  final List<_Subscription2<ExtensionDeclaration2>> _forExtensionDeclaration2 =
       [];
 
   final List<_Subscription2<ExtensionOnClause>> _forExtensionOnClause = [];
 
   final List<_Subscription2<ExtensionOverride2>> _forExtensionOverride2 = [];
 
-  final List<_Subscription2<ExtensionTypeDeclaration>>
-  _forExtensionTypeDeclaration = [];
+  final List<_Subscription2<ExtensionTypeDeclaration2>>
+  _forExtensionTypeDeclaration2 = [];
 
   final List<_Subscription2<Field2>> _forField2 = [];
 
@@ -4823,7 +4836,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<MethodDeclaration2>> _forMethodDeclaration2 = [];
 
-  final List<_Subscription2<MixinDeclaration>> _forMixinDeclaration = [];
+  final List<_Subscription2<MixinDeclaration2>> _forMixinDeclaration2 = [];
 
   final List<_Subscription2<MixinOnClause>> _forMixinOnClause = [];
 
@@ -4896,8 +4909,8 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<PatternVariableDeclarationStatement>>
   _forPatternVariableDeclarationStatement = [];
 
-  final List<_Subscription2<PrimaryConstructorBody>>
-  _forPrimaryConstructorBody = [];
+  final List<_Subscription2<PrimaryConstructorBody2>>
+  _forPrimaryConstructorBody2 = [];
 
   final List<_Subscription2<PrimaryConstructorDeclaration>>
   _forPrimaryConstructorDeclaration = [];
@@ -4954,6 +4967,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ReturnStatement>> _forReturnStatement = [];
 
   final List<_Subscription2<ScriptTag>> _forScriptTag = [];
+
+  final List<_Subscription2<SemicolonEnumDeclarationBody>>
+  _forSemicolonEnumDeclarationBody = [];
+
+  final List<_Subscription2<SemicolonInstanceDeclarationBody>>
+  _forSemicolonInstanceDeclarationBody = [];
 
   final List<_Subscription2<SetOrMapLiteral>> _forSetOrMapLiteral = [];
 
@@ -5145,21 +5164,31 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addBlockClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addBlockEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
     _hasNodeProcessors = true;
-    _forBlockClassBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forBlockEnumBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forBlockEnumDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forBlockFunctionBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addBlockInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forBlockInstanceDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override
@@ -5274,15 +5303,15 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addClassDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forClassDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forClassDeclaration2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
-  void addClassTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addClassTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forClassTypeAlias.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forClassTypeAlias2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5350,12 +5379,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addConstructorDeclaration(
+  void addConstructorDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forConstructorDeclaration.add(
+    _forConstructorDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -5508,18 +5537,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addEmptyClassBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forEmptyClassBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forEmptyEnumBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forEmptyFunctionBody.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -5543,20 +5560,20 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addEnumConstantDeclaration(
+  void addEnumConstantDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forEnumConstantDeclaration.add(
+    _forEnumConstantDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
 
   @override
-  void addEnumDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addEnumDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forEnumDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forEnumDeclaration2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5589,9 +5606,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addExtensionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addExtensionDeclaration2(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
     _hasNodeProcessors = true;
-    _forExtensionDeclaration.add(
+    _forExtensionDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -5609,12 +5629,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addExtensionTypeDeclaration(
+  void addExtensionTypeDeclaration2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forExtensionTypeDeclaration.add(
+    _forExtensionTypeDeclaration2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -6115,9 +6135,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addMixinDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addMixinDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forMixinDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forMixinDeclaration2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -6350,12 +6370,12 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addPrimaryConstructorBody(
+  void addPrimaryConstructorBody2(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   ) {
     _hasNodeProcessors = true;
-    _forPrimaryConstructorBody.add(
+    _forPrimaryConstructorBody2.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }
@@ -6551,6 +6571,28 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addScriptTag(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forScriptTag.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addSemicolonEnumDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forSemicolonEnumDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addSemicolonInstanceDeclarationBody(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forSemicolonInstanceDeclarationBody.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

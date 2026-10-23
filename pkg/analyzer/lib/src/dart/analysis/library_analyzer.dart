@@ -156,12 +156,11 @@ class LibraryAnalyzer {
     // Resolution can replace the node at the completion offset. Select the
     // stable enclosing resolution root while the parsed tree still owns it.
     var nodeToResolve = node?.thisOrAncestorMatching2((e) {
-      return e.parent2 is ClassBody ||
-          e.parent2 is ClassDeclaration ||
+      return e.parent2 is ClassDeclaration2 ||
           e.parent2 is CompilationUnit ||
-          e.parent2 is EnumBody ||
-          e.parent2 is ExtensionDeclaration ||
-          e.parent2 is MixinDeclaration;
+          e.parent2 is InstanceDeclarationBody ||
+          e.parent2 is ExtensionDeclaration2 ||
+          e.parent2 is MixinDeclaration2;
     });
 
     return performance.run('resolve', (performance) {
@@ -469,9 +468,8 @@ class LibraryAnalyzer {
     var diagnosticReporter = fileAnalysis.diagnosticReporter;
     var unit = fileAnalysis.unit;
 
-    UnicodeTextVerifier(
-      diagnosticReporter,
-    ).verify(unit, fileAnalysis.file.content);
+    UnicodeTextVerifier(diagnosticReporter)
+        .verify(unit, fileAnalysis.file.content);
 
     unit.accept2(DeadCodeVerifier(diagnosticReporter, _libraryElement));
 

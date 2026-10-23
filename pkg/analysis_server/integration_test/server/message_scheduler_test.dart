@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
@@ -125,7 +125,7 @@ void f() {
     );
     // Use a Completer to control when the refactor handler starts computing.
     var completer = Completer<void>();
-    PerformRefactorCommandHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       // Send an edit request immediately after the refactor request.
       var futures = <Future<void>>[];
@@ -142,7 +142,7 @@ void f() {
       await Future.wait(futures);
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
-      PerformRefactorCommandHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
 
     _assertLogContents(testView!, r'''

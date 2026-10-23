@@ -581,17 +581,17 @@ class _InfoBuilder {
     var topLevelVariable = <_InfoTopLevelVariable>[];
     var typeAliases = <_InfoTypeAlias>[];
     for (var declaration in unit.declarations2) {
-      if (declaration is ClassDeclaration) {
+      if (declaration is ClassDeclaration2) {
         classDeclarations.add(_buildClass(declaration));
-      } else if (declaration is ClassTypeAlias) {
+      } else if (declaration is ClassTypeAlias2) {
         classTypeAliases.add(_buildClassTypeAlias(declaration));
-      } else if (declaration is EnumDeclarationImpl) {
+      } else if (declaration is EnumDeclaration2Impl) {
         enums.add(_buildEnum(declaration));
-      } else if (declaration is ExtensionDeclaration) {
+      } else if (declaration is ExtensionDeclaration2) {
         extensions.add(_buildExtension(declaration));
-      } else if (declaration is ExtensionTypeDeclaration) {
+      } else if (declaration is ExtensionTypeDeclaration2) {
         extensionTypes.add(_buildExtensionType(declaration));
-      } else if (declaration is MixinDeclarationImpl) {
+      } else if (declaration is MixinDeclaration2Impl) {
         mixinDeclarations.add(_buildMixin(declaration));
       } else if (declaration is TopLevelFunctionDeclarationImpl) {
         topLevelFunctions.add(_buildTopLevelFunction(declaration));
@@ -663,19 +663,19 @@ class _InfoBuilder {
     );
   }
 
-  _InfoClassDeclaration _buildClass(ClassDeclaration node) {
+  _InfoClassDeclaration _buildClass(ClassDeclaration2 node) {
     return _InfoClassDeclaration(
       data: _buildInterfaceData(
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members2,
+        members: node.body.members,
       ),
     );
   }
 
-  _InfoClassTypeAlias _buildClassTypeAlias(ClassTypeAlias node) {
+  _InfoClassTypeAlias _buildClassTypeAlias(ClassTypeAlias2 node) {
     return _InfoClassTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -707,7 +707,7 @@ class _InfoBuilder {
     FormalParameterList? formalParameters,
     Expression? constantInitializer,
     NodeList<ConstructorInitializer>? constructorInitializers,
-    NodeList<EnumConstantDeclaration>? enumConstants,
+    NodeList<EnumConstantDeclaration2>? enumConstants,
     TypeAnnotation? aliasedType,
     EnumConstantArguments? enumConstantArguments,
   }) {
@@ -763,7 +763,7 @@ class _InfoBuilder {
     return collector.offsets.takeAndReset();
   }
 
-  _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration node) {
+  _InfoConstructorDeclaration _buildConstructor(ConstructorDeclaration2 node) {
     return _InfoConstructorDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -771,35 +771,35 @@ class _InfoBuilder {
       nameOffset: node.name?.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
       typeParameters: const [],
-      parameters: _buildFormalParameters(node.parameters),
+      parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        formalParameters: node.parameters,
+        formalParameters: node.formalParameters,
         constructorInitializers: node.initializers,
       ),
       newKeywordOffset: node.newKeyword?.offset,
       factoryKeywordOffset: node.factoryKeyword?.offset,
-      typeNameOffset: node.typeName2?.offset,
+      typeNameOffset: node.typeName?.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.typeName2)?.end,
+      nameEnd: (node.name ?? node.typeName)?.end,
       thisKeywordOffset: null,
       primaryHeaderCodeRange: null,
       primaryBodyCodeRange: null,
     );
   }
 
-  _InfoEnumDeclaration _buildEnum(EnumDeclarationImpl node) {
+  _InfoEnumDeclaration _buildEnum(EnumDeclaration2Impl node) {
     return _InfoEnumDeclaration(
       data: _buildInterfaceData(
         node,
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members2,
+        members: node.body.members,
         fields: [
           ...node.body.constants.map(_buildEnumConstant),
           for (var declaration
-              in node.body.members2.whereType<FieldsDeclaration>())
+              in node.body.members.whereType<FieldsDeclaration>())
             for (var field in declaration.fields)
               _buildField(declaration, field),
         ],
@@ -807,7 +807,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration node) {
+  _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration2 node) {
     var codeOffset = node.offset;
     return _InfoFieldDeclaration(
       firstTokenOffset: node.offset,
@@ -829,19 +829,19 @@ class _InfoBuilder {
     );
   }
 
-  _InfoExtensionDeclaration _buildExtension(ExtensionDeclaration node) {
+  _InfoExtensionDeclaration _buildExtension(ExtensionDeclaration2 node) {
     return _InfoExtensionDeclaration(
       data: _buildInstanceData(
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members2,
+        members: node.body.members,
       ),
     );
   }
 
   _InfoExtensionTypeDeclaration _buildExtensionType(
-    ExtensionTypeDeclaration node,
+    ExtensionTypeDeclaration2 node,
   ) {
     return _InfoExtensionTypeDeclaration(
       data: _buildInterfaceData(
@@ -849,7 +849,7 @@ class _InfoBuilder {
         name: node.namePart.typeName,
         typeParameters: node.namePart.typeParameters,
         primaryConstructor: node.namePart.tryCast(),
-        members: node.body.members2,
+        members: node.body.members,
       ),
     );
   }
@@ -940,7 +940,7 @@ class _InfoBuilder {
   }
 
   _InstanceData _buildInstanceData(
-    Declaration node, {
+    AnnotatedNode node, {
     required Token? name,
     required TypeParameterList? typeParameters,
     required List<AnnotatedNode> members,
@@ -969,7 +969,7 @@ class _InfoBuilder {
       }
     }
 
-    var annotatedNode = node as AnnotatedNode;
+    var annotatedNode = node;
     return _InstanceData(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -989,7 +989,7 @@ class _InfoBuilder {
   }
 
   _InterfaceData _buildInterfaceData(
-    Declaration node, {
+    AnnotatedNode node, {
     required Token? name,
     required TypeParameterList? typeParameters,
     PrimaryConstructorDeclaration? primaryConstructor,
@@ -1005,7 +1005,7 @@ class _InfoBuilder {
     );
 
     var primaryConstructorBody = members
-        .whereType<PrimaryConstructorBody>()
+        .whereType<PrimaryConstructorBody2>()
         .firstOrNull;
 
     return _InterfaceData(
@@ -1016,7 +1016,7 @@ class _InfoBuilder {
             primaryConstructor,
             body: primaryConstructorBody,
           ),
-        ...members.whereType<ConstructorDeclaration>().map(_buildConstructor),
+        ...members.whereType<ConstructorDeclaration2>().map(_buildConstructor),
       ],
     );
   }
@@ -1065,13 +1065,13 @@ class _InfoBuilder {
     );
   }
 
-  _InfoMixinDeclaration _buildMixin(MixinDeclarationImpl node) {
+  _InfoMixinDeclaration _buildMixin(MixinDeclaration2Impl node) {
     return _InfoMixinDeclaration(
       data: _buildInterfaceData(
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: node.body.members2,
+        members: node.body.members,
       ),
     );
   }
@@ -1082,7 +1082,7 @@ class _InfoBuilder {
 
   _InfoConstructorDeclaration _buildPrimaryConstructor(
     PrimaryConstructorDeclaration node, {
-    required PrimaryConstructorBody? body,
+    required PrimaryConstructorBody2? body,
   }) {
     var headerOffset = (node.constructorName ?? node.formalParameters).offset;
     return _InfoConstructorDeclaration(

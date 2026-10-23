@@ -27,7 +27,7 @@ class JsInteropVerifier {
 
   void verifyCompilationUnit(CompilationUnit node) {
     for (var declaration in node.declarations2) {
-      if (declaration is ExtensionTypeDeclaration) {
+      if (declaration is ExtensionTypeDeclaration2) {
         _checkExtensionTypeDeclaration(declaration);
       }
     }
@@ -40,7 +40,7 @@ class JsInteropVerifier {
   /// (`JsInteropChecks.visitProcedure` in `pkg/_js_interop_checks`) only for
   /// members that pass `_isJSInteropMember`, which imposes two preconditions
   /// that are replicated here.
-  void _checkExtensionTypeDeclaration(ExtensionTypeDeclaration declaration) {
+  void _checkExtensionTypeDeclaration(ExtensionTypeDeclaration2 declaration) {
     // Precondition 1: for extension type members `_isJSInteropMember` consults
     // `ExtensionIndex`, which only indexes declarations satisfying
     // `isInteropExtensionType`. An extension type over a non-interop
@@ -51,8 +51,8 @@ class JsInteropVerifier {
       return;
     }
 
-    for (var member in declaration.body.members2) {
-      if (member is ConstructorDeclaration) {
+    for (var member in declaration.body.members) {
+      if (member is ConstructorDeclaration2) {
         // Precondition 2: `_isJSInteropMember` returns `false` for any member
         // that is not `external`, so the CFE never reports a non-external
         // constructor.

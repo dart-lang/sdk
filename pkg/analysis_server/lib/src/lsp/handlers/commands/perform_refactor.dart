@@ -14,15 +14,9 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide MessageType;
-import 'package:meta/meta.dart';
 
 /// A handler that performs legacy refactors such as EXTRACT_WIDGET.
 class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
-  /// A [Future] used by tests to allow inserting a delay between resolving
-  /// the initial unit and the refactor running.
-  @visibleForTesting
-  static Future<void>? delayAfterResolveForTests;
-
   new(super.server);
 
   @override
@@ -57,8 +51,8 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
     server.analyticsManager.executedCommand(actionName);
 
     var result = await requireResolvedUnit(path);
-    if (delayAfterResolveForTests != null) {
-      await delayAfterResolveForTests;
+    if (LspAnalysisServer.delayAfterResolveForTests case var delay?) {
+      await delay;
     }
 
     return result.mapResult((result) async {

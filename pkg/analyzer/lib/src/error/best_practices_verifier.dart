@@ -245,7 +245,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
 
     _enclosingClass = element;
@@ -264,7 +264,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         nameToken: node.namePart.typeName,
       );
       _checkForInvalidSealedSuperclass(node);
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
@@ -274,14 +274,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     _immutableVerifier.checkDeclaration(node, nameToken: node.name);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedFunctionalityVerifier.classTypeAlias(node);
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -322,9 +322,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(covariant ConstructorDeclaration2 node) {
     _checkStrictInferenceInParameters(
-      node.parameters,
+      node.formalParameters,
       body: node.body,
       initializers: node.initializers,
     );
@@ -335,7 +335,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     _deprecatedFunctionalityVerifier.constructorDeclaration(node);
 
     try {
-      super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -390,12 +390,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
     _deprecatedFunctionalityVerifier.enumDeclaration(node);
 
     try {
-      super.visitEnumDeclaration(node);
+      super.visitEnumDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -417,11 +417,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitExtensionDeclaration(node);
+      super.visitExtensionDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -434,11 +434,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitExtensionTypeDeclaration(node);
+      super.visitExtensionTypeDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -637,7 +637,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
 
     _enclosingClass = element;
@@ -649,7 +649,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     try {
       _immutableVerifier.checkDeclaration(node, nameToken: node.name);
       _checkForInvalidSealedSuperclass(node);
-      super.visitMixinDeclaration(node);
+      super.visitMixinDeclaration2(node);
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
@@ -717,12 +717,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     var element = node.declaration?.declaredFragment!.element;
     _elementUsageFrontierDetector.pushElement(element);
     // TODO(srawlins): Account for @doNotStore, as in
     // `visitLocalFunctionDeclaration`.
-    super.visitPrimaryConstructorBody(node);
+    super.visitPrimaryConstructorBody2(node);
     _elementUsageFrontierDetector.popElement();
   }
 
@@ -1137,14 +1137,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     });
   }
 
-  void _checkForInvalidSealedSuperclass(CompilationUnitMember node) {
+  void _checkForInvalidSealedSuperclass(FragmentDeclaringNode node) {
     bool currentPackageContains(Element element) {
       return _isLibraryInWorkspacePackage(element.library);
     }
 
     // [NamedCompilationUnitMember.declaredElement] is not necessarily a
     // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
-    // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
+    // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias2]. The
     // `declaredElement` of these specific classes is a [ClassElement].
     var element = node.declaredFragment!.element as InterfaceElement;
     // TODO(srawlins): Perhaps replace this with a getter on Element, like

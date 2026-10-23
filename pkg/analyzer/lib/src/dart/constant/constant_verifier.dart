@@ -165,7 +165,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
       // Check and report cycles.
@@ -190,8 +192,8 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         );
       }
     }
-    _validateDefaultValues(node.parameters);
-    super.visitConstructorDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -257,8 +259,8 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  visitEnumConstantDeclaration(covariant EnumConstantDeclarationImpl node) {
-    super.visitEnumConstantDeclaration(node);
+  visitEnumConstantDeclaration2(covariant EnumConstantDeclaration2Impl node) {
+    super.visitEnumConstantDeclaration2(node);
 
     var argumentList = node.arguments?.argumentList;
     if (argumentList != null) {
@@ -405,12 +407,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var element = node.declaration?.declaredFragment?.element;
     if (element is ConstructorElementImpl && element.isConst) {
       _validateConstructorInitializers(node.initializers);
     }
-    super.visitPrimaryConstructorBody(node);
+    super.visitPrimaryConstructorBody2(node);
   }
 
   @override
@@ -1148,14 +1152,10 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
             forCorrection: true,
           );
 
-          var correctionData = <List<MissingPatternPart>>[];
-          for (var witness in nonExhaustiveness.witnesses) {
-            var correctionDataBuffer = AnalyzerDartTemplateBuffer();
-            witness.toDart(correctionDataBuffer, forCorrection: true);
-            if (correctionDataBuffer.isComplete) {
-              correctionData.add(correctionDataBuffer.parts);
-            }
-          }
+          var missingPatterns = Witnesses(
+            caseSpaces,
+            nonExhaustiveness.witnesses,
+          );
 
           Diagnostic diagnostic;
           _currentLibrary;
@@ -1185,9 +1185,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
                   .at(switchKeyword),
             );
           }
-          if (correctionData.isNotEmpty) {
-            MissingPatternPart.byDiagnostic[diagnostic] = correctionData;
-          }
+          MissingPatternPart.byDiagnostic[diagnostic] = missingPatterns;
         }
       } else {
         if (defaultNode != null && mustBeExhaustive) {
@@ -1754,12 +1752,11 @@ extension on Expression {
         return true;
       } else if (parent is Field2 && child == parent.initializer) {
         var declaration = parent.parent2;
-        if (declaration is FieldsDeclaration &&
-            declaration.staticKeyword == null) {
+        if (declaration.staticKeyword == null) {
           var body = declaration.parent2;
-          if (body is BlockClassBody) {
+          if (body is BlockInstanceDeclarationBody) {
             var container = body.parent2;
-            if (container is ClassDeclaration) {
+            if (container is ClassDeclaration2) {
               var enclosingClass = container.declaredFragment!.element;
               if (enclosingClass is ClassElementImpl) {
                 // A field initializer of a class with at least one generative

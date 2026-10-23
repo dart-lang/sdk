@@ -27,7 +27,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -35,7 +42,7 @@ MixinDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 invalidNodes
-  ConstructorDeclarationImpl [12, 41)
+  ConstructorDeclaration2Impl [12, 41)
 ''');
   }
 
@@ -50,7 +57,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -58,7 +72,7 @@ MixinDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 invalidNodes
-  ConstructorDeclarationImpl [12, 35)
+  ConstructorDeclaration2Impl [12, 35)
 ''');
   }
 
@@ -73,7 +87,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -81,7 +102,7 @@ MixinDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 invalidNodes
-  ConstructorDeclarationImpl [12, 22)
+  ConstructorDeclaration2Impl [12, 22)
 ''');
   }
 
@@ -96,7 +117,14 @@ mixin M {
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -104,7 +132,7 @@ MixinDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 invalidNodes
-  ConstructorDeclarationImpl [12, 16)
+  ConstructorDeclaration2Impl [12, 16)
 ''');
   }
 }

@@ -16320,6 +16320,20 @@ const DiagnosticWithoutArguments unawaitedReturnInTryBlock =
 
 /// No parameters.
 const DiagnosticWithoutArguments
+uncheckedInstantiationOfNullableValue = DiagnosticWithoutArgumentsImpl(
+  name: 'unchecked_use_of_nullable_value',
+  problemMessage:
+      "The function can't be unconditionally instantiated because it can be "
+      "'null'.",
+  correctionMessage: "Try adding a null check ('!').",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'unchecked_instantiation_of_nullable_value',
+  expectedTypes: [],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
 uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
   name: 'unchecked_use_of_nullable_value',
   problemMessage:

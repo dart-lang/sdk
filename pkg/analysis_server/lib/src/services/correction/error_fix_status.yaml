@@ -1641,6 +1641,8 @@ type_test_with_non_type:
     right operand to the static type of the left.
 type_test_with_undefined_name:
   status: hasFix
+unchecked_instantiation_of_nullable_value:
+  status: hasFix
 unchecked_invocation_of_nullable_value:
   status: hasFix
 unchecked_method_invocation_of_nullable_value:

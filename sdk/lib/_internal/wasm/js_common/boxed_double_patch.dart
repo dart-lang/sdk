@@ -48,7 +48,7 @@ class BoxedDouble {
     }
 
     String result = JSStringImpl.fromRefUnchecked(
-      JS<WasmExternRef?>(
+      JS<WasmExternRef>(
         'Function.prototype.call.bind(Number.prototype.toString)',
         WasmF64.fromDouble(value),
       ),

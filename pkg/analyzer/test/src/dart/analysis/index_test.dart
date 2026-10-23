@@ -8187,9 +8187,8 @@ void f() {
     Set<String> names = const {},
     required String expected,
   }) {
-    var actual = _IndexTextBuilder(
-      result,
-    ).indexText(elements: elements, names: names);
+    var actual = _IndexTextBuilder(result)
+        .indexText(elements: elements, names: names);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
