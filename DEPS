@@ -83,7 +83,7 @@ vars = {
   "gcloud_version": "version:3@584.0.0.chromium.4",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:32e6b5082d000a0da4a5af148d63f30d29e95a18",
+  "clang_version": "git_revision:61aea712077a33fc4aa2be6594f5957686be2547",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:938087829fcbcc8fd87835ee301dd522c7637685",
