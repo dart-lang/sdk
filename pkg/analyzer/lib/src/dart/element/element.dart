@@ -4219,6 +4219,12 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   List<FragmentImpl> get children => const [];
 
   @override
+  ExpressionImpl? get constantInitializer2 {
+    _ensureEnclosingFragmentReadResolution();
+    return super.constantInitializer2;
+  }
+
+  @override
   FormalParameterElementImpl get element => _element;
 
   @generated
@@ -4368,6 +4374,12 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   @override
+  MetadataImpl get metadata {
+    _ensureEnclosingFragmentReadResolution();
+    return super.metadata;
+  }
+
+  @override
   List<FormalParameterFragmentImpl> get precedingFragments {
     return [
       for (
@@ -4402,6 +4414,18 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     }
 
     FormalParameterElementImpl(firstFragment);
+  }
+
+  /// Reads the resolution of the enclosing fragment, which sets the default
+  /// value and metadata of this fragment.
+  ///
+  /// This fragment can be reached before its enclosing fragment is read,
+  /// for example via [nextFragment] when the element combines the default
+  /// value and metadata of all its fragments.
+  void _ensureEnclosingFragmentReadResolution() {
+    if (enclosingFragment case DeferredResolutionReadingMixin enclosing) {
+      enclosing._ensureReadResolution();
+    }
   }
 
   static void _linkFragments<T extends FragmentImpl>(

@@ -30704,6 +30704,90 @@ library
 ''');
   }
 
+  test_field_augmentation_chain_instanceLateFinal_typed_hasConstConstructor() async {
+    var library = await buildLibrary(r'''
+class A {
+  late final A foo = this;
+  const A();
+}
+
+augment class A {
+  augment late final A foo = this;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 hasInitializer isFinal isLate isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+              element: <testLibrary>::@class::A::@field::foo
+              initializer: expression_0
+                ThisExpression
+                  thisKeyword: this @31
+                  staticType: A
+              inducedGetter: #F4
+              nextFragment: #F5
+          constructors
+            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:39) (offset:45)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 45
+          getters
+            #F4 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F3
+              nextFragment: #F7
+        #F2 isAugmentation class A (nameOffset:67) (firstTokenOffset:53) (offset:67)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F5 hasInitializer isAugmentation isFinal isLate isOriginDeclaration foo (nameOffset:94) (firstTokenOffset:94) (offset:94)
+              element: <testLibrary>::@class::A::@field::foo
+              initializer: expression_1
+                ThisExpression
+                  thisKeyword: this @100
+                  staticType: A
+              inducedGetter: #F7
+              previousFragment: #F3
+          getters
+            #F7 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F5
+              previousFragment: #F4
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer isFinal isLate isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: A
+          constantInitializer
+            fragment: #F5
+            expression: expression_1
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F6
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: A
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_field_augmentation_chain_noIntroductoryDeclaration() async {
     var library = await buildLibrary(r'''
 class A {}
@@ -32492,6 +32576,76 @@ library
           firstFragment: #F6
           returnType: A<int Function(double)>
           variable: <testLibrary>::@class::B::@field::f
+''');
+  }
+
+  test_field_final_hasInitializer_hasConstPrimaryConstructor() async {
+    var library = await buildLibrary(r'''
+class const A(int x) {
+  final int foo = x;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:12) (firstTokenOffset:0) (offset:12)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 hasInitializer isFinal isOriginDeclaration foo (nameOffset:35) (firstTokenOffset:35) (offset:35)
+              element: <testLibrary>::@class::A::@field::foo
+              initializer: expression_0
+                UnqualifiedNameExpression
+                  name: x @41
+                  resolution: VariableReadResolution
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                    type: int
+                  staticType: int
+              inducedGetter: #F3
+          constructors
+            #F4 isConst isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:6) (offset:12)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 12
+              primaryHeaderCodeRange: 13 + 7
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration x (nameOffset:18) (firstTokenOffset:14) (offset:18)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+          getters
+            #F3 isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F2
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer isFinal isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isConst isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional x
+              firstFragment: #F5
+              type: int
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 

@@ -88,16 +88,13 @@ void runSharedTests(
           expression: 'x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
           expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+              "The variable 'x' is unavailable in this expression evaluation.",
         );
         await driver.checkInFrame(
           breakpointId: 'bp1',
           expression: '_x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
-          expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+          expectedResult: 'null',
         );
       });
       test('private named parameter', () async {
@@ -106,16 +103,16 @@ void runSharedTests(
           expression: 'x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
           expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+              "DartError: NoSuchMethodError: 'x'\n"
+              'method not found\n'
+              "Receiver: Instance of 'C2'\n"
+              'Arguments: []\n',
         );
         await driver.checkInFrame(
           breakpointId: 'bp3',
           expression: '_x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
-          expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+          expectedResult: 'null',
         );
       });
     });
@@ -168,16 +165,13 @@ void runSharedTests(
           expression: 'x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
           expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+              "The variable 'x' is unavailable in this expression evaluation.",
         );
         await driver.checkInFrame(
           breakpointId: 'bp1',
           expression: '_x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
-          expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+          expectedResult: 'null',
         );
       });
       test('private named parameter', () async {
@@ -185,17 +179,13 @@ void runSharedTests(
           breakpointId: 'bp3',
           expression: 'x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
-          expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+          expectedResult: '99',
         );
         await driver.checkInFrame(
           breakpointId: 'bp3',
           expression: '_x',
           // See: https://github.com/dart-lang/sdk/issues/63842.
-          expectedError:
-              "Failed to read the 'x' property from 'Object': "
-              "Cannot access 'x' from debugger",
+          expectedResult: 'null',
         );
       });
     });

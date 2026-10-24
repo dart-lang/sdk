@@ -55,10 +55,6 @@ class ConstantInitializersResolver {
     AnalysisOptionsImpl analysisOptions,
     PropertyInducingElementImpl element,
   ) {
-    if (element is FieldElementImpl && element.isEnumConstant) {
-      return;
-    }
-
     // Every fragment's initializer is written into the bundle, including
     // initializers of augmentations, so each of them must end up resolved.
     for (var fragment in element.fragments) {
