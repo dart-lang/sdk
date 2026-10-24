@@ -1454,8 +1454,6 @@ class FileSystemState {
           path,
           uri,
           contextFeatures: analysisOptions.contextFeatures,
-          nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet,
-          nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion,
         );
     featureSet ??= packageFeatureSet;
     languageVersion ??= packageLanguageVersion;
