@@ -132,7 +132,9 @@ class SocketAddress {
   static_assert(kMaxAddressStringLength >= INET_ADDRSTRLEN);
 
  private:
-  char as_string_[kMaxAddressStringLength];
+  // One extra byte so a unix domain socket path that fills the whole
+  // sun_path field still has room for the terminating NUL.
+  char as_string_[kMaxAddressStringLength + 1];
   RawAddr addr_;
 
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
