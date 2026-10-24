@@ -616,6 +616,49 @@ class NullRejectionException implements Exception {
   }
 }
 
+/// A JavaScript `Error`.
+@JS('Error')
+extension type JSError._(JSObject _) implements JSObject {
+  /// See [`Error.captureStackTrace()`].
+  ///
+  /// [`Error.captureStackTrace()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/captureStackTrace
+  external static void captureStackTrace(
+    JSError error, [
+    JSFunction constructor,
+  ]);
+
+  /// See [`new Error()`].
+  ///
+  /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
+  factory JSError(String message, {JSAny? cause}) => cause == null
+      ? JSError._native(message)
+      : JSError._native(message, JSObject()..['cause'] = cause);
+
+  /// The native constructor that takes a raw [JSObject] for its options rather
+  /// than Dart-style named arguments.
+  external JSError._native(String message, [JSObject options]);
+
+  /// See [`Error.cause`].
+  ///
+  /// [`Error.cause`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+  external JSAny? cause;
+
+  /// See [`Error.message`].
+  ///
+  /// [`Error.message`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message
+  external String message;
+
+  /// See [`Error.name`].
+  ///
+  /// [`Error.name`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
+  external String name;
+
+  /// See [`Error.stack`].
+  ///
+  /// [`Error.stack`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/stack
+  external String stack;
+}
+
 /// A Dart object that is wrapped with a JavaScript object so that it can be
 /// passed to JavaScript safely.
 ///
@@ -1193,12 +1236,19 @@ extension NullableObjectUtilExtension on Object? {
   ///   [FunctionToJSExportedDartFunction.toJS] or
   ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call and that the
   ///   Dart function the value forwards to is a function of type `U`.
+  /// - `JSError`: `isA<JSError>` will use [`Error.isError`] on browsers where
+  ///   it's supported. Because Safari has [known bugs] in its implementation,
+  ///   `isA<JSError>()` will return true if either `Error.isError()` or
+  ///   `instanceof Error` returns true.
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the
   ///   value for [T] instead.
   /// - User interop types that have an object literal constructor: This will
   ///   result in an error as you likely want to use [JSObject] instead.
+  ///
+  /// [`Error.isError`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
+  /// [known bugs]: https://bugs.webkit.org/show_bug.cgi?id=292727
   @Since('3.4')
   external bool isA<T extends JSAny?>();
 }

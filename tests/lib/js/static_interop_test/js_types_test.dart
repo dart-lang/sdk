@@ -20,12 +20,6 @@ extension type JSSet._(JSObject _) implements JSObject, JSIterable<JSNumber> {
   external JSSet(JSArray<JSNumber> contents);
 }
 
-@JS('Error')
-extension type JSError._(JSObject _) implements JSObject {
-  external JSError(String message);
-  external String get message;
-}
-
 @JS()
 external void eval(String code);
 
@@ -1002,6 +996,21 @@ void syncTests() {
   Expect.isFalse(definedNonNullAny.isUndefinedOrNull);
   Expect.isTrue(definedNonNullAny.isDefinedAndNotNull);
   Expect.isTrue(definedNonNullAny.typeofEquals('object'));
+
+  Expect.equals('foo', JSError('foo').message);
+  Expect.equals('Error', JSError('foo').name);
+  final defaultCause = JSError('foo').cause;
+  Expect.isTrue(
+    isJSBackend ? defaultCause.isUndefined : defaultCause.isUndefinedOrNull,
+  );
+  Expect.equals('bar'.toJS, JSError('foo', cause: 'bar'.toJS).cause);
+  Expect.isTrue(JSError('foo').isA<JSError>());
+  Expect.isFalse('foo'.isA<JSError>());
+  Expect.isFalse(JSObject().isA<JSError>());
+
+  final errorWithStack = JSError('foo');
+  JSError.captureStackTrace(errorWithStack);
+  Expect.notEquals('', errorWithStack.stack);
 }
 
 @JS()
