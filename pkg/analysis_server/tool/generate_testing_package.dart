@@ -41,6 +41,12 @@ void main(List<String> args) async {
     )
     ..addFlag('use-barrel-file', help: 'Whether to add a barrel import')
     ..addFlag(
+      'use-core-barrel-cycle',
+      help:
+          'Whether to add a "core.dart" barrel which exports every library, '
+          'and which every library imports, forming one library cycle',
+    )
+    ..addFlag(
       'use-json-serializable',
       help: 'Whether to declare @JsonSerializable classes',
     )
@@ -51,13 +57,31 @@ void main(List<String> args) async {
     print(argParser.usage);
   }
 
-  var libraryCount = int.parse(argResults.option('library-count')!);
-  var classCount = int.parse(argResults.option('class-count')!);
-  var methodCount = int.parse(argResults.option('method-count')!);
-  var parameterCount = int.parse(argResults.option('parameter-count')!);
-  var useBarrelFile = argResults.flag('use-barrel-file');
-  var useJsonSerializable = argResults.flag('use-json-serializable');
-  var testDataDir = Directory('test_data')..createSync();
+  await generateTestingPackage(
+    Directory('test_data')..createSync(),
+    libraryCount: int.parse(argResults.option('library-count')!),
+    classCount: int.parse(argResults.option('class-count')!),
+    methodCount: int.parse(argResults.option('method-count')!),
+    parameterCount: int.parse(argResults.option('parameter-count')!),
+    useBarrelFile: argResults.flag('use-barrel-file'),
+    useCoreBarrelCycle: argResults.flag('use-core-barrel-cycle'),
+    useJsonSerializable: argResults.flag('use-json-serializable'),
+  );
+}
+
+String export(String uri) => "export '$uri';";
+
+/// Generates a `test_package` directory in [parent].
+Future<void> generateTestingPackage(
+  Directory parent, {
+  required int libraryCount,
+  required int classCount,
+  required int methodCount,
+  required int parameterCount,
+  required bool useBarrelFile,
+  required bool useCoreBarrelCycle,
+  required bool useJsonSerializable,
+}) async {
   var libFiles = <d.Descriptor>[];
   var classCounter = 1;
   var methodCounter = 1;
@@ -93,6 +117,9 @@ void main(List<String> args) async {
     var content = StringBuffer();
     if (useJsonSerializable) {
       content.writeln("import 'package:json_annotation/json_annotation.dart';");
+    }
+    if (useCoreBarrelCycle) {
+      content.writeln(import(testPackageLibUri('core.dart')));
     }
     // Add imports in a library above tier 0.
     if (importGraphTier > 0) {
@@ -172,14 +199,22 @@ void main(List<String> args) async {
     libFiles.add(d.file('barrel.dart', content.toString()));
   }
 
+  if (useCoreBarrelCycle) {
+    // Write the core file, which exports every library. Every library imports
+    // it, so the whole package is a single library cycle.
+    var content = StringBuffer();
+    for (var j = 1; j <= libraryCount; j++) {
+      content.writeln(export(testPackageLibUri('lib$j.dart')));
+    }
+    libFiles.add(d.file('core.dart', content.toString()));
+  }
+
   var testPackageDir = d.dir('test_package', [
     d.file('pubspec.yaml', pubspec(useJsonSerializable: useJsonSerializable)),
     d.dir('lib', libFiles),
   ]);
-  await testPackageDir.create(testDataDir.path);
+  await testPackageDir.create(parent.path);
 }
-
-String export(String uri) => "export '$uri';";
 
 String import(String uri) => "import '$uri';";
 
