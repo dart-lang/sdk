@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 
+#include "vm/exceptions.h"
 #include "vm/regexp/regexp-bytecode-generator.h"
 #include "vm/regexp/regexp-bytecodes.h"
 #include "vm/regexp/regexp-compiler.h"
@@ -537,8 +538,12 @@ ObjectPtr RegExpStatics::Interpret(Thread* thread,
   } else if (r == IrregexpInterpreter::FAILURE) {
     return Instance::null();
   } else if (r == IrregexpInterpreter::EXCEPTION) {
-    const Error& error = Error::Handle(thread->StealStickyError());
-    Exceptions::PropagateError(error);
+    if (thread->sticky_error() != Error::null()) {
+      const Error& error = Error::Handle(thread->StealStickyError());
+      Exceptions::PropagateError(error);
+    } else {
+      Exceptions::ThrowStackOverflow();
+    }
     UNREACHABLE();
   } else if (r == IrregexpInterpreter::RETRY) {
     UNREACHABLE();  // No tier up in Dart.
