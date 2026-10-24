@@ -22,7 +22,7 @@ ExpressionImpl replaceNotSerializableExpression(ExpressionImpl node) {
     return node;
   }
   return UnqualifiedNameExpressionImpl(
-    name: StringToken(TokenType.STRING, _notSerializableName, -1),
+    name: StringToken(TokenType.IDENTIFIER, _notSerializableName, -1),
   );
 }
 

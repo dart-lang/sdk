@@ -3809,6 +3809,360 @@ library
 ''');
   }
 
+  test_const_invokeConstructor_argument_receiverPropertyExtraction() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(int value);
+  static const zero = 0;
+}
+
+const v = A(A.zero);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:47) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@class::A::@field::zero
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @54
+                  staticType: int
+              inducedGetter: #F3
+          constructors
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
+          getters
+            #F3 isComplete isOriginVariable isStatic zero (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@class::A::@getter::zero
+              inducingVariable: #F2
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:66) (firstTokenOffset:66) (offset:66)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_1
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @70
+                  element: <testLibrary>::@class::A
+                  type: A
+                element: <testLibrary>::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: ( @71
+                arguments2
+                  ReceiverPropertyExtraction
+                    receiver: StaticQualifier
+                      name: A @72
+                      element: <testLibrary>::@class::A
+                    operator: . @73
+                    name: zero @74
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@class::A::@getter::zero
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
+                arguments(v1)
+                  PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: A @72
+                      element: <testLibrary>::@class::A
+                      staticType: null
+                    period: . @73
+                    identifier: SimpleIdentifier
+                      token: zero @74
+                      element: <testLibrary>::@class::A::@getter::zero
+                      staticType: int
+                    element: <testLibrary>::@class::A::@getter::zero
+                    staticType: int
+                rightParenthesis: ) @78
+              staticType: A
+          inducedGetter: #F7
+      getters
+        #F7 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer zero
+          reference: <testLibrary>::@class::A::@field::zero
+          firstFragment: #F2
+          type: int
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@class::A::@getter::zero
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F5
+              type: int
+      getters
+        isOriginVariable isStatic zero
+          reference: <testLibrary>::@class::A::@getter::zero
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::zero
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F6
+      type: A
+      constantInitializer
+        fragment: #F6
+        expression: expression_1
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F7
+      returnType: A
+      variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
+  test_const_invokeConstructor_argument_receiverPropertyExtraction_contextualKeyword() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(int value);
+  static const when = 0;
+}
+
+const v = A(A.when);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic when (nameOffset:47) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@class::A::@field::when
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @54
+                  staticType: int
+              inducedGetter: #F3
+          constructors
+            #F4 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration value (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
+          getters
+            #F3 isComplete isOriginVariable isStatic when (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@class::A::@getter::when
+              inducingVariable: #F2
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:66) (firstTokenOffset:66) (offset:66)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_1
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @70
+                  element: <testLibrary>::@class::A
+                  type: A
+                element: <testLibrary>::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: ( @71
+                arguments2
+                  ReceiverPropertyExtraction
+                    receiver: StaticQualifier
+                      name: A @72
+                      element: <testLibrary>::@class::A
+                    operator: . @73
+                    name: when @74
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@class::A::@getter::when
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
+                arguments(v1)
+                  PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: A @72
+                      element: <testLibrary>::@class::A
+                      staticType: null
+                    period: . @73
+                    identifier: SimpleIdentifier
+                      token: when @74
+                      element: <testLibrary>::@class::A::@getter::when
+                      staticType: int
+                    element: <testLibrary>::@class::A::@getter::when
+                    staticType: int
+                rightParenthesis: ) @78
+              staticType: A
+          inducedGetter: #F7
+      getters
+        #F7 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer when
+          reference: <testLibrary>::@class::A::@field::when
+          firstFragment: #F2
+          type: int
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@class::A::@getter::when
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F5
+              type: int
+      getters
+        isOriginVariable isStatic when
+          reference: <testLibrary>::@class::A::@getter::when
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::when
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F6
+      type: A
+      constantInitializer
+        fragment: #F6
+        expression: expression_1
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F7
+      returnType: A
+      variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
+  test_const_invokeConstructor_argument_receiverPropertyExtraction_reservedWord() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(int value);
+}
+
+const v = A(A.class);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration value (nameOffset:24) (firstTokenOffset:20) (offset:24)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
+      topLevelVariables
+        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:41) (firstTokenOffset:41) (offset:41)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @45
+                  element: <testLibrary>::@class::A
+                  type: A
+                element: <testLibrary>::@class::A::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: ( @46
+                arguments2
+                  ReceiverPropertyExtraction
+                    receiver: StaticQualifier
+                      name: A @47
+                      element: <testLibrary>::@class::A
+                    operator: . @48
+                    name: class @49
+                    resolution: InvalidNamedReadResolution
+                      recoveryElement: <null>
+                    staticType: InvalidType
+                arguments(v1)
+                  PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: A @47
+                      element: <testLibrary>::@class::A
+                      staticType: null
+                    period: . @48
+                    identifier: SimpleIdentifier
+                      token: class @49
+                      element: <null>
+                      staticType: InvalidType
+                    element: <null>
+                    staticType: InvalidType
+                rightParenthesis: ) @54
+              staticType: A
+          inducedGetter: #F5
+      getters
+        #F5 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F4
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F3
+              type: int
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F4
+      type: A
+      constantInitializer
+        fragment: #F4
+        expression: expression_0
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F5
+      returnType: A
+      variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
   test_const_invokeConstructor_generic_named() async {
     var library = await buildLibrary(r'''
 class C<K, V> {

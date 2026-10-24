@@ -23,12 +23,16 @@ class TokensWriter {
       return UnlinkedTokenType.ASYNC;
     } else if (type == TokenType.AT) {
       return UnlinkedTokenType.AT;
+    } else if (type == Keyword.AUGMENT) {
+      return UnlinkedTokenType.AUGMENT;
     } else if (type == Keyword.AWAIT) {
       return UnlinkedTokenType.AWAIT;
     } else if (type == TokenType.BACKPING) {
       return UnlinkedTokenType.BACKPING;
     } else if (type == TokenType.BACKSLASH) {
       return UnlinkedTokenType.BACKSLASH;
+    } else if (type == TokenType.BAD_INPUT) {
+      return UnlinkedTokenType.BAD_INPUT;
     } else if (type == TokenType.BANG) {
       return UnlinkedTokenType.BANG;
     } else if (type == TokenType.BANG_EQ) {
@@ -41,6 +45,8 @@ class TokensWriter {
       return UnlinkedTokenType.BAR_BAR;
     } else if (type == TokenType.BAR_EQ) {
       return UnlinkedTokenType.BAR_EQ;
+    } else if (type == Keyword.BASE) {
+      return UnlinkedTokenType.BASE;
     } else if (type == Keyword.BREAK) {
       return UnlinkedTokenType.BREAK;
     } else if (type == TokenType.CARET) {
@@ -77,7 +83,8 @@ class TokensWriter {
       return UnlinkedTokenType.DO;
     } else if (type == TokenType.DOUBLE) {
       return UnlinkedTokenType.DOUBLE;
-      // TODO(srawlins): TokenType.DOUBLE_WITH_SEPARATORS?
+    } else if (type == TokenType.DOUBLE_WITH_SEPARATORS) {
+      return UnlinkedTokenType.DOUBLE_WITH_SEPARATORS;
     } else if (type == Keyword.DYNAMIC) {
       return UnlinkedTokenType.DYNAMIC;
     } else if (type == Keyword.ELSE) {
@@ -96,6 +103,8 @@ class TokensWriter {
       return UnlinkedTokenType.EXPORT;
     } else if (type == Keyword.EXTENDS) {
       return UnlinkedTokenType.EXTENDS;
+    } else if (type == Keyword.EXTENSION) {
+      return UnlinkedTokenType.EXTENSION;
     } else if (type == Keyword.EXTERNAL) {
       return UnlinkedTokenType.EXTERNAL;
     } else if (type == Keyword.FACTORY) {
@@ -130,7 +139,8 @@ class TokensWriter {
       return UnlinkedTokenType.HASH;
     } else if (type == TokenType.HEXADECIMAL) {
       return UnlinkedTokenType.HEXADECIMAL;
-      // TODO(srawlins): TokenType.HEXADECIMAL_WITH_SEPARATORS?
+    } else if (type == TokenType.HEXADECIMAL_WITH_SEPARATORS) {
+      return UnlinkedTokenType.HEXADECIMAL_WITH_SEPARATORS;
     } else if (type == Keyword.HIDE) {
       return UnlinkedTokenType.HIDE;
     } else if (type == TokenType.IDENTIFIER) {
@@ -151,9 +161,10 @@ class TokensWriter {
       return UnlinkedTokenType.INOUT;
     } else if (type == TokenType.INT) {
       return UnlinkedTokenType.INT;
-      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
     } else if (type == Keyword.INTERFACE) {
       return UnlinkedTokenType.INTERFACE;
+    } else if (type == TokenType.INT_WITH_SEPARATORS) {
+      return UnlinkedTokenType.INT_WITH_SEPARATORS;
     } else if (type == TokenType.IS) {
       return UnlinkedTokenType.IS;
     } else if (type == Keyword.LATE) {
@@ -228,6 +239,8 @@ class TokensWriter {
       return UnlinkedTokenType.QUESTION_QUESTION;
     } else if (type == TokenType.QUESTION_QUESTION_EQ) {
       return UnlinkedTokenType.QUESTION_QUESTION_EQ;
+    } else if (type == TokenType.RECOVERY) {
+      return UnlinkedTokenType.RECOVERY;
     } else if (type == Keyword.REQUIRED) {
       return UnlinkedTokenType.REQUIRED;
     } else if (type == Keyword.RETHROW) {
@@ -236,6 +249,8 @@ class TokensWriter {
       return UnlinkedTokenType.RETURN;
     } else if (type == TokenType.SCRIPT_TAG) {
       return UnlinkedTokenType.SCRIPT_TAG;
+    } else if (type == Keyword.SEALED) {
+      return UnlinkedTokenType.SEALED;
     } else if (type == TokenType.SEMICOLON) {
       return UnlinkedTokenType.SEMICOLON;
     } else if (type == Keyword.SET) {
@@ -288,6 +303,8 @@ class TokensWriter {
       return UnlinkedTokenType.VAR;
     } else if (type == Keyword.VOID) {
       return UnlinkedTokenType.VOID;
+    } else if (type == Keyword.WHEN) {
+      return UnlinkedTokenType.WHEN;
     } else if (type == Keyword.WHILE) {
       return UnlinkedTokenType.WHILE;
     } else if (type == Keyword.WITH) {
