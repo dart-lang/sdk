@@ -16,8 +16,6 @@ import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
-import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 
 /// Deserializer of ASTs.
 class AstBinaryReader {
@@ -115,7 +113,7 @@ class AstBinaryReader {
   BinaryOperatorInvocation _readBinaryOperatorInvocation() {
     var leftOperand = _readNode() as InstanceReceiverImpl;
     var rightOperand = _readNode() as ExpressionImpl;
-    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var operatorType = _readTokenType();
     var node = BinaryOperatorInvocationImpl(
       leftOperand: leftOperand,
       operator: Tokens.fromType(operatorType),
@@ -239,7 +237,7 @@ class AstBinaryReader {
   CompoundAssignment _readCompoundAssignment() {
     var target = _readNode() as AssignmentTargetImpl;
     var value = _readNode() as ExpressionImpl;
-    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var operatorType = _readTokenType();
     var node = CompoundAssignmentImpl(
       target: target,
       operator: Tokens.fromType(operatorType),
@@ -396,7 +394,7 @@ class AstBinaryReader {
     var value = _readNode() as ExpressionImpl;
     var node = DirectAssignmentImpl(
       target: target,
-      operator: Tokens.fromType(UnlinkedTokenType.EQ),
+      operator: Tokens.fromType(TokenType.EQ),
       value: value,
     );
     _readExpressionResolution(node);
@@ -743,7 +741,7 @@ class AstBinaryReader {
     var value = _readNode() as ExpressionImpl;
     var node = IfNullAssignmentImpl(
       target: target,
-      operator: Tokens.fromType(UnlinkedTokenType.QUESTION_QUESTION_EQ),
+      operator: Tokens.fromType(TokenType.QUESTION_QUESTION_EQ),
       value: value,
     );
     _readExpressionResolution(node);
@@ -826,8 +824,8 @@ class AstBinaryReader {
     var position = _reader.readEnum(IncrementOrDecrementPosition.values);
     var target = _readNode() as AssignmentTargetImpl;
     var operatorType = switch (operation) {
-      IncrementOrDecrementOperation.increment => UnlinkedTokenType.PLUS_PLUS,
-      IncrementOrDecrementOperation.decrement => UnlinkedTokenType.MINUS_MINUS,
+      IncrementOrDecrementOperation.increment => TokenType.PLUS_PLUS,
+      IncrementOrDecrementOperation.decrement => TokenType.MINUS_MINUS,
     };
     var node = IncrementOrDecrementExpressionImpl(
       position: position,
@@ -1150,9 +1148,7 @@ class AstBinaryReader {
   /// same lexeme and type as the token that was written.
   Token _readNameToken() {
     var lexeme = _reader.readStringReference();
-    var type = TokensContext.binaryToAstTokenType(
-      _reader.readEnum(UnlinkedTokenType.values),
-    );
+    var type = _readTokenType();
     if (type is Keyword) {
       return KeywordToken(type, -1);
     }
@@ -1490,7 +1486,7 @@ class AstBinaryReader {
 
   ReceiverMethodInvocation _readReceiverMethodInvocation() {
     var receiver = _readNode() as NamedReceiverImpl;
-    var operatorType = UnlinkedTokenType.values[_readByte()];
+    var operatorType = _readTokenType();
     var name = _readNameToken();
     var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
     var arguments = _readNode() as ArgumentListImpl;
@@ -1510,7 +1506,7 @@ class AstBinaryReader {
 
   ReceiverPropertyAssignmentTarget _readReceiverPropertyAssignmentTarget() {
     var receiver = _readNode() as NamedReceiverImpl;
-    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var operatorType = _readTokenType();
     var propertyName = _readNameToken();
     var node = ReceiverPropertyAssignmentTargetImpl(
       receiver: receiver,
@@ -1524,7 +1520,7 @@ class AstBinaryReader {
 
   ReceiverPropertyExtraction _readReceiverPropertyExtraction() {
     var receiver = _readNode() as NamedReceiverImpl;
-    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var operatorType = _readTokenType();
     var name = _readNameToken();
     var node = ReceiverPropertyExtractionImpl(
       receiver: receiver,
@@ -1844,6 +1840,10 @@ class AstBinaryReader {
     return node;
   }
 
+  TokenType _readTokenType() {
+    return tokenTypesByIndex[_readByte()];
+  }
+
   TypeArgumentListImpl _readTypeArgumentList() {
     var arguments = _readNodeList<TypeAnnotationImpl>();
     return TypeArgumentListImpl(
@@ -1891,7 +1891,7 @@ class AstBinaryReader {
   }
 
   UnaryOperatorInvocation _readUnaryOperatorInvocation() {
-    var operatorType = _reader.readEnum(UnlinkedTokenType.values);
+    var operatorType = _readTokenType();
     var operand = _readNode() as InstanceReceiverImpl;
     var node = UnaryOperatorInvocationImpl(
       operator: Tokens.fromType(operatorType),

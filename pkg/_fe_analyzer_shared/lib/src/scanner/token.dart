@@ -836,7 +836,7 @@ class SimpleToken extends SyntacticEntity implements Token {
    * The type of the token.
    */
   @override
-  TokenType get type => _tokenTypesByIndex[_typeAndOffset & 0xff];
+  TokenType get type => tokenTypesByIndex[_typeAndOffset & 0xff];
 
   /**
    * The index of the type.
@@ -857,7 +857,7 @@ class SimpleToken extends SyntacticEntity implements Token {
    */
   @override
   void set offset(int value) {
-    assert(_tokenTypesByIndex.length == 256);
+    assert(tokenTypesByIndex.length == 256);
     // See https://github.com/dart-lang/sdk/issues/50048 for details.
     assert(value >= -1);
     _typeAndOffset = ((value + 1) << 8) | (_typeAndOffset & 0xff);
@@ -892,7 +892,7 @@ class SimpleToken extends SyntacticEntity implements Token {
     assert(offset >= -1);
 
     // Assert the encoding of the [type] is fully reversible.
-    assert(type.index < 256 && _tokenTypesByIndex.length == 256);
+    assert(type.index < 256 && tokenTypesByIndex.length == 256);
     assert(identical(offset, this.offset));
     assert(identical(type, this.type), '$type != ${this.type}');
 
@@ -974,7 +974,7 @@ class SimpleToken extends SyntacticEntity implements Token {
 
   @override
   bool matchesAny(List<TokenType> types) {
-    // [type] is a getter that accesses [_tokenTypesByIndex]:
+    // [type] is a getter that accesses [tokenTypesByIndex]:
     TokenType type = this.type;
     for (TokenType t in types) {
       if (type == t) {
@@ -2655,8 +2655,13 @@ class TokenType {
 ///
 /// This list should always have length 256 to avoid bounds checks in
 /// SimpleToken.type:
-/// DartDocTest(_tokenTypesByIndex.length, 256)
-const List<TokenType> _tokenTypesByIndex = [
+/// DartDocTest(tokenTypesByIndex.length, 256)
+///
+/// The indexes that no token type uses hold [TokenType.UNUSED].
+///
+/// The analyzer stores [TokenType.index] in its summaries, and includes the
+/// names of these token types into the keys of cached summaries.
+const List<TokenType> tokenTypesByIndex = [
   TokenType.EOF,
   TokenType.DOUBLE,
   TokenType.DOUBLE_WITH_SEPARATORS,
