@@ -74,6 +74,94 @@ void f() {
 ''');
   }
 
+  Future<void> test_closure_alreadyParenthesized() async {
+    await resolveTestCode('''
+final x = (() {
+  ^return 1;
+})();
+''');
+    await assertHasAssist('''
+final x = (() => 1)();
+''');
+  }
+
+  Future<void> test_closure_cascadeSection_followedByCascade() async {
+    await resolveTestCode('''
+class C {
+  bool Function(String)? filter;
+  bool verbose = false;
+}
+
+void f(C c) {
+  c
+    ..filter = (s) {
+      ^return s.isNotEmpty;
+    }
+    ..verbose = true;
+}
+''');
+    await assertHasAssist('''
+class C {
+  bool Function(String)? filter;
+  bool verbose = false;
+}
+
+void f(C c) {
+  c
+    ..filter = ((s) => s.isNotEmpty)
+    ..verbose = true;
+}
+''');
+  }
+
+  Future<void> test_closure_cascadeSection_last() async {
+    await resolveTestCode('''
+class C {
+  bool Function(String)? filter;
+}
+
+void f(C c) {
+  c
+    ..filter = (s) {
+      ^return s.isNotEmpty;
+    };
+}
+''');
+    await assertHasAssist('''
+class C {
+  bool Function(String)? filter;
+}
+
+void f(C c) {
+  c
+    ..filter = (s) => s.isNotEmpty;
+}
+''');
+  }
+
+  Future<void> test_closure_followedByBinaryOperator() async {
+    verifyNoTestUnitErrors = false;
+    await resolveTestCode('''
+final x = () {
+  ^return 1;
+} == null;
+''');
+    await assertHasAssist('''
+final x = (() => 1) == null;
+''');
+  }
+
+  Future<void> test_closure_followedByPropertyAccess() async {
+    await resolveTestCode('''
+final x = () {
+  ^return 1;
+}.hashCode;
+''');
+    await assertHasAssist('''
+final x = (() => 1).hashCode;
+''');
+  }
+
   Future<void> test_closure_hasBlockComment_afterReturnStatement() async {
     await resolveTestCode('''
 setup(x) {}
@@ -236,6 +324,59 @@ setup(x) {}
 void f() {
   setup(() => /* Keep this comment. */ 42);
 }
+''');
+  }
+
+  Future<void> test_closure_immediatelyInvoked() async {
+    await resolveTestCode('''
+int compute() => 42;
+
+final int x = () {
+  ^return compute();
+}();
+''');
+    await assertHasAssist('''
+int compute() => 42;
+
+final int x = (() => compute())();
+''');
+  }
+
+  Future<void> test_closure_immediatelyInvoked_async() async {
+    await resolveTestCode('''
+Future<int> compute() async => 42;
+
+final Future<int> x = () async {
+  ^return await compute();
+}();
+''');
+    await assertHasAssist('''
+Future<int> compute() async => 42;
+
+final Future<int> x = (() async => await compute())();
+''');
+  }
+
+  Future<void> test_closure_immediatelyInvoked_lineCommentAfterReturn() async {
+    await resolveTestCode('''
+final x = () {
+  ^return 1; // Comment.
+}();
+''');
+    await assertHasAssist('''
+final x = (() => 1 // Comment.
+  )();
+''');
+  }
+
+  Future<void> test_closure_inList() async {
+    await resolveTestCode('''
+final x = [() {
+  ^return 1;
+}, 2];
+''');
+    await assertHasAssist('''
+final x = [() => 1, 2];
 ''');
   }
 
