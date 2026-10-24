@@ -34,8 +34,13 @@ class FeatureSetProvider {
     );
   }
 
-  /// Return the [FeatureSet] and language [Version] for the package that
-  /// contains the file.
+  /// Returns the [FeatureSet] and the default language [Version] of the file.
+  ///
+  /// SDK libraries use the experiments allowed for them. Files in a package
+  /// use the experiments allowed for the package, or [contextFeatures]. Their
+  /// language version is the language version of the package, or of the SDK
+  /// if the package does not specify one. Files outside of any package use
+  /// [contextFeatures] with the language version of the SDK.
   ///
   /// Note, that [Version] returns the default language version
   /// for libraries in the package, but that does not restrict the
@@ -49,8 +54,6 @@ class FeatureSetProvider {
     String path,
     Uri uri, {
     required FeatureSet contextFeatures,
-    required FeatureSet nonPackageFeatureSet,
-    required Version nonPackageLanguageVersion,
   }) {
     if (uri.isScheme('dart')) {
       var pathSegments = uri.pathSegments;
@@ -73,7 +76,7 @@ class FeatureSetProvider {
       return (contextFeatures, languageVersion);
     }
 
-    return (nonPackageFeatureSet, _sdkLanguageVersion);
+    return (contextFeatures, _sdkLanguageVersion);
   }
 
   /// Return the package corresponding to the [uri] or [path], `null` if none.

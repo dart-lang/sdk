@@ -215,7 +215,6 @@ final class _ApplyState {
         sdkLanguageVersion: sdkLanguageVersion,
         flags: flags,
       ) as ExperimentStatus;
-      builder.nonPackageFeatureSet = builder.contextFeatures;
     }
   }
 

@@ -25,12 +25,16 @@ class TokensContext {
         return Keyword.ASYNC;
       case UnlinkedTokenType.AT:
         return TokenType.AT;
+      case UnlinkedTokenType.AUGMENT:
+        return Keyword.AUGMENT;
       case UnlinkedTokenType.AWAIT:
         return Keyword.AWAIT;
       case UnlinkedTokenType.BACKPING:
         return TokenType.BACKPING;
       case UnlinkedTokenType.BACKSLASH:
         return TokenType.BACKSLASH;
+      case UnlinkedTokenType.BAD_INPUT:
+        return TokenType.BAD_INPUT;
       case UnlinkedTokenType.BANG:
         return TokenType.BANG;
       case UnlinkedTokenType.BANG_EQ:
@@ -43,6 +47,8 @@ class TokensContext {
         return TokenType.BAR_BAR;
       case UnlinkedTokenType.BAR_EQ:
         return TokenType.BAR_EQ;
+      case UnlinkedTokenType.BASE:
+        return Keyword.BASE;
       case UnlinkedTokenType.BREAK:
         return Keyword.BREAK;
       case UnlinkedTokenType.CARET:
@@ -79,7 +85,8 @@ class TokensContext {
         return Keyword.DO;
       case UnlinkedTokenType.DOUBLE:
         return TokenType.DOUBLE;
-      // TODO(srawlins): TokenType.DOUBLE_WITH_SEPARATORS?
+      case UnlinkedTokenType.DOUBLE_WITH_SEPARATORS:
+        return TokenType.DOUBLE_WITH_SEPARATORS;
       case UnlinkedTokenType.DYNAMIC:
         return Keyword.DYNAMIC;
       case UnlinkedTokenType.ELSE:
@@ -98,6 +105,8 @@ class TokensContext {
         return Keyword.EXPORT;
       case UnlinkedTokenType.EXTENDS:
         return Keyword.EXTENDS;
+      case UnlinkedTokenType.EXTENSION:
+        return Keyword.EXTENSION;
       case UnlinkedTokenType.EXTERNAL:
         return Keyword.EXTERNAL;
       case UnlinkedTokenType.FACTORY:
@@ -132,7 +141,8 @@ class TokensContext {
         return TokenType.HASH;
       case UnlinkedTokenType.HEXADECIMAL:
         return TokenType.HEXADECIMAL;
-      // TODO(srawlins): TokenType.HEXADECIMAL_WITH_SEPARATORS?
+      case UnlinkedTokenType.HEXADECIMAL_WITH_SEPARATORS:
+        return TokenType.HEXADECIMAL_WITH_SEPARATORS;
       case UnlinkedTokenType.HIDE:
         return Keyword.HIDE;
       case UnlinkedTokenType.IDENTIFIER:
@@ -153,9 +163,10 @@ class TokensContext {
         return Keyword.INOUT;
       case UnlinkedTokenType.INT:
         return TokenType.INT;
-      // TODO(srawlins): TokenType.INT_WITH_SEPARATORS?
       case UnlinkedTokenType.INTERFACE:
         return Keyword.INTERFACE;
+      case UnlinkedTokenType.INT_WITH_SEPARATORS:
+        return TokenType.INT_WITH_SEPARATORS;
       case UnlinkedTokenType.IS:
         return TokenType.IS;
       case UnlinkedTokenType.LATE:
@@ -230,6 +241,8 @@ class TokensContext {
         return TokenType.QUESTION_QUESTION;
       case UnlinkedTokenType.QUESTION_QUESTION_EQ:
         return TokenType.QUESTION_QUESTION_EQ;
+      case UnlinkedTokenType.RECOVERY:
+        return TokenType.RECOVERY;
       case UnlinkedTokenType.REQUIRED:
         return Keyword.REQUIRED;
       case UnlinkedTokenType.RETHROW:
@@ -238,6 +251,8 @@ class TokensContext {
         return Keyword.RETURN;
       case UnlinkedTokenType.SCRIPT_TAG:
         return TokenType.SCRIPT_TAG;
+      case UnlinkedTokenType.SEALED:
+        return Keyword.SEALED;
       case UnlinkedTokenType.SEMICOLON:
         return TokenType.SEMICOLON;
       case UnlinkedTokenType.SET:
@@ -290,6 +305,8 @@ class TokensContext {
         return Keyword.VAR;
       case UnlinkedTokenType.VOID:
         return Keyword.VOID;
+      case UnlinkedTokenType.WHEN:
+        return Keyword.WHEN;
       case UnlinkedTokenType.WHILE:
         return Keyword.WHILE;
       case UnlinkedTokenType.WITH:

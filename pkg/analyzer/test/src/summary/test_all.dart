@@ -8,6 +8,7 @@ import 'api_signature_test.dart' as api_signature;
 import 'elements/test_all.dart' as elements;
 import 'flat_buffers_test.dart' as flat_buffers;
 import 'reference_test.dart' as reference;
+import 'tokens_test.dart' as tokens;
 import 'top_level_inference_test.dart' as top_level_inference;
 
 main() {
@@ -16,6 +17,7 @@ main() {
     elements.main();
     flat_buffers.main();
     reference.main();
+    tokens.main();
     top_level_inference.main();
   }, name: 'summary');
 }

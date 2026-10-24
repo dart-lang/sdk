@@ -29,6 +29,8 @@ class CompilationSet {
   late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
     functionRegistry,
     config.objectLayout,
+    config.targetCPU,
+    config.targetOS,
   );
   late final SnapshotSerializer _snapshot;
   late final StubFactory _stubFactory;

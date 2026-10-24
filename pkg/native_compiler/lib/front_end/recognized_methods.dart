@@ -12,10 +12,12 @@ import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/external_name.dart' show getExternalName;
+import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/runtime/constant_objects.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:vm/modular/transformations/pragma.dart';
+import 'package:vm/modular/transformations/ffi/abi.dart' as ffi_abi;
 
 /// Build IR for native methods.
 void buildNativeMethod(
@@ -680,6 +682,8 @@ extension on ArrayKind {
 final class VmRecognizedMethods(
   final FunctionRegistry functionRegistry,
   final ObjectLayout objectLayout,
+  final TargetCPU targetCPU,
+  final TargetOS targetOS,
 ) extends CommonRecognizedMethods {
   final coreTypes = GlobalContext.instance.coreTypes;
 
@@ -1759,6 +1763,17 @@ final class VmRecognizedMethods(
       'get:extensionStreamHasListener',
     ): (FlowGraphBuilder builder) {
       buildExtensionStreamHasListener(builder, objectLayout);
+    },
+
+    // dart:ffi
+    index.getTopLevelProcedure('dart:ffi', '_abi'): (FlowGraphBuilder builder) {
+      final targetAbi = switch ((targetOS, targetCPU)) {
+        (.macos, .arm64) => ffi_abi.Abi.macosArm64,
+        (.ios, .arm64) => ffi_abi.Abi.iosArm64,
+      };
+      final targetAbiIndex = ffi_abi.Abi.values.indexOf(targetAbi);
+      assert(targetAbiIndex >= 0);
+      buildConstantGetter(builder, ConstantValue.fromInt(targetAbiIndex));
     },
 
     // dart:_vm

@@ -1486,13 +1486,17 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
           constructorReference: ConstructorReference2Impl(
             typeReference: ConstructorTypeReferenceImpl(
               importPrefix: null,
-              name: StringToken(TokenType.STRING, fragment.name ?? '', -1),
+              name: StringToken(TokenType.IDENTIFIER, fragment.name ?? '', -1),
               typeArguments: constantArguments?.typeArguments,
             ),
             selector: constructorName != null
                 ? ConstructorSelectorImpl.v2(
                     period: Token(TokenType.PERIOD, -1),
-                    name2: StringToken(TokenType.STRING, constructorName, -1),
+                    name2: StringToken(
+                      TokenType.IDENTIFIER,
+                      constructorName,
+                      -1,
+                    ),
                   )
                 : null,
           ),
@@ -1507,7 +1511,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         );
 
         var fieldNode = Field2Impl(
-          name: StringToken(TokenType.STRING, name, -1),
+          name: StringToken(TokenType.IDENTIFIER, name, -1),
           equals: Tokens.eq(),
           initializer: initializer,
         );
@@ -1523,7 +1527,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
         valuesElements.add(
           UnqualifiedNameExpressionImpl(
-            name: StringToken(TokenType.STRING, name, -1),
+            name: StringToken(TokenType.IDENTIFIER, name, -1),
           ),
         );
         valuesNames.add(name);
@@ -1545,19 +1549,19 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       valuesField.constantInitializer2 = initializer;
 
       var valuesNode = Field2Impl(
-        name: StringToken(TokenType.STRING, 'values', -1),
+        name: StringToken(TokenType.IDENTIFIER, 'values', -1),
         equals: Tokens.eq(),
         initializer: initializer,
       );
       var valuesTypeNode = NamedTypeImpl(
         importPrefix: null,
-        name: StringToken(TokenType.STRING, 'List', -1),
+        name: StringToken(TokenType.IDENTIFIER, 'List', -1),
         typeArguments: TypeArgumentListImpl(
           leftBracket: Tokens.lt(),
           arguments: [
             NamedTypeImpl(
               importPrefix: null,
-              name: StringToken(TokenType.STRING, fragment.name ?? '', -1),
+              name: StringToken(TokenType.IDENTIFIER, fragment.name ?? '', -1),
               typeArguments: null,
               question: null,
             ),

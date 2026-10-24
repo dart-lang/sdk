@@ -703,8 +703,7 @@ class FileResolver {
         (AnalysisOptionsBuilder()
               ..strictInference = fileAnalysisOptions.strictInference
               ..contextFeatures =
-                  FeatureSet.latestLanguageVersion() as ExperimentStatus
-              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+                  FeatureSet.latestLanguageVersion() as ExperimentStatus)
             .build();
 
     if (fsState == null) {
