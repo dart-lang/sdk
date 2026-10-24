@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -69,210 +70,158 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
 
 class _Visitor(final MultiAnalysisRule rule, final RuleContext context)
     extends SimpleAstVisitor<void> {
-  void check(
+  /// Reports the [parameters] that can be converted to super parameters.
+  ///
+  /// Parameters in [referencedParameters] can't be converted.
+  void _reportSuperCandidates(
     SourceRange errorRange,
     SuperConstructorInvocation superInvocation,
     FormalParameterList parameters,
-    FunctionBody? body,
+    Set<FormalParameterElement> referencedParameters,
   ) {
-    var constructorElement = superInvocation.element;
-    if (constructorElement == null) return;
+    final names = _superCandidates(
+      superInvocation,
+      parameters,
+      referencedParameters,
+    ).map((candidate) => candidate.displayName);
+    if (names.isEmpty) return;
+
+    final hasMultipleNames = names.length > 1;
+    rule.reportAtOffset(
+      errorRange.offset,
+      errorRange.length,
+      diagnosticCode: hasMultipleNames
+          ? diag.useSuperParametersMultiple
+          : diag.useSuperParametersSingle,
+      arguments: [
+        hasMultipleNames ? names.quotedAndCommaSeparatedWithAnd : names.single,
+      ],
+    );
+  }
+
+  /// The elements of [parameters] that can be converted to super parameters.
+  List<FormalParameterElement> _superCandidates(
+    SuperConstructorInvocation superInvocation,
+    FormalParameterList parameters,
+    Set<FormalParameterElement> referencedParameters,
+  ) {
+    final superConstructor = superInvocation.element;
+    if (superConstructor == null) return const [];
 
     // TODO(pq): consolidate logic shared w/ server
     //  (https://github.com/dart-lang/linter/issues/3263)
 
-    var referencedParameters = _referencedParameters(body);
+    final candidates = parameters.parameters
+        .map((parameter) => parameter.declaredFragment?.element)
+        .nonNulls
+        .where((parameter) {
+          final isSuperCandidate =
+              parameter is! FieldFormalParameterElement &&
+              !referencedParameters.contains(parameter);
+          final matchesSuperParameter = _matchesSuperParameter(
+            parameter,
+            superInvocation,
+          );
 
-    var identifiers = _checkForConvertiblePositionalParams(
-      constructorElement,
+          return isSuperCandidate && matchesSuperParameter;
+        });
+    final positionalCandidates = candidates.where(
+      (candidate) => candidate.isPositional,
+    );
+    final namedCandidates = candidates.where((candidate) => candidate.isNamed);
+
+    // A constructor can't declare positional super parameters while also
+    // passing positional arguments to `super`, so positional parameters are
+    // only convertible if they replace every positional argument, in order.
+    final positionalArgumentElements = superInvocation.argumentList.arguments
+        .where((argument) => argument is! NamedArgument)
+        .map((argument) => argument.referencedElement);
+    final replacesAllPositionalArguments = const IterableEquality<Element?>()
+        .equals(positionalCandidates, positionalArgumentElements);
+
+    return [
+      if (replacesAllPositionalArguments) ...positionalCandidates,
+      ...namedCandidates,
+    ];
+  }
+
+  /// Whether [parameter] is passed through unchanged to a parameter of the
+  /// super constructor whose type is a supertype of the type of [parameter].
+  bool _matchesSuperParameter(
+    FormalParameterElement parameter,
+    SuperConstructorInvocation superInvocation,
+  ) {
+    final superParameter = superInvocation.argumentList.arguments
+        .firstWhereOrNull((argument) => argument.forwards(parameter))
+        ?.correspondingParameter;
+
+    return superParameter != null &&
+        context.typeSystem.isSubtypeOf(parameter.type, superParameter.type);
+  }
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    final superInvocation = node.initializers
+        .whereType<SuperConstructorInvocation>()
+        .singleOrNull;
+    if (superInvocation == null) return;
+
+    _reportSuperCandidates(
+      node.errorRange,
       superInvocation,
-      parameters.parameters,
-      referencedParameters,
+      node.parameters,
+      _referencedParameters(node.body),
     );
-
-    // Bail if the constructor is in a bad state.
-    if (identifiers == null) return;
-
-    for (var parameter in parameters.parameters) {
-      var parameterElement = parameter.declaredFragment?.element;
-      if (parameterElement == null) continue;
-      if (parameterElement is FieldFormalParameterElement) continue;
-      if (parameterElement.isNamed &&
-          !referencedParameters.contains(parameterElement)) {
-        if (_checkNamedParameter(
-          parameter,
-          parameterElement,
-          constructorElement,
-          superInvocation,
-        )) {
-          var identifier = parameter.name?.lexeme;
-          if (identifier != null) {
-            identifiers.add(identifier);
-          }
-        }
-      }
-    }
-
-    if (identifiers.isEmpty) return;
-    if (identifiers.length > 1) {
-      var msg = identifiers.quotedAndCommaSeparatedWithAnd;
-      rule.reportAtOffset(
-        errorRange.offset,
-        errorRange.length,
-        diagnosticCode: diag.useSuperParametersMultiple,
-        arguments: [msg],
-      );
-    } else {
-      rule.reportAtOffset(
-        errorRange.offset,
-        errorRange.length,
-        diagnosticCode: diag.useSuperParametersSingle,
-        arguments: [identifiers.first],
-      );
-    }
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
-    for (var initializer in node.initializers.reversed) {
-      if (initializer is SuperConstructorInvocation) {
-        check(node.errorRange, initializer, node.parameters, node.body);
-        return;
-      }
-    }
-  }
-
-  @override
-  visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    if (node.body case var body?) {
-      for (var initializer in body.initializers.reversed) {
-        if (initializer is SuperConstructorInvocation) {
-          check(node.errorRange, initializer, node.formalParameters, body.body);
-          return;
-        }
-      }
-    }
-  }
-
-  /// Checks if all positional arguments to the super-constructor invocation can
-  /// be converted to use super-parameters.
-  ///
-  /// Returns a list of convertible positional parameters or `null` if the
-  /// constructor is in a bad state (element types are not as expected, or
-  /// perhaps resolution is incomplete).
-  List<String>? _checkForConvertiblePositionalParams(
-    ConstructorElement constructorElement,
-    SuperConstructorInvocation superInvocation,
-    List<FormalParameter> parameters,
-    Set<FormalParameterElement> referencedParameters,
-  ) {
-    var positionalSuperArgs = <SimpleIdentifier>[];
-    for (var arg in superInvocation.argumentList.arguments) {
-      if (arg is SimpleIdentifier) {
-        positionalSuperArgs.add(arg);
-      } else if (arg is! NamedArgument) {
-        return [];
-      }
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    final superInvocation = node.body?.initializers
+        .whereType<SuperConstructorInvocation>()
+        .singleOrNull;
+    final classDeclaration = node.parent;
+    if (superInvocation == null || classDeclaration is! ClassDeclaration) {
+      return;
     }
 
-    if (positionalSuperArgs.isEmpty) return [];
-
-    var convertibleParams = <String>[];
-    var matchedParamIndex = 0;
-
-    var seenParamsInSuperConstructor = <Element>{};
-
-    // For each super arg, ensure there is a constructor param (in the right
-    // order).
-    for (var i = 0; i < positionalSuperArgs.length; ++i) {
-      var superArg = positionalSuperArgs[i];
-      var paramPassedToSuper = superArg.element;
-      if (paramPassedToSuper is! FormalParameterElement) return null;
-      if (paramPassedToSuper.isNamed) return null;
-
-      // Check for the case where a parameter passed to the super-constructor is
-      // used more than once.
-      if (!seenParamsInSuperConstructor.add(paramPassedToSuper)) {
-        return null;
-      }
-
-      bool match = false;
-      for (var j = 0; j < parameters.length && !match; ++j) {
-        var parameter = parameters[j];
-        if (parameter is FieldFormalParameter) return [];
-        if (parameter is SuperFormalParameter) return null;
-        var parameterElement = parameter.declaredFragment?.element;
-        if (parameterElement == null) return null;
-        if (referencedParameters.contains(parameterElement)) return [];
-        if (parameterElement == paramPassedToSuper) {
-          match = true;
-          var identifier = parameter.name?.lexeme;
-          if (identifier == null) return null;
-          convertibleParams.add(identifier);
-          // Ensure we're not out of order.
-          if (j < matchedParamIndex) return [];
-          matchedParamIndex = j;
-        }
+    // References anywhere in the class body prevent conversion, except in the
+    // initializer list, where the parameters remain in scope once converted.
+    final collector = _ReferencedParameterCollector();
+    for (final member in classDeclaration.body.members) {
+      if (member is PrimaryConstructorBody) {
+        member.body.accept(collector);
+      } else {
+        member.accept(collector);
       }
     }
-
-    return convertibleParams;
-  }
-
-  /// Return `true` if the named [parameter] can be converted into a super
-  /// initializing formal parameter.
-  bool _checkNamedParameter(
-    FormalParameter parameter,
-    FormalParameterElement parameterElement,
-    ConstructorElement superConstructor,
-    SuperConstructorInvocation superInvocation,
-  ) {
-    var superParameter = _correspondingNamedParameter(
-      superConstructor,
-      parameterElement,
+    _reportSuperCandidates(
+      node.errorRange,
+      superInvocation,
+      node.formalParameters,
+      collector.foundParameters,
     );
-    if (superParameter == null) return false;
+  }
+}
 
-    bool matchingArgument = false;
-    var arguments = superInvocation.argumentList.arguments;
-    for (var argument in arguments) {
-      if (argument is NamedArgument &&
-          argument.name.lexeme == parameterElement.name) {
-        var expression = argument.argumentExpression;
-        if (expression is SimpleIdentifier &&
-            expression.element == parameterElement) {
-          matchingArgument = true;
-          break;
-        }
-      }
-    }
-    if (!matchingArgument) {
-      // If the parameter isn't being passed to the super constructor, then
-      // don't lint.
-      return false;
-    }
+extension _ArgumentForwarding on Argument {
+  /// The element referenced by this argument's expression, if it is a simple
+  /// identifier.
+  Element? get referencedElement {
+    final expression = argumentExpression;
 
-    // Compare the types.
-    var superType = superParameter.type;
-    var thisType = parameterElement.type;
-    if (!context.typeSystem.isAssignableTo(superType, thisType)) {
-      // If the type of the parameter can't be assigned to the super parameter,
-      // then don't lint.
-      return false;
-    }
-
-    return true;
+    return expression is SimpleIdentifier ? expression.element : null;
   }
 
-  FormalParameterElement? _correspondingNamedParameter(
-    ConstructorElement superConstructor,
-    FormalParameterElement thisParameter,
-  ) {
-    for (var superParameter in superConstructor.formalParameters) {
-      if (superParameter.isNamed && superParameter.name == thisParameter.name) {
-        return superParameter;
-      }
-    }
-    return null;
+  /// Whether this argument passes [parameter] through unchanged, by name if
+  /// [parameter] is named and by position otherwise.
+  bool forwards(FormalParameterElement parameter) {
+    final argument = this;
+    final referencesParameter = referencedElement == parameter;
+    final isPassedByName =
+        argument is NamedArgument && argument.name.lexeme == parameter.name;
+    final isPassedByPosition = argument is! NamedArgument;
+
+    return referencesParameter &&
+        (parameter.isNamed ? isPassedByName : isPassedByPosition);
   }
 }
