@@ -1283,6 +1283,7 @@ final _builtInNonLintMultiGenerators = {
     AddSuperConstructorInvocation.new,
   ],
   diag.undefinedExtensionMemberReadNotFound: [DataDriven.new],
+  diag.undefinedExtensionMemberWriteNotFound: [DataDriven.new],
   diag.undefinedInstanceMemberReadNotFound: [
     CreateClass.new,
     DataDriven.new,
