@@ -87,6 +87,12 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     defaultsTo: TargetCPU.defaultName,
   )
   ..addOption(
+    'target-os',
+    help: 'Target operating system.',
+    allowed: TargetOS.allowedNames,
+    defaultsTo: TargetOS.defaultName,
+  )
+  ..addOption(
     'image-format',
     help: 'Image format of the output snapshot.',
     allowed: ImageFormat.allowedNames,
@@ -221,6 +227,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final bool trackCreationLocations = options['track-creation-locations'];
 
   final TargetCPU targetCPU = TargetCPU.fromName(options['target-arch']);
+  final TargetOS targetOS = TargetOS.fromName(options['target-os']);
   final ImageFormat imageFormat = ImageFormat.fromName(options['image-format']);
 
   final String? printFlowGraph = options['print-flow-graph'];
@@ -330,6 +337,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final coreLibraries = LibraryIndex.coreLibraries(component);
   final config = DevelopmentCompilerConfiguration(
     targetCPU,
+    targetOS,
     imageFormat,
     enableAsserts: enableAsserts,
     compilePlatform: compilePlatform,
