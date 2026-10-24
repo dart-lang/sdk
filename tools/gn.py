@@ -444,8 +444,8 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable siso',
                         dest='siso',
                         action='store_false')
-    parser.set_defaults(siso=os.environ.get('SISO') == '1' or \
-                             os.environ.get('DART_SISO') == '1')
+    parser.set_defaults(siso=os.environ.get('SISO') != '0' and \
+                             os.environ.get('DART_SISO') != '0')
 
     # Disable git hashes when remote compiling to ensure cache hits of the final
     # output artifacts when nothing has changed.

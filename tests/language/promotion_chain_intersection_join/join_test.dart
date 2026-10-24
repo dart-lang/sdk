@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=promotion-chain-intersection-join
-
 // Tests the behavior of the enhanced promotion chain join algorithm
 // (https://github.com/dart-lang/language/issues/4757) when enabled.
 

@@ -10,6 +10,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import '../../cfg/to_wasm.dart';
 import '../../intrinsics.dart';
+import '../../param_info.dart';
 import '../../reference_extensions.dart';
 import '../../translator.dart';
 
@@ -121,12 +122,6 @@ final class ProdWasmInstructionLowerer
     if (member is! ast.Procedure || member.isInstanceMember) return false;
     // TODO(nshahan): Support generic calls (TypeArguments input).
     if (target.hasFunctionTypeParameters) return false;
-    // TODO(nshahan): Support named parameters.
-    final function = member.function;
-    final shape = instr.argumentsShape;
-    if (function.namedParameters.isNotEmpty || shape.named.isNotEmpty) {
-      return false;
-    }
     // TODO(nshahan): Support intrinsics and external effects (see
     // `CodeGenerator.visitStaticInvocation`).
     if (member.isExternal ||
@@ -167,24 +162,7 @@ final class ProdWasmInstructionLowerer
     final reference = instr.target.member.reference;
     final signature = translator.signatureForDirectCall(reference);
     final paramInfo = translator.paramInfoForDirectCall(reference);
-    // TODO(nshahan): Needs adjustment when adding support for type arguments
-    // and named parameters.
-    assert(signature.inputs.length == paramInfo.positional.length);
-    for (int i = 0; i < instr.inputCount; ++i) {
-      final argLocal = gen.getLocal(instr.inputDefAt(i));
-      b.local_get(argLocal);
-      // Ensure the argument types match the expected funcction parameter types.
-      translator.convertType(b, argLocal.type, signature.inputs[i]);
-    }
-    // Push default values for omitted optional positional parameters.
-    for (int i = instr.inputCount; i < paramInfo.positional.length; ++i) {
-      translator.constants.instantiateConstant(
-        b,
-        paramInfo.positional[i]!,
-        signature.inputs[i],
-        dummyValueIfIncompatible: true,
-      );
-    }
+    _pushArguments(instr, signature, paramInfo);
 
     final outputs = translator.callReference(reference, b);
 
@@ -203,5 +181,65 @@ final class ProdWasmInstructionLowerer
     final resultLocal = gen.getLocal(instr);
     translator.convertType(b, outputs.single, resultLocal.type);
     b.local_set(resultLocal);
+  }
+
+  /// Pushes the arguments of [instr] onto the stack in the order and with the
+  /// types expected by [signature], filling in the default values from
+  /// [paramInfo] for omitted optional parameters.
+  void _pushArguments(
+    DirectCall instr,
+    w.FunctionType signature,
+    ParameterInfo paramInfo,
+  ) {
+    // TODO(nshahan): Needs adjustment when adding support for type arguments.
+    assert(signature.inputs.length == paramInfo.paramCount);
+    // Nothing to push, e.g. for getters and functions without parameters.
+    if (signature.inputs.isEmpty) return;
+
+    final argumentsShape = instr.argumentsShape;
+
+    // Push the provided positional arguments.
+    for (int i = 0; i < argumentsShape.positional; ++i) {
+      final argLocal = gen.getLocal(instr.inputDefAt(i));
+      b.local_get(argLocal);
+      translator.convertType(b, argLocal.type, signature.inputs[i]);
+    }
+    // Push default values for any remaining optional positional parameters.
+    for (
+      int i = argumentsShape.positional;
+      i < paramInfo.positional.length;
+      ++i
+    ) {
+      translator.constants.instantiateConstant(
+        b,
+        paramInfo.positional[i]!,
+        signature.inputs[i],
+        dummyValueIfIncompatible: true,
+      );
+    }
+    // Evaluate named arguments in the order they appear at the call site.
+    final Map<String, w.Local> namedLocals = {
+      for (int i = 0; i < argumentsShape.named.length; ++i)
+        argumentsShape.named[i]: gen.getLocal(
+          instr.inputDefAt(argumentsShape.positional + i),
+        ),
+    };
+    // Re-order named arguments and push default values for optional named
+    // parameters.
+    for (var name in paramInfo.names) {
+      final namedLocal = namedLocals[name];
+      final type = signature.inputs[paramInfo.nameIndex[name]!];
+      if (namedLocal != null) {
+        b.local_get(namedLocal);
+        translator.convertType(b, namedLocal.type, type);
+      } else {
+        translator.constants.instantiateConstant(
+          b,
+          paramInfo.named[name]!,
+          type,
+          dummyValueIfIncompatible: true,
+        );
+      }
+    }
   }
 }

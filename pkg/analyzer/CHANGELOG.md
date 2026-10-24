@@ -1,6 +1,18 @@
 ## 14.7.0-dev
 
-* Internal changes only
+* Experiments are enabled for the language version of the host SDK,
+  whether they come from `analyzer: enable-experiment:` in analysis
+  options files, or from `enabledExperiments` of
+  `AnalysisContextCollection`. Files outside of any package also use
+  the language version of the host SDK, so they get the experiments.
+  Libraries in packages get them when their language version is the
+  language version of the host SDK.
+  Previously, experiments from analysis options files were enabled for
+  the analyzer's own latest language version, so when it differed from
+  the host SDK, they were silently ignored, for files outside of any
+  package (a regression in 14.2.0 through 14.6.0), and for libraries in
+  packages.
+  See https://github.com/dart-lang/sdk/issues/64693.
 
 ## 14.6.0
 

@@ -29,25 +29,34 @@ class DefaultValueResolver {
     ];
     for (var instanceElementList in instanceElementListList) {
       for (var instanceElement in instanceElementList) {
-        for (var method in instanceElement.methods) {
-          _executableElement(
-            method,
-            enclosingInterfaceElement: instanceElement.tryCast(),
-          );
-        }
-        if (instanceElement case InterfaceElementImpl interfaceElement) {
-          for (var constructor in interfaceElement.constructors) {
+        var enclosingInterfaceElement = instanceElement
+            .tryCast<InterfaceElementImpl>();
+        var executableElementListList = <List<ExecutableElementImpl>>[
+          instanceElement.getters,
+          instanceElement.setters,
+          instanceElement.methods,
+          ?enclosingInterfaceElement?.constructors,
+        ];
+        for (var executableElementList in executableElementListList) {
+          for (var executableElement in executableElementList) {
             _executableElement(
-              constructor,
-              enclosingInterfaceElement: interfaceElement,
+              executableElement,
+              enclosingInterfaceElement: enclosingInterfaceElement,
             );
           }
         }
       }
     }
 
-    for (var topLevelFunction in libraryElement.topLevelFunctions) {
-      _executableElement(topLevelFunction, enclosingInterfaceElement: null);
+    var executableElementListList = <List<ExecutableElementImpl>>[
+      libraryElement.getters,
+      libraryElement.setters,
+      libraryElement.topLevelFunctions,
+    ];
+    for (var executableElementList in executableElementListList) {
+      for (var executableElement in executableElementList) {
+        _executableElement(executableElement, enclosingInterfaceElement: null);
+      }
     }
   }
 
@@ -62,43 +71,50 @@ class DefaultValueResolver {
     return null;
   }
 
+  /// Resolves default values in all fragments of [element].
+  ///
+  /// The default value of every formal parameter fragment is written into
+  /// the bundle, including fragments of augmentations and recovered formal
+  /// parameters of getters and setters, so each of them must be resolved.
   void _executableElement(
     ExecutableElementImpl element, {
     required InterfaceElementImpl? enclosingInterfaceElement,
   }) {
-    for (var formalParameter in element.formalParameters) {
-      _formalParameterElement(
-        formalParameter,
-        enclosingInterfaceElement: enclosingInterfaceElement,
-        enclosingExecutableElement: element,
-      );
+    for (var fragment in element.fragments) {
+      for (var formalParameter in fragment.formalParameters) {
+        _formalParameterFragment(
+          formalParameter,
+          enclosingInterfaceElement: enclosingInterfaceElement,
+          enclosingExecutableElement: element,
+        );
+      }
     }
   }
 
-  void _formalParameterElement(
-    FormalParameterElementImpl formalParameter, {
+  void _formalParameterFragment(
+    FormalParameterFragmentImpl fragment, {
     required InterfaceElementImpl? enclosingInterfaceElement,
     required ExecutableElementImpl enclosingExecutableElement,
   }) {
-    var firstFragment = formalParameter.firstFragment;
-    var firstNode = _defaultParameterNode(firstFragment);
-    if (firstNode == null) {
+    var node = _defaultParameterNode(fragment);
+    if (node == null) {
       return;
     }
 
+    var formalParameter = fragment.element;
     var contextType = _typeSystem.eliminateTypeVariables(formalParameter.type);
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver.forLinking(
       inheritance: _linker.inheritance,
-      libraryFragment: firstFragment.libraryFragment as LibraryFragmentImpl,
-      nameScope: firstNode.scope!,
+      libraryFragment: fragment.libraryFragment!,
+      nameScope: node.scope!,
       analysisOptions: analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
-    firstFragment.constantInitializer2 = astResolver.resolveDefaultValue(
-      firstNode.defaultClause!,
+    fragment.constantInitializer2 = astResolver.resolveDefaultValue(
+      node.defaultClause!,
       contextType: contextType,
     );
     formalParameter.resetConstantInitializer();

@@ -3083,6 +3083,47 @@ workspaces
     );
   }
 
+  /// The client passes `enabledExperiments`, which are enabled for the
+  /// language version of the host SDK. A file outside of any package uses
+  /// this version, so gets the experiments, even if the SDK is older than the
+  /// analyzer.
+  test_enabledExperiments_nonPackage_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withAnalysisOptionsWithoutFiles = true
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    newFile('/home/test/test.dart', '');
+
+    _assertWorkspaceCollectionText(
+      '/home/test',
+      enabledExperiments: ['variance'],
+      r'''
+contexts
+  /home/test
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: <no file>
+    features
+      variance: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/test
+    workspacePackage_0_0
+''',
+    );
+  }
+
   /// The context root has no analysis options file. The client passes
   /// `enabledExperiments`, and they are enabled in the default options.
   test_enabledExperiments_noOptions() async {
@@ -3197,6 +3238,57 @@ workspaces
   workspace_0: BasicWorkspace
     root: /home
     workspacePackage_0_0
+''',
+    );
+  }
+
+  /// The client passes `enabledExperiments`, which are enabled for the
+  /// language version of the host SDK. A library in a package with this
+  /// language version gets the experiments, even if the SDK is older than the
+  /// analyzer.
+  test_enabledExperiments_package_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withAnalysisOptionsWithoutFiles = true
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    var root = newFolder('/home/test');
+    newPackageConfigJsonFileFromBuilder(
+      root.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'test', rootFolder: root, languageVersion: '3.13'),
+    );
+    newFile('/home/test/lib/test.dart', '');
+
+    _assertWorkspaceCollectionText(
+      '/home/test',
+      enabledExperiments: ['variance'],
+      r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/test.dart
+        uri: package:test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: <no file>
+    features
+      variance: enabled
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
 ''',
     );
   }
@@ -3595,6 +3687,50 @@ workspaces
 ''');
   }
 
+  /// Experiments from the analysis options file are enabled for the language
+  /// version of the host SDK. A file outside of any package uses this version,
+  /// so gets the experiments, even if the SDK is older than the analyzer.
+  test_nonPackage_enabledExperiment_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    newAnalysisOptionsYamlFile('/home/test', r'''
+analyzer:
+  enable-experiment:
+    - variance
+''');
+    var file = newFile('/home/test/test.dart', '');
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path],
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+    features
+      variance: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/test
+    workspacePackage_0_0
+''');
+  }
+
   test_packageConfigWorkspace_enabledExperiment() async {
     configuration.withFeatures = [
       ExperimentalFeatures.digit_separators,
@@ -3704,6 +3840,57 @@ workspaces
         root: /home/test
 ''',
     );
+  }
+
+  /// Experiments from the analysis options file are enabled for the language
+  /// version of the host SDK. A library in a package with this language
+  /// version gets the experiments, even if the SDK is older than the analyzer.
+  test_packageConfigWorkspace_enabledExperiment_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    var root = newFolder('/home/test');
+    newPackageConfigJsonFileFromBuilder(
+      root.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'test', rootFolder: root, languageVersion: '3.13'),
+    );
+    newAnalysisOptionsYamlFile(root.path, r'''
+analyzer:
+  enable-experiment:
+    - variance
+''');
+    newFile('/home/test/lib/test.dart', '');
+
+    _assertWorkspaceCollectionText('/home/test', r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/analysis_options.yaml
+      /home/test/lib/test.dart
+        uri: package:test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+    features
+      variance: enabled
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''');
   }
 
   test_packageConfigWorkspace_includedAnalysisOptions_exclude_packageUri() async {
@@ -5746,6 +5933,10 @@ class _AnalysisContextCollectionPrinter {
         sink.writelnWithIndent('packageLanguageVersion: $versionStr');
       }
 
+      if (configuration.withFileFeatures) {
+        _writeFeatures(fileState.restrictedFeatureSet);
+      }
+
       var analysisOptions = fileState.analysisOptions;
       if (configuration.withAnalysisOptionsWithoutFiles ||
           analysisOptions.file != null) {
@@ -5878,6 +6069,7 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEmptyContextRoots = false;
   bool withExcludedPaths = false;
   List<ExperimentalFeature> withFeatures = [];
+  bool withFileFeatures = false;
   bool withLintRules = false;
   bool withLegacyPlugins = false;
   bool withIncludedPaths = false;

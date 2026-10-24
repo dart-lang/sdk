@@ -191,6 +191,55 @@ bool isNull([int? x]) =>
 @pragma('wasm:cfg')
 bool callIsNull() => isNull();
 
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int named(int a, {int b = 20, required int c, int d = 4000}) => a + b + c + d;
+
+// Named arguments are passed in a different order than they are declared and
+// omitted optional named arguments are filled in with default values.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNamed(int x) =>
+    named(x, c: 300) +
+    named(x, c: x, b: x) +
+    named(x, d: x, c: x, b: x) +
+    named(x, d: x, c: x);
+
+@pragma('wasm:never-inline')
+int logged(int x) {
+  record(x);
+  return x;
+}
+
+// Named arguments should be evaluated in the order they appear at the call
+// site.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNamedEvaluationOrder() =>
+    named(logged(1), d: logged(2), c: logged(3), b: logged(4));
+
+// Named parameters with different wasm types would fail validation if passed in
+// the wrong order.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String pickNamed({required bool c, String a = 'a', String b = 'b'}) =>
+    c ? a : b;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callPickNamedB(int x, String s) => pickNamed(b: s, c: x > 0);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callPickNamedA(int x, String s) => pickNamed(c: x > 0, a: s);
+
+@pragma('wasm:never-inline')
+bool isNullNamed({int? x}) => x == null;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsNullNamed() => isNullNamed();
+
 void main() {
   final int0 = int.parse('0');
   final int1 = int.parse('1');
@@ -259,4 +308,22 @@ void main() {
   Expect.equals('s', optionalString(true, 's'));
   Expect.isTrue(callIsNull());
   Expect.isFalse(isNull(int1));
+
+  // Named parameters.
+  Expect.equals(
+    (1 + 20 + 300 + 4000) +
+        (1 + 1 + 1 + 4000) +
+        (1 + 1 + 1 + 1) +
+        (1 + 20 + 1 + 1),
+    callNamed(int1),
+  );
+  log.clear();
+  Expect.equals(1 + 4 + 3 + 2, callNamedEvaluationOrder());
+  Expect.listEquals([1, 2, 3, 4], log);
+  Expect.equals('a', callPickNamedB(int1, 's'));
+  Expect.equals('s', callPickNamedB(int0, 's'));
+  Expect.equals('s', callPickNamedA(int1, 's'));
+  Expect.equals('b', callPickNamedA(int0, 's'));
+  Expect.isTrue(callIsNullNamed());
+  Expect.isFalse(isNullNamed(x: int1));
 }
