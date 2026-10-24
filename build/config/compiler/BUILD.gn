@@ -15,6 +15,7 @@ declare_args() {
   enable_cfi = false
 }
 
+import("//build/config/clang/clang.gni")
 import("//build/config/sysroot.gni")
 
 import("//build/config/android/config.gni")
@@ -452,7 +453,8 @@ config("compiler") {
   # changes since artifacts from an older version of the toolchain may or may
   # not be compatible with newer ones. To achieve this, we insert a synthetic
   # define into the compile line.
-  if (is_clang && (is_linux || is_mac || is_ios) && dart_sysroot != "alpine") {
+  if (is_clang && (is_linux || is_mac || is_ios) &&
+      dart_sysroot != "alpine" && clang_prefix == default_clang_prefix) {
     if (is_linux && host_cpu == "arm64") {
       toolchain_stamp_file =
           "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
@@ -917,8 +919,12 @@ if (is_win) {
   if (is_clang && !using_sanitizer && current_cpu != "arm64e") {
     # Identical code folding to reduce size.
     # Warning: This changes C/C++ semantics of function pointer comparison.
-    # Needs lld/gold/mold instead of GNU ld/Mac ld.
-    common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
+    # Needs a linker that implements it: lld, gold or mold, not GNU ld/Mac ld.
+    # Only the in-tree clang is known to default to one of those, so skip the
+    # flag for an external clang rather than assume which linker it uses.
+    if (clang_prefix == default_clang_prefix) {
+      common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
+    }
   }
 }
 
