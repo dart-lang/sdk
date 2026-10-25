@@ -1605,9 +1605,144 @@ class C with p.New {}
 @reflectiveTest
 class RenameSetterTest extends _AbstractRenameTest {
   @override
-  // TODO(asashour): consider changing the kind to `setter`,
-  // and matching it as `method`
-  String get _kind => 'method';
+  String get _kind => 'setter';
+
+  Future<void> test_extensionOverride_deprecated() async {
+    setPackageContent('''
+extension E on String {
+  @deprecated
+  set a(int x) {}
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'E'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(String s) {
+  E(s).a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(String s) {
+  E(s).b = 0;
+}
+''');
+  }
+
+  Future<void> test_extensionOverride_removed() async {
+    setPackageContent('''
+extension E on String {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'E'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(String s) {
+  E(s).a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(String s) {
+  E(s).b = 0;
+}
+''');
+  }
+
+  Future<void> test_extensionOverride_removed_differentExtension() async {
+    setPackageContent('''
+extension E on String {}
+extension Other on String {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'Other'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(String s) {
+  E(s).a = 0;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_extensionOverride_removed_prefixed() async {
+    setPackageContent('''
+extension E on String {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'E'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f(String s) {
+  p.E(s).a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f(String s) {
+  p.E(s).b = 0;
+}
+''');
+  }
+
+  Future<void> test_instance_deprecated() async {
+    setPackageContent('''
+class C {
+  @deprecated
+  set a(int x) {}
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'C'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.b = 0;
+}
+''');
+  }
+
+  Future<void> test_instance_removed() async {
+    setPackageContent('''
+class C {
+  set b(int x) {}
+}
+''');
+    setPackageData(_rename(['a', 'C'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(C c) {
+  c.a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(C c) {
+  c.b = 0;
+}
+''');
+  }
 
   Future<void> test_invalidOverride() async {
     setPackageContent('''
@@ -1615,7 +1750,9 @@ class A {
   set x(int i) {}
 }
 ''');
-    setPackageData(_rename(['x', 'B'], 'y'));
+    // TODO(asashour): consider changing the kind to `setter`,
+    // and matching it as `method`
+    setPackageData(_rename(['x', 'B'], 'y', kind: 'method'));
     await resolveTestCode('''
 import '$importUri';
 
@@ -1628,6 +1765,71 @@ import '$importUri';
 
 class B extends A {
   set y(String s) {}
+}
+''');
+  }
+
+  Future<void> test_topLevel_deprecated() async {
+    setPackageContent('''
+@deprecated
+set a(int x) {}
+set b(int x) {}
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  b = 0;
+}
+''');
+  }
+
+  Future<void> test_topLevel_removed() async {
+    setPackageContent('''
+set b(int x) {}
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  b = 0;
+}
+''');
+  }
+
+  Future<void> test_topLevel_removed_prefixed() async {
+    setPackageContent('''
+set b(int x) {}
+''');
+    setPackageData(_rename(['a'], 'b'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+void f() {
+  p.a = 0;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+void f() {
+  p.b = 0;
 }
 ''');
   }
@@ -1892,12 +2094,13 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
     List<String> components,
     String newName, {
     bool isStatic = false,
+    String? kind,
   }) => Transform(
     title: 'title',
     date: DateTime.now(),
     element: ElementDescriptor(
       libraryUris: [Uri.parse(importUri)],
-      kind: ElementKind.fromName(_kind)!,
+      kind: ElementKind.fromName(kind ?? _kind)!,
       isStatic: isStatic,
       components: components,
     ),

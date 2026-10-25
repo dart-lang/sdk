@@ -13,6 +13,13 @@
   package (a regression in 14.2.0 through 14.6.0), and for libraries in
   packages.
   See https://github.com/dart-lang/sdk/issues/64693.
+* The latest language version that a `// @dart = X.Y` comment can
+  specify is the language version of the host SDK, as for the compiler
+  of this SDK. Previously, it was the analyzer's own latest language
+  version, so when the analyzer was newer than the SDK, overrides that
+  the compiler rejects were accepted, and when it was older, overrides
+  that the compiler accepts were reported as
+  `invalid_language_version_override_greater`.
 
 ## 14.6.0
 

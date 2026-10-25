@@ -633,6 +633,8 @@ class FileState {
             ..configureFeatures(
               featureSetForOverriding: featureSet,
               featureSet: restrictedFeatureSet,
+              latestLanguageVersion:
+                  _fsState.featureSetProvider.sdkLanguageVersion,
             );
       scanner.preserveComments = scanComments;
       Token token = scanner.tokenize();
