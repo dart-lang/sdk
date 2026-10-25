@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
-import 'package:analyzer/src/summary2/tokens_writer.dart';
 
 /// Serializer of fully resolved ASTs.
 class AstBinaryWriter extends ThrowingAstVisitor2<void> {
@@ -70,9 +69,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeNode(node.leftOperand);
     _writeNode(node.rightOperand);
 
-    var operatorToken = node.operator.type;
-    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
-    _sink.writeEnum(binaryToken);
+    _writeTokenType(node.operator.type);
 
     _sink.writeElement(node.element);
     _storeExpression(node);
@@ -170,9 +167,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     _writeNode(node.target);
     _writeNode(node.value);
 
-    var operatorToken = node.operator.type;
-    var binaryToken = TokensWriter.astToBinaryTokenType(operatorToken);
-    _sink.writeEnum(binaryToken);
+    _writeTokenType(node.operator.type);
 
     _sink.writeElement(node.element);
     _sink.writeType(node.operatorResultType);
@@ -769,7 +764,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ReceiverMethodInvocation);
     _writeNode(node.receiver);
-    _writeByte(TokensWriter.astToBinaryTokenType(node.operator.type).index);
+    _writeTokenType(node.operator.type);
     _writeNameToken(node.name);
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
@@ -785,7 +780,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ReceiverPropertyAssignmentTarget);
     _writeNode(node.receiver);
-    _sink.writeEnum(TokensWriter.astToBinaryTokenType(node.operator.type));
+    _writeTokenType(node.operator.type);
     _writeNameToken(node.name);
     _sink.writeOptionalObject(node.read, _writeNamedReadResolution);
     _sink.writeOptionalObject(node.write, _writeNamedWriteResolution);
@@ -797,7 +792,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   ) {
     _sink.writeEnum(AstNodeTag.ReceiverPropertyExtraction);
     _writeNode(node.receiver);
-    _sink.writeEnum(TokensWriter.astToBinaryTokenType(node.operator.type));
+    _writeTokenType(node.operator.type);
     _writeNameToken(node.name);
     _sink.writeOptionalObject(node.resolution, _writeNamedReadResolution);
     _storeExpression(node);
@@ -1019,8 +1014,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     _sink.writeEnum(AstNodeTag.UnaryOperatorInvocation);
 
-    var binaryToken = TokensWriter.astToBinaryTokenType(node.operator.type);
-    _sink.writeEnum(binaryToken);
+    _writeTokenType(node.operator.type);
     _writeNode(node.operand);
 
     _storeExpression(node);
@@ -1285,7 +1279,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   /// non-identifier token in a selector.
   void _writeNameToken(Token token) {
     _writeStringReference(token.lexeme);
-    _sink.writeEnum(TokensWriter.astToBinaryTokenType(token.type));
+    _writeTokenType(token.type);
   }
 
   void _writeNode(AstNode node) {
@@ -1305,6 +1299,12 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeStringReference(String string) {
     _sink.writeStringReference(string);
+  }
+
+  /// Writes [TokenType.index], so the bundle depends on the numbering of
+  /// token types, which is a part of the element salt in `AnalysisDriver`.
+  void _writeTokenType(TokenType type) {
+    _writeByte(type.index);
   }
 
   @pragma("vm:prefer-inline")

@@ -4,8 +4,6 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/summary2/tokens_context.dart';
-import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 
 class Tokens {
   static Token ampersandAmpersand() =>
@@ -96,9 +94,7 @@ class Tokens {
 
   static Token for_() => TokenFactory.tokenFromKeyword(Keyword.FOR);
 
-  static Token fromType(UnlinkedTokenType type) {
-    return TokenFactory.tokenFromType(TokensContext.binaryToAstTokenType(type));
-  }
+  static Token fromType(TokenType type) => TokenFactory.tokenFromType(type);
 
   static Token function() => TokenFactory.tokenFromKeyword(Keyword.FUNCTION);
 
