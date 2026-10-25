@@ -3960,6 +3960,8 @@ class _SiteCredentials extends _Credentials {
 
   bool applies(Uri uri, _AuthenticationScheme? scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
+    // Credentials added for an https URL must not be sent over plain http.
+    if (!uri.isScheme(this.uri.scheme)) return false;
     if (uri.host != this.uri.host) return false;
     int thisPort = this.uri.port == 0
         ? HttpClient.defaultHttpPort

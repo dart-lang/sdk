@@ -179,6 +179,32 @@ void testBasicCredentials() {
   });
 }
 
+void testBasicCredentialsSchemeMismatch() {
+  setupServer().then((server) {
+    HttpClient client = new HttpClient();
+
+    // Credentials for https must not be sent to the same host and port
+    // over http.
+    client.addCredentials(
+      Uri.parse("https://127.0.0.1:${server.port}/test0"),
+      "realm",
+      new HttpClientBasicCredentials("test0", "test0"),
+    );
+
+    client
+        .getUrl(Uri.parse("http://127.0.0.1:${server.port}/test0"))
+        .then((HttpClientRequest request) => request.close())
+        .then((HttpClientResponse response) {
+          Expect.equals(HttpStatus.unauthorized, response.statusCode);
+          return response.fold(null, (x, y) {});
+        })
+        .then((_) {
+          server.shutdown();
+          client.close();
+        });
+  });
+}
+
 void testBasicAuthenticateCallback() {
   setupServer().then((server) {
     HttpClient client = new HttpClient();
@@ -369,6 +395,7 @@ main() {
   testUrlUserInfo();
   testBasicNoCredentials();
   testBasicCredentials();
+  testBasicCredentialsSchemeMismatch();
   testBasicAuthenticateCallback();
   testMalformedAuthenticateHeaderNoAuthHandler();
   testMalformedAuthenticateHeaderWithAuthHandler();
