@@ -1129,6 +1129,12 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
 
     request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
     _testParseInvalidRequest(request);
+
+    request = "GET / HTTP/1.1\r\nHost: a.example\r\nHost: b.example\r\n\r\n";
+    _testParseInvalidRequest(request);
+
+    request = "GET / HTTP/1.1\r\nHost: a.example\r\nhost: a.example\r\n\r\n";
+    _testParseInvalidRequest(request);
   }
 
   void testParseInvalidResponse() {

@@ -297,6 +297,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   bool _noMessageBody = false;
   int _remainingContent = -1;
   bool _contentLength = false;
+  bool _host = false;
   bool _transferEncoding = false;
   bool connectMethod = false;
 
@@ -778,6 +779,17 @@ class _HttpParser extends Stream<_HttpIncoming> {
               } else if (!_transferEncoding) {
                 _contentLength = true;
               }
+            } else if (headerField == HttpHeaders.hostHeader &&
+                _requestParser) {
+              // RFC 9112 section 3.2: a server MUST respond with 400 to a
+              // request message that contains more than one Host header.
+              if (_host) {
+                throw HttpException(
+                  "The Host header occurred more than once, "
+                  "at most one is allowed.",
+                );
+              }
+              _host = true;
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               // RFC 7230 section 3.3.1: Transfer-Encoding can be a
@@ -1082,6 +1094,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
     _remainingContent = -1;
 
     _contentLength = false;
+    _host = false;
     _transferEncoding = false;
 
     _headers = null;
