@@ -1,0 +1,4 @@
+void main() {}
+
+[EncodingErrorToken]
+[UnmatchedToken]void[KeywordToken] main[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SyntheticToken][SimpleToken]

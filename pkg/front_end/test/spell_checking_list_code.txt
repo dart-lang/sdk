@@ -2264,6 +2264,7 @@ weird
 weren't
 werror
 whatnot
+whatwg
 whichever
 who
 widget
