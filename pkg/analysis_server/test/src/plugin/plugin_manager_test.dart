@@ -566,7 +566,7 @@ class PluginManagerParseDepfileTest with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class PluginManagerTest with ResourceProviderMixin {
+class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
   late MockProcessRunner processRunner;
   late PluginManager manager;
 
@@ -658,6 +658,39 @@ class PluginManagerTest with ResourceProviderMixin {
         '' /* stderr */,
       );
     };
+  }
+
+  Future<void> test_addPluginToContextRoot_concurrent() async {
+    var pubCommandCount = 0;
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      if (arguments.contains('pub')) {
+        pubCommandCount++;
+      }
+    });
+
+    writeAllFiles();
+    var contextRoot1 = _newContextRoot('/pkg1');
+    var contextRoot2 = _newContextRoot('/pkg2');
+
+    await Future.wait([
+      manager.addPluginToContextRoot(
+        contextRoot1,
+        pluginDirPath,
+        isLegacyPlugin: false,
+      ),
+      manager.addPluginToContextRoot(
+        contextRoot2,
+        pluginDirPath,
+        isLegacyPlugin: false,
+      ),
+    ]);
+
+    expect(pubCommandCount, 1);
+    expect(manager.pluginIsolates, hasLength(1));
+    expect(
+      manager.pluginIsolates.single.contextRoots,
+      unorderedEquals([contextRoot1, contextRoot2]),
+    );
   }
 
   void test_pathsFor() {
