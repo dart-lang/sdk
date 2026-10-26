@@ -103,7 +103,7 @@ class Zone {
 
   // All pointers returned from AllocateUnsafe() and New() have this alignment.
   static constexpr intptr_t kAlignment = 16;
-  COMPILE_ASSERT(kAlignment >= alignof(std::max_align_t));
+  COMPILE_ASSERT(kAlignment >= alignof(max_align_t));
 
   static void Init();
   static void Cleanup();
