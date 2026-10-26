@@ -672,6 +672,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitReachabilityFence(ReachabilityFence instr) {}
+
+  @override
   void visitParallelMove(ParallelMove instr) {}
 
   void transform() {

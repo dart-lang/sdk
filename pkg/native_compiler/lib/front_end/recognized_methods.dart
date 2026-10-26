@@ -422,6 +422,81 @@ void buildEqualsWithSameObjectFastPath(
   builder.addLoadLocal(resultVar);
 }
 
+void buildFinalizerBaseGetIsolateFinalizers(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(objectLayout.Thread_isolate, hasObject: false);
+  builder.addLoadExternalField(
+    objectLayout.Isolate_finalizers,
+    hasObject: true,
+  );
+}
+
+void buildFinalizerBaseSetIsolateFinalizers(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final value = builder.pop();
+  builder.addLoadExternalField(objectLayout.Thread_isolate, hasObject: false);
+  builder.push(value);
+  builder.addStoreExternalField(
+    objectLayout.Isolate_finalizers,
+    hasObject: true,
+  );
+  builder.addNullConstant();
+}
+
+void buildFinalizerBaseSetIsolate(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(objectLayout.Thread_isolate, hasObject: false);
+  builder.addStoreInstanceField(objectLayout.FinalizerBase_isolate);
+  builder.addNullConstant();
+}
+
+void buildFinalizerEntryAllocate(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+  ast.Class cls,
+) {
+  final finalizer = builder.pop();
+  final detach = builder.pop();
+  final token = builder.pop();
+  final value = builder.pop();
+  final type = StaticType(
+    GlobalContext.instance.coreTypes.nonNullableRawType(cls),
+  );
+
+  final obj = builder.addAllocateObject(type);
+
+  builder.push(obj);
+  builder.push(value);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_value);
+
+  builder.push(obj);
+  builder.push(detach);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_detach);
+
+  builder.push(obj);
+  builder.push(token);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_token);
+
+  builder.push(obj);
+  builder.push(finalizer);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_finalizer);
+
+  builder.push(obj);
+  builder.addIntConstant(0);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_externalSize);
+}
+
+void buildReachabilityFence(FlowGraphBuilder builder) {
+  builder.addReachabilityFence();
+  builder.addNullConstant();
+}
+
 /// Build IR for factory constructors of typed data view classes.
 void buildTypedDataViewFactory(
   FlowGraphBuilder builder,
@@ -588,17 +663,16 @@ void buildThreadLocalGetValue(
 }
 
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
-void buildUnimplementedRecognizedMethod(
+void buildUnimplementedMethod(
   FlowGraphBuilder builder,
   CFunction function,
+  String message,
 ) {
   // Drop parameters.
   for (var i = 0, n = function.numberOfParameters; i < n; ++i) {
     builder.pop();
   }
-  builder.addConstant(
-    ConstantValue.fromString('Unimplemented recognized method: $function'),
-  );
+  builder.addConstant(ConstantValue.fromString(message));
   builder.addThrow(.exception, 1);
 }
 
@@ -701,7 +775,11 @@ final class VmRecognizedMethods(
       }
       if (member.isExternal) {
         return (FlowGraphBuilder builder) {
-          buildUnimplementedRecognizedMethod(builder, function);
+          buildUnimplementedMethod(
+            builder,
+            function,
+            'Unimplemented recognized method: $function',
+          );
         };
       }
     }
@@ -711,9 +789,31 @@ final class VmRecognizedMethods(
           buildNativeMethod(builder, functionRegistry, function);
         };
       }
+      if (member.isFfiNative(coreTypes)) {
+        return (FlowGraphBuilder builder) {
+          buildUnimplementedMethod(
+            builder,
+            function,
+            'Unimplemented FFI native method: $function',
+          );
+        };
+      }
     }
     return null;
   }
+
+  @override
+  late final staticInvocations = <ast.Member, RecognizedCallMatcher>{
+    ...super.staticInvocations,
+    for (final MapEntry(key: member, value: builder)
+        in _recognizedMembers.entries)
+      if (member is ast.Procedure &&
+          member.isStatic &&
+          !member.isGetter &&
+          !member.isSetter &&
+          member.isPreferInline(coreTypes))
+        member: AnyArgsMatcher(builder),
+  };
 
   late final _recognizedMembers = <ast.Member, BuildIR>{
     // dart:core
@@ -1154,6 +1254,20 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildInstanceSetter(builder, objectLayout.WeakReference_target);
     },
+    index.getProcedure(
+      'dart:core',
+      '_FinalizerImpl',
+      'get:_callback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.FinalizerImpl_callback);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_FinalizerImpl',
+      'set:_callback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.FinalizerImpl_callback);
+    },
 
     // dart:_compact_hash
     index.getTopLevelProcedure(
@@ -1325,6 +1439,54 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.Object_classId);
     },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'get:_isolateFinalizers',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerBaseGetIsolateFinalizers(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'set:_isolateFinalizers',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerBaseSetIsolateFinalizers(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      '_setIsolate',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerBaseSetIsolate(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'get:_allEntries',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.FinalizerBase_allEntries);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'set:_allEntries',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.FinalizerBase_allEntries);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerEntry',
+      'allocate',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerEntryAllocate(
+        builder,
+        objectLayout,
+        index.getClass('dart:_internal', 'FinalizerEntry'),
+      );
+    },
+    index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'):
+        buildReachabilityFence,
 
     // dart:async
     index.getProcedure(

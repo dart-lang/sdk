@@ -2190,6 +2190,20 @@ final class UnboxDouble extends Unbox {
   R accept<R>(InstructionVisitor<R> v) => v.visitUnboxDouble(this);
 }
 
+/// Keep the value alive.
+final class ReachabilityFence extends Instruction
+    with NoThrow, Pure, BackendInstruction {
+  ReachabilityFence(super.graph, super.sourcePosition, Definition value)
+    : super(inputCount: 1) {
+    setInputAt(0, value);
+  }
+
+  Definition get value => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitReachabilityFence(this);
+}
+
 /// Base class for move operations, part of [ParallelMove].
 abstract base class MoveOp {}
 
