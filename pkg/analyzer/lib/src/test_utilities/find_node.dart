@@ -44,6 +44,11 @@ class FindNode extends _FindNodeBase {
 
   FieldDeclaration get singleFieldDeclaration => _single();
 
+  FunctionDeclaration get singleFunctionDeclaration => _single();
+
+  FunctionDeclarationStatement get singleFunctionDeclarationStatement =>
+      _single();
+
   FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
       _single();
 
@@ -147,6 +152,14 @@ class FindNode extends _FindNodeBase {
 
   FieldDeclaration fieldDeclaration(String search) {
     return _node(search, (n) => n is FieldDeclaration);
+  }
+
+  FunctionDeclaration functionDeclaration(String search) {
+    return _node(search, (n) => n is FunctionDeclaration);
+  }
+
+  FunctionDeclarationStatement functionDeclarationStatement(String search) {
+    return _node(search, (n) => n is FunctionDeclarationStatement);
   }
 
   FunctionExpressionInvocation functionExpressionInvocation(String search) {
@@ -772,11 +785,6 @@ abstract class _FindNodeBase {
 
   FunctionBody get singleFunctionBody => _single();
 
-  FunctionDeclaration get singleFunctionDeclaration => _single();
-
-  FunctionDeclarationStatement get singleFunctionDeclarationStatement =>
-      _single();
-
   FunctionExpression get singleFunctionExpression => _single();
 
   FunctionInstantiation get singleFunctionInstantiation => _single();
@@ -1178,14 +1186,6 @@ abstract class _FindNodeBase {
 
   FunctionBody functionBody(String search) {
     return _node(search, (n) => n is FunctionBody);
-  }
-
-  FunctionDeclaration functionDeclaration(String search) {
-    return _node(search, (n) => n is FunctionDeclaration);
-  }
-
-  FunctionDeclarationStatement functionDeclarationStatement(String search) {
-    return _node(search, (n) => n is FunctionDeclarationStatement);
   }
 
   FunctionExpression functionExpression(String search) {
