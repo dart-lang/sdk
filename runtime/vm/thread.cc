@@ -1711,6 +1711,11 @@ void Thread::ResetDartMutatorState() {
   thread_locals_ = Array::null();
   ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
+
+#if defined(DART_DYNAMIC_MODULES)
+  delete interpreter_;
+  interpreter_ = nullptr;
+#endif
 }
 
 void Thread::set_forward_table_new(WeakTable* table) {
