@@ -169,11 +169,6 @@ def __step_config(ctx, step_config):
     # Local-only Dart actions:
     rules.extend([
         {
-            "name": "dart/create_snapshot_entry",
-            "action": ".*_create_snapshot_entry_.*",
-            "remote": False,  # No python in the RBE container image
-        },
-        {
             "name": "dart/build_sdk_tar",
             "action": ".*_build_sdk_tar_.*",
             "remote": False,  # Just tars the built SDK directory locally.
