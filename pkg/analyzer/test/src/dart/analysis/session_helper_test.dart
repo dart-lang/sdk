@@ -84,6 +84,16 @@ class A {}
     expect(node.namePart.typeName.lexeme, 'A');
   }
 
+  test_getElementDeclaration_class_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class A {}
+''');
+    var element = unitResult.findElement.class_('A');
+    var result = (await helper.getFragmentDeclaration2(element.firstFragment))!;
+    var node = result.node as ClassDeclaration2;
+    expect(node.namePart.typeName.lexeme, 'A');
+  }
+
   test_getResolvedUnitByElement() async {
     var result = await resolveTestCode(r'''
 class A {}
