@@ -687,9 +687,13 @@ Remove debugging information from the output and save it separately to the speci
         return crossCompileErrorExitCode;
       }
 
-      final targetBinaries = await resolveTargetBinaries(target);
+      final targetBinaries = await resolveTargetBinaries(
+        target,
+        includeDartAotRuntime: format == Kind.exe,
+      );
       genSnapshotBinary = targetBinaries.genSnapshot;
-      dartAotRuntimeBinary = targetBinaries.dartAotRuntime;
+      dartAotRuntimeBinary =
+          targetBinaries.dartAotRuntime ?? dartAotRuntimeBinary;
     }
 
     final sourceUri = File(sourcePath).absolute.uri;
@@ -1208,11 +1212,10 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
   }
 
   /// Resolves the target-specific gen_snapshot and dartaotruntime binaries.
-  ///
-  /// Returns a record with `(genSnapshot: String, dartAotRuntime: String)`.
-  Future<({String genSnapshot, String dartAotRuntime})> resolveTargetBinaries(
-    Target target,
-  ) async {
+  Future<({String genSnapshot, String? dartAotRuntime})> resolveTargetBinaries(
+    Target target, {
+    bool includeDartAotRuntime = true,
+  }) async {
     String? localGenSnapshot;
     String? localDartAotRuntime;
 
@@ -1247,7 +1250,8 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
       }
     }
 
-    if (localGenSnapshot != null && localDartAotRuntime != null) {
+    if (localGenSnapshot != null &&
+        (!includeDartAotRuntime || localDartAotRuntime != null)) {
       return (
         genSnapshot: localGenSnapshot,
         dartAotRuntime: localDartAotRuntime,
@@ -1286,12 +1290,13 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
             archiveFolder: await getArchiveFolder(),
             target: target,
           );
-      final dartAotRuntimeBinary =
-          localDartAotRuntime ??
-          await cache.ensureDartAotRuntime(
-            archiveFolder: await getArchiveFolder(),
-            target: target,
-          );
+      final dartAotRuntimeBinary = !includeDartAotRuntime
+          ? null
+          : localDartAotRuntime ??
+                await cache.ensureDartAotRuntime(
+                  archiveFolder: await getArchiveFolder(),
+                  target: target,
+                );
       return (
         genSnapshot: genSnapshotBinary,
         dartAotRuntime: dartAotRuntimeBinary,
