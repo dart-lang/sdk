@@ -476,7 +476,12 @@ class ElementBuilder {
       // A field augmentation can target a setter-only property, so create
       // or append each induced accessor independently.
       if (fieldElement.getter case var getterElement?) {
-        getterElement.lastFragment.addFragment(getterFragment);
+        var lastGetterFragment = getterElement.lastFragment;
+        lastGetterFragment.addFragment(getterFragment);
+        _linkFormalParameters(
+          previousFragment: lastGetterFragment,
+          currentFragment: getterFragment,
+        );
       } else {
         var getterElement = GetterElementImpl(
           libraryBuilder.references.declareMemberGetter(
@@ -555,6 +560,10 @@ class ElementBuilder {
 
     if (getterFragment.isAugmentation && lastGetterFragment != null) {
       lastGetterFragment.addFragment(getterFragment);
+      _linkFormalParameters(
+        previousFragment: lastGetterFragment,
+        currentFragment: getterFragment,
+      );
       return;
     }
 
@@ -797,6 +806,10 @@ class ElementBuilder {
 
     if (getterFragment.isAugmentation && lastGetterFragment != null) {
       lastGetterFragment.addFragment(getterFragment);
+      _linkFormalParameters(
+        previousFragment: lastGetterFragment,
+        currentFragment: getterFragment,
+      );
       return;
     }
 
@@ -936,6 +949,10 @@ class ElementBuilder {
       if (variableElement.getter case var getterElement?) {
         var lastGetterFragment = getterElement.lastFragment;
         lastGetterFragment.addFragment(getterFragment);
+        _linkFormalParameters(
+          previousFragment: lastGetterFragment,
+          currentFragment: getterFragment,
+        );
       } else {
         var getterReference = libraryBuilder.references.declareGetter(
           variableFragment.name,

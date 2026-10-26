@@ -302,6 +302,326 @@ library
 ''');
   }
 
+  test_defaultValue_augmentation_getter_inAugmentation() async {
+    var library = await buildLibrary(r'''
+int get foo([int x]);
+
+augment int get foo([int x = 2]) => 0;
+''');
+    // Check the default value without asking any other properties.
+    var x = library.getGetter('foo')!.formalParameters.single;
+    configuration.withCombinedFragmentData(
+      x,
+      CombinedFragmentData.constantInitializer,
+    );
+    checkElementText(library, r'''
+combinedFragmentData
+  element: x@17
+  combined
+    constantInitializer
+      fragment: #F1
+      expression: expression_0
+        IntegerLiteral
+          literal: 2 @52
+          staticType: int
+  fragments
+    #F0
+    #F1
+      initializer: expression_0
+library
+  reference: <testLibrary>
+  fragments
+    #F2 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F3 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F4 isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F0 optionalPositional isOriginDeclaration x (nameOffset:17) (firstTokenOffset:13) (offset:17)
+              element: x@17
+              nextFragment: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:39) (firstTokenOffset:23) (offset:39)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F1 optionalPositional isOriginDeclaration x (nameOffset:48) (firstTokenOffset:44) (offset:48)
+              element: x@17
+              initializer: expression_0
+              previousFragment: #F0
+          previousFragment: #F4
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F3
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 optionalPositional hasDefaultValue x
+          firstFragment: #F0
+          type: int
+          constantInitializer
+            fragment: #F1
+            expression: expression_0
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_augmentation_getter_inAugmentation_inClass() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo([int x]);
+}
+
+augment class A {
+  augment int get foo([int x = 2]) => 0;
+}
+''');
+    // Check the default value without asking any other properties.
+    var x = library.getClass('A')!.getGetter('foo')!.formalParameters.single;
+    configuration.withCombinedFragmentData(
+      x,
+      CombinedFragmentData.constantInitializer,
+    );
+    checkElementText(library, r'''
+combinedFragmentData
+  element: x@29
+  combined
+    constantInitializer
+      fragment: #F1
+      expression: expression_0
+        IntegerLiteral
+          literal: 2 @86
+          staticType: int
+  fragments
+    #F0
+    #F1
+      initializer: expression_0
+library
+  reference: <testLibrary>
+  fragments
+    #F2 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F3 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F4
+          fields
+            #F5 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F7 isAbstract isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+              formalParameters
+                #F0 optionalPositional isOriginDeclaration x (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                  element: x@29
+                  nextFragment: #F1
+              nextFragment: #F8
+        #F4 isAugmentation class A (nameOffset:51) (firstTokenOffset:37) (offset:51)
+          element: <testLibrary>::@class::A
+          previousFragment: #F3
+          getters
+            #F8 isAugmentation isComplete isOriginDeclaration foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
+              element: <testLibrary>::@class::A::@getter::foo
+              formalParameters
+                #F1 optionalPositional isOriginDeclaration x (nameOffset:82) (firstTokenOffset:78) (offset:82)
+                  element: x@29
+                  initializer: expression_0
+                  previousFragment: #F0
+              previousFragment: #F7
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F3
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F5
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F6
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F7
+          formalParameters
+            #E0 optionalPositional hasDefaultValue x
+              firstFragment: #F0
+              type: int
+              constantInitializer
+                fragment: #F1
+                expression: expression_0
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_defaultValue_augmentation_getter_inBoth() async {
+    var library = await buildLibrary(r'''
+int get foo([int x = 1]);
+
+augment int get foo([int x = 2]) => 0;
+''');
+    // Check the default value without asking any other properties.
+    var x = library.getGetter('foo')!.formalParameters.single;
+    configuration.withCombinedFragmentData(
+      x,
+      CombinedFragmentData.constantInitializer,
+    );
+    checkElementText(library, r'''
+combinedFragmentData
+  element: x@17
+  combined
+    constantInitializer
+      fragment: #F1
+      expression: expression_0
+        IntegerLiteral
+          literal: 2 @56
+          staticType: int
+  fragments
+    #F0
+      initializer: expression_1
+        IntegerLiteral
+          literal: 1 @21
+          staticType: int
+    #F1
+      initializer: expression_0
+library
+  reference: <testLibrary>
+  fragments
+    #F2 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F3 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F4 isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F0 optionalPositional isOriginDeclaration x (nameOffset:17) (firstTokenOffset:13) (offset:17)
+              element: x@17
+              initializer: expression_1
+              nextFragment: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:43) (firstTokenOffset:27) (offset:43)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F1 optionalPositional isOriginDeclaration x (nameOffset:52) (firstTokenOffset:48) (offset:52)
+              element: x@17
+              initializer: expression_0
+              previousFragment: #F0
+          previousFragment: #F4
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F3
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 optionalPositional hasDefaultValue x
+          firstFragment: #F0
+          type: int
+          constantInitializer
+            fragment: #F1
+            expression: expression_0
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_augmentation_getter_inIntroductory() async {
+    var library = await buildLibrary(r'''
+int get foo([int x = 1]);
+
+augment int get foo([int x]) => 0;
+''');
+    // Check the default value without asking any other properties, reaching
+    // the element via the augmentation, so the introductory fragment is not
+    // read.
+    var foo = library.getGetter('foo')!;
+    var x = foo.fragments.last.formalParameters.single.element;
+    configuration.withCombinedFragmentData(
+      x,
+      CombinedFragmentData.constantInitializer,
+    );
+    checkElementText(library, r'''
+combinedFragmentData
+  element: x@17
+  combined
+    constantInitializer
+      fragment: #F0
+      expression: expression_0
+        IntegerLiteral
+          literal: 1 @21
+          staticType: int
+  fragments
+    #F0
+      initializer: expression_0
+    #F1
+library
+  reference: <testLibrary>
+  fragments
+    #F2 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F3 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F4 isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F0 optionalPositional isOriginDeclaration x (nameOffset:17) (firstTokenOffset:13) (offset:17)
+              element: x@17
+              initializer: expression_0
+              nextFragment: #F1
+          nextFragment: #F5
+        #F5 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:43) (firstTokenOffset:27) (offset:43)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F1 optionalPositional isOriginDeclaration x (nameOffset:52) (firstTokenOffset:48) (offset:52)
+              element: x@17
+              previousFragment: #F0
+          previousFragment: #F4
+  topLevelVariables
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F3
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 optionalPositional hasDefaultValue x
+          firstFragment: #F0
+          type: int
+          constantInitializer
+            fragment: #F0
+            expression: expression_0
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_defaultValue_augmentation_method_inAugmentation() async {
     var library = await buildLibrary(r'''
 const zero = 0;

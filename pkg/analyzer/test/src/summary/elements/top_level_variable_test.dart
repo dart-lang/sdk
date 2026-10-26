@@ -3548,6 +3548,68 @@ library
 ''');
   }
 
+  test_variable_augmentation_chain_fromGetter_formalParameter() async {
+    var library = await buildLibrary(r'''
+int get foo([int x = 1]);
+augment final int foo = 0;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 hasInitializer isAugmentation isFinal isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F3
+          previousFragment: #F1
+      getters
+        #F4 isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F5 optionalPositional isOriginDeclaration x (nameOffset:17) (firstTokenOffset:13) (offset:17)
+              element: x@17
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 1 @21
+                  staticType: int
+              nextFragment: #F6
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F2
+          formalParameters
+            #F6 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: x@17
+              previousFragment: #F5
+          previousFragment: #F4
+  topLevelVariables
+    hasInitializer isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 optionalPositional hasDefaultValue x
+          firstFragment: #F5
+          type: int
+          constantInitializer
+            fragment: #F5
+            expression: expression_0
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_variable_augmentation_chain_fromSetter() async {
     var library = await buildLibrary(r'''
 set foo(int _) {}

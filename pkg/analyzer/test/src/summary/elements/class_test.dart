@@ -30271,6 +30271,94 @@ library
 ''');
   }
 
+  test_field_augmentation_chain_fromGetter_formalParameter() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo([int x = 1]);
+}
+
+augment class A {
+  augment final int foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
+          constructors
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F6 isAbstract isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+              formalParameters
+                #F7 optionalPositional isOriginDeclaration x (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                  element: x@29
+                  initializer: expression_0
+                    IntegerLiteral
+                      literal: 1 @33
+                      staticType: int
+                  nextFragment: #F8
+              nextFragment: #F9
+        #F2 isAugmentation class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:79) (firstTokenOffset:79) (offset:79)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F9
+              previousFragment: #F3
+          getters
+            #F9 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F8 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+                  element: x@29
+                  previousFragment: #F7
+              previousFragment: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 optionalPositional hasDefaultValue x
+              firstFragment: #F7
+              type: int
+              constantInitializer
+                fragment: #F7
+                expression: expression_0
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_field_augmentation_chain_inferredType_abstractVar_varInitializer() async {
     var library = await buildLibrary(r'''
 class A {
