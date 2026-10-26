@@ -95,7 +95,6 @@ Annotation
     name: ann
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::ann
-      invokeType: int Function()
       type: int
     staticType: int
   name: SimpleIdentifier
@@ -244,7 +243,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: package:test/lib.dart::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -293,7 +291,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: package:test/lib1.dart::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -341,7 +338,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: package:test/lib.dart::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -385,7 +381,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -431,7 +426,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: package:test/lib.dart::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1034,7 +1028,6 @@ UnqualifiedNameExpression
   name: g
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E1::@getter::g
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -1062,7 +1055,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E1::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -1089,7 +1081,6 @@ UnqualifiedNameExpression
   name: g
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::B::@getter::g
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -1116,7 +1107,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -1148,7 +1138,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1191,7 +1180,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1235,7 +1223,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1316,7 +1303,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1357,7 +1343,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int?
 V1: PropertyAccess
@@ -1400,7 +1385,6 @@ CallInvocation
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::a
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -1471,7 +1455,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::B_Ext::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1512,7 +1495,6 @@ CallInvocation
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::a
-      invokeType: String Function() Function()
       type: String Function()
     staticType: String Function()
   argumentList: ArgumentList
@@ -3843,7 +3825,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: package:test/lib.dart::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -3890,7 +3871,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -3995,7 +3975,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: package:test/lib.dart::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -4042,7 +4021,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4083,7 +4061,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4123,7 +4100,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4166,7 +4142,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4209,7 +4184,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4249,7 +4223,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4289,7 +4262,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4329,7 +4301,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4369,7 +4340,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4409,7 +4379,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4449,7 +4418,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4492,7 +4460,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -4535,7 +4502,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -5738,7 +5704,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -5769,7 +5734,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -5805,7 +5769,6 @@ ReceiverPropertyExtraction
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -6537,7 +6500,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -6562,7 +6524,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -6587,7 +6548,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -6612,7 +6572,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -6924,7 +6883,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -6954,7 +6912,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier

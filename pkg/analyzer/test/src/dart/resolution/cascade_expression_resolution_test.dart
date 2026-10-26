@@ -34,7 +34,6 @@ ReceiverPropertyExtraction
       name: callback
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::callback
-        invokeType: T Function<T>(T) Function()
         type: T Function<T>(T)
       staticType: T Function<T>(T)
     argumentList: ArgumentList
@@ -57,7 +56,6 @@ ReceiverPropertyExtraction
   name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: PropertyAccess
@@ -629,7 +627,6 @@ CascadePropertyExtraction
   name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
-    invokeType: D? Function()
     type: D?
   staticType: D?
 V1: PropertyAccess
@@ -736,7 +733,6 @@ CascadePropertyExtraction
   name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
-    invokeType: D? Function()
     type: D?
   staticType: D?
 V1: PropertyAccess
@@ -849,7 +845,6 @@ CascadePropertyExtraction
   name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
-    invokeType: D? Function()
     type: D?
   staticType: D?
 V1: PropertyAccess
@@ -1002,7 +997,6 @@ CascadeExpression
           name: foo
           read: GetterInvocationResolution
             element: <testLibrary>::@extension::#0::@getter::foo
-            invokeType: int Function()
             type: int
           write: SetterInvocationResolution
             element: <testLibrary>::@extension::#0::@setter::foo
@@ -1066,7 +1060,6 @@ CascadeExpression
         name: hashCode
         resolution: GetterInvocationResolution
           element: dart:core::@class::Object::@getter::hashCode
-          invokeType: int Function()
           type: int
         staticType: int
   cascadeSections

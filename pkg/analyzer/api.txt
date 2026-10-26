@@ -2078,7 +2078,6 @@ package:analyzer/dart/ast/ast.dart:
     staticKeyword (getter: Token?)
   GetterInvocationResolution (class extends Object implements NamedReadResolutionWithElement, abstract, final, experimental):
     element (getter: GetterElement)
-    invokeType (getter: FunctionType)
   GuardedPattern (class extends Object implements AstNode, abstract, final):
     pattern (getter: DartPattern)
     whenClause (getter: WhenClause?)

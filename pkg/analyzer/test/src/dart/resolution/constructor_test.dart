@@ -73,7 +73,6 @@ ConstructorFieldInitializer
     name: _
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::_
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   expression(v1): SimpleIdentifier

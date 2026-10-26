@@ -131,7 +131,6 @@ ImportPrefixedNameExpression
   name: value
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::value
-    invokeType: int Function()
     type: int
   correspondingParameter: <testLibrary>::@function::consume::@formalParameter::value
   staticType: int
@@ -172,7 +171,6 @@ ImportPrefixedNameExpression
   name: value
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::value
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -251,7 +249,6 @@ ImportPrefixedNameExpression
   name: value
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::value
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -471,7 +468,6 @@ ReceiverPropertyExtraction
       name: value
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::value
-        invokeType: int Function()
         type: int
       staticType: int
     rightParenthesis: )
@@ -480,7 +476,6 @@ ReceiverPropertyExtraction
   name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: PropertyAccess
@@ -573,7 +568,6 @@ ImportPrefixedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -655,7 +649,6 @@ ImportPrefixedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

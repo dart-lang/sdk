@@ -34,7 +34,6 @@ CascadePropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -73,7 +72,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::foo
@@ -234,7 +232,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -296,7 +293,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::#0::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

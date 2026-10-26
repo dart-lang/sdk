@@ -47,7 +47,6 @@ combinedFragmentData
           name: zero @83
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::zero
-            invokeType: int Function()
             type: int
           staticType: int
   fragments
@@ -651,7 +650,6 @@ combinedFragmentData
           name: zero @97
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::zero
-            invokeType: int Function()
             type: int
           staticType: int
   fragments
@@ -1170,7 +1168,6 @@ combinedFragmentData
           name: zero @63
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::zero
-            invokeType: int Function()
             type: int
           staticType: int
   fragments
@@ -1691,7 +1688,6 @@ library
                   name: zero @38
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::zero
-                    invokeType: int Function()
                     type: int
                   staticType: int
   topLevelVariables
@@ -2847,7 +2843,6 @@ library
                       name: zero @56
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@class::A::@getter::zero
-                        invokeType: int Function()
                         type: int
                       staticType: int
   classes
@@ -2931,7 +2926,6 @@ library
                   name: zero @34
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::zero
-                    invokeType: int Function()
                     type: int
                   staticType: int
   topLevelVariables

@@ -192,7 +192,6 @@ UnqualifiedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier

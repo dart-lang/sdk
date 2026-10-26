@@ -600,7 +600,6 @@ ImplicitCallTearOff
     name: c
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      invokeType: C Function()
       type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
@@ -650,14 +649,12 @@ ImplicitCallTearOff
       name: c
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::c
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
     name: c
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      invokeType: C Function()
       type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call

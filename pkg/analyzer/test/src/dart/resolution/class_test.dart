@@ -986,7 +986,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -1368,7 +1367,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -1393,7 +1391,6 @@ PrimaryConstructorDeclaration
                 name: foo
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@class::A::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1412,7 +1409,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             value(v1): SimpleIdentifier
@@ -1857,7 +1853,6 @@ PrimaryConstructorBody2
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
       element: dart:core::@getter::deprecated
@@ -1899,7 +1894,6 @@ PrimaryConstructorBody2
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
       element: dart:core::@getter::deprecated
@@ -2354,7 +2348,6 @@ PrimaryConstructorBody2
             name: a
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           semicolon: ;
@@ -2414,7 +2407,6 @@ PrimaryConstructorBody2
             name: a
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           semicolon: ;
@@ -2583,7 +2575,6 @@ PrimaryConstructorBody2
             name: a
             resolution: GetterInvocationResolution
               element: <testLibrary>::@class::A::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           semicolon: ;

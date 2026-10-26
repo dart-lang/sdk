@@ -42,7 +42,6 @@ ReceiverMethodInvocation
         lookupType: C
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instances
-        invokeType: List<C> Function()
         type: List<C>
       staticType: List<C>
     leftBracket: [
@@ -129,7 +128,6 @@ ReceiverPropertyExtraction
         lookupType: C
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instances
-        invokeType: List<C> Function()
         type: List<C>
       staticType: List<C>
     leftBracket: [
@@ -151,7 +149,6 @@ ReceiverPropertyExtraction
   name: self
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::self
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -210,7 +207,6 @@ ReceiverMethodInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::member
-      invokeType: C Function()
       type: C
     staticType: C
   operator: .
@@ -266,7 +262,6 @@ ReceiverPropertyExtraction
         lookupType: C?
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::nullable
-        invokeType: C? Function()
         type: C?
       staticType: C?
     operator: ?.
@@ -283,7 +278,6 @@ ReceiverPropertyExtraction
   name: self
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::self
-    invokeType: C Function()
     type: C
   staticType: C?
 V1: PropertyAccess
@@ -340,14 +334,12 @@ ReceiverPropertyExtraction
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::member
-      invokeType: C Function()
       type: C
     staticType: C
   operator: .
   name: property
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::property
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -484,7 +476,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -521,7 +512,6 @@ DotShorthandNameExpression
     lookupType: Integer
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::Integer::@getter::one
-    invokeType: Integer Function()
     type: Integer
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Integer
@@ -555,7 +545,6 @@ DotShorthandNameExpression
     lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
-    invokeType: Color Function()
     type: Color
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: Color
@@ -595,7 +584,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -628,7 +616,6 @@ DotShorthandNameExpression
     lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
-    invokeType: Color Function()
     type: Color
   staticType: Color
 V1: DotShorthandPropertyAccess
@@ -664,7 +651,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::member
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -697,7 +683,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -735,7 +720,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
-    invokeType: C Function()
     type: C
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
@@ -841,7 +825,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::instances
-    invokeType: List<C> Function()
     type: List<C>
   staticType: List<C>
 V1: DotShorthandPropertyAccess
@@ -877,7 +860,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
-    invokeType: C? Function()
     type: C?
   staticType: C?
 V1: DotShorthandPropertyAccess
@@ -914,7 +896,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
-    invokeType: C? Function()
     type: C?
   staticType: C?
 V1: DotShorthandPropertyAccess
@@ -947,7 +928,6 @@ DotShorthandNameExpression
     lookupType: Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
-    invokeType: Color Function()
     type: Color
   staticType: Color
 V1: DotShorthandPropertyAccess
@@ -1251,7 +1231,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::one
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1287,7 +1266,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1351,7 +1329,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1405,7 +1382,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1456,7 +1432,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1507,7 +1482,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
-      invokeType: C Function()
       type: C
     staticType: C
   typeArguments: TypeArgumentList
@@ -1592,7 +1566,6 @@ CallInvocation
       lookupType: C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
-      invokeType: C Function()
       type: C
     staticType: C
   argumentList: ArgumentList
@@ -1643,7 +1616,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::field
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1679,7 +1651,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::getter
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1756,7 +1727,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1791,7 +1761,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -1836,7 +1805,6 @@ DotShorthandNameExpression
     lookupType: CMixin
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
-    invokeType: CMixin Function()
     type: CMixin
   staticType: CMixin
 V1: DotShorthandPropertyAccess
@@ -2183,7 +2151,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::_Private::@getter::getter
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private
@@ -2268,7 +2235,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::_Private::@getter::two
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private
@@ -2357,7 +2323,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::_Private::@getter::getter
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private
@@ -2448,7 +2413,6 @@ DotShorthandNameExpression
       alias: <testLibrary>::@typeAlias::Public
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::_Private::@getter::getter
-    invokeType: _Private Function()
     type: _Private
   correspondingParameter: <null>
   staticType: _Private

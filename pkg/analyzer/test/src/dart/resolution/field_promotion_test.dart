@@ -47,7 +47,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PropertyAccess
@@ -86,7 +85,6 @@ CallInvocation
     name: _field
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_field
-      invokeType: Object? Function()
       type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -131,7 +129,6 @@ ReceiverMethodInvocation
     name: _field
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_field
-      invokeType: Object? Function()
       type: int
     staticType: int
   operator: .
@@ -183,7 +180,6 @@ CascadePropertyExtraction
   name: _field
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_field
-    invokeType: Object? Function()
     type: Object
   staticType: Object
 V1: PropertyAccess
@@ -209,7 +205,6 @@ ReceiverPropertyExtraction
   name: _field
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_field
-    invokeType: Object? Function()
     type: Object?
   staticType: Object?
 V1: PropertyAccess
@@ -265,7 +260,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PrefixedIdentifier
@@ -310,7 +304,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: void Function()? Function()
       type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -369,7 +362,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: int? Function() Function()
       type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -432,7 +424,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: void Function()? Function()
       type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -498,7 +489,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: int? Function() Function()
       type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -557,7 +547,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: void Function()? Function()
       type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -605,7 +594,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: int? Function() Function()
       type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -656,7 +644,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: void Function()? Function()
       type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -713,7 +700,6 @@ CallInvocation
     name: _foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_foo
-      invokeType: int? Function() Function()
       type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -769,7 +755,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PrefixedIdentifier
@@ -813,7 +798,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::foo
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PrefixedIdentifier
@@ -857,7 +841,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -905,7 +888,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -952,7 +934,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -987,7 +968,6 @@ UnqualifiedNameExpression
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -1022,7 +1002,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1088,7 +1067,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::E::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1129,7 +1107,6 @@ ReceiverPropertyExtraction
   name: _it
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::_it
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1171,7 +1148,6 @@ ReceiverPropertyExtraction
   name: _field
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_field
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PrefixedIdentifier
@@ -1235,7 +1211,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -1298,7 +1273,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PrefixedIdentifier
@@ -1351,7 +1325,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PrefixedIdentifier
@@ -1401,7 +1374,6 @@ Block
         name: _i
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::C::@getter::_i
-          invokeType: int? Function()
           type: int
         staticType: int
       expression(v1): SimpleIdentifier
@@ -1417,7 +1389,6 @@ Block
         name: _i
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::B::@getter::_i
-          invokeType: int? Function()
           type: int?
         staticType: int?
       expression(v1): PropertyAccess
@@ -1443,7 +1414,6 @@ Block
         name: _i
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::C::@getter::_i
-          invokeType: int? Function()
           type: int?
         staticType: int?
       expression(v1): SimpleIdentifier
@@ -1459,7 +1429,6 @@ Block
         name: _i
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::B::@getter::_i
-          invokeType: int? Function()
           type: int
         staticType: int
       expression(v1): PropertyAccess
@@ -1511,7 +1480,6 @@ Block
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_t
             substitution: {T: T}
-          invokeType: T? Function()
           type: T
         staticType: T
       expression(v1): SimpleIdentifier
@@ -1531,7 +1499,6 @@ Block
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::B::@getter::_t
             substitution: {T: T}
-          invokeType: T? Function()
           type: T?
         staticType: T?
       expression(v1): PropertyAccess
@@ -1561,7 +1528,6 @@ Block
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::C::@getter::_t
             substitution: {T: T}
-          invokeType: T? Function()
           type: T?
         staticType: T?
       expression(v1): SimpleIdentifier
@@ -1581,7 +1547,6 @@ Block
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@class::B::@getter::_t
             substitution: {T: T}
-          invokeType: T? Function()
           type: T
         staticType: T
       expression(v1): PropertyAccess
@@ -1634,7 +1599,6 @@ Block
           name: _f
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::C::@getter::_f
-            invokeType: int? Function() Function()
             type: int Function()
           staticType: int Function()
         argumentList: ArgumentList
@@ -1665,7 +1629,6 @@ Block
           name: _f
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::B::@getter::_f
-            invokeType: int? Function() Function()
             type: int? Function()
           staticType: int? Function()
         argumentList: ArgumentList
@@ -1706,7 +1669,6 @@ Block
           name: _f
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::C::@getter::_f
-            invokeType: int? Function() Function()
             type: int? Function()
           staticType: int? Function()
         argumentList: ArgumentList
@@ -1737,7 +1699,6 @@ Block
           name: _f
           resolution: GetterInvocationResolution
             element: <testLibrary>::@class::B::@getter::_f
-            invokeType: int? Function() Function()
             type: int Function()
           staticType: int Function()
         argumentList: ArgumentList
@@ -1804,7 +1765,6 @@ Block
             element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::C::@getter::_f
               substitution: {T: T}
-            invokeType: T? Function() Function()
             type: T Function()
           staticType: T Function()
         argumentList: ArgumentList
@@ -1839,7 +1799,6 @@ Block
             element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
-            invokeType: T? Function() Function()
             type: T? Function()
           staticType: T? Function()
         argumentList: ArgumentList
@@ -1884,7 +1843,6 @@ Block
             element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::C::@getter::_f
               substitution: {T: T}
-            invokeType: T? Function() Function()
             type: T? Function()
           staticType: T? Function()
         argumentList: ArgumentList
@@ -1919,7 +1877,6 @@ Block
             element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::B::@getter::_f
               substitution: {T: T}
-            invokeType: T? Function() Function()
             type: T Function()
           staticType: T Function()
         argumentList: ArgumentList

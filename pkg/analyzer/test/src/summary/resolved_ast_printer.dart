@@ -3434,7 +3434,6 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: GetterInvocationResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
-          _writeType('invokeType', resolution.invokeType);
           _writeType('type', resolution.type);
         });
       case InvalidNamedReadResolutionImpl():

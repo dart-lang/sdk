@@ -40,7 +40,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -159,7 +158,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -285,7 +283,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -460,7 +457,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -500,7 +496,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::a
-    invokeType: A Function()
     type: A
   staticType: A
 V1: SimpleIdentifier
@@ -534,7 +529,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::a
-    invokeType: A? Function()
     type: A?
   staticType: A?
 V1: SimpleIdentifier
@@ -569,7 +563,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -714,7 +707,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -756,7 +748,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -800,7 +791,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -842,7 +832,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int?
 V1: PropertyAccess
@@ -939,7 +928,6 @@ ReceiverPropertyExtraction
   name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

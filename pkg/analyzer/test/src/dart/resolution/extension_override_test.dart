@@ -390,7 +390,6 @@ ReceiverPropertyExtraction
   name: g
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::g
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -453,7 +452,6 @@ CallInvocation
     name: g
     resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::g
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -547,7 +545,6 @@ ReceiverPropertyExtraction
   name: g
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::g
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -624,7 +621,6 @@ ReceiverPropertyExtraction
   name: g
   resolution: GetterInvocationResolution
     element: package:test/lib.dart::@extension::E::@getter::g
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -705,7 +701,6 @@ ReceiverPropertyExtraction
   name: g
   resolution: GetterInvocationResolution
     element: package:test/lib.dart::@extension::E::@getter::g
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -1942,7 +1937,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int?
 V1: PropertyAccess
@@ -2390,7 +2384,6 @@ CompoundAssignment
     name: s
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::s
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::s
@@ -2485,7 +2478,6 @@ CompoundAssignment
     name: s
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::s
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::s
@@ -2587,7 +2579,6 @@ CompoundAssignment
     name: s
     read: GetterInvocationResolution
       element: package:test/lib.dart::@extension::E::@getter::s
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/lib.dart::@extension::E::@setter::s
@@ -2693,7 +2684,6 @@ CompoundAssignment
     name: s
     read: GetterInvocationResolution
       element: package:test/lib.dart::@extension::E::@getter::s
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/lib.dart::@extension::E::@setter::s

@@ -101,7 +101,6 @@ AwaitExpression
     name: hashCode
     resolution: GetterInvocationResolution
       element: dart:core::@class::Object::@getter::hashCode
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): PropertyAccess
@@ -206,7 +205,6 @@ AwaitExpression
       name: isEven
       resolution: GetterInvocationResolution
         element: dart:core::@class::int::@getter::isEven
-        invokeType: bool Function()
         type: bool
       staticType: bool
     operator: .

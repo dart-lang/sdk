@@ -46,7 +46,6 @@ library
                 name: a @27
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: num Function()
                   type: num
                 staticType: num
               expression(v1): SimpleIdentifier
@@ -128,7 +127,6 @@ library
                   name: a @24
                   read: GetterInvocationResolution
                     element: <testLibrary>::@getter::a
-                    invokeType: int Function()
                     type: int
                   write: InvalidNamedWriteResolution
                     recoveryElement: <testLibrary>::@getter::a
@@ -279,7 +277,6 @@ library
                   name: x @35
                   read: GetterInvocationResolution
                     element: package:test/a.dart::@getter::x
-                    invokeType: int Function()
                     type: int
                   write: SetterInvocationResolution
                     element: package:test/a.dart::@setter::x
@@ -563,7 +560,6 @@ library
                     name: isEven @16
                     resolution: GetterInvocationResolution
                       element: dart:core::@class::int::@getter::isEven
-                      invokeType: bool Function()
                       type: bool
                     staticType: bool
                 CascadeSection
@@ -784,7 +780,6 @@ library
                   name: f1 @63
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::C::@getter::f1
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F5
@@ -799,7 +794,6 @@ library
                   name: f2 @74
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::C::@getter::f2
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F7
@@ -1521,7 +1515,6 @@ library
                 lookupType: A
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::a
-                invokeType: A Function()
                 type: A
               staticType: A
           inducedGetter: #F6
@@ -1716,7 +1709,6 @@ CascadeExpression
           element: SubstitutedGetterElementImpl
             baseElement: <testLibrary>::@extension::E::@getter::value
             substitution: {T: int}
-          invokeType: int Function()
           type: int
         staticType: int
   cascadeSections
@@ -2133,7 +2125,6 @@ library
                   name: untyped @65
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::untyped
-                    invokeType: Function Function()
                     type: Function
                   staticType: Function
                 expression(v1): SimpleIdentifier
@@ -2578,7 +2569,6 @@ library
                 name: a @38
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: List<int> Function()
                   type: List<int>
                 staticType: List<int>
               leftBracket: [ @39
@@ -2586,7 +2576,6 @@ library
                 name: b @40
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: int Function()
                   type: int
                 staticType: int
               rightBracket: ] @41
@@ -2692,7 +2681,6 @@ library
                 name: a @49
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: List<int>? Function()
                   type: List<int>?
                 staticType: List<int>?
               question: ? @50
@@ -2701,7 +2689,6 @@ library
                 name: b @52
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: int Function()
                   type: int
                 staticType: int
               rightBracket: ] @53
@@ -3760,7 +3747,6 @@ library
                 name: a @32
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               operator: + @34
@@ -3869,7 +3855,6 @@ library
                     name: zero @74
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@class::A::@getter::zero
-                      invokeType: int Function()
                       type: int
                     staticType: int
                 arguments(v1)
@@ -3997,7 +3982,6 @@ library
                     name: when @74
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@class::A::@getter::when
-                      invokeType: int Function()
                       type: int
                     staticType: int
                 arguments(v1)
@@ -5900,7 +5884,6 @@ library
                 name: a @23
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               expression(v1): SimpleIdentifier
@@ -5997,14 +5980,12 @@ library
                 name: F @59
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@class::C::@getter::F
-                  invokeType: String Function()
                   type: String
                 staticType: String
               operator: . @60
               name: length @61
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F6
@@ -6085,14 +6066,12 @@ library
                 name: F @34
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@class::C::@getter::F
-                  invokeType: String Function()
                   type: String
                 staticType: String
               operator: . @35
               name: length @36
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F2
@@ -6157,14 +6136,12 @@ library
                 name: F @41
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@class::C::@getter::F
-                  invokeType: String Function()
                   type: String
                 staticType: String
               operator: . @42
               name: length @43
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F2
@@ -6211,7 +6188,6 @@ library
               name: length @16
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F2
@@ -6263,14 +6239,12 @@ library
                 name: S @34
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::S
-                  invokeType: String Function()
                   type: String
                 staticType: String
               operator: . @35
               name: length @36
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F4
@@ -6338,14 +6312,12 @@ library
                 name: S @28
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::S
-                  invokeType: String Function()
                   type: String
                 staticType: String
               operator: . @29
               name: length @30
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F2
@@ -6404,14 +6376,12 @@ library
                 name: S @35
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::S
-                  invokeType: String Function()
                   type: String
                 staticType: String
               operator: . @36
               name: length @37
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F2
@@ -7236,7 +7206,6 @@ library
                 name: a @28
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int? Function()
                   type: int?
                 staticType: int?
               operator: ! @29
@@ -7710,7 +7679,6 @@ library
                 name: a @23
                 read: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 write: InvalidNamedWriteResolution
                   recoveryElement: <testLibrary>::@getter::a
@@ -7860,7 +7828,6 @@ library
                 name: a @24
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               unaryOperator: negate
@@ -7935,7 +7902,6 @@ library
                 name: a @29
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a
-                  invokeType: Object Function()
                   type: Object
                 staticType: Object
               unaryOperator: negate
@@ -7992,7 +7958,6 @@ library
                 name: a @25
                 read: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 write: InvalidNamedWriteResolution
                   recoveryElement: <testLibrary>::@getter::a
@@ -8142,7 +8107,6 @@ library
                   name: a @24
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::a
-                    invokeType: int Function()
                     type: int
                   staticType: int
                 RecordLiteralNamedField
@@ -8152,7 +8116,6 @@ library
                     name: a @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   fieldExpression(v1): SimpleIdentifier
@@ -8242,7 +8205,6 @@ library
                   name: a @30
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::a
-                    invokeType: int Function()
                     type: int
                   staticType: int
                 RecordLiteralNamedField
@@ -8252,7 +8214,6 @@ library
                     name: a @36
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   fieldExpression(v1): SimpleIdentifier
@@ -8357,7 +8318,6 @@ library
               name: F @52
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::C::@getter::F
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F6
@@ -8437,7 +8397,6 @@ library
               name: F @30
               resolution: GetterInvocationResolution
                 element: package:test/a.dart::@class::C::@getter::F
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F2
@@ -8501,7 +8460,6 @@ library
               name: F @37
               resolution: GetterInvocationResolution
                 element: package:test/a.dart::@class::C::@getter::F
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F2
@@ -9072,7 +9030,6 @@ library
                 name: A @23
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::A
-                  invokeType: int Function()
                   type: int
                 staticType: int
               operator: + @25
@@ -9147,7 +9104,6 @@ library
                 name: A @28
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::A
-                  invokeType: int Function()
                   type: int
                 staticType: int
               operator: + @30
@@ -9213,7 +9169,6 @@ library
                 name: A @35
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::A
-                  invokeType: int Function()
                   type: int
                 staticType: int
               operator: + @37
@@ -9344,21 +9299,18 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: c @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::c
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11610,7 +11562,6 @@ library
                 name: a @28
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int? Function()
                   type: int?
                 staticType: int?
               operator: ?. @29
@@ -11689,7 +11640,6 @@ library
                 name: a @28
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int? Function()
                   type: int?
                 staticType: int?
               target(v1): SimpleIdentifier
@@ -11791,14 +11741,12 @@ library
                     name: a @45
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: String? Function()
                       type: String?
                     staticType: String?
                   operator: ?. @46
                   name: length @48
                   resolution: GetterInvocationResolution
                     element: dart:core::@class::String::@getter::length
-                    invokeType: int Function()
                     type: int
                   staticType: int?
               elements(v1)
@@ -11970,7 +11918,6 @@ library
               name: length @84
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F6
@@ -13337,21 +13284,18 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: c @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::c
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -13547,7 +13491,6 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -13654,7 +13597,6 @@ library
                   name: b @29
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::C::@getter::b
-                    invokeType: dynamic Function()
                     type: dynamic
                   staticType: dynamic
               inducedGetter: #F3

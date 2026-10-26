@@ -2879,7 +2879,6 @@ ReceiverMethodInvocation
             element: SubstitutedGetterElementImpl
               baseElement: <testLibrary>::@class::Iterable::@getter::first
               substitution: {T: dynamic}
-            invokeType: dynamic Function()
             type: dynamic
           staticType: dynamic
         asOperator: as

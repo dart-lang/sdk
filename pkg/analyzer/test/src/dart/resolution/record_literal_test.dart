@@ -359,7 +359,6 @@ RecordLiteral
           name: a
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            invokeType: A Function()
             type: A
           staticType: A
         element: <testLibrary>::@class::A::@method::call
@@ -396,7 +395,6 @@ RecordLiteral
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: A Function()
           type: A
         staticType: A
       element: <testLibrary>::@class::A::@method::call
@@ -432,7 +430,6 @@ RecordLiteral
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: dynamic Function()
           type: dynamic
         staticType: dynamic
       fieldExpression(v1): SimpleIdentifier
@@ -459,7 +456,6 @@ RecordLiteral
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: dynamic Function()
         type: dynamic
       staticType: dynamic
   fields(v1)
@@ -1138,7 +1134,6 @@ RecordLiteral
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: dynamic Function()
           type: dynamic
         staticType: dynamic
       fieldExpression(v1): SimpleIdentifier
@@ -1165,7 +1160,6 @@ RecordLiteral
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: dynamic Function()
         type: dynamic
       staticType: dynamic
   fields(v1)

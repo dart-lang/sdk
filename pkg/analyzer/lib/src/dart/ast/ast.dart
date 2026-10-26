@@ -29415,8 +29415,6 @@ abstract final class GetterInvocationResolution
     implements NamedReadResolutionWithElement {
   @override
   GetterElement get element;
-
-  FunctionType get invokeType;
 }
 
 final class GetterInvocationResolutionImpl
@@ -29429,9 +29427,6 @@ final class GetterInvocationResolutionImpl
   final TypeImpl type;
 
   new({required this.element, required this.type});
-
-  @override
-  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// The pattern with an optional [WhenClause].

@@ -134,7 +134,6 @@ FieldsDeclaration
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       declaredFragment: <testLibraryFragment> b@41
@@ -186,7 +185,6 @@ FieldsDeclaration
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       declaredFragment: <testLibraryFragment> b@40

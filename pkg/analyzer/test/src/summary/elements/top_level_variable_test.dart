@@ -587,7 +587,6 @@ library
                 name: deprecated @16
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -613,7 +612,6 @@ library
             name: deprecated @16
             resolution: GetterInvocationResolution
               element: dart:core::@getter::deprecated
-              invokeType: Deprecated Function()
               type: Deprecated
             staticType: Deprecated
           name: SimpleIdentifier
@@ -669,7 +667,6 @@ library
                 name: a1 @18
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a1
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -687,7 +684,6 @@ library
                 name: a2 @40
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a2
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -706,7 +702,6 @@ library
                 name: a3 @70
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a3
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -732,7 +727,6 @@ library
             name: a1 @18
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a1
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -746,7 +740,6 @@ library
             name: a2 @40
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a2
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -760,7 +753,6 @@ library
             name: a3 @70
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a3
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -1668,7 +1660,6 @@ library
                 name: a1 @19
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a1
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1690,7 +1681,6 @@ library
                 name: a2 @41
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a2
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1714,7 +1704,6 @@ library
                 name: a3 @71
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a3
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1744,7 +1733,6 @@ library
             name: a1 @19
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a1
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -1758,7 +1746,6 @@ library
             name: a2 @41
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a2
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -1772,7 +1759,6 @@ library
             name: a3 @71
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a3
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -2353,7 +2339,6 @@ library
                 name: deprecated @16
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -2389,7 +2374,6 @@ library
             name: deprecated @16
             resolution: GetterInvocationResolution
               element: dart:core::@getter::deprecated
-              invokeType: Deprecated Function()
               type: Deprecated
             staticType: Deprecated
           name: SimpleIdentifier
@@ -3250,7 +3234,6 @@ library
               name: zero @43
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::zero
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F6
@@ -3262,7 +3245,6 @@ library
               name: one @69
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::one
-                invokeType: int Function()
                 type: int
               staticType: int
           inducedGetter: #F8
@@ -3944,7 +3926,6 @@ library
                 name: deprecated @16
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -3974,7 +3955,6 @@ library
             name: deprecated @16
             resolution: GetterInvocationResolution
               element: dart:core::@getter::deprecated
-              invokeType: Deprecated Function()
               type: Deprecated
             staticType: Deprecated
           name: SimpleIdentifier

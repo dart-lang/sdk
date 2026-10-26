@@ -274,7 +274,6 @@ Annotation
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   name: SimpleIdentifier
@@ -489,7 +488,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess

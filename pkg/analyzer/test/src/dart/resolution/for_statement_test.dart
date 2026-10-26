@@ -2164,7 +2164,6 @@ ForStatement
           name: foo
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::foo
-            invokeType: int Function()
             type: int
           staticType: int
         name: SimpleIdentifier
@@ -4025,7 +4024,6 @@ ForStatement
             name: deprecated
             resolution: GetterInvocationResolution
               element: dart:core::@getter::deprecated
-              invokeType: Deprecated Function()
               type: Deprecated
             staticType: Deprecated
           name: SimpleIdentifier

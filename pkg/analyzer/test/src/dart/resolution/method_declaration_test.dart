@@ -32,7 +32,6 @@ UnqualifiedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -92,7 +91,6 @@ UnqualifiedNameExpression
   name: _
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::_
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -199,7 +197,6 @@ LocalVariable
     name: _
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::_
-      invokeType: int Function()
       type: int
     staticType: int
   declaredFragment: isPrivate _@51

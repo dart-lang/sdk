@@ -822,7 +822,6 @@ ReceiverPropertyExtraction
   name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
-    invokeType: int Function()
     type: int
   staticType: int?
 V1: PropertyAccess
@@ -1708,7 +1707,6 @@ int Function(int)? f(B? b) => b?.a[0];
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     leftBracket: [

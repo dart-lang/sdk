@@ -527,7 +527,6 @@ combinedFragmentData
             name: a @23
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -565,7 +564,6 @@ library
                         name: a @23
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -604,7 +602,6 @@ library
                 name: a @23
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -630,7 +627,6 @@ library
                     name: a @23
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -695,7 +691,6 @@ library
                     name: a @27
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -747,7 +742,6 @@ library
                 name: a @27
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -826,7 +820,6 @@ library
                     name: foo @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -860,7 +853,6 @@ library
                     name: foo @66
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@class::C::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -894,7 +886,6 @@ library
                 name: foo @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -932,7 +923,6 @@ library
                 name: foo @66
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@class::C::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -2152,7 +2142,6 @@ library
                     name: a @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -2190,7 +2179,6 @@ library
                 name: a @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -2244,7 +2232,6 @@ library
                     name: a @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -2281,7 +2268,6 @@ library
                 name: a @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -2328,7 +2314,6 @@ library
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -2348,7 +2333,6 @@ library
                 name: a @1
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -2414,7 +2398,6 @@ library
                     name: a @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -2466,7 +2449,6 @@ library
                 name: a @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -2553,7 +2535,6 @@ library
                         name: a @41
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: dynamic Function()
                           type: dynamic
                         staticType: dynamic
                       name: SimpleIdentifier
@@ -2610,7 +2591,6 @@ library
                     name: a @41
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -2691,7 +2671,6 @@ library
                         name: a @42
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: dynamic Function()
                           type: dynamic
                         staticType: dynamic
                       name: SimpleIdentifier
@@ -2752,7 +2731,6 @@ library
                     name: a @42
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -2832,7 +2810,6 @@ library
                 name: a @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -2866,7 +2843,6 @@ library
             name: a @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -2913,7 +2889,6 @@ library
                 name: a @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -2951,7 +2926,6 @@ library
             name: a @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -3000,7 +2974,6 @@ library
                 name: a @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -3042,7 +3015,6 @@ library
             name: a @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -3081,7 +3053,6 @@ library
                 name: a @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -3112,7 +3083,6 @@ library
             name: a @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -3175,7 +3145,6 @@ library
                     name: a @19
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -3213,7 +3182,6 @@ library
                 name: a @19
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -3261,7 +3229,6 @@ library
                     name: a @20
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -3303,7 +3270,6 @@ library
                 name: a @20
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -3342,7 +3308,6 @@ library
                 name: a @33
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -3356,7 +3321,6 @@ library
                 name: b @36
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -3397,7 +3361,6 @@ library
             name: a @33
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -3411,7 +3374,6 @@ library
             name: b @36
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::b
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -3472,7 +3434,6 @@ library
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -3492,7 +3453,6 @@ library
                 name: a @1
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -3741,7 +3701,6 @@ library
         name: deprecated @1
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
       name: SimpleIdentifier
@@ -3764,7 +3723,6 @@ library
                 name: deprecated @1
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -3796,7 +3754,6 @@ library
         name: deprecated @1
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
       name: SimpleIdentifier
@@ -3818,7 +3775,6 @@ library
                 name: deprecated @1
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -3847,7 +3803,6 @@ library
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: dynamic Function()
           type: dynamic
         staticType: dynamic
       name: SimpleIdentifier
@@ -3923,7 +3878,6 @@ library
                     name: a @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -3968,7 +3922,6 @@ library
                 name: a @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -4030,7 +3983,6 @@ library
                     name: a @46
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -4044,7 +3996,6 @@ library
                     name: b @51
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::b
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -4093,7 +4044,6 @@ library
                 name: a @46
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -4107,7 +4057,6 @@ library
                 name: b @51
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -4177,7 +4126,6 @@ library
                     name: a @46
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -4191,7 +4139,6 @@ library
                     name: b @51
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::b
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -4238,7 +4185,6 @@ library
                 name: a @46
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -4252,7 +4198,6 @@ library
                 name: b @51
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -4327,7 +4272,6 @@ library
                     name: a @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -4375,7 +4319,6 @@ library
                 name: a @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -4437,7 +4380,6 @@ library
                     name: foo @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -4467,7 +4409,6 @@ library
                     name: foo @66
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@mixin::M::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -4501,7 +4442,6 @@ library
                 name: foo @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -4537,7 +4477,6 @@ library
                 name: foo @66
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@mixin::M::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -4667,7 +4606,6 @@ library
                     name: foo @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -4705,7 +4643,6 @@ library
                 name: foo @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -4763,7 +4700,6 @@ library
                     name: foo @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -4783,7 +4719,6 @@ library
                         name: foo @38
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -4818,7 +4753,6 @@ library
                 name: foo @29
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -4837,7 +4771,6 @@ library
                     name: foo @38
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -4898,7 +4831,6 @@ library
                     name: foo @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -4943,7 +4875,6 @@ library
                 name: foo @29
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5003,7 +4934,6 @@ library
                     name: foo @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5021,7 +4951,6 @@ library
                         name: foo @48
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -5039,7 +4968,6 @@ library
                         name: foo @56
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -5078,7 +5006,6 @@ library
                 name: foo @29
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5096,7 +5023,6 @@ library
                     name: foo @48
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5115,7 +5041,6 @@ library
                     name: foo @56
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5177,7 +5102,6 @@ library
                     name: foo @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5195,7 +5119,6 @@ library
                         name: foo @47
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -5240,7 +5163,6 @@ library
                 name: foo @29
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5259,7 +5181,6 @@ library
                     name: foo @47
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5323,7 +5244,6 @@ library
                     name: foo @54
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5371,7 +5291,6 @@ library
                 name: foo @54
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5450,7 +5369,6 @@ library
                     name: foo @33
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5495,7 +5413,6 @@ library
                     name: foo @52
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5526,21 +5443,18 @@ library
                       name: e1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::e1
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: e2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::e2
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: e3 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::e3
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -5604,7 +5518,6 @@ library
                 name: foo @33
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5635,7 +5548,6 @@ library
                 name: foo @52
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5726,7 +5638,6 @@ library
                     name: foo @34
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5760,7 +5671,6 @@ library
                 name: foo @34
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5822,7 +5732,6 @@ library
                     name: foo @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5841,7 +5750,6 @@ library
                     name: foo @60
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5863,7 +5771,6 @@ library
                     name: foo @102
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5927,7 +5834,6 @@ library
                 name: foo @29
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5948,7 +5854,6 @@ library
                 name: foo @60
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5971,7 +5876,6 @@ library
                 name: foo @102
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6059,7 +5963,6 @@ library
         name: foo @25
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::foo
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -6126,7 +6029,6 @@ library
                     name: foo @30
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -6160,7 +6062,6 @@ library
                 name: foo @30
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6211,7 +6112,6 @@ library
                 name: foo @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6229,7 +6129,6 @@ library
                     name: foo @37
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -6260,7 +6159,6 @@ library
             name: foo @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::foo
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -6278,7 +6176,6 @@ library
                 name: foo @37
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6328,7 +6225,6 @@ library
                 name: foo @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6346,7 +6242,6 @@ library
                     name: foo @32
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -6377,7 +6272,6 @@ library
             name: foo @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::foo
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -6395,7 +6289,6 @@ library
                 name: foo @32
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6461,7 +6354,6 @@ library
                 name: foo @18
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6480,7 +6372,6 @@ library
                 name: foo @39
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6563,7 +6454,6 @@ library
                 name: foo @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6581,7 +6471,6 @@ library
                     name: foo @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -6599,7 +6488,6 @@ library
                     name: foo @38
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -6637,7 +6525,6 @@ library
             name: foo @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::foo
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -6655,7 +6542,6 @@ library
                 name: foo @29
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6674,7 +6560,6 @@ library
                 name: foo @38
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6725,7 +6610,6 @@ library
                 name: foo @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6763,7 +6647,6 @@ library
             name: foo @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::foo
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -6813,7 +6696,6 @@ library
                 name: foo @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6831,7 +6713,6 @@ library
                     name: foo @33
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -6870,7 +6751,6 @@ library
             name: foo @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::foo
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -6889,7 +6769,6 @@ library
                 name: foo @33
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6935,7 +6814,6 @@ library
                 name: foo @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -6954,7 +6832,6 @@ library
                 name: foo @43
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -7003,7 +6880,6 @@ library
             name: foo @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::foo
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -7024,7 +6900,6 @@ library
             name: foo @43
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::foo
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -7088,7 +6963,6 @@ library
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -7111,7 +6985,6 @@ library
                 name: a @1
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -7185,7 +7058,6 @@ library
                 name: a @13
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -7322,7 +7194,6 @@ library
                 name: deprecated @22
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -7367,7 +7238,6 @@ library
                 name: deprecated @22
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -7421,7 +7291,6 @@ library
                 name: deprecated @22
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -7512,7 +7381,6 @@ library
                     name: a @19
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -7550,7 +7418,6 @@ library
                 name: a @19
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -7589,7 +7456,6 @@ combinedFragmentData
             name: a @70
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -7639,7 +7505,6 @@ library
                         name: a @70
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -7680,7 +7545,6 @@ library
                     name: a @70
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -7734,7 +7598,6 @@ combinedFragmentData
             name: a @42
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -7749,7 +7612,6 @@ combinedFragmentData
             name: b @86
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::b
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -7788,7 +7650,6 @@ library
                         name: a @42
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -7816,7 +7677,6 @@ library
                         name: b @86
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::b
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -7867,7 +7727,6 @@ library
                     name: a @42
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -7881,7 +7740,6 @@ library
                     name: b @86
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::b
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -7950,7 +7808,6 @@ combinedFragmentData
             name: a @29
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -7987,7 +7844,6 @@ library
                         name: a @29
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -8041,7 +7897,6 @@ library
                     name: a @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8090,7 +7945,6 @@ combinedFragmentData
             name: a @56
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8141,7 +7995,6 @@ library
                     name: a @56
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8185,7 +8038,6 @@ library
                 name: a @56
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -8222,7 +8074,6 @@ combinedFragmentData
             name: a @40
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8237,7 +8088,6 @@ combinedFragmentData
             name: b @72
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::b
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8293,7 +8143,6 @@ library
                     name: a @40
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8315,7 +8164,6 @@ library
                     name: b @72
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::b
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8372,7 +8220,6 @@ library
                 name: a @40
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -8386,7 +8233,6 @@ library
                 name: b @72
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -8425,7 +8271,6 @@ combinedFragmentData
             name: a @27
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8469,7 +8314,6 @@ library
                     name: a @27
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8520,7 +8364,6 @@ library
                 name: a @27
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -8560,7 +8403,6 @@ combinedFragmentData
             name: a @84
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8611,7 +8453,6 @@ library
                         name: a @84
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -8655,7 +8496,6 @@ library
                     name: a @84
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8710,7 +8550,6 @@ combinedFragmentData
             name: a @49
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8725,7 +8564,6 @@ combinedFragmentData
             name: b @100
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::b
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8767,7 +8605,6 @@ library
                         name: a @49
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -8793,7 +8630,6 @@ library
                         name: b @100
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::b
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -8847,7 +8683,6 @@ library
                     name: a @49
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8861,7 +8696,6 @@ library
                     name: b @100
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::b
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -8931,7 +8765,6 @@ combinedFragmentData
             name: a @36
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -8971,7 +8804,6 @@ library
                         name: a @36
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -9026,7 +8858,6 @@ library
                     name: a @36
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -9076,7 +8907,6 @@ combinedFragmentData
             name: a @48
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -9128,7 +8958,6 @@ library
                     name: a @48
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -9173,7 +9002,6 @@ library
                 name: a @48
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -9210,7 +9038,6 @@ combinedFragmentData
             name: a @36
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -9225,7 +9052,6 @@ combinedFragmentData
             name: b @64
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::b
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -9282,7 +9108,6 @@ library
                     name: a @36
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -9304,7 +9129,6 @@ library
                     name: b @64
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::b
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -9362,7 +9186,6 @@ library
                 name: a @36
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -9376,7 +9199,6 @@ library
                 name: b @64
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -9415,7 +9237,6 @@ combinedFragmentData
             name: a @23
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -9460,7 +9281,6 @@ library
                     name: a @23
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -9512,7 +9332,6 @@ library
                 name: a @23
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -9548,7 +9367,6 @@ combinedFragmentData
             name: a @53
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -9599,7 +9417,6 @@ library
                     name: a @53
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -9638,7 +9455,6 @@ library
                 name: a @53
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -9674,7 +9490,6 @@ combinedFragmentData
             name: a @37
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -9689,7 +9504,6 @@ combinedFragmentData
             name: b @66
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::b
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -9745,7 +9559,6 @@ library
                     name: a @37
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -9767,7 +9580,6 @@ library
                     name: b @66
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::b
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -9819,7 +9631,6 @@ library
                 name: a @37
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -9833,7 +9644,6 @@ library
                 name: b @66
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::b
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -9870,7 +9680,6 @@ combinedFragmentData
             name: a @27
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -9914,7 +9723,6 @@ library
                     name: a @27
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -9960,7 +9768,6 @@ library
                 name: a @27
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10006,7 +9813,6 @@ library
                         name: a @32
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: dynamic Function()
                           type: dynamic
                         staticType: dynamic
                       name: SimpleIdentifier
@@ -10049,7 +9855,6 @@ library
                     name: a @32
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10115,7 +9920,6 @@ library
                     name: a @26
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10158,7 +9962,6 @@ library
                 name: a @26
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10207,7 +10010,6 @@ library
                     name: a @20
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10249,7 +10051,6 @@ library
                 name: a @20
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10310,7 +10111,6 @@ library
                         name: a @67
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::a
-                          invokeType: dynamic Function()
                           type: dynamic
                         staticType: dynamic
                       name: SimpleIdentifier
@@ -10361,7 +10161,6 @@ library
                     name: a @67
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10418,7 +10217,6 @@ library
                 name: a @17
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10461,7 +10259,6 @@ library
             name: a @17
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: dynamic Function()
               type: dynamic
             staticType: dynamic
           name: SimpleIdentifier
@@ -10521,7 +10318,6 @@ library
                     name: a @26
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10559,7 +10355,6 @@ library
                 name: a @26
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10617,7 +10412,6 @@ library
                     name: a @25
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10667,7 +10461,6 @@ library
                 name: a @25
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10758,7 +10551,6 @@ library
                     name: a @19
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10795,7 +10587,6 @@ library
                 name: a @19
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10831,7 +10622,6 @@ library
                     name: a @27
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: dynamic Function()
                       type: dynamic
                     staticType: dynamic
                   name: SimpleIdentifier
@@ -10865,7 +10655,6 @@ library
                 name: a @27
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: dynamic Function()
                   type: dynamic
                 staticType: dynamic
               name: SimpleIdentifier
@@ -10925,7 +10714,6 @@ library
                 name: a @14
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -10968,7 +10756,6 @@ library
             name: a @14
             resolution: GetterInvocationResolution
               element: <testLibrary>::@getter::a
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -11155,21 +10942,18 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: c @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::c
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11375,7 +11159,6 @@ library
                     name: foo @25
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@extension::#0::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -11409,7 +11192,6 @@ library
                 name: foo @25
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@extension::#0::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier

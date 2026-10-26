@@ -10090,7 +10090,6 @@ library
                     name: deprecated @32
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -10132,7 +10131,6 @@ library
                 name: deprecated @32
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -11375,7 +11373,6 @@ library
                         name: deprecated @37
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -11403,7 +11400,6 @@ library
                 name: deprecated @37
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -11430,7 +11426,6 @@ library
                     name: deprecated @37
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -11642,7 +11637,6 @@ library
                         name: deprecated @37
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -11670,7 +11664,6 @@ library
                 name: deprecated @37
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -11697,7 +11690,6 @@ library
                     name: deprecated @37
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -12991,7 +12983,6 @@ library
                     name: foo @25
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -13023,7 +13014,6 @@ library
                         name: foo @34
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@class::A::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -13036,7 +13026,6 @@ library
                       name: foo @46
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@class::A::@getter::foo
-                        invokeType: int Function()
                         type: int
                       staticType: int
           getters
@@ -13069,7 +13058,6 @@ library
                 name: foo @25
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -13101,7 +13089,6 @@ library
                     name: foo @34
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@class::A::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -30596,7 +30583,6 @@ library
                   name: zero @56
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::zero
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F4
@@ -30622,7 +30608,6 @@ library
                   name: one @118
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::one
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F7
@@ -31001,7 +30986,6 @@ library
                   name: zero @82
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A::@getter::zero
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F8
@@ -31036,7 +31020,6 @@ library
                   name: one @140
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A::@getter::one
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F11
@@ -33410,7 +33393,6 @@ library
                       name: a @114
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@getter::a
-                        invokeType: int Function()
                         type: int
                       staticType: int
                   elements(v1)

@@ -934,7 +934,6 @@ ReceiverPropertyExtraction
   name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess

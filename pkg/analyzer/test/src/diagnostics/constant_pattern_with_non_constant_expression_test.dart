@@ -58,7 +58,6 @@ GuardedPattern
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::a
-        invokeType: int Function()
         type: int
       staticType: int
     expression(v1): PrefixedIdentifier
@@ -140,7 +139,6 @@ GuardedPattern
       name: a
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@class::A::@getter::a
-        invokeType: int Function()
         type: int
       staticType: int
     expression(v1): PropertyAccess
@@ -197,7 +195,6 @@ GuardedPattern
       name: a
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@class::A::@getter::a
-        invokeType: int Function()
         type: int
       staticType: int
     expression(v1): PropertyAccess
@@ -649,7 +646,6 @@ GuardedPattern
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: int Function()
         type: int
       staticType: int
     expression(v1): SimpleIdentifier
@@ -679,7 +675,6 @@ GuardedPattern
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: int Function()
         type: int
       staticType: int
     expression(v1): SimpleIdentifier

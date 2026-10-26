@@ -64,7 +64,6 @@ CascadeExpression
         name: g
         resolution: GetterInvocationResolution
           element: <testLibrary>::@extension::E::@getter::g
-          invokeType: int Function()
           type: int
         staticType: int
     CascadeSection
@@ -73,7 +72,6 @@ CascadeExpression
         name: g
         resolution: GetterInvocationResolution
           element: <testLibrary>::@extension::E::@getter::g
-          invokeType: int Function()
           type: int
         staticType: int
   cascadeSections
@@ -145,7 +143,6 @@ CascadeExpression
         name: g
         resolution: GetterInvocationResolution
           element: <testLibrary>::@extension::E::@getter::g
-          invokeType: int Function()
           type: int
         staticType: int
     CascadeSection
