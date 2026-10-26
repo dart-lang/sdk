@@ -468,7 +468,21 @@ enum StaticIntrinsic {
   wasmMemoryStoreInt8('dart:_wasm', null, 'MemoryAccessExtension|storeInt8'),
   wasmMemoryStoreInt16('dart:_wasm', null, 'MemoryAccessExtension|storeInt16'),
   wasmMemoryStoreInt32('dart:_wasm', null, 'MemoryAccessExtension|storeInt32'),
-  wasmMemoryStoreInt64('dart:_wasm', null, 'MemoryAccessExtension|storeInt64');
+  wasmMemoryStoreInt64('dart:_wasm', null, 'MemoryAccessExtension|storeInt64'),
+  boolEquals('dart:_boxed_bool', 'BoxedBool', '_equals'),
+  boolAnd('dart:_boxed_bool', 'BoxedBool', '_and'),
+  boolXor('dart:_boxed_bool', 'BoxedBool', '_xor'),
+  boolOr('dart:_boxed_bool', 'BoxedBool', '_or'),
+  intEquals('dart:_boxed_int', 'BoxedInt', '_equals'),
+  doubleAdd('dart:_boxed_double', 'BoxedDouble', '_add'),
+  doubleSub('dart:_boxed_double', 'BoxedDouble', '_sub'),
+  doubleMul('dart:_boxed_double', 'BoxedDouble', '_mul'),
+  doubleDiv('dart:_boxed_double', 'BoxedDouble', '_div'),
+  doubleEquals('dart:_boxed_double', 'BoxedDouble', '_equals'),
+  doubleLt('dart:_boxed_double', 'BoxedDouble', '_lt'),
+  doubleGt('dart:_boxed_double', 'BoxedDouble', '_gt'),
+  doubleGe('dart:_boxed_double', 'BoxedDouble', '_ge'),
+  doubleLe('dart:_boxed_double', 'BoxedDouble', '_le');
 
   final String library;
   final String? cls;
@@ -1701,6 +1715,75 @@ class Intrinsifier {
         b.struct_set(translator.objectInfo.struct, FieldIndex.identityHash);
         b.ref_null(w.HeapType.none);
         return translator.topType;
+
+      case StaticIntrinsic.boolEquals:
+      case StaticIntrinsic.boolAnd:
+      case StaticIntrinsic.boolXor:
+      case StaticIntrinsic.boolOr:
+        codeGen.translateExpression(node.arguments.positional[0], boolType);
+        codeGen.translateExpression(node.arguments.positional[1], boolType);
+        switch (intrinsic) {
+          case StaticIntrinsic.boolEquals:
+            b.i32_eq();
+          case StaticIntrinsic.boolAnd:
+            b.i32_and();
+          case StaticIntrinsic.boolXor:
+            b.i32_xor();
+          case StaticIntrinsic.boolOr:
+            b.i32_or();
+          default:
+            throw StateError('Unhandled intrinsic: $intrinsic');
+        }
+        return boolType;
+
+      case StaticIntrinsic.intEquals:
+        codeGen.translateExpression(node.arguments.positional[0], intType);
+        codeGen.translateExpression(node.arguments.positional[1], intType);
+        b.i64_eq();
+        return boolType;
+
+      case StaticIntrinsic.doubleAdd:
+      case StaticIntrinsic.doubleSub:
+      case StaticIntrinsic.doubleMul:
+      case StaticIntrinsic.doubleDiv:
+      case StaticIntrinsic.doubleEquals:
+      case StaticIntrinsic.doubleLt:
+      case StaticIntrinsic.doubleGt:
+      case StaticIntrinsic.doubleGe:
+      case StaticIntrinsic.doubleLe:
+        codeGen.translateExpression(node.arguments.positional[0], doubleType);
+        codeGen.translateExpression(node.arguments.positional[1], doubleType);
+        switch (intrinsic) {
+          case StaticIntrinsic.doubleAdd:
+            b.f64_add();
+            return doubleType;
+          case StaticIntrinsic.doubleSub:
+            b.f64_sub();
+            return doubleType;
+          case StaticIntrinsic.doubleMul:
+            b.f64_mul();
+            return doubleType;
+          case StaticIntrinsic.doubleDiv:
+            b.f64_div();
+            return doubleType;
+          case StaticIntrinsic.doubleEquals:
+            b.f64_eq();
+            return boolType;
+          case StaticIntrinsic.doubleLt:
+            b.f64_lt();
+            return boolType;
+          case StaticIntrinsic.doubleGt:
+            b.f64_gt();
+            return boolType;
+          case StaticIntrinsic.doubleGe:
+            b.f64_ge();
+            return boolType;
+          case StaticIntrinsic.doubleLe:
+            b.f64_le();
+            return boolType;
+          default:
+            throw StateError('Unhandled intrinsic: $intrinsic');
+        }
 
       // dart:_internal static functions
       case StaticIntrinsic.unsafeCast:
