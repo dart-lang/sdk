@@ -179,7 +179,7 @@ class HttpParserTest {
     );
   }
 
-  void _testParseInvalidRequest(String request) {
+  void _testParseInvalidRequest(String request, {bool bodyError = false}) {
     _HttpParser httpParser;
     bool errorCalled = false;
     late StreamController<Uint8List> controller;
@@ -190,7 +190,13 @@ class HttpParserTest {
       var port = new ReceivePort();
       httpParser.listenToStream(controller.stream);
       var subscription = httpParser.listen((incoming) {
-        Expect.fail("Expected request");
+        if (!bodyError) Expect.fail("Expected request");
+        incoming.listen(
+          (data) {},
+          onError: (e) {
+            errorCalled = true;
+          },
+        );
       });
       subscription.onError((e) {
         errorCalled = true;
@@ -1129,6 +1135,32 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
 
     request = "GET / HTTP/1.1\r\nKeep-Alive: False\r\nbadheader\r\n\r\n";
     _testParseInvalidRequest(request);
+
+    // chunk-size is 1*HEXDIG (RFC 9112 section 7.1). An empty chunk size
+    // must not be taken as the last chunk, or the bytes that follow are
+    // parsed as a new request on the same connection.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+\r
+\r\n\r\n""";
+    _testParseInvalidRequest(request, bodyError: true);
+
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+\r
+;ext\r\n\r\n""";
+    _testParseInvalidRequest(request, bodyError: true);
+
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+\r
+5\r
+01234\r
+\r\n\r\n""";
+    _testParseInvalidRequest(request, bodyError: true);
   }
 
   void testParseInvalidResponse() {

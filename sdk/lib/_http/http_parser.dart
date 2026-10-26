@@ -456,7 +456,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
       return false;
     } else if (_chunked) {
       _state = _State.CHUNK_SIZE;
-      _remainingContent = 0;
+      _remainingContent = -1;
     } else if (_transferLength > 0) {
       _remainingContent = _transferLength;
       _state = _State.BODY;
@@ -851,9 +851,19 @@ class _HttpParser extends Stream<_HttpIncoming> {
         case _State.CHUNK_SIZE_STARTING:
           _expect(byte, _CharCode.LF);
           _state = _State.CHUNK_SIZE;
+          _remainingContent = -1;
           break;
 
         case _State.CHUNK_SIZE:
+          // A chunk size of -1 means no hex digit has been read yet.
+          // chunk-size is 1*HEXDIG (RFC 9112 section 7.1), so reject an
+          // empty chunk size rather than treating it as the last chunk.
+          if (_remainingContent == -1 &&
+              (byte == _CharCode.CR ||
+                  byte == _CharCode.LF ||
+                  byte == _CharCode.SEMI_COLON)) {
+            throw HttpException('Chunk size is missing');
+          }
           if (byte == _CharCode.CR) {
             _state = _State.CHUNK_SIZE_ENDING;
           } else if (byte == _CharCode.LF) {
@@ -863,6 +873,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
             _state = _State.CHUNK_SIZE_EXTENSION;
           } else {
             int value = _expectHexDigit(byte);
+            if (_remainingContent == -1) _remainingContent = 0;
             // Checks whether (_remainingContent * 16 + value) overflows.
             if (_remainingContent > _chunkSizeLimit >> 4) {
               throw HttpException('Chunk size overflows the integer');
