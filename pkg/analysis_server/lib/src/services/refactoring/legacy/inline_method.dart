@@ -1002,9 +1002,11 @@ class _ReferenceProcessor {
           }
           if (refElement is ExecutableElement) {
             var executable = refElement as ExecutableElement;
-            if (!executable.returnType.isDartAsyncFuture) {
+            var returnType = executable.returnType;
+            if (!returnType.isDartAsyncFuture &&
+                !returnType.isDartAsyncFutureOr) {
               status.addFatalError(
-                "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
+                "Can't inline an 'async' method into a function that doesn't return a 'Future' or 'FutureOr'.",
                 newLocation_fromNode(_node),
               );
               return;
