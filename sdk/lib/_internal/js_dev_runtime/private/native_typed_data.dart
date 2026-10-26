@@ -66,6 +66,7 @@ abstract final class NativeByteBuffer extends JavaScriptObject
   }
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
+    _checkViewAlignment(offsetInBytes, Int32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
     var storage = this.asInt32List(offsetInBytes, length * 4);
     return NativeInt32x4List._externalStorage(storage);
@@ -80,12 +81,14 @@ abstract final class NativeByteBuffer extends JavaScriptObject
   }
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
+    _checkViewAlignment(offsetInBytes, Float32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
     var storage = this.asFloat32List(offsetInBytes, length * 4);
     return NativeFloat32x4List._externalStorage(storage);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
+    _checkViewAlignment(offsetInBytes, Float64x2List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
     var storage = this.asFloat64List(offsetInBytes, length * 2);
     return NativeFloat64x2List._externalStorage(storage);
@@ -400,6 +403,16 @@ final class NativeTypedData extends JavaScriptObject implements TypedData {
 int _checkLength(length) {
   if (length is! int) throw ArgumentError('Invalid length $length');
   return length;
+}
+
+// Validates that a SIMD list view starts at a multiple of its element size.
+void _checkViewAlignment(int offsetInBytes, int alignment) {
+  if (offsetInBytes % alignment != 0) {
+    throw RangeError(
+      'Offset ($offsetInBytes) must be a multiple of '
+      'BYTES_PER_ELEMENT ($alignment)',
+    );
+  }
 }
 
 // Validates `.view` constructor arguments.  Checking is necessary because
