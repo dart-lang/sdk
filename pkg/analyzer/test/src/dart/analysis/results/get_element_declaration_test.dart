@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,6 +24,7 @@ mixin GetElementDeclarationMixin implements PubPackageResolutionTest {
 
   Future<FragmentDeclarationResult?> getFragmentDeclaration2(Fragment fragment);
 
+  @V1Ast('Tests the V1 projection.')
   test_class() async {
     var unitResult = await resolveTestCode(r'''
 class A {}
@@ -33,6 +35,7 @@ class A {}
     expect(node.namePart.typeName.lexeme, 'A');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_class_duplicate() async {
     var unitResult = await resolveTestCode(r'''
 class A {} // 1
@@ -97,6 +100,7 @@ class A {} // 2
     }
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_class_inPart() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -207,6 +211,7 @@ V1: ClassDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_classTypeAlias() async {
     var unitResult = await resolveTestCode(r'''
 mixin M {}
@@ -256,6 +261,7 @@ V1: ClassTypeAlias
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_constructor() async {
     var unitResult = await resolveTestCode(r'''
 class A {
@@ -278,6 +284,7 @@ class A {
     }
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_constructor_duplicate_named() async {
     var unitResult = await resolveTestCode(r'''
 class A {
@@ -334,6 +341,7 @@ class A {
     }
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_constructor_duplicate_unnamed() async {
     var unitResult = await resolveTestCode(r'''
 class A {
@@ -454,6 +462,7 @@ V1: ConstructorDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_enum() async {
     var unitResult = await resolveTestCode(r'''
 enum MyEnum {a, b, c}
@@ -464,6 +473,7 @@ enum MyEnum {a, b, c}
     expect(node.namePart.typeName.lexeme, 'MyEnum');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_enum_constant() async {
     var unitResult = await resolveTestCode(r'''
 enum MyEnum {a, b, c}
@@ -543,6 +553,7 @@ V1: EnumDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_extension() async {
     var unitResult = await resolveTestCode(r'''
 extension E on int {}
@@ -609,6 +620,7 @@ V1: ExtensionDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_extensionType() async {
     var unitResult = await resolveTestCode(r'''
 extension type A(int it) {}
@@ -686,6 +698,7 @@ V1: ExtensionTypeDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_field() async {
     var unitResult = await resolveTestCode(r'''
 class C {
@@ -786,6 +799,7 @@ void f(int a) {}
     expect(node.name!.lexeme, 'a');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_functionDeclaration_local() async {
     var unitResult = await resolveTestCode(r'''
 main() {
@@ -810,6 +824,7 @@ main() {
     expect(node.name.lexeme, 'foo');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_functionDeclaration_top() async {
     var unitResult = await resolveTestCode(r'''
 void foo() {}
@@ -850,6 +865,7 @@ void f(void Function() x) {}
     expect(result, isNull);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_genericTypeAlias() async {
     var unitResult = await resolveTestCode(r'''
 typedef A = List<int>;
@@ -896,6 +912,7 @@ V1: GenericTypeAlias
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getter_class() async {
     var unitResult = await resolveTestCode(r'''
 class A {
@@ -941,6 +958,7 @@ V1: MethodDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getter_top() async {
     var unitResult = await resolveTestCode(r'''
 int get x => 0;
@@ -997,6 +1015,7 @@ V1: FunctionDeclaration
     expect(result, isNull);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_localVariable() async {
     var unitResult = await resolveTestCode(r'''
 main() {
@@ -1021,6 +1040,7 @@ main() {
     expect(node.name.lexeme, 'foo');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_method() async {
     var unitResult = await resolveTestCode(r'''
 class C {
@@ -1067,6 +1087,7 @@ V1: MethodDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_mixin() async {
     var unitResult = await resolveTestCode(r'''
 mixin M {}
@@ -1135,6 +1156,7 @@ V1: MixinDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_operator() async {
     var unitResult = await resolveTestCode(r'''
 class C {
@@ -1195,6 +1217,7 @@ V1: MethodDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_setter_class() async {
     var unitResult = await resolveTestCode(r'''
 class A {
@@ -1245,6 +1268,7 @@ V1: MethodDeclaration
 ''');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_setter_top() async {
     var unitResult = await resolveTestCode(r'''
 set x(_) {}
@@ -1266,6 +1290,7 @@ set x(_) {}
     expect(node.name.lexeme, 'x');
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_topLevelVariable() async {
     var unitResult = await resolveTestCode(r'''
 int foo;

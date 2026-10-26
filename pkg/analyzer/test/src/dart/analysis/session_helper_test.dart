@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -74,6 +75,7 @@ import 'a.dart';
     expect(element, isNull);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getElementDeclaration_class() async {
     var unitResult = await resolveTestCode(r'''
 class A {}

@@ -180,6 +180,7 @@ class DiagnosticReporter {
   ///
   /// The reported [Diagnostic] is returned so that the caller may attach
   /// additional information to it (for example, using an expando).
+  @V1Ast()
   Diagnostic atConstructorDeclaration(
     ConstructorDeclaration node,
     DiagnosticCode diagnosticCode, {

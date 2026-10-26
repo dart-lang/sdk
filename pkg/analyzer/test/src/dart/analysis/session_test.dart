@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
@@ -305,6 +306,7 @@ class B {}
     }
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getParsedLibrary_getElementDeclaration_class() async {
     newFile(testFile.path, r'''
 class A {}
@@ -349,6 +351,7 @@ class B {}
     expect(node.length, 10);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getParsedLibrary_getElementDeclaration_constructor_factory() async {
     newFile(testFile.path, r'''
 class A {}
@@ -403,6 +406,7 @@ class B {
     expect(node.length, 20);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getParsedLibrary_getElementDeclaration_constructor_new() async {
     newFile(testFile.path, r'''
 class A {}
@@ -501,6 +505,7 @@ class B() {}
     expect(node.length, 3);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getParsedLibrary_getElementDeclaration_constructor_secondary() async {
     newFile(testFile.path, r'''
 class A {}
@@ -581,6 +586,7 @@ class B {
     }, throwsArgumentError);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getParsedLibrary_getElementDeclaration_synthetic() async {
     newFile(testFile.path, r'''
 int foo = 0;
@@ -808,6 +814,7 @@ class B {}
     expect(result, isA<InvalidPathResult>());
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getResolvedLibrary() async {
     var aContent = r'''
 part 'b.dart';
@@ -898,6 +905,7 @@ class B2 extends X {}
     }, throwsArgumentError);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getResolvedLibrary_getElementDeclaration_synthetic() async {
     newFile(testFile.path, r'''
 int foo = 0;
