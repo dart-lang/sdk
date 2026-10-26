@@ -5005,15 +5005,10 @@ class Parser {
 
   Token insertBlock(Token token) {
     Token next = token.next!;
-    BeginToken beginGroup =
-        rewriter.insertToken(
-              token,
-              new SyntheticBeginToken(
-                TokenType.OPEN_CURLY_BRACKET,
-                next.offset,
-              ),
-            )
-            as BeginToken;
+    BeginToken beginGroup = rewriter.insertToken(
+      token,
+      new SyntheticBeginToken(TokenType.OPEN_CURLY_BRACKET, next.offset),
+    ) as BeginToken;
     Token endGroup = rewriter.insertToken(
       beginGroup,
       new SyntheticToken(TokenType.CLOSE_CURLY_BRACKET, next.offset),
@@ -9947,9 +9942,8 @@ class Parser {
           listener.beginMetadataStar(start.next!);
           listener.endMetadataStar(/* count = */ 0);
         }
-        Token beforeFormals = computeTypeParamOrArg(
-          next,
-        ).parseVariables(next, this);
+        Token beforeFormals = computeTypeParamOrArg(next)
+            .parseVariables(next, this);
         listener.beginLocalFunctionDeclaration(start.next!);
         token = typeInfo.parseType(beforeType, this);
         return parseNamedFunctionRest(
@@ -9988,9 +9982,8 @@ class Parser {
         UndoableTokenStreamRewriter undoableTokenStreamRewriter =
             new UndoableTokenStreamRewriter();
         cachedRewriter = undoableTokenStreamRewriter;
-        Token afterExpression = parseExpressionWithoutCascade(
-          afterIdentifier,
-        ).next!;
+        Token afterExpression = parseExpressionWithoutCascade(afterIdentifier)
+            .next!;
         // Undo all changes and reset.
         undoableTokenStreamRewriter.undo();
         listener = originalListener;
@@ -10230,15 +10223,10 @@ class Parser {
         diag.expectedButGot.withArguments(expected: '('),
       );
 
-      BeginToken openParen =
-          rewriter.insertToken(
-                forToken,
-                new SyntheticBeginToken(
-                  TokenType.OPEN_PAREN,
-                  leftParenthesis.offset,
-                ),
-              )
-              as BeginToken;
+      BeginToken openParen = rewriter.insertToken(
+        forToken,
+        new SyntheticBeginToken(TokenType.OPEN_PAREN, leftParenthesis.offset),
+      ) as BeginToken;
 
       Token token;
       if (awaitToken != null) {

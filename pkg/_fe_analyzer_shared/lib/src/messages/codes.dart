@@ -453,14 +453,13 @@ String? relativizeUri(Uri? uri) {
   return uri == null ? null : util.relativizeUri(Uri.base, uri, util.isWindows);
 }
 
-typedef SummaryTemplate =
-    Message Function({
-      required int count,
-      required int bytes,
-      required num timeMs,
-      required num rateBytesPerMs,
-      required num averageTimeMs,
-    });
+typedef SummaryTemplate = Message Function({
+  required int count,
+  required int bytes,
+  required num timeMs,
+  required num rateBytesPerMs,
+  required num averageTimeMs,
+});
 
 String itemizeNames(List<String> names) {
   StringBuffer buffer = new StringBuffer();
