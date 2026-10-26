@@ -23,7 +23,13 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 
 /// Returns a list of the context roots that should be used to analyze the
-/// files that are included by the list of [includedPaths].
+/// files that are included by the list of [includedPaths] and not excluded by
+/// the list of [excludedPaths].
+///
+/// The [excludedPaths] are supplied by the client, for example from IDE
+/// settings, in addition to the `analyzer: exclude:` globs read from the
+/// analysis options files. Excluded folders are not searched for nested
+/// context roots.
 ///
 /// If an [optionsFile] is specified, then it is assumed to be the path to the
 /// `analysis_options.yaml` file that should be used in place of the ones that
@@ -34,6 +40,7 @@ import 'package:path/path.dart';
 /// would be found by looking in the directories containing the context roots.
 List<ContextRootImpl> locateContextRoots({
   required List<String> includedPaths,
+  List<String> excludedPaths = const [],
   String? optionsFile,
   String? packageConfigFile,
   required ResourceProvider resourceProvider,
@@ -58,11 +65,26 @@ List<ContextRootImpl> locateContextRoots({
     includedPaths,
     resourceProvider,
   );
+  var (excludedFolders, excludedFiles) = _resourcesFromPaths(
+    excludedPaths,
+    resourceProvider,
+  );
+
+  bool isInExcludedFolder(Resource resource) {
+    return excludedFolders.any((folder) => folder.isOrContains(resource.path));
+  }
+
+  includedFolders = includedFolders.whereNot(isInExcludedFolder).toList();
+  includedFiles = includedFiles
+      .whereNot(isInExcludedFolder)
+      .whereNot(excludedFiles.contains)
+      .toList();
 
   return _ContextLocator(
     resourceProvider: resourceProvider,
     defaultOptionsFile: defaultOptionsFile,
     defaultPackageConfigFile: defaultPackageConfigFile,
+    excludedFolders: excludedFolders.toSet(),
   )._locateRoots(
     includedFolders: includedFolders,
     includedFiles: includedFiles,
@@ -111,6 +133,12 @@ class _ContextLocator {
 
   final File? _defaultPackageConfigFile;
 
+  /// The folders explicitly excluded by the client.
+  ///
+  /// When the search reaches one of them, it is recorded as excluded in the
+  /// containing root, and not searched for nested context roots.
+  final Set<Folder> _excludedFolders;
+
   /// A parse session for one context-location operation.
   final AnalysisOptionsParseSession _analysisOptionsParseSession = .new();
 
@@ -137,6 +165,7 @@ class _ContextLocator {
     required ResourceProvider? resourceProvider,
     required this._defaultOptionsFile,
     required this._defaultPackageConfigFile,
+    required this._excludedFolders,
   }) : _resourceProvider =
            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
@@ -315,9 +344,9 @@ class _ContextLocator {
   /// non-`null`, then the given file is used even if there is a local version
   /// of the file.
   ///
-  /// For each directory within the given [folder] that isn't excluded by the
-  /// `containingRoot.excludedGlobs`, recursively searches for nested context
-  /// roots.
+  /// For each directory within the given [folder] that is neither in
+  /// [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
+  /// recursively searches for nested context roots.
   ///
   /// Returns true if the folder was contained in the root and did not create a
   /// new root, false if it did create a new root.
@@ -420,9 +449,10 @@ class _ContextLocator {
     return usedThisRoot;
   }
 
-  /// For each directory within the given [folder] that isn't excluded by the
-  /// `containingRoot.excludedGlobs`, recursively searches for nested context
-  /// roots and add them to the list of [_roots].
+  /// For each directory within the given [folder] that is neither in
+  /// [_excludedFolders] nor excluded by the `containingRoot.excludedGlobs`,
+  /// recursively searches for nested context roots and add them to the list
+  /// of [_roots].
   ///
   /// If either the [_defaultOptionsFile] or [_defaultPackageConfigFile] is
   /// non-`null`, then the given file will be used even if there is a local
@@ -464,7 +494,9 @@ class _ContextLocator {
 
     for (Resource child in children) {
       if (child is Folder) {
-        if (!isExcluded(child)) {
+        if (_excludedFolders.contains(child)) {
+          containingRoot.excluded.add(child);
+        } else if (!isExcluded(child)) {
           _createContextRoots(
             visited,
             child,
