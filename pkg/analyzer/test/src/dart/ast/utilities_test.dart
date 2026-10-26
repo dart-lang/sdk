@@ -7,7 +7,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/ast_type_matchers.dart';
 import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
@@ -48,7 +47,7 @@ class A<T> {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T> {}'));
-    expect(node, isClassDeclaration2);
+    expect(node, isA<ClassDeclaration2>());
   }
 
   void test_searchWithin_constructor_afterName_beforeParameters() {
@@ -60,7 +59,7 @@ class A {
     var unit = parseTestCodeWithDiagnostics(source).unit;
     // TODO(dantup): Update these tests to use markers.
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration2);
+    expect(node, isA<ConstructorDeclaration2>());
   }
 
   void test_searchWithin_function_afterName_beforeParameters() {
@@ -89,7 +88,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isMethodDeclaration2);
+    expect(node, isA<MethodDeclaration2>());
   }
 
   void test_searchWithin_method_afterName_beforeTypeParameters() {
@@ -100,7 +99,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
-    expect(node, isMethodDeclaration2);
+    expect(node, isA<MethodDeclaration2>());
   }
 
   void test_searchWithin_namedConstructor_afterName_beforeParameters() {
@@ -111,7 +110,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration2);
+    expect(node, isA<ConstructorDeclaration2>());
   }
 
   void test_searchWithin_setter_afterName_beforeParameters() {
