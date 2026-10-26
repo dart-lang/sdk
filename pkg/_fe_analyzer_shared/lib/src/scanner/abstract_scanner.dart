@@ -1932,7 +1932,8 @@ abstract class AbstractScanner implements Scanner {
   /// [current].
   bool scanUntilLineEnd();
 
-  /// Get the current character, i.e. the latest response from [advance].
+  /// Get the current character, i.e. the latest response from [advance], or
+  /// $EOF if [advance] hasn't been called yet.
   int current();
 
   int tokenizeSingleLineCommentRest(int next, int start, bool dartdoc) {

@@ -148,9 +148,8 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   @override
-  @pragma('vm:unsafe:no-bounds-checks')
   int current() {
-    if (byteOffset > _bytesLengthMinusOne) return $EOF;
+    if (byteOffset < 0 || byteOffset > _bytesLengthMinusOne) return $EOF;
     return _bytes[byteOffset];
   }
 
@@ -195,6 +194,7 @@ class Utf8BytesScanner extends AbstractScanner {
       byteOffset = localByteOffset;
       return next;
     }
+    byteOffset = localByteOffset;
 
     // Less than 10 bytes left in stream.
     while (true) {
@@ -308,10 +308,10 @@ class Utf8BytesScanner extends AbstractScanner {
     // Less than 10 bytes left.
     int next = advance();
     while (true) {
-      nonAsciiCount |= next;
       if ($LF == next || $CR == next || $EOF == next) {
         return nonAsciiCount & 128 == 0;
       }
+      nonAsciiCount |= next;
       next = advance();
     }
   }
@@ -493,7 +493,7 @@ class Utf8BytesScanner extends AbstractScanner {
    * return the offset of the first one, which is one position more left than
    * the [utf8Slack].
    */
-  int stringOffsetSlackOffset = -1;
+  int stringOffsetSlackOffset = -2;
 
   @override
   int get stringOffset {
