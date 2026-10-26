@@ -16,6 +16,8 @@ class B extends C {
   void superCalls(int arg) {
     super.m1(arg);
     super.m3 = super.m2 + 42;
+    print(super.m1);
+    print(super.m4);
   }
 
   void m1(int a) {
@@ -28,7 +30,7 @@ class B extends C {
   }
 }
 
-class C {
+class C<T> {
   final int x;
   int y = -1;
   C(this.x, this.y);
@@ -41,6 +43,8 @@ class C {
   set m3(int b) {
     y = b + 2;
   }
+
+  void m4<S>(T x) {}
 }
 
 void instanceCalls(A obj, A? obj2, int a, String b, double c) {
