@@ -4,8 +4,9 @@
 
 import 'ast.dart';
 
-typedef GetFieldInitializer =
-    Expression? Function(FieldReference fieldReference);
+typedef GetFieldInitializer = Expression? Function(
+  FieldReference fieldReference,
+);
 
 /// Evaluates an [expression] based on the semantics that can be deduced from
 /// the syntax.

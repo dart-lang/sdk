@@ -8,6 +8,7 @@ namespace dart {
 namespace bin {
 
 OptionProcessor* OptionProcessor::first_ = nullptr;
+MallocGrowableArray<const char*>* OptionProcessor::environment_ = nullptr;
 
 bool OptionProcessor::IsValidFlag(const char* name) {
   return name[0] == '-' && name[1] == '-' && name[2] != '\0';
@@ -51,12 +52,9 @@ static bool IsPrefix(const char* prefix, size_t prefix_len, const char* str) {
   return strncmp(prefix, str, prefix_len) == 0;
 }
 
-bool OptionProcessor::ProcessEnvironmentOption(
-    const char* arg,
-    CommandLineOptions* vm_options,
-    dart::SimpleHashMap** environment) {
+bool OptionProcessor::ProcessEnvironmentOption(const char* arg,
+                                               CommandLineOptions* vm_options) {
   ASSERT(arg != nullptr);
-  ASSERT(environment != nullptr);
   const char* kShortPrefix = "-D";
   const char* kLongPrefix = "--define=";
   const int kShortPrefixLen = strlen(kShortPrefix);
@@ -72,9 +70,6 @@ bool OptionProcessor::ProcessEnvironmentOption(
   }
   if (*arg == '\0') {
     return true;
-  }
-  if (*environment == nullptr) {
-    *environment = new SimpleHashMap(&SimpleHashMap::SameStringValue, 4);
   }
   // Split the name=value part of the -Dname=value argument.
   char* name;
@@ -103,17 +98,36 @@ bool OptionProcessor::ProcessEnvironmentOption(
   strncpy(name, arg, name_len);
   name[name_len] = '\0';
   value = Utils::StrDup(equals_pos + 1);
-  SimpleHashMap::Entry* entry =
-      (*environment)
-          ->Lookup(GetHashmapKeyFromString(name),
-                   SimpleHashMap::StringHash(name), true);
-  ASSERT(entry != nullptr);  // Lookup adds an entry if key not found.
-  if (entry->value != nullptr) {
-    free(name);
-    free(entry->value);
+
+  if (environment_ == nullptr) {
+    environment_ = new MallocGrowableArray<const char*>();
   }
-  entry->value = value;
+  if (environment_->length() > 0 && environment_->Last() == nullptr) {
+    environment_->RemoveLast();
+  }
+  environment_->Add(name);
+  environment_->Add(value);
+  environment_->Add(nullptr);
   return true;
+}
+
+const char** OptionProcessor::environment_array() {
+  if (environment_ == nullptr || environment_->length() == 0) {
+    return nullptr;
+  }
+  return environment_->data();
+}
+
+void OptionProcessor::DestroyEnvironment() {
+  if (environment_ != nullptr) {
+    for (intptr_t i = 0; i < environment_->length(); i++) {
+      if ((*environment_)[i] != nullptr) {
+        free(const_cast<char*>((*environment_)[i]));
+      }
+    }
+    delete environment_;
+    environment_ = nullptr;
+  }
 }
 
 }  // namespace bin

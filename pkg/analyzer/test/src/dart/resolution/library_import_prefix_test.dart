@@ -263,7 +263,6 @@ ImportPrefixedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

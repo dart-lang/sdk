@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'annotated_code_helper.dart';
 import 'id.dart';
 import 'id_generation.dart';
@@ -1074,9 +1075,8 @@ Future<void> runTests<T>(
             annotations,
           );
           Uri fileUri = testToFileUri[uri]!;
-          new File.fromUri(
-            fileUri,
-          ).writeAsStringSync(postProcessFile(generated.toText()));
+          new File.fromUri(fileUri)
+              .writeAsStringSync(postProcessFile(generated.toText()));
           print('Generated annotations for ${fileUri}');
         });
       } else {

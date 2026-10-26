@@ -88,9 +88,6 @@ vars = {
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:938087829fcbcc8fd87835ee301dd522c7637685",
 
-  "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
-  "download_reclient": True,
-
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/core
   "fuchsia_sdk_version": "version:33.20261023.4.1",
   "download_fuchsia_deps": False,
@@ -470,20 +467,6 @@ deps = {
       ],
       "condition": "host_os == 'mac' and host_cpu == 'arm64'",
       "dep_type": "cipd",
-  },
-
-  Var("dart_root") + '/buildtools/reclient': {
-    'packages': [
-      {
-        'package': 'infra/rbe/client/${{platform}}',
-        'version': Var('reclient_version'),
-      }
-    ],
-    # Download reclient only on the platforms where it has packages available.
-    # Unfortunately windows-arm64 gclient uses x64 python which lies in
-    # host_cpu, so we have to use a variable to not download reclient there.
-    'condition': 'download_reclient and (((host_os == "linux" or host_os == "mac" or host_os == "win") and host_cpu == "x64") or (host_os == "mac" and host_cpu == "arm64"))',
-    'dep_type': 'cipd',
   },
 
   Var("dart_root") + "/third_party/webdriver/chrome": {

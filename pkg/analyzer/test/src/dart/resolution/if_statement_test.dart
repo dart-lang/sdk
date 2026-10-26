@@ -1272,7 +1272,6 @@ IfStatement
           name: a
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            invokeType: int Function()
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
@@ -1380,7 +1379,6 @@ IfStatement
           name: a
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            invokeType: int Function()
             type: int
           staticType: int
         expression(v1): SimpleIdentifier
@@ -1859,7 +1857,6 @@ IfStatement
               name: isEven
               resolution: GetterInvocationResolution
                 element: dart:core::@class::int::@getter::isEven
-                invokeType: bool Function()
                 type: bool
               staticType: bool
             expression(v1): PrefixedIdentifier
@@ -1942,7 +1939,6 @@ IfStatement
               name: isEven
               resolution: GetterInvocationResolution
                 element: dart:core::@class::int::@getter::isEven
-                invokeType: bool Function()
                 type: bool
               staticType: bool
             expression(v1): PrefixedIdentifier
@@ -2036,7 +2032,6 @@ IfStatement
               name: isEven
               resolution: GetterInvocationResolution
                 element: dart:core::@class::int::@getter::isEven
-                invokeType: bool Function()
                 type: bool
               staticType: bool
             expression(v1): PrefixedIdentifier
@@ -2130,7 +2125,6 @@ IfStatement
               name: isEven
               resolution: GetterInvocationResolution
                 element: dart:core::@class::int::@getter::isEven
-                invokeType: bool Function()
                 type: bool
               staticType: bool
             expression(v1): PrefixedIdentifier

@@ -702,7 +702,6 @@ ReceiverPropertyExtraction
   name: property
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::property
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -768,7 +767,6 @@ ReceiverPropertyExtraction
   name: property
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::property
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -2619,7 +2617,6 @@ DotShorthandConstructorInvocation2
           lookupType: C<dynamic>
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::C::@getter::member
-          invokeType: C<dynamic> Function()
           type: C<dynamic>
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x

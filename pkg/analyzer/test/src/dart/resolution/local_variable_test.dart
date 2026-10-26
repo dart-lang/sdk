@@ -224,7 +224,6 @@ UnqualifiedNameExpression
   name: _
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -250,7 +249,6 @@ UnqualifiedNameExpression
   name: _
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::_
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier

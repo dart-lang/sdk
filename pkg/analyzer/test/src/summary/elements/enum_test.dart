@@ -66,7 +66,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -188,21 +187,18 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v3 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v3
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -394,21 +390,18 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -615,28 +608,24 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v3 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v3
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -839,21 +828,18 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -1020,14 +1006,12 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                     UnqualifiedNameExpression
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -1212,21 +1196,18 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -1394,7 +1375,6 @@ library
                         name: zero @46
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::zero
-                          invokeType: int Function()
                           type: int
                         staticType: int
                     arguments(v1)
@@ -1416,14 +1396,12 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -1475,7 +1453,6 @@ library
                         name: one @108
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@getter::one
-                          invokeType: int Function()
                           type: int
                         staticType: int
                     arguments(v1)
@@ -1634,14 +1611,12 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -1786,7 +1761,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -1894,7 +1868,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -2002,7 +1975,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -2095,7 +2067,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -2296,21 +2267,18 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v1
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v2
-                        invokeType: A Function()
                         type: A
                       staticType: A
                     UnqualifiedNameExpression
                       name: v3 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v3
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -2538,14 +2506,12 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -2666,7 +2632,6 @@ library
                     name: annotation @33
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::annotation
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -2697,7 +2662,6 @@ library
                     name: annotation @63
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::annotation
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -2728,14 +2692,12 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -2793,7 +2755,6 @@ library
                 name: annotation @33
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::annotation
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -2817,7 +2778,6 @@ library
                 name: annotation @63
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::annotation
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -2950,14 +2910,12 @@ library
                       name: int @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::int
-                        invokeType: E<int> Function()
                         type: E<int>
                       staticType: E<int>
                     UnqualifiedNameExpression
                       name: string @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::string
-                        invokeType: E<String> Function()
                         type: E<String>
                       staticType: E<String>
                   elements(v1)
@@ -3079,7 +3037,6 @@ library
                     name: a @27
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -3110,7 +3067,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -3160,7 +3116,6 @@ library
                 name: a @27
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -3374,21 +3329,18 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: c @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::c
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -3602,7 +3554,6 @@ library
                     name: v @12
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@enum::E::@getter::v
-                      invokeType: E Function()
                       type: E
                     staticType: E
                   name: SimpleIdentifier
@@ -3633,7 +3584,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -3671,7 +3621,6 @@ library
                 name: v @12
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@enum::E::@getter::v
-                  invokeType: E Function()
                   type: E
                 staticType: E
               name: SimpleIdentifier
@@ -3767,7 +3716,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
@@ -3895,7 +3843,6 @@ library
                       name: _name @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::_name
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -4018,7 +3965,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<double> Function()
                         type: E<double>
                       staticType: E<double>
                   elements(v1)
@@ -4131,7 +4077,6 @@ library
                       name: _ @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::_
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -4241,7 +4186,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -4359,7 +4303,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -4478,7 +4421,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -4620,7 +4562,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -4819,7 +4760,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -4840,7 +4780,6 @@ library
                     name: deprecated @28
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -4896,7 +4835,6 @@ library
                 name: deprecated @28
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -4969,7 +4907,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -5088,7 +5025,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -5194,7 +5130,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -5316,7 +5251,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -5469,7 +5403,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -5604,7 +5537,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -5742,7 +5674,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -5877,7 +5808,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -5908,7 +5838,6 @@ library
                         name: deprecated @36
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -5959,7 +5888,6 @@ library
                 name: deprecated @36
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -5986,7 +5914,6 @@ library
                     name: deprecated @36
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -6064,7 +5991,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -6095,7 +6021,6 @@ library
                         name: deprecated @36
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -6146,7 +6071,6 @@ library
                 name: deprecated @36
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -6173,7 +6097,6 @@ library
                     name: deprecated @36
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -6247,7 +6170,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -6418,7 +6340,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::B::@getter::v
-                        invokeType: B Function()
                         type: B
                       staticType: B
                   elements(v1)
@@ -6580,7 +6501,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -6720,7 +6640,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -6854,7 +6773,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -6971,7 +6889,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -7087,7 +7004,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -7197,7 +7113,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -7292,7 +7207,6 @@ library
                     name: foo @24
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -7328,7 +7242,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -7362,7 +7275,6 @@ library
                         name: foo @33
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@enum::E::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -7375,7 +7287,6 @@ library
                       name: foo @45
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::foo
-                        invokeType: int Function()
                         type: int
                       staticType: int
           getters
@@ -7414,7 +7325,6 @@ library
                 name: foo @24
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -7463,7 +7373,6 @@ library
                     name: foo @33
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@enum::E::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -7564,7 +7473,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int, int> Function()
                         type: A<int, int>
                       staticType: A<int, int>
                   elements(v1)
@@ -7689,7 +7597,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -7795,7 +7702,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -7911,7 +7817,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -8044,7 +7949,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -8175,7 +8079,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -8300,7 +8203,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -8416,7 +8318,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -8542,7 +8443,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -8691,7 +8591,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -8834,7 +8733,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -8964,7 +8862,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9071,7 +8968,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9186,7 +9082,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9303,7 +9198,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9419,7 +9313,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9566,7 +9459,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9698,7 +9590,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9830,7 +9721,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -9962,7 +9852,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -10096,7 +9985,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -10243,7 +10131,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -10364,7 +10251,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -10533,7 +10419,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -10554,7 +10439,6 @@ library
                     name: a @33
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -10616,7 +10500,6 @@ library
                 name: a @33
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -10704,7 +10587,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -10822,7 +10704,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -10932,7 +10813,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11039,7 +10919,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11146,7 +11025,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11257,7 +11135,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11366,7 +11243,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11477,7 +11353,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -11623,7 +11498,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A#1::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -11908,7 +11782,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -12105,7 +11978,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -12213,7 +12085,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -12377,21 +12248,18 @@ library
                       name: aaa @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::aaa
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: bbb @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::bbb
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: ccc @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::ccc
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -12537,7 +12405,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -12901,21 +12768,18 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: c @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::c
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -13132,7 +12996,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -13266,7 +13129,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -13420,7 +13282,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -13594,7 +13455,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -13761,7 +13621,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<dynamic> Function()
                         type: A<dynamic>
                       staticType: A<dynamic>
                   elements(v1)
@@ -13911,7 +13770,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -14062,7 +13920,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -14197,7 +14054,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -14455,7 +14311,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -14577,7 +14432,6 @@ library
                     name: foo @29
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -14613,7 +14467,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -14655,7 +14508,6 @@ library
                     name: foo @71
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@enum::E::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -14689,7 +14541,6 @@ library
                 name: foo @29
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -14755,7 +14606,6 @@ library
                 name: foo @71
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@enum::E::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -14823,7 +14673,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::#0::@getter::v
-                        invokeType: InvalidType Function()
                         type: InvalidType
                       staticType: InvalidType
                   elements(v1)
@@ -14927,7 +14776,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -15049,7 +14897,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -15200,7 +15047,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -15382,7 +15228,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -15520,7 +15365,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -15716,7 +15560,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -15834,7 +15677,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -15961,7 +15803,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -16089,7 +15930,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -16225,7 +16065,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -16365,7 +16204,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic, dynamic> Function()
                         type: E<dynamic, dynamic>
                       staticType: E<dynamic, dynamic>
                   elements(v1)
@@ -16493,7 +16331,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<num, num> Function()
                         type: E<num, num>
                       staticType: E<num, num>
                   elements(v1)
@@ -16793,7 +16630,6 @@ library
                     name: a @23
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -16829,7 +16665,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -16877,7 +16712,6 @@ library
                 name: a @23
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -17255,14 +17089,12 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v1
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v2
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -17386,7 +17218,6 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E1::@getter::v1
-                        invokeType: E1 Function()
                         type: E1
                       staticType: E1
                   elements(v1)
@@ -17436,7 +17267,6 @@ library
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E2::@getter::v2
-                        invokeType: E2 Function()
                         type: E2
                       staticType: E2
                   elements(v1)
@@ -17579,7 +17409,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -17714,7 +17543,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -17891,7 +17719,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -18047,7 +17874,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -18197,7 +18023,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -18339,7 +18164,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -18497,7 +18321,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -18664,7 +18487,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -18840,7 +18662,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -18996,7 +18817,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -19147,7 +18967,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -19307,7 +19126,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -19502,7 +19320,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -19628,7 +19445,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -19787,7 +19603,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -19940,7 +19755,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -20088,7 +19902,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -20235,7 +20048,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -20388,7 +20200,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -20514,7 +20325,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -20658,7 +20468,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -20795,7 +20604,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E<dynamic> Function()
                         type: E<dynamic>
                       staticType: E<dynamic>
                   elements(v1)
@@ -20936,7 +20744,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -21080,7 +20887,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -21225,7 +21031,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::B::@getter::v
-                        invokeType: B Function()
                         type: B
                       staticType: B
                   elements(v1)
@@ -21365,7 +21170,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::B::@getter::v
-                        invokeType: B Function()
                         type: B
                       staticType: B
                   elements(v1)
@@ -21505,7 +21309,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::B::@getter::v
-                        invokeType: B Function()
                         type: B
                       staticType: B
                   elements(v1)
@@ -21635,7 +21438,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -21773,7 +21575,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -21921,7 +21722,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A<int> Function()
                         type: A<int>
                       staticType: A<int>
                   elements(v1)
@@ -22059,7 +21859,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -22197,7 +21996,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -22331,7 +22129,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -22496,7 +22293,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -22671,7 +22467,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -22833,7 +22628,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -22865,7 +22659,6 @@ library
                     name: a @33
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::a
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -22934,7 +22727,6 @@ library
                 name: a @33
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -23004,7 +22796,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -23122,7 +22913,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -23267,7 +23057,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -23430,7 +23219,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -23574,7 +23362,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -23756,7 +23543,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -23887,7 +23673,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -24022,7 +23807,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -24184,7 +23968,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -24353,7 +24136,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)
@@ -24508,7 +24290,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::v
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)

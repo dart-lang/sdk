@@ -40,7 +40,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "platform/growable_array.h"
-#include "platform/hashmap.h"
 #include "platform/syslog.h"
 #include "platform/text_buffer.h"
 #include "platform/utils.h"
@@ -127,7 +126,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
     ASSERT(*resolved_packages_config != nullptr);
   }
 
-  result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
+  result = Dart_SetEnvironment(Options::environment_array());
   if (Dart_IsError(result)) return result;
 
   // Setup the native resolver as the snapshot does not carry it.
@@ -1144,8 +1143,6 @@ void main(int argc, char** argv) {
     // arguments.
     DartDev::InvokeDartVM(argc, argv, argv_converted);
   }
-
-  DartUtils::SetEnvironment(Options::environment());
 
   if (Options::suppress_core_dump()) {
     Platform::SetCoreDumpResourceLimit(0);

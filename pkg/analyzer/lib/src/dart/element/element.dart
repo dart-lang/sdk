@@ -1401,8 +1401,11 @@ class DeferredResolutionReadingHelper {
 
   static void withoutLoadingResolution(void Function() operation) {
     _lockResolutionLoading++;
-    operation();
-    _lockResolutionLoading--;
+    try {
+      operation();
+    } finally {
+      _lockResolutionLoading--;
+    }
   }
 }
 

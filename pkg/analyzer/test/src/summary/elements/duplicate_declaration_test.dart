@@ -58,7 +58,6 @@ library
                   name: f01 @55
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A::@getter::f01
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F5
@@ -90,7 +89,6 @@ library
                   name: f11 @118
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A#1::@getter::f11
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F11
@@ -122,7 +120,6 @@ library
                   name: f21 @181
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A#2::@getter::f21
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F17
@@ -599,14 +596,12 @@ library
                       name: a @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::a
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: b @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::b
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -693,21 +688,18 @@ library
                       name: c @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E#1::@getter::c
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: d @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E#1::@getter::d
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: e @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E#1::@getter::e
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)

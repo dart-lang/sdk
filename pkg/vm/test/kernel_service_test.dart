@@ -145,13 +145,14 @@ Future<kernel_service.Status> singleShotCompile(
     /* [8] = List = sourceFiles = */ sourceFiles,
     /* [9] = bool = enableAsserts = */ true,
     /* [10] = List<String>? = experimentalFlags = */ [],
-    /* [11] = String? = packageConfig = */ packageConfig,
-    /* [12] = String? = multirootFilepaths = */ null,
-    /* [13] = String? = multirootScheme = */ null,
-    /* [14] = String = verbosityLevel = */ Verbosity.all.name,
-    /* [15] = bool = enableMirrors = */ false,
-    /* [15] = bool = enableFfi = */ false,
-    /* [16] = bool = generateBytecode = */ false,
+    /* [11] = List<String>? = defines = */ [],
+    /* [12] = String? = packageConfig = */ packageConfig,
+    /* [13] = String? = multirootFilepaths = */ null,
+    /* [14] = String? = multirootScheme = */ null,
+    /* [15] = String = verbosityLevel = */ Verbosity.all.name,
+    /* [16] = bool = enableMirrors = */ false,
+    /* [17] = bool = enableFfi = */ false,
+    /* [18] = bool = generateBytecode = */ false,
   ]);
 
   // Wait for kernel-service response.

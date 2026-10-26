@@ -1232,9 +1232,7 @@ class LibraryReader {
           _reader.fork(resolutionOffset),
         );
 
-        // TODO(scheglov): type casts are not good :-(
-        reader.currentLibraryFragment =
-            fragment.libraryFragment as LibraryFragmentImpl;
+        reader.currentLibraryFragment = fragment.libraryFragment!;
 
         readResolution(fragment, reader);
       });

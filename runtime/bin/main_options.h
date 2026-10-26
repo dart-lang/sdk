@@ -10,7 +10,6 @@
 #include "bin/options.h"
 #include "platform/globals.h"
 #include "platform/growable_array.h"
-#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -171,7 +170,9 @@ class Options {
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
-  static dart::SimpleHashMap* environment() { return environment_; }
+  static const char** environment_array() {
+    return OptionProcessor::environment_array();
+  }
 
 #if !defined(PRODUCT)
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
@@ -202,7 +203,6 @@ class Options {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
  private:
-  static void DestroyEnvironment();
 #if defined(DART_PRECOMPILED_RUNTIME)
   static void DestroyEnvArgv();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -231,8 +231,6 @@ class Options {
 #define ENUM_OPTION_DECL(flag, type, variable) static type variable##_;
   ENUM_OPTIONS_LIST(ENUM_OPTION_DECL)
 #undef ENUM_OPTION_DECL
-
-  static dart::SimpleHashMap* environment_;
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   static char** env_argv_;

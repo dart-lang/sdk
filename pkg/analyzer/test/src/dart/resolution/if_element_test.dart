@@ -72,7 +72,6 @@ IfElement
     name: x
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -221,7 +220,6 @@ IfElement
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   elseElement(v1): SimpleIdentifier

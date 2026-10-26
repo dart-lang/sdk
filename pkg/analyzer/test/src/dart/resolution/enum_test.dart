@@ -101,7 +101,6 @@ CompilationUnit
                 name: v2
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@enum::A::@getter::v2
-                  invokeType: A Function()
                   type: A
                 staticType: A
               expression(v1): PrefixedIdentifier
@@ -289,7 +288,6 @@ CompilationUnit
                 name: values
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@enum::A::@getter::values
-                  invokeType: List<A> Function()
                   type: List<A>
                 staticType: List<A>
               expression(v1): PrefixedIdentifier
@@ -1974,7 +1972,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@enum::A::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -2504,7 +2501,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -2529,7 +2525,6 @@ PrimaryConstructorDeclaration
                 name: foo
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@enum::A::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -2548,7 +2543,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@enum::A::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             value(v1): SimpleIdentifier
@@ -2936,7 +2930,6 @@ PrimaryConstructorBody2
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
       element: dart:core::@getter::deprecated
@@ -2979,7 +2972,6 @@ PrimaryConstructorBody2
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
       element: dart:core::@getter::deprecated
@@ -3450,14 +3442,12 @@ ReceiverPropertyExtraction
     name: _
     resolution: GetterInvocationResolution
       element: <testLibrary>::@enum::E::@getter::_
-      invokeType: E Function()
       type: E
     staticType: E
   operator: .
   name: index
   resolution: GetterInvocationResolution
     element: dart:core::@class::Enum::@getter::index
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess

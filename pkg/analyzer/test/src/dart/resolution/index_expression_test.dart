@@ -315,7 +315,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]
-    invokeType: bool Function(int)
     type: bool
   staticType: bool
 V1: IndexExpression
@@ -356,7 +355,6 @@ CascadeIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]
-    invokeType: bool Function(int)
     type: bool
   staticType: bool
 V1: IndexExpression
@@ -382,7 +380,6 @@ CascadeIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]
-    invokeType: bool Function(int)
     type: bool
   staticType: bool
 V1: IndexExpression
@@ -432,7 +429,6 @@ ReceiverIndexExpression
     element: SubstitutedMethodElementImpl
       baseElement: <testLibrary>::@class::A::@method::[]
       substitution: {T: double}
-    invokeType: double Function(int)
     type: double
   staticType: double
 V1: IndexExpression
@@ -482,7 +478,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]
-    invokeType: int Function(Object)
     type: int
   staticType: int
 V1: IndexExpression
@@ -531,7 +526,6 @@ ReceiverIndexExpression
     element: SubstitutedMethodElementImpl
       baseElement: dart:core::@class::List::@method::[]
       substitution: {E: int}
-    invokeType: int Function(int)
     type: int
   staticType: int
 V1: IndexExpression
@@ -765,7 +759,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]
-    invokeType: bool Function(int)
     type: bool?
   staticType: bool?
 V1: IndexExpression
@@ -815,14 +808,12 @@ ReceiverPropertyExtraction
     rightBracket: ]
     resolution: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: String Function(int)
       type: String
     staticType: String
   operator: .
   name: length
   resolution: GetterInvocationResolution
     element: dart:core::@class::String::@getter::length
-    invokeType: int Function()
     type: int
   staticType: int?
 V1: PropertyAccess
@@ -878,7 +869,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]
-    invokeType: bool? Function(int)
     type: bool?
   staticType: bool?
 V1: IndexExpression
@@ -923,7 +913,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: bool Function(int)
     type: bool
   staticType: bool
 V1: IndexExpression
@@ -968,7 +957,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: bool Function(int)
     type: bool
   staticType: bool
 V1: IndexExpression
@@ -1041,7 +1029,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::A::@method::[]
-    invokeType: bool Function(int)
     type: bool
   staticType: bool
 V1: IndexExpression
@@ -1198,11 +1185,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: num Function(int)
       type: num
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: DoubleLiteral
@@ -1275,13 +1260,11 @@ CompoundAssignment
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]
         substitution: {T: double}
-      invokeType: double Function(int)
       type: double
     write: MethodIndexWriteResolution
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=
         substitution: {T: double}
-      invokeType: void Function(int, double)
       acceptedType: double
   operator: +=
   value: DoubleLiteral
@@ -1475,11 +1458,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: num Function(int)
       type: num
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: DoubleLiteral
@@ -1550,11 +1531,9 @@ IfNullAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: num? Function(int)
       type: num?
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ??=
   value: DoubleLiteral
@@ -1638,7 +1617,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: DoubleLiteral
@@ -1708,7 +1686,6 @@ int Function(int)? f(B? b) => b?.a[0];
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     leftBracket: [
@@ -1719,7 +1696,6 @@ int Function(int)? f(B? b) => b?.a[0];
     rightBracket: ]
     resolution: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: T Function<T>(T) Function(int)
       type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)?
@@ -1782,7 +1758,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: DoubleLiteral
@@ -1856,7 +1831,6 @@ CascadeExpression
           read: <null>
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, A)
             acceptedType: A
         operator: =
         value: UnqualifiedNameExpression
@@ -1880,7 +1854,6 @@ CascadeExpression
           read: <null>
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, A)
             acceptedType: A
         operator: =
         value: UnqualifiedNameExpression
@@ -1976,7 +1949,6 @@ DirectAssignment
       element: SubstitutedMethodElementImpl
         baseElement: <testLibrary>::@class::A::@method::[]=
         substitution: {T: double}
-      invokeType: void Function(int, double)
       acceptedType: double
   operator: =
   value: DoubleLiteral
@@ -2119,7 +2091,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: DoubleLiteral
@@ -2213,7 +2184,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: DoubleLiteral

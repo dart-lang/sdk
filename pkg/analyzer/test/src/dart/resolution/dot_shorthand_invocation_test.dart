@@ -299,7 +299,6 @@ ReceiverPropertyExtraction
   name: self
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::self
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess
@@ -450,7 +449,6 @@ ReceiverPropertyExtraction
   name: property
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::property
-    invokeType: C Function()
     type: C
   staticType: C
 V1: PropertyAccess

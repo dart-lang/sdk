@@ -32,9 +32,9 @@ sealed class Proto {
         isNullAware: true,
       ).instantiate(send.typeArguments).invoke(send.arguments);
     } else {
-      return access(
-        send.text,
-      ).instantiate(send.typeArguments).invoke(send.arguments);
+      return access(send.text)
+          .instantiate(send.typeArguments)
+          .invoke(send.arguments);
     }
   }
 

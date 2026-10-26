@@ -42,7 +42,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::foo
@@ -124,7 +123,6 @@ UnqualifiedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier

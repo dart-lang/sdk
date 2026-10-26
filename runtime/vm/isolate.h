@@ -1177,12 +1177,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
     return OFFSET_OF(Isolate, finalizers_);
   }
 
-  Dart_EnvironmentCallback environment_callback() const {
-    return environment_callback_;
-  }
-  void set_environment_callback(Dart_EnvironmentCallback value) {
-    environment_callback_ = value;
-  }
+  const char* const* environment() const { return environment_; }
+  intptr_t environment_length() const { return environment_len_; }
+  void SetEnvironment(const char** environment);
+  const char* LookupEnvironment(const char* name) const;
 
   bool HasDeferredLoadHandler() const {
     return group()->deferred_load_handler() != nullptr;
@@ -1561,6 +1559,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void Shutdown();
   void RunAndCleanupFinalizersOnShutdown();
   void LowLevelShutdown();
+  void FreeEnvironment();
 
   // Unregister the [isolate] from the thread, remove it from the isolate group,
   // invoke the cleanup function (if any), delete the isolate and possibly
@@ -1708,7 +1707,8 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   uint64_t pause_capability_ = 0;
   uint64_t terminate_capability_ = 0;
   void* init_callback_data_ = nullptr;
-  Dart_EnvironmentCallback environment_callback_ = nullptr;
+  char** environment_ = nullptr;
+  intptr_t environment_len_ = 0;
   Mutex mutex_;  // Protects compiler stats.
   IsolateMessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;

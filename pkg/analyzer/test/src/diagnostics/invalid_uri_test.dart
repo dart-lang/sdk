@@ -34,7 +34,6 @@ ImportPrefixedNameExpression
   name: x
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::x
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

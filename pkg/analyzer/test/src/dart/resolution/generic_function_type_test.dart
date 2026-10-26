@@ -79,7 +79,6 @@ TypeParameter
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier

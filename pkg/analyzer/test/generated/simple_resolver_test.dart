@@ -588,7 +588,6 @@ UnqualifiedNameExpression
   name: x
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::M2::@getter::x
-    invokeType: dynamic Function()
     type: dynamic
   staticType: dynamic
 V1: SimpleIdentifier
@@ -636,7 +635,6 @@ ReceiverPropertyExtraction
   name: x
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::M2::@getter::x
-    invokeType: dynamic Function()
     type: dynamic
   staticType: dynamic
 V1: PropertyAccess
@@ -936,7 +934,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -967,7 +964,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -996,7 +992,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1024,7 +1019,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1087,7 +1081,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1116,7 +1109,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1153,7 +1145,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1182,7 +1173,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1232,7 +1222,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1260,7 +1249,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier
@@ -1322,7 +1310,6 @@ Annotation
     name: A
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::A
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   name: SimpleIdentifier

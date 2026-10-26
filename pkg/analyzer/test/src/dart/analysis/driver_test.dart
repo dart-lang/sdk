@@ -974,7 +974,6 @@ var B = 0;
       name: B
       resolution: GetterInvocationResolution
         element: package:test/b.dart::@getter::B
-        invokeType: int Function()
         type: int
       staticType: int
 [status] idle
@@ -1003,7 +1002,6 @@ var B = 1.2;
       name: B
       resolution: GetterInvocationResolution
         element: package:test/b.dart::@getter::B
-        invokeType: double Function()
         type: double
       staticType: double
 [status] idle

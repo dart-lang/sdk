@@ -15,30 +15,9 @@ import("//build/config/sysroot.gni")
 import("//build/toolchain/rbe.gni")
 import("//build/toolchain/signing.gni")
 
-if (use_rbe && !use_siso) {
-  compiler_args =
-      rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
-  if (rbe_os != host_os || rbe_cpu != host_cpu) {
-    extra_inputs = [
-      "build/rbe",
-      "buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
-
-      # Is RBE's scandeps too old to know about this?
-      "buildtools/mac-arm64/clang/lib/clang/24/include/ptrauth.h",
-    ]
-    compiler_args += [
-      "--inputs=" + string_join(",", extra_inputs),
-      "--remote_wrapper=../../build/rbe/llvm.sh",
-    ]
-  }
-  assembler_prefix = ""
-  compiler_prefix = string_join(" ", compiler_args) + " "
-  link_prefix = ""
-} else {
-  assembler_prefix = ""
-  compiler_prefix = ""
-  link_prefix = ""
-}
+assembler_prefix = ""
+compiler_prefix = ""
+link_prefix = ""
 
 if (host_cpu == "arm64" || host_cpu == "arm64e") {
   rebased_clang_dir =

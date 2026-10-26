@@ -109,7 +109,6 @@ ReceiverIndexExpression
     element: SubstitutedMethodElementImpl
       baseElement: dart:core::@class::Map::@method::[]
       substitution: {K: String, V: int}
-    invokeType: int? Function(Object?)
     type: int?
   staticType: int?
 V1: IndexExpression
@@ -145,7 +144,6 @@ NullAssertionExpression
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::Map::@method::[]
         substitution: {K: String, V: int}
-      invokeType: int? Function(Object?)
       type: int?
     staticType: int?
   operator: !
@@ -767,11 +765,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment
@@ -834,11 +830,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment
@@ -899,11 +893,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment
@@ -961,11 +953,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment
@@ -1146,7 +1136,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extensionType::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extensionType::A::@setter::foo
@@ -1204,7 +1193,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -1260,7 +1248,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::x
@@ -1324,7 +1311,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -1389,7 +1375,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -1449,7 +1434,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -1504,7 +1488,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -1725,7 +1708,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -1769,7 +1751,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x
@@ -1815,7 +1796,6 @@ IncrementOrDecrementExpression
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x
@@ -1868,7 +1848,6 @@ IncrementOrDecrementExpression
     name: value
     read: GetterInvocationResolution
       element: package:test/a.dart::@class::C::@getter::value
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@class::C::@setter::value

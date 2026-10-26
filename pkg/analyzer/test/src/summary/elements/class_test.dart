@@ -10090,7 +10090,6 @@ library
                     name: deprecated @32
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -10132,7 +10131,6 @@ library
                 name: deprecated @32
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -11375,7 +11373,6 @@ library
                         name: deprecated @37
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -11403,7 +11400,6 @@ library
                 name: deprecated @37
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -11430,7 +11426,6 @@ library
                     name: deprecated @37
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -11642,7 +11637,6 @@ library
                         name: deprecated @37
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -11670,7 +11664,6 @@ library
                 name: deprecated @37
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -11697,7 +11690,6 @@ library
                     name: deprecated @37
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -12991,7 +12983,6 @@ library
                     name: foo @25
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -13023,7 +13014,6 @@ library
                         name: foo @34
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@class::A::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -13036,7 +13026,6 @@ library
                       name: foo @46
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@class::A::@getter::foo
-                        invokeType: int Function()
                         type: int
                       staticType: int
           getters
@@ -13069,7 +13058,6 @@ library
                 name: foo @25
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -13101,7 +13089,6 @@ library
                     name: foo @34
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@class::A::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -30271,6 +30258,94 @@ library
 ''');
   }
 
+  test_field_augmentation_chain_fromGetter_formalParameter() async {
+    var library = await buildLibrary(r'''
+class A {
+  int get foo([int x = 1]);
+}
+
+augment class A {
+  augment final int foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          fields
+            #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+              nextFragment: #F4
+          constructors
+            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F6 isAbstract isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+              formalParameters
+                #F7 optionalPositional isOriginDeclaration x (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                  element: x@29
+                  initializer: expression_0
+                    IntegerLiteral
+                      literal: 1 @33
+                      staticType: int
+                  nextFragment: #F8
+              nextFragment: #F9
+        #F2 isAugmentation class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:79) (firstTokenOffset:79) (offset:79)
+              element: <testLibrary>::@class::A::@field::foo
+              inducedGetter: #F9
+              previousFragment: #F3
+          getters
+            #F9 isAugmentation isComplete isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+              element: <testLibrary>::@class::A::@getter::foo
+              inducingVariable: #F4
+              formalParameters
+                #F8 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+                  element: x@29
+                  previousFragment: #F7
+              previousFragment: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F5
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 optionalPositional hasDefaultValue x
+              firstFragment: #F7
+              type: int
+              constantInitializer
+                fragment: #F7
+                expression: expression_0
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_field_augmentation_chain_inferredType_abstractVar_varInitializer() async {
     var library = await buildLibrary(r'''
 class A {
@@ -30508,7 +30583,6 @@ library
                   name: zero @56
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::zero
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F4
@@ -30534,7 +30608,6 @@ library
                   name: one @118
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::one
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F7
@@ -30913,7 +30986,6 @@ library
                   name: zero @82
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A::@getter::zero
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F8
@@ -30948,7 +31020,6 @@ library
                   name: one @140
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@class::A::@getter::one
-                    invokeType: int Function()
                     type: int
                   staticType: int
               inducedGetter: #F11
@@ -33322,7 +33393,6 @@ library
                       name: a @114
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@getter::a
-                        invokeType: int Function()
                         type: int
                       staticType: int
                   elements(v1)
