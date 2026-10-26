@@ -131,20 +131,27 @@ abstract final class ExecutableCompiler {
   /// Checks whether [snapshotFile] is up to date with respect to its inputs.
   ///
   /// Returns `true` if the snapshot exists, was compiled by this SDK with
-  /// [enabledExperiments], is newer than [packageConfigFile], and is newer
-  /// than all source files recorded in the depfile.
+  /// [enabledExperiments], is newer than [packageConfigFile] and
+  /// [platformDill], and is newer than all source files recorded in the
+  /// depfile.
+  ///
+  /// The depfile does not list the SDK libraries, and SDK builds from source
+  /// share a version string, so checking [platformDill] is what catches a
+  /// snapshot compiled against an older build of the platform libraries.
   static bool isSnapshotFresh({
     required File snapshotFile,
     required File packageConfigFile,
     required File depfile,
     required File metadataFile,
+    required File platformDill,
     required List<String> enabledExperiments,
   }) {
     try {
       if (!snapshotFile.existsSync() ||
           !packageConfigFile.existsSync() ||
           !depfile.existsSync() ||
-          !metadataFile.existsSync()) {
+          !metadataFile.existsSync() ||
+          !platformDill.existsSync()) {
         return false;
       }
 
@@ -177,6 +184,9 @@ abstract final class ExecutableCompiler {
       if (packageConfigFile.lastModifiedSync().isAfter(snapshotModified)) {
         return false;
       }
+      if (platformDill.lastModifiedSync().isAfter(snapshotModified)) {
+        return false;
+      }
 
       final depfileContent = depfile.readAsStringSync();
       final dependencies = parseDepfile(depfileContent);
@@ -198,8 +208,8 @@ abstract final class ExecutableCompiler {
   ///
   /// The snapshot is compiled with [enabledExperiments] enabled, and a cached
   /// snapshot is only reused if it was compiled by this SDK with the same
-  /// experiments, is newer than [packageConfigPath], and is newer than all
-  /// source dependencies recorded in its depfile.
+  /// experiments, is newer than [packageConfigPath] and the SDK's VM platform
+  /// dill, and is newer than all source dependencies recorded in its depfile.
   ///
   /// If [verbose] is `true`, a `Built <package>:<executable>.` status line is
   /// written to stderr after a successful compilation.
@@ -257,6 +267,7 @@ abstract final class ExecutableCompiler {
       packageConfigFile: packageConfigFile,
       depfile: depfile,
       metadataFile: metadataFile,
+      platformDill: File(sdk.vmPlatformDill),
       enabledExperiments: enabledExperiments,
     )) {
       final displayName =
