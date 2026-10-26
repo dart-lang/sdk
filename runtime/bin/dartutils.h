@@ -11,7 +11,6 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "platform/hashmap.h"
 #include "platform/syslog.h"
 
 namespace dart {
@@ -55,10 +54,6 @@ static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
     return TEMPVAR(_aor_handle, __LINE__);                                     \
   }                                                                            \
   lhs = TEMPVAR(_aor_handle, __LINE__);
-
-static inline void* GetHashmapKeyFromString(char* key) {
-  return reinterpret_cast<void*>(key);
-}
 
 class CommandLineOptions {
  public:
@@ -347,9 +342,6 @@ class DartUtils {
   static constexpr const char* kVMLibURL = "dart:_vm";
   static constexpr const char* kVMServiceLibURL = "dart:vmservice";
 
-  static void SetEnvironment(dart::SimpleHashMap* environment);
-  static Dart_Handle EnvironmentCallback(Dart_Handle name);
-
  private:
   static Dart_Handle SetWorkingDirectory();
   static Dart_Handle PrepareBuiltinLibrary(Dart_Handle builtin_lib,
@@ -363,8 +355,6 @@ class DartUtils {
                                          bool flag_profile_microtasks);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareCLILibrary(Dart_Handle cli_lib);
-
-  static dart::SimpleHashMap* environment_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DartUtils);

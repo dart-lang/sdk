@@ -7,7 +7,7 @@
 
 #include "bin/dartutils.h"
 #include "platform/globals.h"
-#include "platform/hashmap.h"
+#include "platform/growable_array.h"
 #include "platform/syslog.h"
 #include "platform/utils.h"
 
@@ -36,12 +36,18 @@ class OptionProcessor {
   static const char* ProcessOption(const char* option, const char* name);
 
   static bool ProcessEnvironmentOption(const char* arg,
-                                       CommandLineOptions* vm_options,
-                                       dart::SimpleHashMap** environment);
+                                       CommandLineOptions* vm_options);
+
+  // This pointer is invalidated if you process more options, so the caller can
+  // only cache it after all options are processed.
+  static const char** environment_array();
+  static void DestroyEnvironment();
 
  private:
   static OptionProcessor* first_;
   OptionProcessor* next_;
+
+  static MallocGrowableArray<const char*>* environment_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(OptionProcessor);

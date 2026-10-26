@@ -240,7 +240,7 @@ static Dart_Handle SetupCoreLibraries(Dart_Isolate isolate,
 #endif
   }
 
-  result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
+  result = Dart_SetEnvironment(Options::environment_array());
   if (Dart_IsError(result)) return result;
 
   // Setup the native resolver as the snapshot does not carry it.
@@ -725,7 +725,7 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     result = Dart_CompileAll();
     CHECK_RESULT(result);
   }
-  result = Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
+  result = Dart_SetEnvironment(Options::environment_array());
   CHECK_RESULT(result);
   Dart_ExitScope();
   Dart_ExitIsolate();
@@ -1365,8 +1365,6 @@ void main(int argc, char** argv) {
     parse_arguments(argc, argv, &vm_options, &dart_options,
                     /*parsing_dart_vm_options=*/false);
   }
-
-  DartUtils::SetEnvironment(Options::environment());
 
   if (Options::suppress_core_dump()) {
     Platform::SetCoreDumpResourceLimit(0);

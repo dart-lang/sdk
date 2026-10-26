@@ -62,6 +62,7 @@ io/addlatexhash_test: Skip
 io/issue_46436_test: SkipByDesign # Uses mirrors.
 io/print_test: SkipByDesign # Attempts to spawn dart using Platform.executable
 io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.executable
+isolate_spawn_uri_from_env_test: SkipByDesign # Uses spawnUri.
 
 [ $sanitizer == asan ]
 io/process_detached_test: Slow, Pass
