@@ -32,6 +32,11 @@ application_snapshot("kernel-service_snapshot") {
     "--train",
     rebase_path("../../$_kernel_service_script", root_build_dir),
   ]
+  training_deps = [ "../../runtime/vm:vm_platform" ]
+  training_inputs = [
+    "$root_out_dir/vm_platform.dill",
+    "../../.dart_tool/package_config.json",
+  ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
 
@@ -105,6 +110,7 @@ template("kernel_service_dill") {
     inputs = [
       kernel_service_script,
       "$root_out_dir/vm_platform.dill",
+      "../../.dart_tool/package_config.json",
     ]
     output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
     outputs = [ output ]

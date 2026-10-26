@@ -50,7 +50,11 @@ application_snapshot("dartdevc") {
   ]
 
   training_deps = [ ":ddc_platform" ]
-  training_inputs = [ sdk_outline_dill ]
+  training_inputs = [
+    sdk_outline_dill,
+    "../../pkg/dev_compiler/bin/dartdevc.dart",
+    "../../.dart_tool/package_config.json",
+  ]
 }
 
 template("dart2js_compile") {
@@ -66,8 +70,10 @@ template("dart2js_compile") {
     deps = invoker.deps + [ "../compiler:dart2js_platform" ]
 
     inputs = [
+      main,
       "$root_out_dir/dart2js_platform.dill",
       "$root_out_dir/dart2js_outline.dill",
+      "../../.dart_tool/package_config.json",
     ]
     outputs = [ out ]
 
@@ -215,6 +221,7 @@ template("ddc_compile") {
 
     inputs = [
       sdk_outline_dill,
+      "../../.dart_tool/package_config.json",
       "$target_gen_dir/ddc_files.stamp",
     ]
 
@@ -274,8 +281,7 @@ template("package_kernel_outline") {
   output = "$target_gen_dir/${module}_outline.dill"
   sdk_outline = rebase_path(sdk_outline_dill, root_build_dir)
 
-  package_config =
-      rebase_path("../../.dart_tool/package_config.json", root_build_dir)
+  package_config = "../../.dart_tool/package_config.json"
 
   prebuilt_dart_action(target_name) {
     deps = [
@@ -283,10 +289,11 @@ template("package_kernel_outline") {
       "../bazel:kernel_worker_files_stamp",
     ]
     script = "../bazel/kernel_worker.dart"
+    inputs = [ package_config ]
     outputs = [ output ]
     args = [
       "--packages-file",
-      package_config,
+      rebase_path(package_config, root_build_dir),
       "--summary-only",
       "--target",
       "ddc",
@@ -447,7 +454,10 @@ template("ddc_compile_sdk") {
       ":ddc_platform",
     ]
 
-    inputs = [ sdk_full_dill ]
+    inputs = [
+      sdk_full_dill,
+      "../../.dart_tool/package_config.json",
+    ]
 
     outputs = []
     args = []

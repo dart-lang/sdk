@@ -136,7 +136,7 @@ dartaotruntime_action("wasm_dev_rt") {
   package_config = "../../.dart_tool/package_config.json"
   platform_dill = "$root_out_dir/dart2wasm_platform.dill"
   output = "$root_out_dir/wasm_dev_rt.wasm"
-  depfile = "$target_gen_dir/wasm_dev_rt.d"
+  depfile = "$output.d"
 
   inputs = [
     main_dart,
@@ -146,7 +146,6 @@ dartaotruntime_action("wasm_dev_rt") {
 
   outputs = [
     output,
-    depfile,
     "$root_out_dir/wasm_dev_rt.wasm.map",
     "$root_out_dir/wasm_dev_rt.mjs",
     "$root_out_dir/wasm_dev_rt.support.js",
