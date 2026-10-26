@@ -439,8 +439,31 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitSwitchMember(SwitchMember node) {
+    _checkStatements(switchMemberStatementsOf(node));
+    visitNode(node);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _declarationNode = node;
+  }
+
+  @override
+  void visitTypeAlias(TypeAlias node) {
+    _declarationNode = node;
+  }
+
+  @override
+  void _addStatementNames(Statement statement) {
+    if (statement is VariableDeclarationStatement) {
+      for (var variable in statement.variables.variables) {
+        _addToScope(variable.name);
+      }
+    } else if (statement is FunctionDeclarationStatement &&
+        !_referenceIsWithinLocalFunction) {
+      _addToScope(statement.functionDeclaration.name);
+    }
   }
 }
 
@@ -560,6 +583,18 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
     _declarationNode = node;
   }
 
+  @override
+  void _addStatementNames(Statement statement) {
+    if (statement is LocalVariablesDeclarationStatement) {
+      for (var variable in statement.declaration.variables) {
+        _addToScope(variable.name);
+      }
+    } else if (statement is LocalFunctionDeclaration &&
+        !_referenceIsWithinLocalFunction) {
+      _addToScope(statement.name);
+    }
+  }
+
   void _visitMethodDeclaration(MethodDeclarationV1OriginImpl node) {
     _declarationNode = node;
     var parameters = node.writtenFormalParameters;
@@ -618,20 +653,15 @@ mixin _ScopedNameFinderMixin {
 
   void visitNode(AstNode node);
 
-  void visitSwitchMember(SwitchMember node) {
-    _checkStatements(switchMemberStatementsOf(node));
-    visitNode(node);
-  }
-
-  void visitTypeAlias(TypeAlias node) {
-    _declarationNode = node;
-  }
-
   void _addParameters(List<FormalParameter> vars) {
     for (FormalParameter var2 in vars) {
       _addToScope(var2.name);
     }
   }
+
+  /// Adds the names of the local variables and functions declared by
+  /// [statement], a statement in the view of this finder.
+  void _addStatementNames(Statement statement);
 
   void _addToScope(Token? identifier) {
     if (identifier != null && _isInRange(identifier)) {
@@ -647,21 +677,7 @@ mixin _ScopedNameFinderMixin {
       if (identical(statement, immediateChild)) {
         return;
       }
-      if (statement is VariableDeclarationStatement) {
-        for (var variable in statement.variables.variables) {
-          _addToScope(variable.name);
-        }
-      } else if (statement is LocalVariablesDeclarationStatement) {
-        for (var variable in statement.declaration.variables) {
-          _addToScope(variable.name);
-        }
-      } else if (statement is FunctionDeclarationStatement &&
-          !_referenceIsWithinLocalFunction) {
-        _addToScope(statement.functionDeclaration.name);
-      } else if (statement is LocalFunctionDeclaration &&
-          !_referenceIsWithinLocalFunction) {
-        _addToScope(statement.name);
-      }
+      _addStatementNames(statement);
     }
   }
 

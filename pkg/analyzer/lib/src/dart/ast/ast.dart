@@ -19608,12 +19608,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
             return (current, constKeyword);
           }
           return null;
-        case VariableDeclarationList():
-          var keyword = current.keyword;
-          if (keyword != null && keyword.keyword == Keyword.CONST) {
-            return (current, keyword);
-          }
-          return null;
         case ArgumentList():
         case Expression():
         case Field2():
