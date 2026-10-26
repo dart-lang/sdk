@@ -1622,6 +1622,28 @@ invalidRuntimeCheckWithJsInteropTypesDartIsJs = LinterLintTemplate(
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required Object p0, required Object p1})
 >
+invalidRuntimeCheckWithJsInteropTypesJsAndDartJs = LinterLintTemplate(
+  name: 'invalid_runtime_check_with_js_interop_types',
+  problemMessage:
+      "Runtime check or cast between '{0}' and '{1}' involves both a "
+      "'dart:js_interop' type and a 'dart:js' type, which are unrelated. "
+      "'dart:js' types are Dart wrappers around JS values and aren't JS "
+      "values themselves.",
+  correctionMessage:
+      "Try using 'JsObject.fromBrowserObject' to convert a 'dart:js_interop' "
+      "value to a 'dart:js' value, or the 'rawJSObject' member on 'JsObject' "
+      "to convert a 'dart:js' value to a 'dart:js_interop' value.",
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_js_and_dart_js',
+  withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAndDartJs,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: undocumented
+/// Object p1: undocumented
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
 invalidRuntimeCheckWithJsInteropTypesJsAsDart = LinterLintTemplate(
   name: 'invalid_runtime_check_with_js_interop_types',
   problemMessage:
@@ -4419,6 +4441,17 @@ _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs({
 }) {
   return LocatableDiagnosticImpl(
     diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    [p0, p1],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAndDartJs({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs,
     [p0, p1],
   );
 }
