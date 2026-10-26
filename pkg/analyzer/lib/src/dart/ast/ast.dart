@@ -40545,9 +40545,6 @@ abstract final class MethodIndexReadResolution
   /// The selected substituted `operator []` method.
   @override
   MethodElement get element;
-
-  /// The substituted function type used for this invocation.
-  FunctionType get invokeType;
 }
 
 final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
@@ -40562,9 +40559,6 @@ final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
 
   @override
   TypeImpl get indexContextType => element.formalParameters[0].type;
-
-  @override
-  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// An index write resolved to a statically selected `operator []=` method.
@@ -40575,9 +40569,6 @@ abstract final class MethodIndexWriteResolution
   /// The selected substituted `operator []=` method.
   @override
   MethodElement get element;
-
-  /// The substituted function type used for this invocation.
-  FunctionType get invokeType;
 }
 
 final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
@@ -40592,9 +40583,6 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
 
   @override
   TypeImpl get indexContextType => element.formalParameters[0].type;
-
-  @override
-  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// The invocation of either a function or a method.

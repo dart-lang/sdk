@@ -2540,7 +2540,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::C::@method::[]
-    invokeType: void Function(int)
     type: void
   staticType: void
 V1: IndexExpression
@@ -2585,7 +2584,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: void Function(int)
     type: void
   staticType: void
 V1: IndexExpression
@@ -2631,7 +2629,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: void Function(int)
     type: void
   staticType: void
 V1: IndexExpression
@@ -2677,7 +2674,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: int Function(int)
     type: int
   staticType: int
 V1: IndexExpression
@@ -2724,7 +2720,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: int Function(int)
     type: int?
   staticType: int?
 V1: IndexExpression
@@ -2775,7 +2770,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::C::@method::[]=
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
@@ -2839,7 +2833,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
@@ -2904,7 +2897,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
@@ -6003,7 +5995,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@class::C::@method::[]
-    invokeType: void Function(int)
     type: void
   staticType: void
 V1: IndexExpression
@@ -6043,7 +6034,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: void Function(int)
     type: void
   staticType: void
 V1: IndexExpression
@@ -6087,7 +6077,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::C::@method::[]=
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
@@ -6146,7 +6135,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral

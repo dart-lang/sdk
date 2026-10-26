@@ -8960,7 +8960,6 @@ ImplicitFunctionInstantiation
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: void Function<T>(T)}
-      invokeType: void Function<T>(T) Function(int)
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)

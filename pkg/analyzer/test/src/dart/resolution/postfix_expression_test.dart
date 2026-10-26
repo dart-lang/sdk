@@ -109,7 +109,6 @@ ReceiverIndexExpression
     element: SubstitutedMethodElementImpl
       baseElement: dart:core::@class::Map::@method::[]
       substitution: {K: String, V: int}
-    invokeType: int? Function(Object?)
     type: int?
   staticType: int?
 V1: IndexExpression
@@ -145,7 +144,6 @@ NullAssertionExpression
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::Map::@method::[]
         substitution: {K: String, V: int}
-      invokeType: int? Function(Object?)
       type: int?
     staticType: int?
   operator: !
@@ -767,11 +765,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment
@@ -834,11 +830,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment
@@ -899,11 +893,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment
@@ -961,11 +953,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: ++
   operation: increment

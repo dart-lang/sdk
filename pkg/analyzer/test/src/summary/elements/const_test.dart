@@ -663,7 +663,6 @@ library
                       element: SubstitutedMethodElementImpl
                         baseElement: dart:core::@class::List::@method::[]
                         substitution: {E: int}
-                      invokeType: int Function(int)
                       type: int
                     staticType: int
                 CascadeSection
@@ -680,7 +679,6 @@ library
                         element: SubstitutedMethodElementImpl
                           baseElement: dart:core::@class::List::@method::[]=
                           substitution: {E: int}
-                        invokeType: void Function(int, int)
                         acceptedType: int
                     operator: = @35
                     value: IntegerLiteral
@@ -2583,7 +2581,6 @@ library
                 element: SubstitutedMethodElementImpl
                   baseElement: dart:core::@class::List::@method::[]
                   substitution: {E: int}
-                invokeType: int Function(int)
                 type: int
               staticType: int
           inducedGetter: #F6
@@ -2696,7 +2693,6 @@ library
                 element: SubstitutedMethodElementImpl
                   baseElement: dart:core::@class::List::@method::[]
                   substitution: {E: int}
-                invokeType: int Function(int)
                 type: int?
               staticType: int?
           inducedGetter: #F6

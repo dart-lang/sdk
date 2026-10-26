@@ -301,7 +301,6 @@ ReceiverMethodInvocation
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: int}
-      invokeType: int Function(int)
       type: int
     staticType: int
   operator: .
@@ -388,7 +387,6 @@ CascadeExpression
         rightBracket: ]
         resolution: MethodIndexReadResolution
           element: <testLibrary>::@class::A::@method::[]
-          invokeType: dynamic Function(int)
           type: dynamic
         staticType: dynamic
     CascadeSection
@@ -404,7 +402,6 @@ CascadeExpression
           read: <null>
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, dynamic)
             acceptedType: dynamic
         operator: =
         value: IntegerLiteral
@@ -424,11 +421,9 @@ CascadeExpression
           rightBracket: ]
           read: MethodIndexReadResolution
             element: <testLibrary>::@class::A::@method::[]
-            invokeType: dynamic Function(int)
             type: dynamic
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, dynamic)
             acceptedType: dynamic
         operator: +=
         value: IntegerLiteral
@@ -451,11 +446,9 @@ CascadeExpression
           rightBracket: ]
           read: MethodIndexReadResolution
             element: <testLibrary>::@class::A::@method::[]
-            invokeType: dynamic Function(int)
             type: dynamic
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, dynamic)
             acceptedType: dynamic
         operator: ??=
         value: IntegerLiteral

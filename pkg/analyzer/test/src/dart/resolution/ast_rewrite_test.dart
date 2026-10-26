@@ -63,7 +63,6 @@ ImplicitCallTearOff
         element: SubstitutedMethodElementImpl
           baseElement: dart:core::@class::Map::@method::[]=
           substitution: {K: int, V: C}
-        invokeType: void Function(int, C)
         acceptedType: C
     operator: =
     value: UnqualifiedNameExpression

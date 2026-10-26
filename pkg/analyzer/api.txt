@@ -2390,10 +2390,8 @@ package:analyzer/dart/ast/ast.dart:
     typeParameters (getter: TypeParameterList?)
   MethodIndexReadResolution (class extends Object implements ValidIndexReadResolution, abstract, final, experimental):
     element (getter: MethodElement)
-    invokeType (getter: FunctionType)
   MethodIndexWriteResolution (class extends Object implements ValidIndexWriteResolution, abstract, final, experimental):
     element (getter: MethodElement)
-    invokeType (getter: FunctionType)
   MethodInvocation (class extends Object implements InvocationExpression, abstract, final):
     isCascaded (getter: bool)
     isNullAware (getter: bool)

@@ -579,11 +579,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operation: increment
   position: prefix
@@ -646,11 +644,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operation: increment
   position: prefix
@@ -711,11 +707,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operation: increment
   position: prefix
@@ -773,11 +767,9 @@ IncrementOrDecrementExpression
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operation: increment
   position: prefix

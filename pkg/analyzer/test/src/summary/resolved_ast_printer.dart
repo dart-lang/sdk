@@ -3196,7 +3196,6 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: MethodIndexReadResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
-          _writeType('invokeType', resolution.invokeType);
           _writeType('type', resolution.type);
         });
     }
@@ -3224,7 +3223,6 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writelnWithIndent('$name: MethodIndexWriteResolution');
         _sink.withIndent(() {
           _writeElement('element', resolution.element);
-          _writeType('invokeType', resolution.invokeType);
           _writeType('acceptedType', resolution.acceptedType);
         });
     }

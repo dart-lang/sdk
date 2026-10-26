@@ -56,7 +56,6 @@ ReceiverMethodInvocation
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: C}
-      invokeType: C Function(int)
       type: C
     staticType: C
   operator: .
@@ -142,7 +141,6 @@ ReceiverPropertyExtraction
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: C}
-      invokeType: C Function(int)
       type: C
     staticType: C
   operator: .

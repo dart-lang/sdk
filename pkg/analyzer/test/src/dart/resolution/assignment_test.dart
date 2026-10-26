@@ -510,13 +510,11 @@ CompoundAssignment
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: int}
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]=
         substitution: {E: int}
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: +=
   value: UnqualifiedFunctionInvocation
@@ -1687,11 +1685,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -1811,11 +1807,9 @@ CascadeSection
       rightBracket: ]
       read: MethodIndexReadResolution
         element: <testLibrary>::@class::A::@method::[]
-        invokeType: int? Function(int)
         type: int?
       write: MethodIndexWriteResolution
         element: <testLibrary>::@class::A::@method::[]=
-        invokeType: void Function(int, num)
         acceptedType: num
     operator: ??=
     value: IntegerLiteral
@@ -1920,11 +1914,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -1993,11 +1985,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: num Function(int)
       type: num
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: DoubleLiteral
@@ -2069,7 +2059,6 @@ CompoundAssignment
       recoveryElement: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2139,7 +2128,6 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: InvalidIndexWriteResolution
       recoveryElement: <null>
@@ -2415,11 +2403,9 @@ IfNullAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int? Function(int?)
       type: int?
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int?, num?)
       acceptedType: num?
   operator: ??=
   value: IntegerLiteral
@@ -2497,7 +2483,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::B::@method::[]=
-      invokeType: void Function(String, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
@@ -2585,7 +2570,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::B::@method::[]=
-      invokeType: void Function(String, int)
       acceptedType: int
   operator: =
   value: NullLiteral
@@ -2657,11 +2641,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2726,11 +2708,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2943,7 +2923,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: UnqualifiedNameExpression
@@ -3270,7 +3249,6 @@ DirectAssignment
         rightBracket: ]
         resolution: MethodIndexReadResolution
           element: <testLibrary>::@class::A::@method::[]
-          invokeType: void Function() Function(int)
           type: void Function()
         staticType: void Function()
       argumentList: ArgumentList
@@ -5091,7 +5069,6 @@ CompoundAssignment
       rightBracket: ]
       resolution: MethodIndexReadResolution
         element: <testLibrary>::@class::A::@method::[]
-        invokeType: B Function(int)
         type: B
       staticType: B
     operator: .
@@ -9253,7 +9230,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: IntegerLiteral

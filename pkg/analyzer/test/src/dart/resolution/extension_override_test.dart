@@ -779,7 +779,6 @@ ReceiverIndexExpression
   rightBracket: ]
   resolution: MethodIndexReadResolution
     element: <testLibrary>::@extension::E::@method::[]
-    invokeType: int Function(int)
     type: int?
   staticType: int?
 V1: IndexExpression
@@ -849,7 +848,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@extension::E::@method::[]=
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
