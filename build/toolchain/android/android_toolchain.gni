@@ -15,21 +15,7 @@ import("//build/toolchain/rbe.gni")
 #      Same as gcc_toolchain
 template("android_toolchain") {
   gcc_toolchain(target_name) {
-    if (use_rbe && !use_siso) {
-      compiler_args =
-          rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
-
-      # TODO: Unfortunately I see no way to get build_arch reliably.
-      if (rbe_os != host_os) {
-        compiler_args += [
-          "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
-          "--remote_wrapper=../../build/rbe/llvm.sh",
-        ]
-      }
-      assembler_prefix = ""
-      compiler_prefix = string_join(" ", compiler_args) + " "
-      link_prefix = ""
-    } else if (use_ccache) {
+    if (use_ccache) {
       assembler_prefix = "ccache "
       compiler_prefix = "ccache "
       link_prefix = "ccache "

@@ -89,21 +89,7 @@ template("_compiled_action") {
       deps += invoker.deps
     }
 
-    args = []
-
-    if (_is_dart && use_rbe && !use_siso && host_os == rbe_os &&
-        host_cpu == rbe_cpu) {
-      args += [
-                "/usr/bin/python3",
-                rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
-              ] + rewrapper_args +
-              [
-                "--exec_strategy=" + rbe_expensive_exec_strategy,
-                "--",
-              ]
-    }
-
-    args += [ rebase_path(host_executable, root_build_dir) ] + invoker.args
+    args = [ rebase_path(host_executable, root_build_dir) ] + invoker.args
   }
 }
 
@@ -144,21 +130,7 @@ template("_prebuilt_tool_action") {
       inputs += [ invoker.dfe ]
     }
 
-    args = []
-
-    if (_is_dart && use_rbe && !use_siso && host_os == rbe_os &&
-        host_cpu == rbe_cpu) {
-      args += [
-                "/usr/bin/python3",
-                rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
-              ] + rewrapper_args +
-              [
-                "--exec_strategy=" + rbe_expensive_exec_strategy,
-                "--",
-              ]
-    }
-
-    args += [ rebase_path(invoker.binary, root_build_dir) ] + vm_args
+    args = [ rebase_path(invoker.binary, root_build_dir) ] + vm_args
     if (defined(invoker.packages)) {
       args += [ "--packages=" + rebase_path(invoker.packages, root_build_dir) ]
     }

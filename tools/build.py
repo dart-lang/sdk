@@ -19,7 +19,6 @@ HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 
 usage = """\
 usage: %%prog [options] [targets]
@@ -41,17 +40,8 @@ def BuildOptions():
     other_group = parser.add_argument_group('Other Arguments')
     gn_py.AddOtherArgs(other_group)
 
-    other_group.add_argument("-j",
-                             type=int,
-                             help='Ninja -j option for RBE builds.',
-                             default=200 if sys.platform == 'win32' else 400)
-    other_group.add_argument("-l",
-                             type=int,
-                             help='Ninja -l option for RBE builds.')
-    other_group.add_argument("--no-start-rbe",
-                             help="Don't try to start rbe",
-                             default=False,
-                             action='store_true')
+    other_group.add_argument("-j", type=int, help='Ninja -j option.')
+    other_group.add_argument("-l", type=int, help='Ninja -l option.')
     other_group.add_argument(
         "--check-clean",
         help="Check that a second invocation of Ninja has nothing to do",
@@ -143,41 +133,6 @@ def LoadSisoEnv(env):
                     env.setdefault(k.strip(), v.strip())
 
 
-# Try to start RBE, but don't bail out if we can't. Instead print an error
-# message, and let the build fail with its own error messages as well.
-rbe_started = False
-bootstrap_path = None
-
-
-def StartRBE(out_dir, env):
-    global rbe_started, bootstrap_path
-    if not rbe_started:
-        rbe_dir = 'buildtools/reclient'
-        with open(os.path.join(out_dir, 'args.gn'), 'r') as fp:
-            for line in fp:
-                if 'rbe_dir' in line:
-                    words = line.split()
-                    rbe_dir = words[2][1:-1]  # rbe_dir = "/path/to/rbe"
-        bootstrap_path = os.path.join(rbe_dir, 'bootstrap')
-        bootstrap_command = [bootstrap_path]
-        process = subprocess.Popen(bootstrap_command, env=env)
-        process.wait()
-        if process.returncode != 0:
-            print('Failed to start RBE')
-            return False
-        rbe_started = True
-    return True
-
-
-def StopRBE(env):
-    global rbe_started, bootstrap_path
-    if rbe_started:
-        bootstrap_command = [bootstrap_path, '--shutdown']
-        process = subprocess.Popen(bootstrap_command, env=env)
-        process.wait()
-        rbe_started = False
-
-
 # Returns a tuple (build_config, command to run, whether rbe is used)
 def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
@@ -190,6 +145,9 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
         if os.path.exists(ninja_deps) and not os.path.exists(siso_deps):
             print('Warning: %s was previously built with Ninja (.ninja_deps '
                   'exists); Siso will perform a full rebuild.' % out_dir)
+        if options.j or options.l:
+            print('Warning: -j and -l ignored for Siso builds. Use SISO_LIMITS '
+                  'instead to limit local and remote concurrencies.')
         exe = gn_py.ExecutableName('siso')
         siso_path = os.path.join('third_party', 'siso', exe)
         command = [siso_path, 'ninja', '-C', out_dir]
@@ -206,17 +164,17 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     if os.path.exists(siso_deps):
         print('Warning: %s was previously built with Siso (.siso_deps '
               'exists); consider running gn clean %s.' % (out_dir, out_dir))
+    if UseRBE(out_dir):
+        print('Warning: rbe not supported with ninja build. Falling back '
+              'to local build.')
+
     command = ['buildtools/ninja/ninja', '-C', out_dir]
+    if options.j:
+        command += ['-j%s' % str(options.j)]
+    if options.l:
+        command += ['-l%s' % str(options.l)]
     if options.verbose:
         command += ['-v']
-    if UseRBE(out_dir):
-        if options.no_start_rbe or StartRBE(out_dir, env):
-            using_rbe = True
-            command += [('-j%s' % str(options.j))]
-            if options.l:
-                command += [('-l%s' % str(options.l))]
-        else:
-            exit(1)
     command += targets
     return (build_config, command, using_rbe)
 
@@ -402,8 +360,6 @@ def Main():
     exit_code = Build(configs, env, options)
 
     endtime = time.time()
-
-    StopRBE(env)
 
     if exit_code == 0:
         print("The build took %.3f seconds" % (endtime - starttime))

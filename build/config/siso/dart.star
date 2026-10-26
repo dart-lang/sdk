@@ -4,8 +4,6 @@
 # BSD-style license that can be found in the LICENSE file.
 """Siso configuration for remote Dart actions."""
 
-# Updates here likely require matching updates in //build/rbe/rewrapper_dart.py
-
 load("@builtin//encoding.star", "json")
 load("@builtin//lib/gn.star", "gn")
 load("@builtin//path.star", "path")
