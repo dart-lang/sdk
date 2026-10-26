@@ -434,7 +434,11 @@ class _HttpParser extends Stream<_HttpIncoming> {
     var incoming = _createIncoming(_transferLength);
     if (_requestParser) {
       incoming.method = _method.bytesToString();
-      incoming.uri = Uri.parse(_uriOrReasonPhrase.bytesToString());
+      var target = _uriOrReasonPhrase.bytesToString();
+      // An origin-form request-target is a path (RFC 9112 section 3.2.1), so
+      // "//a/b" is the path "//a/b" and not the host "a" with path "/b".
+      // Give it an explicit empty authority so `Uri.parse` keeps the path.
+      incoming.uri = Uri.parse(target.startsWith("//") ? "//$target" : target);
     } else {
       incoming.statusCode = _statusCode;
       incoming.reasonPhrase = _uriOrReasonPhrase.bytesToString();

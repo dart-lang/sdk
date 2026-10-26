@@ -559,7 +559,13 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
         host = "${_httpServer.address.host}:${_httpServer.port}";
       }
     }
-    return _requestedUri = Uri.parse("$scheme://$host$uri");
+    // Use the path rather than `uri` itself, which has an empty authority if
+    // the path starts with "//".
+    var query = uri.hasQuery ? "?${uri.query}" : "";
+    var fragment = uri.hasFragment ? "#${uri.fragment}" : "";
+    return _requestedUri = Uri.parse(
+      "$scheme://$host${uri.path}$query$fragment",
+    );
   }
 
   String get method => _incoming.method!;

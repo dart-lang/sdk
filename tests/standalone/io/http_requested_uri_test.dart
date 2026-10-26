@@ -68,6 +68,42 @@ void testAbsoluteUriInRequest() {
   });
 }
 
+/// Send an HTTP request whose path starts with "//". The first segment is part
+/// of the path and must not be parsed as an authority (RFC 9112 section 3.2.1).
+void testDoubleSlashPathInRequest() {
+  asyncStart();
+  Uri? uri;
+  Uri? requestedUri;
+  HttpServer.bind("localhost", 0).then((server) {
+    server.listen((request) {
+      uri = request.uri;
+      requestedUri = request.requestedUri;
+      request.response.close();
+    });
+
+    Socket.connect("localhost", server.port).then((socket) {
+      socket.write("GET //example.com/admin?a=b HTTP/1.1\r\n");
+      socket.write("Host: localhost\r\n");
+      socket.write("Connection: close\r\n");
+      socket.write("\r\n");
+      socket.flush().then(
+        (_) => socket.drain().then((_) {
+          Expect.equals("", uri!.host);
+          Expect.equals("//example.com/admin", uri!.path);
+          Expect.equals("a=b", uri!.query);
+          Expect.equals(
+            Uri.parse("http://localhost//example.com/admin?a=b"),
+            requestedUri,
+          );
+          socket.close();
+          server.close();
+          asyncEnd();
+        }),
+      );
+    });
+  });
+}
+
 void main() {
   test('http://localhost:%PORT', {});
   test('https://localhost:%PORT', {'x-forwarded-proto': 'https'});
@@ -75,4 +111,5 @@ void main() {
   test('http://my-host:321', {'x-forwarded-host': 'my-host:321'});
   test('http://localhost:%PORT', {'host': null});
   testAbsoluteUriInRequest();
+  testDoubleSlashPathInRequest();
 }
