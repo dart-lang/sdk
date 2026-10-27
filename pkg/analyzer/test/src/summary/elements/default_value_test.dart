@@ -1717,6 +1717,54 @@ library
 ''');
   }
 
+  test_defaultValue_functionExpression_nextDefaultValue() async {
+    var library = await buildLibrary(r'''
+void f([Object a = () {}, int b = 1]) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isComplete isOriginDeclaration isStatic f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F2 optionalPositional isOriginDeclaration a (nameOffset:15) (firstTokenOffset:8) (offset:15)
+              element: <testLibrary>::@function::f::@formalParameter::a
+              initializer: expression_0
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+            #F3 optionalPositional isOriginDeclaration b (nameOffset:30) (firstTokenOffset:26) (offset:30)
+              element: <testLibrary>::@function::f::@formalParameter::b
+              initializer: expression_1
+                IntegerLiteral
+                  literal: 1 @34
+                  staticType: int
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      formalParameters
+        #E0 optionalPositional hasDefaultValue a
+          firstFragment: #F2
+          type: Object
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+        #E1 optionalPositional hasDefaultValue b
+          firstFragment: #F3
+          type: int
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+      returnType: void
+''');
+  }
+
   test_defaultValue_genericFunction() async {
     var library = await buildLibrary(r'''
 typedef void F<T>(T v);
