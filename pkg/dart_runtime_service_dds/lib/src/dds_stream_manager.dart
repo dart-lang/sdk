@@ -34,6 +34,7 @@ final class DdsStreamManager {
 
   final DartRuntimeServiceDdsBackend backend;
 
+  static const _kEchoStream = '_Echo';
   static const _kLoggingStream = vm.EventStreams.kLogging;
   static const _kStdoutStream = vm.EventStreams.kStdout;
   static const _kStderrStream = vm.EventStreams.kStderr;
@@ -59,6 +60,14 @@ final class DdsStreamManager {
     vm.EventStreams.kHeapSnapshot,
     vm.EventStreams.kTimeline,
     vm.EventStreams.kVM,
+  };
+
+  /// Core VM service streams that cannot be targeted by [postEvent].
+  static final _coreStreams = <String>{
+    ..._ddsCoreStreams,
+    _kEchoStream,
+    vm.EventStreams.kProfiler,
+    vm.EventStreams.kService,
   };
 
   final loggingRepositories = <String, LoggingRepository>{};
@@ -142,15 +151,32 @@ final class DdsStreamManager {
   }
 
   /// Posts an event to [stream] with [eventKind] and [eventData].
+  ///
+  /// Throws a [json_rpc.RpcException] with
+  /// [vm.RPCErrorKind.kCoreStreamNotAllowed] if [stream] is a core VM service
+  /// stream, or [vm.RPCErrorKind.kCustomStreamDoesNotExist] if no clients are
+  /// currently subscribed to [stream].
   void postEvent(
     String stream,
     String eventKind,
     Map<String, Object?> eventData,
   ) {
-    if (_ddsCoreStreams.contains(stream)) {
+    if (_coreStreams.contains(stream)) {
       throw json_rpc.RpcException(
         vm.RPCErrorKind.kCoreStreamNotAllowed.code,
         vm.RPCErrorKind.kCoreStreamNotAllowed.message,
+      );
+    }
+    // Custom streams are not pre-registered via a separate RPC and do not
+    // buffer historical events for future listeners, so a custom stream only
+    // exists while at least one client is actively subscribed to it via
+    // `streamListen`. Throw `kCustomStreamDoesNotExist` when there are no
+    // active listeners so callers can tell nobody is listening instead of
+    // having the event silently dropped.
+    if (!backend.frontend.eventStreams.hasListeners(stream)) {
+      throw json_rpc.RpcException(
+        vm.RPCErrorKind.kCustomStreamDoesNotExist.code,
+        vm.RPCErrorKind.kCustomStreamDoesNotExist.message,
       );
     }
     backend.frontend.eventStreams.streamNotify(
