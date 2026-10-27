@@ -1,5 +1,5 @@
 name: dart_data_home
-version: 0.1.1
+version: 0.1.2-wip
 description: >-
   A package providing a standardized way to access a user-specific data
   directory for Dart and Flutter tooling, defaulting to OS-conventions and
