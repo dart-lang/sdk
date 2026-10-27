@@ -24,6 +24,7 @@ import "dart:_internal"
         Sort,
         SubListIterable,
         TakeWhileIterable,
+        UnmodifiableFixedLengthListMixin,
         WhereIterable,
         WhereTypeIterable,
         patch,
@@ -33,8 +34,6 @@ import "dart:collection" show ListBase;
 
 import 'dart:math' show Random;
 import 'dart:math' as math show max, min, sqrt;
-
-/// There are no parts in patch library:
 
 @patch
 class ByteData {
@@ -69,7 +68,6 @@ abstract final class _TypedListBase {
   _ByteBuffer get buffer;
   _TypedList get _typedData;
 
-  // Method(s) implementing the Collection interface.
   String join([String separator = ""]) {
     StringBuffer buffer = StringBuffer();
     buffer.writeAll(this as Iterable, separator);
@@ -81,8 +79,6 @@ abstract final class _TypedListBase {
   }
 
   bool get isNotEmpty => !isEmpty;
-
-  // Method(s) implementing the List interface.
 
   @pragma("vm:prefer-inline")
   void _setRange(int start, int end, Iterable from, [int skipCount = 0]) {
@@ -114,10 +110,8 @@ abstract final class _TypedListBase {
     return _slowSetRange(start, end, from, skipCount);
   }
 
-  // Method(s) implementing the Object interface.
   String toString() => ListBase.listToString(this as List);
 
-  // Internal utility methods.
   void _fastSetRange(int start, int count, _TypedListBase from, int skipCount);
   void _slowSetRange(int start, int end, Iterable from, int skipCount);
 
@@ -722,7 +716,6 @@ final class _ByteBuffer implements ByteBuffer {
 abstract final class _TypedList extends _TypedListBase {
   int get elementSizeInBytes;
 
-  // Default method implementing parts of the TypedData interface.
   int get offsetInBytes {
     return 0;
   }
@@ -732,8 +725,6 @@ abstract final class _TypedList extends _TypedListBase {
   }
 
   _ByteBuffer get buffer => _ByteBuffer(this);
-
-  // Internal utility methods.
 
   _TypedList get _typedData => this;
 
@@ -1192,7 +1183,6 @@ final class _Int8List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1228,7 +1218,6 @@ final class _Uint8List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1265,7 +1254,6 @@ final class _Uint8ClampedList extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1301,7 +1289,6 @@ final class _Int16List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1350,7 +1337,6 @@ final class _Uint16List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1399,7 +1385,6 @@ final class _Int32List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1434,7 +1419,6 @@ final class _Uint32List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1469,7 +1453,6 @@ final class _Int64List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1504,7 +1487,6 @@ final class _Uint64List extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1539,7 +1521,6 @@ final class _Float32List extends _TypedDoubleListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1575,7 +1556,6 @@ final class _Float64List extends _TypedDoubleListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1704,7 +1684,6 @@ final class _ExternalInt8Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1725,7 +1704,6 @@ final class _ExternalUint8Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1747,7 +1725,6 @@ final class _ExternalUint8ClampedArray extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1769,7 +1746,6 @@ final class _ExternalInt16Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1790,7 +1766,6 @@ final class _ExternalUint16Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1811,7 +1786,6 @@ final class _ExternalInt32Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1831,7 +1805,6 @@ final class _ExternalUint32Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1851,7 +1824,6 @@ final class _ExternalInt64Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1871,7 +1843,6 @@ final class _ExternalUint64Array extends _TypedIntListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1891,7 +1862,6 @@ final class _ExternalFloat32Array extends _TypedDoubleListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1912,7 +1882,6 @@ final class _ExternalFloat64Array extends _TypedDoubleListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1933,7 +1902,6 @@ final class _ExternalFloat32x4Array extends _TypedFloat32x4ListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1954,7 +1922,6 @@ final class _ExternalInt32x4Array extends _TypedInt32x4ListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -1975,7 +1942,6 @@ final class _ExternalFloat64x2Array extends _TypedFloat64x2ListBase
     throw "Unreachable";
   }
 
-  // Method(s) implementing the List interface.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
@@ -2533,8 +2499,6 @@ final class _TypedListIterator<E> implements Iterator<E> {
 
 abstract final class _TypedListView extends _TypedListBase
     implements TypedData {
-  // Method(s) implementing the TypedData interface.
-
   int get lengthInBytes {
     return length * elementSizeInBytes;
   }
@@ -2570,11 +2534,18 @@ abstract final class _TypedInt32x4ListViewBase extends _TypedListView
 abstract final class _TypedFloat64x2ListViewBase extends _TypedListView
     with FixedLengthListMixin<Float64x2> {}
 
-@pragma("vm:entry-point")
-final class _Int8ArrayView extends _TypedIntListViewBase
+abstract final class _Int8ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Int8List>, _Int8ListCommonMixin
     implements Int8List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Int8ArrayView extends _Int8ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int8ArrayView)
   @pragma("vm:prefer-inline")
@@ -2584,13 +2555,6 @@ final class _Int8ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2602,11 +2566,18 @@ final class _Int8ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Uint8ArrayView extends _TypedIntListViewBase
+abstract final class _Uint8ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Uint8List>, _Uint8ListCommonMixin
     implements Uint8List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Uint8ArrayView extends _Uint8ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8ArrayView)
   @pragma("vm:prefer-inline")
@@ -2616,13 +2587,6 @@ final class _Uint8ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2634,11 +2598,18 @@ final class _Uint8ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Uint8ClampedArrayView extends _TypedIntListViewBase
+abstract final class _Uint8ClampedArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Uint8ClampedList>, _Uint8ClampedListCommonMixin
     implements Uint8ClampedList {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Uint8ClampedArrayView extends _Uint8ClampedArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8ClampedArrayView)
   @pragma("vm:prefer-inline")
@@ -2648,13 +2619,6 @@ final class _Uint8ClampedArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2666,11 +2630,18 @@ final class _Uint8ClampedArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Int16ArrayView extends _TypedIntListViewBase
+abstract final class _Int16ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Int16List>, _Int16ListCommonMixin
     implements Int16List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Int16ArrayView extends _Int16ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int16ArrayView)
   @pragma("vm:prefer-inline")
@@ -2680,13 +2651,6 @@ final class _Int16ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2711,11 +2675,18 @@ final class _Int16ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Uint16ArrayView extends _TypedIntListViewBase
+abstract final class _Uint16ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Uint16List>, _Uint16ListCommonMixin
     implements Uint16List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Smi")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Uint16ArrayView extends _Uint16ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint16ArrayView)
   @pragma("vm:prefer-inline")
@@ -2725,13 +2696,6 @@ final class _Uint16ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2756,11 +2720,17 @@ final class _Uint16ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Int32ArrayView extends _TypedIntListViewBase
+abstract final class _Int32ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Int32List>, _Int32ListCommonMixin
     implements Int32List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Int32ArrayView extends _Int32ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32ArrayView)
   @pragma("vm:prefer-inline")
@@ -2770,12 +2740,6 @@ final class _Int32ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2787,11 +2751,17 @@ final class _Int32ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Uint32ArrayView extends _TypedIntListViewBase
+abstract final class _Uint32ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Uint32List>, _Uint32ListCommonMixin
     implements Uint32List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Uint32ArrayView extends _Uint32ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint32ArrayView)
   @pragma("vm:prefer-inline")
@@ -2801,12 +2771,6 @@ final class _Uint32ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2818,11 +2782,17 @@ final class _Uint32ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Int64ArrayView extends _TypedIntListViewBase
+abstract final class _Int64ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Int64List>, _Int64ListCommonMixin
     implements Int64List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Int64ArrayView extends _Int64ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int64ArrayView)
   @pragma("vm:prefer-inline")
@@ -2832,12 +2802,6 @@ final class _Int64ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2849,11 +2813,17 @@ final class _Int64ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Uint64ArrayView extends _TypedIntListViewBase
+abstract final class _Uint64ArrayViewBase extends _TypedIntListViewBase
     with _TypedListMixin<int, Uint64List>, _Uint64ListCommonMixin
     implements Uint64List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external int operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Uint64ArrayView extends _Uint64ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint64ArrayView)
   @pragma("vm:prefer-inline")
@@ -2863,12 +2833,6 @@ final class _Uint64ArrayView extends _TypedIntListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  external int operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, int value) {
@@ -2880,11 +2844,18 @@ final class _Uint64ArrayView extends _TypedIntListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Float32ArrayView extends _TypedDoubleListViewBase
+abstract final class _Float32ArrayViewBase extends _TypedDoubleListViewBase
     with _TypedListMixin<double, Float32List>, _Float32ListCommonMixin
     implements Float32List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Double")
+  external double operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Float32ArrayView extends _Float32ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32ArrayView)
   @pragma("vm:prefer-inline")
@@ -2894,13 +2865,6 @@ final class _Float32ArrayView extends _TypedDoubleListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", "dart:core#_Double")
-  external double operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
@@ -2912,11 +2876,18 @@ final class _Float32ArrayView extends _TypedDoubleListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Float64ArrayView extends _TypedDoubleListViewBase
+abstract final class _Float64ArrayViewBase extends _TypedDoubleListViewBase
     with _TypedListMixin<double, Float64List>, _Float64ListCommonMixin
     implements Float64List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", "dart:core#_Double")
+  external double operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Float64ArrayView extends _Float64ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64ArrayView)
   @pragma("vm:prefer-inline")
@@ -2926,13 +2897,6 @@ final class _Float64ArrayView extends _TypedDoubleListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", "dart:core#_Double")
-  external double operator [](int index);
 
   @pragma("vm:prefer-inline")
   void operator []=(int index, double value) {
@@ -2944,11 +2908,18 @@ final class _Float64ArrayView extends _TypedDoubleListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Float32x4ArrayView extends _TypedFloat32x4ListViewBase
+abstract final class _Float32x4ArrayViewBase extends _TypedFloat32x4ListViewBase
     with _TypedListMixin<Float32x4, Float32x4List>, _Float32x4ListCommonMixin
     implements Float32x4List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", _Float32x4)
+  external Float32x4 operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Float32x4ArrayView extends _Float32x4ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4ArrayView)
   @pragma("vm:prefer-inline")
@@ -2959,13 +2930,6 @@ final class _Float32x4ArrayView extends _TypedFloat32x4ListViewBase
     int length,
   );
 
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", _Float32x4)
-  external Float32x4 operator [](int index);
-
   void operator []=(int index, Float32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setFloat32x4(
@@ -2975,11 +2939,18 @@ final class _Float32x4ArrayView extends _TypedFloat32x4ListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Int32x4ArrayView extends _TypedInt32x4ListViewBase
+abstract final class _Int32x4ArrayViewBase extends _TypedInt32x4ListViewBase
     with _TypedListMixin<Int32x4, Int32x4List>, _Int32x4ListCommonMixin
     implements Int32x4List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", _Int32x4)
+  external Int32x4 operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Int32x4ArrayView extends _Int32x4ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4ArrayView)
   @pragma("vm:prefer-inline")
@@ -2990,13 +2961,6 @@ final class _Int32x4ArrayView extends _TypedInt32x4ListViewBase
     int length,
   );
 
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", _Int32x4)
-  external Int32x4 operator [](int index);
-
   void operator []=(int index, Int32x4 value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setInt32x4(
@@ -3006,11 +2970,18 @@ final class _Int32x4ArrayView extends _TypedInt32x4ListViewBase
   }
 }
 
-@pragma("vm:entry-point")
-final class _Float64x2ArrayView extends _TypedFloat64x2ListViewBase
+abstract final class _Float64x2ArrayViewBase extends _TypedFloat64x2ListViewBase
     with _TypedListMixin<Float64x2, Float64x2List>, _Float64x2ListCommonMixin
     implements Float64x2List {
-  // Constructor.
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  @pragma("vm:exact-result-type", _Float64x2)
+  external Float64x2 operator [](int index);
+}
+
+@pragma("vm:entry-point")
+final class _Float64x2ArrayView extends _Float64x2ArrayViewBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2ArrayView)
   @pragma("vm:prefer-inline")
@@ -3020,13 +2991,6 @@ final class _Float64x2ArrayView extends _TypedFloat64x2ListViewBase
     int offsetInBytes,
     int length,
   );
-
-  // Method(s) implementing the List interface.
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  @pragma("vm:idempotent")
-  @pragma("vm:exact-result-type", _Float64x2)
-  external Float64x2 operator [](int index);
 
   void operator []=(int index, Float64x2 value) {
     index = _typedDataIndexCheck(this, index, length);
@@ -3049,7 +3013,6 @@ final class _ByteDataView implements ByteData {
     int length,
   );
 
-  // Method(s) implementing the TypedData interface.
   _ByteBuffer get buffer {
     return _typedData.buffer;
   }
@@ -3062,7 +3025,6 @@ final class _ByteDataView implements ByteData {
     return 1;
   }
 
-  // Method(s) implementing the ByteData interface.
   ByteData asUnmodifiableView() => _UnmodifiableByteDataView(this);
 
   @pragma("vm:prefer-inline")
@@ -3281,46 +3243,6 @@ final class _ByteDataView implements ByteData {
     _typedData._setUint64(offsetInBytes + byteOffset, _byteSwap64(_convU64[0]));
   }
 
-  Float32x4 getFloat32x4(int byteOffset, [Endian endian = Endian.big]) {
-    // Check bounds for range [byteOffset, byteOffset + 15].
-    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
-    // TODO(johnmccutchan) : Need to resolve this for endianity.
-    return _typedData._getFloat32x4(offsetInBytes + byteOffset);
-  }
-
-  void setFloat32x4(
-    int byteOffset,
-    Float32x4 value, [
-    Endian endian = Endian.big,
-  ]) {
-    // Check bounds for range [byteOffset, byteOffset + 15].
-    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
-    // TODO(johnmccutchan) : Need to resolve this for endianity.
-    _typedData._setFloat32x4(offsetInBytes + byteOffset, value);
-  }
-
-  Float64x2 getFloat64x2(int byteOffset, [Endian endian = Endian.big]) {
-    // Check bounds for range [byteOffset, byteOffset + 15].
-    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
-    // TODO(johnmccutchan) : Need to resolve this for endianity.
-    return _typedData._getFloat64x2(offsetInBytes + byteOffset);
-  }
-
-  void setFloat64x2(
-    int byteOffset,
-    Float64x2 value, [
-    Endian endian = Endian.big,
-  ]) {
-    // Check bounds for range [byteOffset, byteOffset + 15].
-    _byteDataByteOffsetCheck(this, byteOffset + 15, length);
-    byteOffset = _byteDataByteOffsetCheck(this, byteOffset, length);
-    // TODO(johnmccutchan) : Need to resolve this for endianity.
-    _typedData._setFloat64x2(offsetInBytes + byteOffset, value);
-  }
-
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:external-name", "TypedDataView_typedData")
@@ -3361,7 +3283,6 @@ final _convU64 = Uint64List.view(_convU32.buffer);
 final _convF32 = Float32List.view(_convU32.buffer);
 final _convF64 = Float64List.view(_convU32.buffer);
 
-// Top level utility methods.
 @pragma("vm:exact-result-type", "dart:core#_Smi")
 int _toClampedUint8(int value) {
   if (value < 0) return 0;
@@ -3399,9 +3320,6 @@ int _byteDataByteOffsetCheck(ByteData indexable, int byteOffset, int length) {
   return byteOffset;
 }
 
-// In addition to explicitly checking the range, this method implicitly ensures
-// that all arguments are non-null (a no such method error gets thrown
-// otherwise).
 void _rangeCheck(int listLength, int start, int length) {
   if (length < 0) {
     throw RangeError.value(length);
@@ -3424,7 +3342,8 @@ void _offsetAlignmentCheck(int offset, int alignment) {
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableInt8ArrayView extends _Int8ArrayView {
+final class _UnmodifiableInt8ArrayView extends _Int8ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt8ArrayView)
   @pragma("vm:prefer-inline")
@@ -3443,17 +3362,14 @@ final class _UnmodifiableInt8ArrayView extends _Int8ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int8List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableUint8ArrayView extends _Uint8ArrayView {
+final class _UnmodifiableUint8ArrayView extends _Uint8ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint8ArrayView)
   @pragma("vm:prefer-inline")
@@ -3472,17 +3388,15 @@ final class _UnmodifiableUint8ArrayView extends _Uint8ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint8List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView {
+final class _UnmodifiableUint8ClampedArrayView
+    extends _Uint8ClampedArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint8ClampedArrayView)
   @pragma("vm:prefer-inline")
@@ -3501,17 +3415,14 @@ final class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint8ClampedList asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableInt16ArrayView extends _Int16ArrayView {
+final class _UnmodifiableInt16ArrayView extends _Int16ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt16ArrayView)
   @pragma("vm:prefer-inline")
@@ -3530,17 +3441,14 @@ final class _UnmodifiableInt16ArrayView extends _Int16ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int16List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableUint16ArrayView extends _Uint16ArrayView {
+final class _UnmodifiableUint16ArrayView extends _Uint16ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint16ArrayView)
   @pragma("vm:prefer-inline")
@@ -3559,17 +3467,14 @@ final class _UnmodifiableUint16ArrayView extends _Uint16ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint16List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableInt32ArrayView extends _Int32ArrayView {
+final class _UnmodifiableInt32ArrayView extends _Int32ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt32ArrayView)
   @pragma("vm:prefer-inline")
@@ -3588,17 +3493,14 @@ final class _UnmodifiableInt32ArrayView extends _Int32ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int32List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableUint32ArrayView extends _Uint32ArrayView {
+final class _UnmodifiableUint32ArrayView extends _Uint32ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint32ArrayView)
   @pragma("vm:prefer-inline")
@@ -3617,17 +3519,14 @@ final class _UnmodifiableUint32ArrayView extends _Uint32ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint32List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableInt64ArrayView extends _Int64ArrayView {
+final class _UnmodifiableInt64ArrayView extends _Int64ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt64ArrayView)
   @pragma("vm:prefer-inline")
@@ -3646,17 +3545,14 @@ final class _UnmodifiableInt64ArrayView extends _Int64ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int64List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableUint64ArrayView extends _Uint64ArrayView {
+final class _UnmodifiableUint64ArrayView extends _Uint64ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<int> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint64ArrayView)
   @pragma("vm:prefer-inline")
@@ -3675,17 +3571,14 @@ final class _UnmodifiableUint64ArrayView extends _Uint64ArrayView {
         list.length,
       );
 
-  void operator []=(int index, int value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Uint64List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableFloat32ArrayView extends _Float32ArrayView {
+final class _UnmodifiableFloat32ArrayView extends _Float32ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<double> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat32ArrayView)
   @pragma("vm:prefer-inline")
@@ -3704,17 +3597,14 @@ final class _UnmodifiableFloat32ArrayView extends _Float32ArrayView {
         list.length,
       );
 
-  void operator []=(int index, double value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Float32List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableFloat64ArrayView extends _Float64ArrayView {
+final class _UnmodifiableFloat64ArrayView extends _Float64ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<double> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat64ArrayView)
   @pragma("vm:prefer-inline")
@@ -3733,17 +3623,14 @@ final class _UnmodifiableFloat64ArrayView extends _Float64ArrayView {
         list.length,
       );
 
-  void operator []=(int index, double value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Float64List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView {
+final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<Float32x4> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat32x4ArrayView)
   @pragma("vm:prefer-inline")
@@ -3762,17 +3649,14 @@ final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView {
         list.length,
       );
 
-  void operator []=(int index, Float32x4 value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Float32x4List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView {
+final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<Int32x4> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt32x4ArrayView)
   @pragma("vm:prefer-inline")
@@ -3791,17 +3675,14 @@ final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView {
         list.length,
       );
 
-  void operator []=(int index, Int32x4 value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
   Int32x4List asUnmodifiableView() => this;
 }
 
 @pragma("vm:entry-point")
-final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView {
+final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayViewBase
+    with UnmodifiableFixedLengthListMixin<Float64x2> {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat64x2ArrayView)
   @pragma("vm:prefer-inline")
@@ -3819,10 +3700,6 @@ final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView {
         list.offsetInBytes,
         list.length,
       );
-
-  void operator []=(int index, Float64x2 value) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
 
   _ByteBuffer get buffer => _UnmodifiableByteBufferView(_typedData.buffer);
 
@@ -3886,14 +3763,6 @@ final class _UnmodifiableByteDataView extends _ByteDataView {
   }
 
   void setFloat64(int byteOffset, double value, [Endian endian = Endian.big]) {
-    throw UnsupportedError("Cannot modify an unmodifiable list");
-  }
-
-  void setFloat32x4(
-    int byteOffset,
-    Float32x4 value, [
-    Endian endian = Endian.big,
-  ]) {
     throw UnsupportedError("Cannot modify an unmodifiable list");
   }
 

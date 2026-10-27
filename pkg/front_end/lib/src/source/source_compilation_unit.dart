@@ -407,7 +407,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     _problemReporting.addProblem(
       message,
@@ -417,7 +416,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: problemOnLibrary,
     );
   }
 

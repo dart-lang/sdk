@@ -111,7 +111,6 @@ sealed class CompilationUnit {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   });
 }
 

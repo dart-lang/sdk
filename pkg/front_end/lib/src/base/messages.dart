@@ -44,7 +44,6 @@ abstract interface class ProblemReporting {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   });
 }
 
@@ -68,7 +67,6 @@ class LibraryProblemReporting(final SourceLoader _loader, final Uri _fileUri)
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     fileUri ??= _fileUri;
 
