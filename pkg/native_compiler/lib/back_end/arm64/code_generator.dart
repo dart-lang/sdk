@@ -2693,6 +2693,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
     }
   }
 
+  void _generateIntHash(
+    Register resultReg,
+    Register operandReg,
+    Register scratch1,
+    Register scratch2,
+  ) {
+    _asm.loadImmediate(scratch1, 0x2d51);
+    _asm.mul(scratch2, operandReg, scratch1);
+    _asm.umulh(resultReg, operandReg, scratch1);
+    _asm.eor(resultReg, resultReg, scratch2);
+    _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
+    _asm.ubfm(resultReg, resultReg, 63, 29);
+  }
+
   @override
   void visitUnaryIntOp(UnaryIntOp instr) {
     final operandReg = inputReg(instr, 0);
@@ -2706,12 +2720,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .hash:
         final scratch = temporaryReg(instr, 0);
         final resultReg = outputReg(instr);
-        _asm.loadImmediate(scratch, 0x2d51);
-        _asm.mul(tempReg, operandReg, scratch);
-        _asm.umulh(resultReg, operandReg, scratch);
-        _asm.eor(resultReg, resultReg, tempReg);
-        _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
-        _asm.ubfm(resultReg, resultReg, 63, 29);
+        _generateIntHash(resultReg, operandReg, scratch, tempReg);
       case .bitLength:
         final resultReg = outputReg(instr);
         // XOR with sign bit to complement bits if value is negative.
@@ -2884,6 +2893,17 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.frintp(outputFPReg(instr), operandReg);
       case .truncateToDouble:
         _asm.frintz(outputFPReg(instr), operandReg);
+      case .hash:
+        final scratch = temporaryReg(instr, 0);
+        final resultReg = outputReg(instr);
+        final hashInt = Label();
+        _asm.fcvtzs(resultReg, operandReg);
+        _asm.scvtf(fpTempReg, resultReg);
+        _asm.fcmp(operandReg, fpTempReg);
+        _asm.b(hashInt, .equal);
+        _asm.fmov(resultReg, operandReg);
+        _asm.bind(hashInt);
+        _generateIntHash(resultReg, resultReg, scratch, tempReg);
       case .sin:
         _asm.callLeafRuntime(LeafRuntimeEntry.LibcSin);
       case .cos:

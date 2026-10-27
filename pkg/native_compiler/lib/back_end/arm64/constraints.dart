@@ -675,6 +675,11 @@ final class Arm64Constraints extends Constraints {
         .truncateToDouble => const InstructionConstraints(anyFpuRegister, [
           anyFpuRegister,
         ]),
+        .hash => const InstructionConstraints(
+          anyCpuRegister,
+          [anyFpuRegister],
+          [anyCpuRegister, anyCpuRegister],
+        ),
         .sin ||
         .cos ||
         .tan ||

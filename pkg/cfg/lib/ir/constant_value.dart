@@ -212,6 +212,7 @@ class const ConstantFolding() {
       .truncateToDouble => ConstantValue.fromDouble(x.truncateToDouble()),
       .isNegative => ConstantValue.fromBool(x.isNegative),
       .isInfinite => ConstantValue.fromBool(x.isInfinite),
+      .hash => null, // hashCode is not guaranteed to be stable.
       .sin => ConstantValue.fromDouble(math.sin(x)),
       .cos => ConstantValue.fromDouble(math.cos(x)),
       .tan => ConstantValue.fromDouble(math.tan(x)),

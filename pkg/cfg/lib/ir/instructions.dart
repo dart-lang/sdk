@@ -1844,6 +1844,7 @@ enum UnaryDoubleOpcode(final String token) {
   truncateToDouble('truncateToDouble'),
   isNegative('isNegative'),
   isInfinite('isInfinite'),
+  hash('hash'),
   sin('sin'),
   cos('cos'),
   tan('tan'),
@@ -1868,7 +1869,7 @@ final class UnaryDoubleOp extends Definition with Pure, Idempotent {
 
   @override
   CType get type => switch (op) {
-    .round || .floor || .ceil || .truncate => const IntType(),
+    .round || .floor || .ceil || .truncate || .hash => const IntType(),
     .isNegative || .isInfinite => const BoolType(),
     _ => const DoubleType(),
   };
