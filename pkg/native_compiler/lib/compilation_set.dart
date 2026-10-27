@@ -115,6 +115,14 @@ class CompilationSet {
         StubCode.DynamicInvocationForwarder,
         _stubFactory.dynamicInvocationForwarderStub,
       );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCode,
+        _stubFactory.invokeDartCodeStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCodeFromBytecode,
+        _stubFactory.invokeDartCodeFromBytecodeStub,
+      );
     }
   }
 
