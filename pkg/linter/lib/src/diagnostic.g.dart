@@ -1388,6 +1388,7 @@ const LinterLintWithoutArguments eolAtEndOfFileMissing =
       name: 'eol_at_end_of_file',
       problemMessage: "Missing a newline at the end of the file.",
       correctionMessage: "Try adding a newline at the end of the file.",
+      hasPublishedDocs: true,
       uniqueName: 'eol_at_end_of_file_missing',
       expectedTypes: [],
     );
@@ -3656,6 +3657,7 @@ const LinterLintWithoutArguments unnecessaryThisAlias =
       name: 'unnecessary_this_alias',
       problemMessage: "Unnecessary 'this' alias.",
       correctionMessage: "Try removing the variable and using 'this' directly.",
+      hasPublishedDocs: true,
       uniqueName: 'unnecessary_this_alias',
       expectedTypes: [],
     );
