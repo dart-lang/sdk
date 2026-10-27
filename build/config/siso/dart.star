@@ -6,15 +6,15 @@
 
 load("@builtin//encoding.star", "json")
 load("@builtin//lib/gn.star", "gn")
-load("@builtin//path.star", "path")
 load("@builtin//runtime.star", "runtime")
 load("@builtin//struct.star", "module")
 
 def __enabled(ctx):
     # Dart actions execute host binaries (prebuilt Dart SDK, dartvm,
-    # dartaotruntime, gen_snapshot), which can only run on Linux x64 RBE
-    # workers when the host is also Linux x64 and RBE is enabled.
-    if runtime.os != "linux" or runtime.arch != "amd64":
+    # dartaotruntime, gen_snapshot), which can only run on Linux and Windows
+    # x64 RBE workers when the host is also Linux or Windows x64 and RBE is
+    # enabled.
+    if (runtime.os != "linux" and runtime.os != "windows") or runtime.arch != "amd64":
         return False
     # Even if the machine is x64, the root toolchain may produce ia32 binaries.
     if gn.args(ctx).get("host_cpu") != '"x64"':
@@ -34,7 +34,7 @@ def __load_package_map(ctx):
         pkg_uri = pkg.get("packageUri", "")
         if root_uri.startswith("../"):
             root_uri = root_uri[3:]
-        pkg_dir = path.join(root_uri, pkg_uri).rstrip("/")
+        pkg_dir = (root_uri + "/" + pkg_uri).rstrip("/")
         if name and pkg_dir:
             pkg_map[name] = pkg_dir
     return pkg_map
@@ -50,8 +50,13 @@ def __resolve_uri(uri, pkg_map):
         base = pkg_map.get(pkg_name)
         if not base:
             fail("Unknown package in URI: %s" % uri)
-        return path.join(base, relative)
+        return base + "/" + relative
     return uri
+
+# Unlike path.dir, behaves the same on Linux and Windows
+def __dirname(path):
+    index = path.rfind("/")
+    return path[0:index]
 
 def __list_imports(ctx, uri, pkg_map):
     file_path = __resolve_uri(uri, pkg_map)
@@ -64,12 +69,12 @@ def __list_imports(ctx, uri, pkg_map):
         if token.startswith("dart:"):
             return
         if ":" not in token:
-            dirname = path.dir(uri)
+            dirname = __dirname(uri)
             for _ in range(16):
                 if not token.startswith(".."):
                     break
                 token = token[3:]
-                dirname = path.dir(dirname)
+                dirname = __dirname(dirname)
             token = dirname + "/" + token
         imports[token] = True
 
@@ -125,9 +130,10 @@ def __dart_action(ctx, cmd):
     # Drop python3 gn_run_binary prefix. No python3 in the RBE container image.
     if len(cmd.args) < 3:
         fail("Not a Dart command? %s" % cmd.args)
-    binary = cmd.args[2]
-    exec_binary = binary if "/" in binary else "./" + binary
-    new_args = [exec_binary] + list(cmd.args[3:])
+    if runtime.os == "windows":
+        new_args = ["cmd.exe", "/c", ".\\" + cmd.args[2].replace("/", "\\")] + list(cmd.args[3:])
+    else:
+        new_args = ["./" + cmd.args[2]] + list(cmd.args[3:])
 
     # Scandeps for Dart sources.
     dart_entry_points = []
@@ -166,6 +172,13 @@ def __step_config(ctx, step_config):
 
     rules = step_config["rules"]
 
+    if runtime.os == "windows":
+        platform = "default_windows"
+        python_bin = "python3.exe"
+    else:
+        platform = "default"
+        python_bin = "python3"
+
     # Local-only Dart actions:
     rules.extend([
         {
@@ -202,39 +215,44 @@ def __step_config(ctx, step_config):
         rules.extend([
             {
                 "name": "dart/gen_snapshot" + prefix_label,
-                "command_prefix": "python3 ../../build/gn_run_binary.py " + subdir + "gen_snapshot",
+                "command_prefix": python_bin + " ../../build/gn_run_binary.py " + subdir + "gen_snapshot",
                 "handler": "dart_action",
                 "remote": True,
+                "platform_ref": platform,
                 "timeout": "4m",
             },
             {
                 "name": "dart/dartvm" + prefix_label,
-                "command_prefix": "python3 ../../build/gn_run_binary.py " + subdir + "dartvm",
+                "command_prefix": python_bin + " ../../build/gn_run_binary.py " + subdir + "dartvm",
                 "handler": "dart_action",
                 "remote": True,
+                "platform_ref": platform,
                 "timeout": "4m",
             },
             {
                 "name": "dart/dartaotruntime" + prefix_label,
-                "command_prefix": "python3 ../../build/gn_run_binary.py " + subdir + "dartaotruntime",
+                "command_prefix": python_bin + " ../../build/gn_run_binary.py " + subdir + "dartaotruntime",
                 "handler": "dart_action",
                 "remote": True,
+                "platform_ref": platform,
                 "timeout": "4m",
             },
             {
                 "name": "dart/bootstrap_compile_platform" + prefix_label,
-                "command_prefix": "python3 ../../build/gn_run_binary.py bootstrap_compile_platform.exe",
+                "command_prefix": python_bin + " ../../build/gn_run_binary.py bootstrap_compile_platform.exe",
                 "handler": "dart_action",
                 "remote": True,
+                "platform_ref": platform,
                 "timeout": "4m",
                 "inputs": ["sdk:files"],  # More properly this should just list what's in libraries.json.
                 "input_root_absolute_path": True,  # https://dartbug.com/63495, https://dartbug.com/63546
             },
             {
                 "name": "dart/bootstrap_gen_kernel" + prefix_label,
-                "command_prefix": "python3 ../../build/gn_run_binary.py bootstrap_gen_kernel.exe",
+                "command_prefix": python_bin + " ../../build/gn_run_binary.py bootstrap_gen_kernel.exe",
                 "handler": "dart_action",
                 "remote": True,
+                "platform_ref": platform,
                 "timeout": "4m",
                 "input_root_absolute_path": True,  # https://dartbug.com/63495, https://dartbug.com/63546
             },
@@ -242,9 +260,10 @@ def __step_config(ctx, step_config):
 
     rules.append({
         "name": "dart/prebuilt_dart",
-        "command_prefix": "python3 ../../build/gn_run_binary.py ../../tools/sdks/dart-sdk/bin/dart",
+        "command_prefix": python_bin + " ../../build/gn_run_binary.py ../../tools/sdks/dart-sdk/bin/dart",
         "handler": "dart_action",
         "remote": True,
+        "platform_ref": platform,
         "timeout": "4m",
         "inputs": ["tools/sdks/dart-sdk:files"],
     })
