@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/refactoring/move_selected_formal_pa
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:analysis_server/src/services/refactoring/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/refactoring/remove_import_prefix.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
@@ -57,9 +58,11 @@ class RefactoringProcessor {
 
   final RefactoringPerformance? _performance;
 
+  final CancellationToken? _token;
+
   final Stopwatch _timer = Stopwatch();
 
-  new(this.context, {this._performance});
+  new(this.context, {this._performance, this._token});
 
   /// Return a list containing one code action for each of the refactorings that
   /// are available in the current context.
@@ -67,6 +70,8 @@ class RefactoringProcessor {
     _timer.start();
     var refactorings = <CodeActionLiteral>[];
     for (var entry in RefactoringProcessor.generators.entries) {
+      if (_token?.isCancellationRequested ?? false) break;
+
       var generator = entry.value;
       var producer = generator(context);
 
