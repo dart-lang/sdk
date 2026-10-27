@@ -270,12 +270,10 @@ static bool PathInNamespace(char* realpath,
   }
   char procpath[PATH_MAX];
   snprintf(procpath, PATH_MAX, "/proc/self/fd/%d", fd);
+  // readlink() does not NUL-terminate, so leave space for the NUL.
   const intptr_t length =
-      TEMP_FAILURE_RETRY(readlink(procpath, realpath, realpath_size));
-  // readlink() does not NUL-terminate and truncates silently, returning up to
-  // realpath_size. Reject length == realpath_size so realpath[length] stays in
-  // bounds (cf. File::ReadLinkInto in file_linux.cc).
-  if (length < 0 || length >= realpath_size) {
+      TEMP_FAILURE_RETRY(readlink(procpath, realpath, realpath_size - 1));
+  if (length < 0) {
     FDUtils::SaveErrorAndClose(fd);
     return false;
   }
