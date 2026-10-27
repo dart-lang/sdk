@@ -66,13 +66,20 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
 
   @override
   void visitElement(Element element) {
-    for (var annotation in element.metadata.annotations) {
-      var ast = (annotation as ElementAnnotationImpl).annotationAst;
-      _detachNode(ast);
-      if (ast.expression case ConstructorInvocationImpl(:var argumentList)) {
-        _sanitizeArguments(argumentList.arguments2);
-      }
+    _detachMetadata(element.metadata);
+
+    // The type parameters of these elements are not in `children`.
+    switch (element) {
+      case InstanceElementImpl():
+        for (var typeParameter in element.typeParameters) {
+          typeParameter.accept(this);
+        }
+      case TypeAliasElementImpl():
+        for (var typeParameter in element.typeParameters) {
+          typeParameter.accept(this);
+        }
     }
+
     super.visitElement(element);
   }
 
@@ -86,6 +93,23 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   void visitFormalParameterElement(FormalParameterElement element) {
     _detachConstVariable(element);
     super.visitFormalParameterElement(element);
+  }
+
+  @override
+  void visitLibraryElement(covariant LibraryElementImpl element) {
+    // Directives are not elements, so `children` does not include them.
+    for (var fragment in element.fragments) {
+      for (var import in fragment.libraryImports) {
+        _detachMetadata(import.metadata);
+      }
+      for (var export in fragment.libraryExports) {
+        _detachMetadata(export.metadata);
+      }
+      for (var partInclude in fragment.parts) {
+        _detachMetadata(partInclude.metadata);
+      }
+    }
+    super.visitLibraryElement(element);
   }
 
   @override
@@ -117,6 +141,16 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
         }
       }
       element.resetConstantInitializer();
+    }
+  }
+
+  void _detachMetadata(Metadata metadata) {
+    for (var annotation in metadata.annotations) {
+      var ast = (annotation as ElementAnnotationImpl).annotationAst;
+      _detachNode(ast);
+      if (ast.expression case ConstructorInvocationImpl(:var argumentList)) {
+        _sanitizeArguments(argumentList.arguments2);
+      }
     }
   }
 

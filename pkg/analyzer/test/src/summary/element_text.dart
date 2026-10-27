@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show ExpressionImpl, V1Projection;
+    show AnnotationImpl, ExpressionImpl, V1Projection;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
@@ -285,7 +285,7 @@ class _Element2Writer extends _AbstractElementWriter {
             _sink.writelnWithIndent(id);
             _sink.withIndent(() {
               annotation as ElementAnnotationImpl;
-              _writeNode(annotation.annotationAst);
+              _writeAnnotationAst(annotation.annotationAst);
             });
           }
         }
@@ -416,6 +416,18 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _assertHasExactlyOneTrue(List<bool> flags) {
     expect(flags.where((flag) => flag).length, 1);
+  }
+
+  void _writeAnnotationAst(AnnotationImpl node) {
+    // Not `thisOrAncestorOfType2`, because `AnnotationImpl.parent2` assumes
+    // that an annotation always has a parent.
+    expect(
+      node.parentInPrimaryView,
+      isNull,
+      reason: 'Element annotations must be detached.',
+    );
+
+    _writeNode(node);
   }
 
   void _writeConstantInitializerExpression(String name, Expression expression) {
@@ -1306,7 +1318,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.withIndent(() {
           for (var annotation in annotations) {
             annotation as ElementAnnotationImpl;
-            _writeNode(annotation.annotationAst);
+            _writeAnnotationAst(annotation.annotationAst);
           }
         });
       }

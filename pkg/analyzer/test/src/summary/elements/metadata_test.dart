@@ -319,6 +319,267 @@ library
 ''');
   }
 
+  test_annotationArgument_functionExpression_typeParameter_ofClass() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? o);
+}
+
+class B<@A(() {}) T> {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration o (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+        #F4 class B (nameOffset:41) (firstTokenOffset:35) (offset:41)
+          element: <testLibrary>::@class::B
+          typeParameters
+            #F5 T (nameOffset:53) (firstTokenOffset:43) (offset:53)
+              element: #E0 T
+              metadata
+                Annotation
+                  atSign: @ @43
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @44
+                        element: <testLibrary>::@class::A
+                        type: A
+                      element: <testLibrary>::@class::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @45
+                      arguments2
+                        UnqualifiedNameExpression
+                          name: _notSerializableExpression @-1
+                          resolution: <null>
+                          staticType: null
+                      arguments(v1)
+                        SimpleIdentifier
+                          token: _notSerializableExpression @-1
+                          element: <null>
+                          staticType: null
+                      rightParenthesis: ) @51
+                    staticType: A
+                  name: SimpleIdentifier
+                    token: A @44
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @45
+                    arguments
+                      SimpleIdentifier
+                        token: _notSerializableExpression @-1
+                        element: <null>
+                        staticType: null
+                    rightParenthesis: ) @51
+                  element: <testLibrary>::@class::A::@constructor::new
+          constructors
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E1 requiredPositional o
+              firstFragment: #F3
+              type: Object?
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      typeParameters
+        #E0 T
+          firstFragment: #F5
+          metadata
+            Annotation
+              atSign: @ @43
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @44
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @45
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  rightParenthesis: ) @51
+                staticType: A
+              name: SimpleIdentifier
+                token: A @44
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @45
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @51
+              element: <testLibrary>::@class::A::@constructor::new
+      constructors
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+''');
+  }
+
+  test_annotationArgument_functionExpression_typeParameter_ofTypeAlias() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? o);
+}
+
+typedef F<@A(() {}) T> = void Function();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration o (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+      typeAliases
+        #F4 F (nameOffset:43) (firstTokenOffset:35) (offset:43)
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            #F5 T (nameOffset:55) (firstTokenOffset:45) (offset:55)
+              element: #E0 T
+              metadata
+                Annotation
+                  atSign: @ @45
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @46
+                        element: <testLibrary>::@class::A
+                        type: A
+                      element: <testLibrary>::@class::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @47
+                      arguments2
+                        UnqualifiedNameExpression
+                          name: _notSerializableExpression @-1
+                          resolution: <null>
+                          staticType: null
+                      arguments(v1)
+                        SimpleIdentifier
+                          token: _notSerializableExpression @-1
+                          element: <null>
+                          staticType: null
+                      rightParenthesis: ) @53
+                    staticType: A
+                  name: SimpleIdentifier
+                    token: A @46
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @47
+                    arguments
+                      SimpleIdentifier
+                        token: _notSerializableExpression @-1
+                        element: <null>
+                        staticType: null
+                    rightParenthesis: ) @53
+                  element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E1 requiredPositional o
+              firstFragment: #F3
+              type: Object?
+  typeAliases
+    isSimplyBounded F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F4
+      typeParameters
+        #E0 T
+          firstFragment: #F5
+          metadata
+            Annotation
+              atSign: @ @45
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @46
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @47
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  rightParenthesis: ) @53
+                staticType: A
+              name: SimpleIdentifier
+                token: A @46
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @47
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @53
+              element: <testLibrary>::@class::A::@constructor::new
+      aliasedType: void Function()
+''');
+  }
+
   test_annotationArgument_recordLiteral() async {
     var library = await buildLibrary(r'''
 @A((2, a: 3))
