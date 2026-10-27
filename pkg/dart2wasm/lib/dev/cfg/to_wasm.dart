@@ -25,19 +25,7 @@ final class DevCfgToWasm extends CfgToWasm {
   DevCfgToWasm(this.moduleCompiler, super.graph, super.b, {super.cfgLog});
 
   @override
-  w.ValueType translateType(CType type) => translateCType(type);
-
-  static w.ValueType translateCType(CType type) {
-    return switch (type) {
-      IntType() => w.NumType.i64,
-      DoubleType() => w.NumType.f64,
-      BoolType() => w.NumType.i32,
-      // TODO(dart2wasm): Lower String to a Dart object (Wasm struct).
-      StringType() => const w.RefType.extern(nullable: false),
-      NullType() || NeverType() => const w.RefType.none(nullable: true),
-      _ => throw UnimplementedError('Unsupported type: $type'),
-    };
-  }
+  w.ValueType translateType(CType type) => moduleCompiler.translateType(type);
 
   @override
   void convertType(w.ValueType from, w.ValueType to) {
@@ -81,37 +69,78 @@ final class DevWasmInstructionLowerer
   @override
   void visitDirectCall(DirectCall instr) {
     final target = instr.target;
-    if (target is! RegularFunction) {
-      throw UnimplementedError('Unsupported directCall target $target');
+    // TODO(dart2wasm): Support other targets and type arguments.
+    if ((target is! RegularFunction && target is! GenerativeConstructor) ||
+        instr.hasTypeArguments) {
+      throw UnimplementedError('Unsupported directCall to $target');
     }
     final member = target.member;
-    if (member is! ast.Procedure) {
-      throw UnimplementedError('Unsupported directCall target member $member');
+    final coreTypes = GlobalContext.instance.coreTypes;
+    if (target is GenerativeConstructor &&
+        member.enclosingClass == coreTypes.objectClass) {
+      // Skip calls to the constructor for Object, as this is empty
+      return;
     }
-    if (member == GlobalContext.instance.coreTypes.printProcedure) {
+    // TODO(dart2wasm): Remove once dart:core is compiled.
+    if (member == coreTypes.printProcedure) {
       final printFunction = gen.moduleCompiler.runtime.print;
-      final argLocal = gen.getLocal(instr.inputDefAt(0));
-      b.local_get(argLocal);
-      gen.convertType(argLocal.type, printFunction.type.inputs.single);
+      _pushArguments(instr, printFunction.type);
       b.call(printFunction);
       return;
     }
-
     final signature = gen.moduleCompiler.functionTypeFor(target);
+    _pushArguments(instr, signature);
+    gen.moduleCompiler.callStatic(b, memberLabel(member), signature);
+    _storeResult(instr, signature);
+  }
+
+  @override
+  void visitInterfaceCall(InterfaceCall instr) {
+    final target = instr.interfaceTarget;
+    // TODO(dart2wasm): Support getters, setters, and type arguments.
+    if (target is! RegularFunction || instr.hasTypeArguments) {
+      throw UnimplementedError('Unsupported interfaceCall to $target');
+    }
+    final signature = gen.moduleCompiler.functionTypeFor(target);
+    _pushArguments(instr, signature);
+    gen.moduleCompiler.callInstance(
+      b,
+      gen.getLocal(instr.receiver),
+      instanceMemberName(target.member),
+      signature,
+    );
+    _storeResult(instr, signature);
+  }
+
+  @override
+  void visitAllocateObject(AllocateObject instr) {
+    if (instr.hasTypeArguments) {
+      throw UnimplementedError('Unsupported allocation of ${instr.type}');
+    }
+    final cls = (instr.type.dartType as ast.InterfaceType).classNode;
+    gen.moduleCompiler.allocateObject(b, cls);
+    b.local_set(gen.getLocal(instr));
+  }
+
+  /// Pushes [instr]'s arguments for a call to [signature].
+  void _pushArguments(CallInstruction instr, w.FunctionType signature) {
+    assert(instr.inputCount == signature.inputs.length);
     for (int i = 0; i < instr.inputCount; ++i) {
       final argLocal = gen.getLocal(instr.inputDefAt(i));
       b.local_get(argLocal);
       gen.convertType(argLocal.type, signature.inputs[i]);
     }
-    gen.moduleCompiler.callStatic(b, staticLabel(member), signature);
-    if (signature.outputs.isNotEmpty) {
-      if (!instr.hasUses) {
-        b.drop();
-        return;
-      }
-      final resultLocal = gen.getLocal(instr);
-      gen.convertType(signature.outputs.single, resultLocal.type);
-      b.local_set(resultLocal);
+  }
+
+  /// Stores [instr]'s result or drops it if unused.
+  void _storeResult(CallInstruction instr, w.FunctionType signature) {
+    if (signature.outputs.isEmpty) return;
+    if (!instr.hasUses) {
+      b.drop();
+      return;
     }
+    final resultLocal = gen.getLocal(instr);
+    gen.convertType(signature.outputs.single, resultLocal.type);
+    b.local_set(resultLocal);
   }
 }

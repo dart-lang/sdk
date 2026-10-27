@@ -17,13 +17,44 @@ class DevRuntime {
     [_jsString],
     [w.NumType.i32],
   );
-  late final w.BaseFunction declareStatic = _import('declareStatic', [
+  late final w.BaseFunction defineStatic = _import('defineStatic', [
     w.NumType.i32,
     _funcRef,
   ]);
   late final w.BaseFunction lookupStatic = _import(
     'lookupStatic',
     [w.NumType.i32],
+    [_funcRef],
+  );
+  late final w.BaseFunction classId = _import(
+    'classId',
+    [_jsString],
+    [w.NumType.i32],
+  );
+  late final w.BaseFunction defineClassSupers = _import('defineClassSupers', [
+    w.NumType.i32,
+    w.NumType.i32,
+  ]);
+  late final w.BaseFunction instanceMemberId = _import(
+    'instanceMemberId',
+    [_jsString],
+    [w.NumType.i32],
+  );
+  late final w.BaseFunction startInstanceMemberDefinitions = _import(
+    'startInstanceMemberDefinitions',
+    [w.NumType.i32],
+  );
+  late final w.BaseFunction defineInstanceMember = _import(
+    'defineInstanceMember',
+    [w.NumType.i32, w.NumType.i32, _funcRef],
+  );
+  late final w.BaseFunction endInstanceMemberDefinitions = _import(
+    'endInstanceMemberDefinitions',
+    [w.NumType.i32],
+  );
+  late final w.BaseFunction findTarget = _import(
+    'findTarget',
+    [w.NumType.i32, w.NumType.i32],
     [_funcRef],
   );
 
