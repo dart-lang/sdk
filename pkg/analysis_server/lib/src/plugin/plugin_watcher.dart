@@ -9,6 +9,7 @@ import 'package:analysis_server/src/plugin/dsatur.dart';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin2/generator.dart';
+import 'package:analysis_server/src/utilities/file_paths.dart' as file_paths;
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -207,7 +208,7 @@ class PluginWatcher implements DriverWatcher {
       }
 
       var binFolder = sharedPluginFolder.getFolder('bin')..create();
-      var entrypointFile = binFolder.getFile('plugin.dart');
+      var entrypointFile = binFolder.getFile(file_paths.pluginEntrypointDart);
       var newEntrypointContent = packageGenerator.generateEntrypoint();
       // Only write the entrypoint if it is different, to support caching.
       if (!entrypointFile.exists ||
