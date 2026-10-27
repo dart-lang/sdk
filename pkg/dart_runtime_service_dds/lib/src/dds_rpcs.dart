@@ -147,18 +147,16 @@ class DdsRpcHandlers {
     return Size(size: backend.streamManager.getLogHistorySize()).toJson();
   }
 
-  /// Handles the `getPerfettoVMTimelineWithCpuSamples` RPC.
+  /// Handles the `getPerfettoVMTimelineWithCpuSamples` custom DDS RPC.
   ///
-  /// Forwards the timeline request to the VM Service with the provided time
-  /// origin and extent parameters.
+  /// Delegates to [DdsIsolateManager.getPerfettoVMTimelineWithCpuSamples] to
+  /// retrieve the VM's Perfetto timeline trace combined with CPU sample traces
+  /// from all tracked isolates.
   Future<RpcResponse> getPerfettoVMTimelineWithCpuSamples(
     json_rpc.Parameters parameters,
   ) {
-    return backend.callVmService(
-      'getPerfettoVMTimelineWithCpuSamples',
-      args: parameters.value == null
-          ? null
-          : parameters.asMap.cast<String, Object?>(),
+    return backend.isolateManager.getPerfettoVMTimelineWithCpuSamples(
+      parameters,
     );
   }
 

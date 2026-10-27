@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
@@ -147,6 +149,10 @@ final _logger = Logger('DdsIsolateManager');
 /// connected tooling.
 final class DdsIsolateManager extends IsolateManager {
   DdsIsolateManager({required this.vmServiceClient});
+
+  static const _kDefaultTimeRange = -1;
+  static const _kTimeExtentMicros = 'timeExtentMicros';
+  static const _kTimeOriginMicros = 'timeOriginMicros';
 
   /// Client connection to the target VM Service.
   final vm.VmService vmServiceClient;
@@ -379,6 +385,63 @@ final class DdsIsolateManager extends IsolateManager {
         (requireUserPermissionToResumeMask & PauseTypeMasks.pauseOnStartMask) !=
         0,
   ).toJson();
+
+  /// Handles the `getPerfettoVMTimelineWithCpuSamples` custom DDS RPC.
+  ///
+  /// Retrieves the VM's Perfetto timeline trace via
+  /// [vm.VmService.getPerfettoVMTimeline] and appends Perfetto CPU sample
+  /// trace packets collected via [vm.VmService.getPerfettoCpuSamples] from all
+  /// tracked isolates.
+  Future<RpcResponse> getPerfettoVMTimelineWithCpuSamples(
+    json_rpc.Parameters parameters,
+  ) async {
+    var timeOriginMicros = _kDefaultTimeRange;
+    var timeExtentMicros = _kDefaultTimeRange;
+    if (parameters.value != null) {
+      final timeOriginParam = parameters[_kTimeOriginMicros];
+      if (timeOriginParam.valueOr(null) != null) {
+        timeOriginMicros = timeOriginParam.asInt;
+      }
+      final timeExtentParam = parameters[_kTimeExtentMicros];
+      if (timeExtentParam.valueOr(null) != null) {
+        timeExtentMicros = timeExtentParam.asInt;
+      }
+    }
+
+    final timeline = await vmServiceClient.getPerfettoVMTimeline(
+      timeOriginMicros: timeOriginMicros,
+      timeExtentMicros: timeExtentMicros,
+    );
+
+    final combinedBytes = BytesBuilder(copy: false)
+      ..add(base64Decode(timeline.trace ?? ''));
+
+    for (final isolateId in ddsIsolates.keys.toList()) {
+      try {
+        final samplesResult = await vmServiceClient.getPerfettoCpuSamples(
+          isolateId,
+          timeOriginMicros: timeOriginMicros,
+          timeExtentMicros: timeExtentMicros,
+        );
+        if (samplesResult.samples case final String samples
+            when samples.isNotEmpty) {
+          combinedBytes.add(base64Decode(samples));
+        }
+      } on vm.RPCError catch (e, st) {
+        // Since this RPC aggregates CPU samples across all tracked isolates
+        // into the VM-wide timeline trace, skip isolates that are not yet
+        // runnable or cannot be sampled so the timeline and remaining
+        // isolates' samples are still returned.
+        _logger.fine('Skipping CPU samples for $isolateId', e, st);
+      } on vm.SentinelException catch (e, st) {
+        // Skip isolates that exited before or during `getPerfettoCpuSamples`
+        // so the timeline and remaining isolates' samples are still returned.
+        _logger.fine('Skipping CPU samples for exited $isolateId', e, st);
+      }
+    }
+    timeline.trace = base64Encode(combinedBytes.takeBytes());
+    return timeline.toJson();
+  }
 
   /// Handles the `readyToResume` custom DDS RPC.
   ///
