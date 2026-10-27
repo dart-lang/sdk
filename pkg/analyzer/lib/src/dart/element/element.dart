@@ -2864,6 +2864,30 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   @override
   List<FragmentImpl> get children => [...typeParameters, ...formalParameters];
 
+  /// The elements of [declaredFormalParameters].
+  List<FormalParameterElementImpl> get declaredFormalParameterElements {
+    return [for (var fragment in declaredFormalParameters) fragment.element];
+  }
+
+  /// The formal parameters that this fragment declares, which are the ones
+  /// that its initializers and body can reference.
+  ///
+  /// Scopes and flow analysis of this fragment use these, rather than
+  /// `element.formalParameters`. They differ when an invalid augmentation
+  /// declares a formal parameter that the introductory declaration does not:
+  /// the element hides it from its signature, but the augmentation can still
+  /// reference it.
+  List<FormalParameterFragmentImpl> get declaredFormalParameters {
+    var formalParameters = this.formalParameters;
+    if (formalParameters.none((f) => f.isOriginOtherFragmentOfEnclosing)) {
+      return formalParameters;
+    }
+
+    return formalParameters
+        .where((fragment) => !fragment.isOriginOtherFragmentOfEnclosing)
+        .toList();
+  }
+
   @override
   ExecutableElementImpl get element;
 

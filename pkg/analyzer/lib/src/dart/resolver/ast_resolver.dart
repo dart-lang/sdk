@@ -178,7 +178,6 @@ class AstResolver {
 
   void resolveConstructorDeclaration(ConstructorDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
-    var element = fragment.element;
 
     var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     for (var initializer in node.initializers) {
@@ -201,7 +200,7 @@ class AstResolver {
 
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
-      element.formalParameters,
+      fragment.declaredFormalParameterElements,
       visit: accept,
       // Offsets are ignored when doing summary linking.
       offset: 0,
@@ -251,7 +250,7 @@ class AstResolver {
     PrimaryConstructorDeclarationImpl node,
     PrimaryConstructorBody2Impl body,
   ) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
 
     void accept(AstVisitor2<Object?> visitor) {
       body.initializers.accept2(visitor);
@@ -259,7 +258,7 @@ class AstResolver {
 
     var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     for (var initializer in body.initializers) {
-      bindingVisitor.bindSubtree(node.declaredFragment!, initializer);
+      bindingVisitor.bindSubtree(fragment, initializer);
     }
 
     _prepareEnclosingDeclarations();
@@ -267,7 +266,7 @@ class AstResolver {
 
     _flowAnalysis.flowAnalysisRoot_enter(
       body,
-      element.formalParameters,
+      fragment.declaredFormalParameterElements,
       visit: accept,
       // Offsets are ignored when doing summary linking.
       offset: 0,

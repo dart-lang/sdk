@@ -16,6 +16,150 @@ main() {
 
 @reflectiveTest
 class ConstructorDeclarationResolutionTest extends PubPackageResolutionTest {
+  test_augmentation_formalParameter_missingInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  A(int x);
+//^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment A() {
+//          ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+    x;
+//  ^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+  }
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
+  token: x
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_augmentation_formalParameter_missingInAugmentation_initializer() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  final int f;
+  A(int x);
+//^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment A() : f = x;
+//          ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+//                  ^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+}
+''');
+
+    var node = result.findNode.singleConstructorFieldInitializer;
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName2: f
+  fieldName(v1): SimpleIdentifier
+    token: f
+    element: <testLibrary>::@class::A::@field::f
+    staticType: null
+  equals: =
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <null>
+    staticType: InvalidType
+  fieldElement: <testLibrary>::@class::A::@field::f
+''');
+  }
+
+  test_augmentation_formalParameter_onlyInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  A();
+//^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment A([int x = 0]) {
+//          ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+    x;
+  }
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: x
+  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+  staticType: int
+''');
+  }
+
+  test_augmentation_formalParameter_onlyInAugmentation_constInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  final int f;
+  const A();
+//      ^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment const A([int x = 0]) : f = x;
+//                ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+}
+''');
+
+    var node = result.findNode.singleConstructorFieldInitializer;
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName2: f
+  fieldName(v1): SimpleIdentifier
+    token: f
+    element: <testLibrary>::@class::A::@field::f
+    staticType: null
+  equals: =
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+    staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::f
+''');
+  }
+
   test_factory_redirect_generic_instantiated() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
