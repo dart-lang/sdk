@@ -13,8 +13,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
 import 'package:meta/meta.dart';
 import 'package:pub/pub.dart';
-import 'package:unified_analytics/src/utils.dart'
-    show areAnalyticsSuppressedIn; // Until this is exported
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'src/commands/analyze.dart';
