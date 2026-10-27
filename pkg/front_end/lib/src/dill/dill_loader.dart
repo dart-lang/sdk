@@ -227,7 +227,6 @@ class DillLoader extends Loader {
       severity,
       wasHandled: wasHandled,
       context: context,
-      problemOnLibrary: problemOnLibrary,
       involvedFiles: involvedFiles,
     );
   }
@@ -251,7 +250,6 @@ class DillLoader extends Loader {
     CfeSeverity? severity, {
     bool wasHandled = false,
     List<LocatedMessage>? context,
-    bool problemOnLibrary = false,
     List<Uri>? involvedFiles,
   }) {
     assert(

@@ -183,7 +183,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     fileUri ??= this.fileUri;
 
