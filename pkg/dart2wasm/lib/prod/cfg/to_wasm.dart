@@ -104,6 +104,7 @@ final class ProdWasmInstructionLowerer
             op != BinaryIntOpcode.rem,
       UnaryIntOp(:final op) =>
         op == UnaryIntOpcode.neg || op == UnaryIntOpcode.bitNot,
+      UnaryBoolOp() => true,
       DirectCall() => _canHandleDirectCall(instr),
       _ => false,
     };
