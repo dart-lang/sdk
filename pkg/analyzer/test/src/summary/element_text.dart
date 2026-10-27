@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show AnnotationImpl, ExpressionImpl, V1Projection;
+    show ExpressionImpl, V1Projection;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
@@ -418,11 +418,9 @@ class _Element2Writer extends _AbstractElementWriter {
     expect(flags.where((flag) => flag).length, 1);
   }
 
-  void _writeAnnotationAst(AnnotationImpl node) {
-    // Not `thisOrAncestorOfType2`, because `AnnotationImpl.parent2` assumes
-    // that an annotation always has a parent.
+  void _writeAnnotationAst(Annotation node) {
     expect(
-      node.parentInPrimaryView,
+      node.parent2,
       isNull,
       reason: 'Element annotations must be detached.',
     );

@@ -353,10 +353,6 @@ abstract final class Annotation implements AstNode {
   @V1Ast('The V2 counterpart is parent2.')
   AstNode get parent;
 
-  @experimental
-  @override
-  AstNode get parent2;
-
   /// The period before the constructor name, or `null` if this annotation isn't
   /// the invocation of a named constructor.
   @V1Ast('The V2 counterpart is expression.')
@@ -448,10 +444,6 @@ final class AnnotationImpl extends AstNodeImpl
   @override
   @V1Ast('The V2 counterpart is parent2.')
   AstNodeImpl get parent => super.parent!;
-
-  @experimental
-  @override
-  AstNodeImpl get parent2 => super.parent2!;
 
   @V1Ast('The V2 counterpart is expression.')
   @override
