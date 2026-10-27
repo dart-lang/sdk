@@ -12,20 +12,83 @@ import '../base/uri_offset.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../codes/diagnostic.dart' as diag;
 
-/// Helper class for handling augmentation of parameters.
-///
-/// It groups corresponding parameters from different fragment to allow for
-/// checking and distributing properties, such as default values, across
-/// parameters.
-class AugmentedParameters {
-  final List<_Parameter> _parameters = [];
-  final List<_PositionalParameter> _positionalParameters = [];
-  final Map<String, _NamedParameter> _namedParameters = {};
+/// Helper class for handling parameters with support for augmentation.
+abstract class Parameters {
+  factory({required bool hasAugmentations}) => hasAugmentations
+      ? new AugmentedParameters()
+      : new UnaugmentedParameters();
 
   /// Registers [formals] as the declared parameter for a fragment.
   ///
   /// [isImplementation] is `true` if the fragment is considered the
   /// implementation.
+  void registerParameters(
+    List<FormalParameterBuilder>? formals, {
+    required bool isImplementation,
+  });
+
+  void processOutlineExpressions(
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment, {
+    required bool isAbstract,
+    required bool isExternal,
+    required LibraryFeatures libraryFeatures,
+  });
+}
+
+class UnaugmentedParameters implements Parameters {
+  List<FormalParameterBuilder>? _formals;
+
+  @override
+  void processOutlineExpressions(
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment, {
+    required bool isAbstract,
+    required bool isExternal,
+    required LibraryFeatures libraryFeatures,
+  }) {
+    List<FormalParameterBuilder>? formals = _formals;
+    if (formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isOptional) {
+          if (!(isAbstract || isExternal) &&
+              formal.variable.type.isPotentiallyNonNullable &&
+              !formal.hasDeclaredDefaultValue) {
+            problemReporting.addProblem2(
+              diag.optionalNonNullableWithoutInitializerError.withArguments(
+                parameterName: formal.name,
+                parameterType: formal.variable.type,
+              ),
+              formal.uriOffset,
+            );
+            formal.variable.hasErroneousDefaultValue = true;
+          }
+        }
+      }
+    }
+  }
+
+  @override
+  void registerParameters(
+    List<FormalParameterBuilder>? formals, {
+    required bool isImplementation,
+  }) {
+    assert(isImplementation);
+    _formals = formals;
+  }
+}
+
+/// Helper class for handling augmentation of parameters.
+///
+/// It groups corresponding parameters from different fragment to allow for
+/// checking and distributing properties, such as default values, across
+/// parameters.
+class AugmentedParameters implements Parameters {
+  final List<_Parameter> _parameters = [];
+  final List<_PositionalParameter> _positionalParameters = [];
+  final Map<String, _NamedParameter> _namedParameters = {};
+
+  @override
   void registerParameters(
     List<FormalParameterBuilder>? formals, {
     required bool isImplementation,
@@ -79,6 +142,7 @@ class AugmentedParameters {
     }
   }
 
+  @override
   void processOutlineExpressions(
     ProblemReporting problemReporting,
     TypeEnvironment typeEnvironment, {

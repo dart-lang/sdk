@@ -28,10 +28,10 @@ import '../fragment/getter/declaration.dart';
 import '../fragment/method/declaration.dart';
 import '../fragment/method/encoding.dart';
 import '../fragment/setter/declaration.dart';
-import 'augmented_parameters.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'nominal_parameter_name_space.dart';
+import 'parameters.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
@@ -538,7 +538,9 @@ class BuilderFactory {
       declarationBuilder: _declarationBuilder,
     );
 
-    AugmentedParameters parameters = new AugmentedParameters();
+    Parameters parameters = new Parameters(
+      hasAugmentations: augmentations.isNotEmpty,
+    );
     SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
       name: name,
       libraryBuilder: _enclosingLibraryBuilder,
@@ -1127,7 +1129,9 @@ class BuilderFactory {
       }
     }
 
-    AugmentedParameters parameters = new AugmentedParameters();
+    Parameters parameters = new Parameters(
+      hasAugmentations: augmentations != null,
+    );
     SourceMethodBuilder methodBuilder = new SourceMethodBuilder(
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
