@@ -67,19 +67,6 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   @override
   void visitElement(Element element) {
     _detachMetadata(element.metadata);
-
-    // The type parameters of these elements are not in `children`.
-    switch (element) {
-      case InstanceElementImpl():
-        for (var typeParameter in element.typeParameters) {
-          typeParameter.accept(this);
-        }
-      case TypeAliasElementImpl():
-        for (var typeParameter in element.typeParameters) {
-          typeParameter.accept(this);
-        }
-    }
-
     super.visitElement(element);
   }
 

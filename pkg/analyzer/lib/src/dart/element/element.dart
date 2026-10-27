@@ -5229,7 +5229,7 @@ sealed class InstanceElementImpl extends ElementImpl
   @override
   @trackedIndirectly
   List<ElementImpl> get children {
-    return [...fields, ...getters, ...setters, ...methods];
+    return [...typeParameters, ...fields, ...getters, ...setters, ...methods];
   }
 
   @override
@@ -11272,6 +11272,10 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   TypeAliasElementImpl get baseElement => this;
+
+  @override
+  @trackedIndirectly
+  List<ElementImpl> get children => [...typeParameters];
 
   @override
   @trackedIncludedInId

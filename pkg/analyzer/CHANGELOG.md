@@ -20,6 +20,11 @@
   the compiler rejects were accepted, and when it was older, overrides
   that the compiler accepts were reported as
   `invalid_language_version_override_greater`.
+* `InstanceElement.children` and `TypeAliasElement.children` include the
+  type parameters, as `ExecutableElement.children` already did. So element
+  visitors, such as `GeneralizingElementVisitor2` and
+  `RecursiveElementVisitor2`, visit the type parameters of classes, enums,
+  extensions, extension types, mixins, and type aliases.
 
 ## 14.6.0
 
