@@ -1710,7 +1710,7 @@ final class VmRecognizedMethods(
     ])
       index.getProcedure(
         'dart:typed_data',
-        '_${arrayKind.elementName}ArrayView',
+        '_${arrayKind.elementName}ArrayViewBase',
         '[]',
       ): (FlowGraphBuilder builder) {
         buildArrayElementGetter(

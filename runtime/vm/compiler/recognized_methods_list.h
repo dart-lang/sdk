@@ -253,74 +253,75 @@ namespace dart {
   V(TypedDataLibrary, _Int8List, [], Int8ArrayGetIndexed, 0x23133682)          \
   V(TypedDataLibrary, _ExternalInt8Array, [], ExternalInt8ArrayGetIndexed,     \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Int8ArrayView, [], Int8ArrayViewGetIndexed, 0x23133682) \
+  V(TypedDataLibrary, _Int8ArrayViewBase, [], Int8ArrayViewGetIndexed,         \
+    0x23133682)                                                                \
   V(TypedDataLibrary, _Uint8List, [], Uint8ArrayGetIndexed, 0x23133682)        \
   V(TypedDataLibrary, _ExternalUint8Array, [], ExternalUint8ArrayGetIndexed,   \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Uint8ArrayView, [], Uint8ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Uint8ArrayViewBase, [], Uint8ArrayViewGetIndexed,       \
     0x23133682)                                                                \
   V(TypedDataLibrary, _Uint8ClampedList, [], Uint8ClampedArrayGetIndexed,      \
     0x23133682)                                                                \
   V(TypedDataLibrary, _ExternalUint8ClampedArray, [],                          \
     ExternalUint8ClampedArrayGetIndexed, 0x23133682)                           \
-  V(TypedDataLibrary, _Uint8ClampedArrayView, [],                              \
+  V(TypedDataLibrary, _Uint8ClampedArrayViewBase, [],                          \
     Uint8ClampedArrayViewGetIndexed, 0x23133682)                               \
   V(TypedDataLibrary, _Int16List, [], Int16ArrayGetIndexed, 0x23133682)        \
   V(TypedDataLibrary, _ExternalInt16Array, [], ExternalInt16ArrayGetIndexed,   \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Int16ArrayView, [], Int16ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Int16ArrayViewBase, [], Int16ArrayViewGetIndexed,       \
     0x23133682)                                                                \
   V(TypedDataLibrary, _Uint16List, [], Uint16ArrayGetIndexed, 0x23133682)      \
   V(TypedDataLibrary, _ExternalUint16Array, [], ExternalUint16ArrayGetIndexed, \
     0x23133682)                                                                \
-  V(TypedDataLibrary, _Uint16ArrayView, [], Uint16ArrayViewGetIndexed,         \
+  V(TypedDataLibrary, _Uint16ArrayViewBase, [], Uint16ArrayViewGetIndexed,     \
     0x23133682)                                                                \
   V(TypedDataLibrary, _Int32List, [], Int32ArrayGetIndexed, 0x231332c1)        \
   V(TypedDataLibrary, _ExternalInt32Array, [], ExternalInt32ArrayGetIndexed,   \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Int32ArrayView, [], Int32ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Int32ArrayViewBase, [], Int32ArrayViewGetIndexed,       \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Uint32List, [], Uint32ArrayGetIndexed, 0x231332c1)      \
   V(TypedDataLibrary, _ExternalUint32Array, [], ExternalUint32ArrayGetIndexed, \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Uint32ArrayView, [], Uint32ArrayViewGetIndexed,         \
+  V(TypedDataLibrary, _Uint32ArrayViewBase, [], Uint32ArrayViewGetIndexed,     \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Int64List, [], Int64ArrayGetIndexed, 0x231332c1)        \
   V(TypedDataLibrary, _ExternalInt64Array, [], ExternalInt64ArrayGetIndexed,   \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Int64ArrayView, [], Int64ArrayViewGetIndexed,           \
+  V(TypedDataLibrary, _Int64ArrayViewBase, [], Int64ArrayViewGetIndexed,       \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Uint64List, [], Uint64ArrayGetIndexed, 0x231332c1)      \
   V(TypedDataLibrary, _ExternalUint64Array, [], ExternalUint64ArrayGetIndexed, \
     0x231332c1)                                                                \
-  V(TypedDataLibrary, _Uint64ArrayView, [], Uint64ArrayViewGetIndexed,         \
+  V(TypedDataLibrary, _Uint64ArrayViewBase, [], Uint64ArrayViewGetIndexed,     \
     0x231332c1)                                                                \
   V(TypedDataLibrary, _Float32List, [], Float32ArrayGetIndexed, 0x07764e5c)    \
   V(TypedDataLibrary, _ExternalFloat32Array, [],                               \
     ExternalFloat32ArrayGetIndexed, 0x07764e5c)                                \
-  V(TypedDataLibrary, _Float32ArrayView, [], Float32ArrayViewGetIndexed,       \
+  V(TypedDataLibrary, _Float32ArrayViewBase, [], Float32ArrayViewGetIndexed,   \
     0x07764e5c)                                                                \
   V(TypedDataLibrary, _Float64List, [], Float64ArrayGetIndexed, 0x07764e5c)    \
   V(TypedDataLibrary, _ExternalFloat64Array, [],                               \
     ExternalFloat64ArrayGetIndexed, 0x07764e5c)                                \
-  V(TypedDataLibrary, _Float64ArrayView, [], Float64ArrayViewGetIndexed,       \
+  V(TypedDataLibrary, _Float64ArrayViewBase, [], Float64ArrayViewGetIndexed,   \
     0x07764e5c)                                                                \
   V(TypedDataLibrary, _Float32x4List, [], Float32x4ArrayGetIndexed,            \
     0xb0e90a43)                                                                \
   V(TypedDataLibrary, _ExternalFloat32x4Array, [],                             \
     ExternalFloat32x4ArrayGetIndexed, 0xb0e90a43)                              \
-  V(TypedDataLibrary, _Float32x4ArrayView, [], Float32x4ArrayViewGetIndexed,   \
-    0xb0e90a43)                                                                \
+  V(TypedDataLibrary, _Float32x4ArrayViewBase, [],                             \
+    Float32x4ArrayViewGetIndexed, 0xb0e90a43)                                  \
   V(TypedDataLibrary, _Float64x2List, [], Float64x2ArrayGetIndexed,            \
     0x5fc75359)                                                                \
   V(TypedDataLibrary, _ExternalFloat64x2Array, [],                             \
     ExternalFloat64x2ArrayGetIndexed, 0x5fc75359)                              \
-  V(TypedDataLibrary, _Float64x2ArrayView, [], Float64x2ArrayViewGetIndexed,   \
-    0x5fc75359)                                                                \
+  V(TypedDataLibrary, _Float64x2ArrayViewBase, [],                             \
+    Float64x2ArrayViewGetIndexed, 0x5fc75359)                                  \
   V(TypedDataLibrary, _Int32x4List, [], Int32x4ArrayGetIndexed, 0x4959642b)    \
   V(TypedDataLibrary, _ExternalInt32x4Array, [],                               \
     ExternalInt32x4ArrayGetIndexed, 0x4959642b)                                \
-  V(TypedDataLibrary, _Int32x4ArrayView, [], Int32x4ArrayViewGetIndexed,       \
+  V(TypedDataLibrary, _Int32x4ArrayViewBase, [], Int32x4ArrayViewGetIndexed,   \
     0x4959642b)                                                                \
   V(TypedDataLibrary, _TypedList, _getInt8, TypedList_GetInt8, 0x26d42e4c)     \
   V(TypedDataLibrary, _TypedList, _getUint8, TypedList_GetUint8, 0xf58cab06)   \
