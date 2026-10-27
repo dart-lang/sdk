@@ -90,6 +90,19 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
+  void visitExecutableElement(covariant ExecutableElementImpl element) {
+    // A formal parameter that only an augmenting fragment declares is not in
+    // `formalParameters`, so `children` does not reach it. The other formal
+    // parameters are in `children`, and `super` visits them.
+    for (var formalParameter in element.formalParametersIncludingRecovery) {
+      if (formalParameter.firstFragment.isOriginOtherFragmentOfEnclosing) {
+        formalParameter.accept(this);
+      }
+    }
+    super.visitExecutableElement(element);
+  }
+
+  @override
   void visitFormalParameterElement(FormalParameterElement element) {
     _detachConstVariable(element);
     super.visitFormalParameterElement(element);
