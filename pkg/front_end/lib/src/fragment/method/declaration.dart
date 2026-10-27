@@ -20,8 +20,8 @@ import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
-import '../../source/augmented_parameters.dart';
 import '../../source/name_scheme.dart';
+import '../../source/parameters.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
@@ -82,7 +82,7 @@ abstract class MethodDeclaration {
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required MethodEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
     required bool isImplementation,
@@ -218,7 +218,7 @@ class MethodDeclarationImpl
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required bool isImplementation,
   }) {

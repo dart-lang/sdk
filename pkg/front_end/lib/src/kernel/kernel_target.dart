@@ -47,8 +47,8 @@ import '../builder/type_builder.dart';
 import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_target.dart' show DillTarget;
 import '../fragment/constructor/declaration.dart';
-import '../source/augmented_parameters.dart';
 import '../source/name_scheme.dart';
+import '../source/parameters.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_declaration_builder.dart';
@@ -1227,7 +1227,7 @@ class KernelTarget {
       nameScheme: nameScheme,
       declarations: [declaration],
       implementation: declaration,
-      parameters: new AugmentedParameters(),
+      parameters: new Parameters(hasAugmentations: false),
       isConst: isConst,
     );
 
@@ -1345,7 +1345,7 @@ class KernelTarget {
       nameScheme: nameScheme,
       declarations: [declaration],
       implementation: declaration,
-      parameters: new AugmentedParameters(),
+      parameters: new Parameters(hasAugmentations: false),
       isConst: false,
     );
   }

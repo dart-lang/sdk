@@ -44,9 +44,9 @@ import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart';
 import '../util/helpers.dart';
-import 'augmented_parameters.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
+import 'parameters.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -294,7 +294,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         declarationBuilder: this,
       );
 
-      AugmentedParameters parameters = new AugmentedParameters();
+      Parameters parameters = new Parameters(hasAugmentations: false);
       SourceConstructorBuilder constructorBuilder =
           _synthesizedDefaultConstructorBuilder = new SourceConstructorBuilder(
             name: "",
@@ -345,7 +345,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       nameScheme: toStringNameScheme,
       declarations: [toStringDeclaration],
       implementation: toStringDeclaration,
-      parameters: new AugmentedParameters(),
+      parameters: new Parameters(hasAugmentations: false),
       isStatic: false,
       modifiers: Modifiers.empty,
       references: toStringReferences,
@@ -600,7 +600,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required bool isImplementation,
   }) {
