@@ -1,3 +1,6 @@
+## v0.2.0-wip
+ - `Workspace.id` and `LanguageServer.id` are no longer public.
+
 ## v0.1.4
  - Bundle `cupertino_icons` when running `dart run dartpad setup flutter`.
 

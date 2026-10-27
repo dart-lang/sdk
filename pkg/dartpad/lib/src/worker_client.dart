@@ -149,7 +149,7 @@ base class WorkerClient {
 /// All paths passed to methods will be resolved against [workspaceFolder].
 final class Workspace {
   final WorkerClient _client;
-  final int id;
+  final int _id;
 
   /// Folder owned by this workspace.
   ///
@@ -157,13 +157,13 @@ final class Workspace {
   /// [workspaceFolder].
   final String workspaceFolder;
 
-  Workspace._(this._client, this.id, this.workspaceFolder);
+  Workspace._(this._client, this._id, this.workspaceFolder);
 
   /// Helper to attach the workspaceId to every request.
   Future<T> _request<T>(String method, [Map<String, Object?>? params]) async {
     return await _client._peer.request<T>(method, {
       ...?params,
-      'workspaceId': id,
+      'workspaceId': _id,
     });
   }
 
@@ -330,7 +330,9 @@ final class Workspace {
   /// will have to be removed using [SandboxedIframe.close].
   Future<void> close() async {
     try {
-      await _client._peer.request<void>('workspace/close', {'workspaceId': id});
+      await _client._peer.request<void>('workspace/close', {
+        'workspaceId': _id,
+      });
     } finally {
       final watchers = _client._watchers.values
           .where((w) => w.workspace == this)
@@ -370,13 +372,13 @@ final class Workspace {
 final class LanguageServer {
   final WorkerClient _client;
   final Workspace workspace;
-  final int id;
+  final int _id;
 
   final _incomingMessages = StreamController<Object?>();
   final _outgoingMessages = StreamController<Object?>();
   late final StreamChannel<Object?> _channel;
 
-  LanguageServer._(this._client, this.workspace, this.id) {
+  LanguageServer._(this._client, this.workspace, this._id) {
     _channel = StreamChannel(_incomingMessages.stream, _outgoingMessages.sink);
 
     // Forward outgoing LSP messages to the worker tunnel
@@ -385,8 +387,8 @@ final class LanguageServer {
         return;
       }
       _client._peer.sendNotification('workspace/languageServer/message', {
-        'workspaceId': workspace.id,
-        'languageServerId': id,
+        'workspaceId': workspace._id,
+        'languageServerId': _id,
         'message': message,
       });
     });
@@ -403,8 +405,8 @@ final class LanguageServer {
   Future<void> close() async {
     try {
       await _client._peer.request<void>('workspace/languageServer/close', {
-        'workspaceId': workspace.id,
-        'languageServerId': id,
+        'workspaceId': workspace._id,
+        'languageServerId': _id,
       });
     } finally {
       _cleanup();
@@ -416,7 +418,7 @@ final class LanguageServer {
   }
 
   void _cleanup() {
-    _client._languageServers.remove(id);
+    _client._languageServers.remove(_id);
     _incomingMessages.close().ignore();
     _outgoingMessages.close().ignore();
   }
