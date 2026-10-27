@@ -814,7 +814,6 @@ class B {}
     expect(result, isA<InvalidPathResult>());
   }
 
-  @V1Ast('Tests the V1 projection.')
   test_getResolvedLibrary() async {
     var aContent = r'''
 part 'b.dart';
@@ -838,12 +837,6 @@ class B2 extends X {}
     var typeProvider = resolvedLibrary.typeProvider;
     expect(typeProvider.intType.element.name, 'int');
 
-    var libraryElement = resolvedLibrary.element;
-
-    var aClass = libraryElement.getClass('A')!;
-
-    var bClass = libraryElement.getClass('B')!;
-
     var aUnitResult = resolvedLibrary.units[0];
     expect(aUnitResult.path, a.path);
     expect(aUnitResult.uri, Uri.parse('package:test/a.dart'));
@@ -861,7 +854,28 @@ class B2 extends X {}
     expect(bUnitResult.unit.directives, hasLength(1));
     expect(bUnitResult.unit.declarations2, hasLength(2));
     expect(bUnitResult.diagnostics, isNotEmpty);
+  }
 
+  @V1Ast('Tests the V1 projection.')
+  test_getResolvedLibrary_getElementDeclaration() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+
+class A /*a*/ {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+
+class B /*b*/ {}
+class B2 extends X {}
+''');
+
+    var session = contextFor(testFile).currentSession;
+    var resolvedLibrary = await session.getResolvedLibraryValid(a);
+    var libraryElement = resolvedLibrary.element;
+
+    var aClass = libraryElement.getClass('A')!;
     var aDeclaration = resolvedLibrary.getFragmentDeclaration(
       aClass.firstFragment,
     )!;
@@ -871,6 +885,7 @@ class B2 extends X {}
     expect(aNode.length, 16);
     expect(aNode.declaredFragment!.name, 'A');
 
+    var bClass = libraryElement.getClass('B')!;
     var bDeclaration = resolvedLibrary.getFragmentDeclaration(
       bClass.firstFragment,
     )!;
