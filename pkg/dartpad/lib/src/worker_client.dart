@@ -335,7 +335,7 @@ final class Workspace {
       });
     } finally {
       final watchers = _client._watchers.values
-          .where((w) => w.workspace == this)
+          .where((w) => w._workspace == this)
           .toList();
       for (final w in watchers) {
         try {
@@ -345,7 +345,7 @@ final class Workspace {
         }
       }
       final languageServers = _client._languageServers.values
-          .where((ls) => ls.workspace == this)
+          .where((ls) => ls._workspace == this)
           .toList();
       for (final ls in languageServers) {
         try {
@@ -371,14 +371,14 @@ final class Workspace {
 /// A client for the language server running within a workspace.
 final class LanguageServer {
   final WorkerClient _client;
-  final Workspace workspace;
+  final Workspace _workspace;
   final int _id;
 
   final _incomingMessages = StreamController<Object?>();
   final _outgoingMessages = StreamController<Object?>();
   late final StreamChannel<Object?> _channel;
 
-  LanguageServer._(this._client, this.workspace, this._id) {
+  LanguageServer._(this._client, this._workspace, this._id) {
     _channel = StreamChannel(_incomingMessages.stream, _outgoingMessages.sink);
 
     // Forward outgoing LSP messages to the worker tunnel
@@ -387,7 +387,7 @@ final class LanguageServer {
         return;
       }
       _client._peer.sendNotification('workspace/languageServer/message', {
-        'workspaceId': workspace._id,
+        'workspaceId': _workspace._id,
         'languageServerId': _id,
         'message': message,
       });
@@ -405,7 +405,7 @@ final class LanguageServer {
   Future<void> close() async {
     try {
       await _client._peer.request<void>('workspace/languageServer/close', {
-        'workspaceId': workspace._id,
+        'workspaceId': _workspace._id,
         'languageServerId': _id,
       });
     } finally {
@@ -431,7 +431,7 @@ final class LanguageServer {
 /// is resolved, and [ready] will not resolve until someone subscribes to
 /// [changes].
 final class WorkspaceWatcher {
-  final Workspace workspace;
+  final Workspace _workspace;
 
   /// Folder or file to be watched.
   final String path;
@@ -439,7 +439,7 @@ final class WorkspaceWatcher {
   var _watcherId = Completer<int>();
   late final StreamController<FileChangeEvent> _controller;
 
-  WorkspaceWatcher._(this.workspace, this.path) {
+  WorkspaceWatcher._(this._workspace, this.path) {
     _controller = StreamController<FileChangeEvent>.broadcast(
       onListen: _onListen,
       onCancel: _onCancel,
@@ -471,11 +471,12 @@ final class WorkspaceWatcher {
     assert(!_watcherId.isCompleted);
     _watcherId.complete(
       Future(() async {
-        final result = await workspace._request<Map>('workspace/startWatcher', {
-          'path': path,
-        });
+        final result = await _workspace._request<Map>(
+          'workspace/startWatcher',
+          {'path': path},
+        );
         final watcherId = (result['watcherId'] as num).toInt();
-        workspace._client._watchers[watcherId] = this;
+        _workspace._client._watchers[watcherId] = this;
         return watcherId;
       }),
     );
@@ -485,18 +486,18 @@ final class WorkspaceWatcher {
     if (_controller.isClosed) return;
     _watcherId.future.then((watcherId) async {
       try {
-        await workspace._request<Map>('workspace/watcher/close', {
+        await _workspace._request<Map>('workspace/watcher/close', {
           'watcherId': watcherId,
         });
       } finally {
-        workspace._client._watchers.remove(watcherId);
+        _workspace._client._watchers.remove(watcherId);
       }
     }).ignore();
     _watcherId = Completer();
   }
 
   void _cleanup() {
-    workspace._client._watchers.removeWhere((_, w) => w == this);
+    _workspace._client._watchers.removeWhere((_, w) => w == this);
     _controller.close().ignore();
   }
 }
