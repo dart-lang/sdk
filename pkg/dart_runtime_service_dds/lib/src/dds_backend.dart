@@ -20,6 +20,7 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'dap_handler.dart';
 import 'dds_client.dart';
 import 'dds_expression_evaluator.dart';
 import 'dds_isolate_manager.dart';
@@ -87,6 +88,7 @@ class DartRuntimeServiceDdsBackend
   WebSocketChannel? _webSocketChannel;
   vm.VmService? _vmServiceClient;
   late final DdsRpcHandlers _rpcHandlers;
+  late final dapHandler = DapHandler(backend: this);
   bool _shuttingDown = false;
 
   @override

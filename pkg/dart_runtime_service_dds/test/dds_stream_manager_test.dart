@@ -183,13 +183,39 @@ void main() {
     });
 
     test(
-      'postEvent rejects core streams and broadcasts custom events',
+      'postEvent rejects core and unsubscribed streams and broadcasts custom '
+      'events',
       () async {
         final streamManager = backend.streamManager;
 
+        await ddsClient.streamListen(vm.EventStreams.kService);
+        await ddsClient.streamListen(vm.EventStreams.kProfiler);
+        for (final coreStream in <String>[
+          vm.EventStreams.kLogging,
+          vm.EventStreams.kService,
+          vm.EventStreams.kProfiler,
+          '_Echo',
+        ]) {
+          expect(
+            () => streamManager.postEvent(
+              coreStream,
+              'CustomKind',
+              <String, Object?>{},
+            ),
+            throwsA(
+              isA<json_rpc.RpcException>().having(
+                (e) => e.code,
+                'code',
+                vm.RPCErrorKind.kCoreStreamNotAllowed.code,
+              ),
+            ),
+          );
+        }
+
+        const customStream = 'CustomStream';
         expect(
           () => streamManager.postEvent(
-            vm.EventStreams.kLogging,
+            customStream,
             'CustomKind',
             <String, Object?>{},
           ),
@@ -197,23 +223,106 @@ void main() {
             isA<json_rpc.RpcException>().having(
               (e) => e.code,
               'code',
-              vm.RPCErrorKind.kCoreStreamNotAllowed.code,
+              vm.RPCErrorKind.kCustomStreamDoesNotExist.code,
             ),
           ),
         );
 
-        const customStream = 'CustomStream';
-        final eventCompleter = Completer<vm.Event>();
-        ddsClient.onEvent(customStream).listen(eventCompleter.complete);
+        final firstEventFuture = ddsClient.onEvent(customStream).first;
         await ddsClient.streamListen(customStream);
 
         streamManager.postEvent(customStream, 'CustomKind', <String, Object?>{
           'key': 'value',
         });
 
-        final received = await eventCompleter.future;
+        final received = await firstEventFuture;
         expect(received.extensionKind, 'CustomKind');
         expect(received.extensionData?.data['key'], 'value');
+
+        // Canceling the subscription should cause postEvent to throw
+        // kCustomStreamDoesNotExist when no other listeners remain.
+        await ddsClient.streamCancel(customStream);
+        expect(
+          () => streamManager.postEvent(
+            customStream,
+            'CustomKind',
+            <String, Object?>{},
+          ),
+          throwsA(
+            isA<json_rpc.RpcException>().having(
+              (e) => e.code,
+              'code',
+              vm.RPCErrorKind.kCustomStreamDoesNotExist.code,
+            ),
+          ),
+        );
+
+        // Re-subscribing should allow events to be posted again.
+        final resubscribedEventFuture = ddsClient.onEvent(customStream).first;
+        await ddsClient.streamListen(customStream);
+        streamManager.postEvent(customStream, 'CustomKind', <String, Object?>{
+          'key': 'resubscribed',
+        });
+
+        final resubscribedEvent = await resubscribedEventFuture;
+        expect(resubscribedEvent.extensionKind, 'CustomKind');
+        expect(resubscribedEvent.extensionData?.data['key'], 'resubscribed');
+        await ddsClient.streamCancel(customStream);
+
+        // Disconnecting the sole listening client should clean up its stream
+        // subscription so postEvent throws kCustomStreamDoesNotExist until a
+        // client reconnects and subscribes again.
+        final secondClient = await vmServiceConnectUri(
+          ddsService.uri.toString(),
+        );
+        addTearDown(secondClient.dispose);
+        final secondClientEventFuture = secondClient
+            .onEvent(customStream)
+            .first;
+        await secondClient.streamListen(customStream);
+        final serverClient = ddsService.clients.last;
+
+        streamManager.postEvent(customStream, 'CustomKind', <String, Object?>{
+          'key': 'secondClient',
+        });
+        final secondClientEvent = await secondClientEventFuture;
+        expect(secondClientEvent.extensionData?.data['key'], 'secondClient');
+
+        await secondClient.dispose();
+        await serverClient.done;
+
+        expect(
+          () => streamManager.postEvent(
+            customStream,
+            'CustomKind',
+            <String, Object?>{},
+          ),
+          throwsA(
+            isA<json_rpc.RpcException>().having(
+              (e) => e.code,
+              'code',
+              vm.RPCErrorKind.kCustomStreamDoesNotExist.code,
+            ),
+          ),
+        );
+
+        final reconnectedClient = await vmServiceConnectUri(
+          ddsService.uri.toString(),
+        );
+        addTearDown(reconnectedClient.dispose);
+        final reconnectedEventFuture = reconnectedClient
+            .onEvent(customStream)
+            .first;
+        await reconnectedClient.streamListen(customStream);
+        final reconnectedServerClient = ddsService.clients.last;
+
+        streamManager.postEvent(customStream, 'CustomKind', <String, Object?>{
+          'key': 'reconnected',
+        });
+        final reconnectedEvent = await reconnectedEventFuture;
+        expect(reconnectedEvent.extensionData?.data['key'], 'reconnected');
+        await reconnectedClient.dispose();
+        await reconnectedServerClient.done;
       },
     );
 

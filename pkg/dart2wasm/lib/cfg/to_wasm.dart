@@ -406,6 +406,22 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
 
   @override
   @nonVirtual
+  void visitUnaryBoolOp(UnaryBoolOp instr) {
+    final operandLocal = gen.getLocal(instr.operand);
+    final resultLocal = gen.getLocal(instr);
+
+    switch (instr.op) {
+      case UnaryBoolOpcode.not:
+        b.local_get(operandLocal);
+        gen.convertType(operandLocal.type, w.NumType.i32);
+        b.i32_eqz();
+    }
+
+    b.local_set(resultLocal);
+  }
+
+  @override
+  @nonVirtual
   void visitReturn(Return instr) {
     final returnType = gen.returnType;
 

@@ -60,6 +60,53 @@ void main() {
       );
     });
 
+    test('isSnapshotFresh rejects snapshots older than the platform dill', () {
+      final dir = Directory.systemTemp.createTempSync('exec_compiler_fresh');
+      addTearDown(() => dir.deleteSync(recursive: true));
+
+      File file(String name, String contents) =>
+          File(p.join(dir.path, name))..writeAsStringSync(contents);
+
+      final source = file('hello.dart', 'void main() {}');
+      final packageConfig = file('package_config.json', '{}');
+      final platformDill = file('vm_platform.dill', 'platform');
+      final snapshot = file('hello.dart.snapshot', 'dill');
+      final depfile = file(
+        'hello.dart.snapshot${ExecutableCompiler.depfileExtension}',
+        '${snapshot.path}: ${source.path}\n',
+      );
+      final metadata = file(
+        'hello.dart.snapshot${ExecutableCompiler.metadataExtension}',
+        jsonEncode(ExecutableCompiler.buildMetadata(enabledExperiments: [])),
+      );
+
+      final now = DateTime.now();
+      final earlier = now.subtract(const Duration(seconds: 10));
+      for (final input in [source, packageConfig, platformDill]) {
+        input.setLastModifiedSync(earlier);
+      }
+      snapshot.setLastModifiedSync(now);
+
+      bool isFresh() => ExecutableCompiler.isSnapshotFresh(
+        snapshotFile: snapshot,
+        packageConfigFile: packageConfig,
+        depfile: depfile,
+        metadataFile: metadata,
+        platformDill: platformDill,
+        enabledExperiments: [],
+      );
+
+      expect(isFresh(), isTrue);
+
+      // A rebuilt SDK keeps the same version string, but its platform dill
+      // is newer than snapshots compiled against the previous build.
+      platformDill.setLastModifiedSync(now.add(const Duration(seconds: 10)));
+      expect(isFresh(), isFalse);
+
+      platformDill.deleteSync();
+      expect(isFresh(), isFalse);
+    });
+
     test(
       'compiles executable and reuses snapshot when fresh via depfile',
       () async {

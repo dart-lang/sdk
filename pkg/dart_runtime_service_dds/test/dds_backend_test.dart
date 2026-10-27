@@ -103,6 +103,16 @@ class MockVmService {
         ).toJson();
       });
 
+      peer.registerMethod('getPerfettoVMTimeline', (
+        json_rpc.Parameters params,
+      ) {
+        return vm.PerfettoTimeline(
+          trace: base64Encode(utf8.encode('vm-timeline')),
+          timeOriginMicros: params['timeOriginMicros'].asIntOr(-1),
+          timeExtentMicros: params['timeExtentMicros'].asIntOr(-1),
+        ).toJson();
+      });
+
       peer.listen();
     });
 
@@ -210,6 +220,17 @@ void main() {
         expect(ddsProto.minor, 1);
       },
     );
+
+    test('getPerfettoVMTimelineWithCpuSamples invokes getPerfettoVMTimeline on '
+        'VM service', () async {
+      final timeline = await ddsClient!.getPerfettoVMTimelineWithCpuSamples(
+        timeOriginMicros: 1,
+        timeExtentMicros: 1000,
+      );
+      expect(timeline.timeOriginMicros, 1);
+      expect(timeline.timeExtentMicros, 1000);
+      expect(utf8.decode(base64Decode(timeline.trace!)), 'vm-timeline');
+    });
 
     test('does not start DTD when serveDevTools is false', () async {
       late DartRuntimeServiceDdsBackend backend;
