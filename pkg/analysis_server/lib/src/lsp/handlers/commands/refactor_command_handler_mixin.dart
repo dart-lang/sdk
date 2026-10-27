@@ -26,7 +26,7 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
-    int? docVersion,
+    ErrorOr<T>? Function() checkAbort,
   );
 
   Future<ErrorOr<T>> handle(
@@ -93,7 +93,7 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
         context,
         arguments,
         cancellationToken,
-        docIdentifier.version,
+        checkAbort,
       );
     });
   }
