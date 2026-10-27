@@ -7129,7 +7129,7 @@ class Code : public Object {
     return EntryPointOf(code) - entry_offset;
 #else
     auto instr = InstructionsOf(code);
-    if (instr == Instructions::null()) {
+    if (instr->IsRawNull()) {
       return code->untag()->entry_point_;
     }
     return Instructions::PayloadStart(instr);
@@ -7143,17 +7143,12 @@ class Code : public Object {
     return code->untag()->entry_point_;
 #else
     auto instr = InstructionsOf(code);
-    if (instr == Instructions::null()) {
+    // Can be accessed outside of an IsolateGroup,
+    // so Instructions::null() is not available.
+    if (instr->IsRawNull()) {
       return code->untag()->entry_point_;
     }
     return Instructions::EntryPoint(instr);
-#endif
-  }
-  static uword StubEntryPointOf(const CodePtr code) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return code->untag()->entry_point_;
-#else
-    return Instructions::EntryPoint(InstructionsOf(code));
 #endif
   }
 
@@ -7175,7 +7170,7 @@ class Code : public Object {
     return untag()->monomorphic_entry_point_;
 #else
     auto instr = instructions();
-    if (instr == Instructions::null()) {
+    if (instr->IsRawNull()) {
       return untag()->monomorphic_entry_point_;
     }
     return Instructions::MonomorphicEntryPoint(instr);
@@ -7197,17 +7192,12 @@ class Code : public Object {
     return code->untag()->instructions_length_;
 #else
     auto instr = InstructionsOf(code);
-    if (instr == Instructions::null()) {
+    // Can be accessed outside of an IsolateGroup,
+    // so Instructions::null() is not available.
+    if (instr->IsRawNull()) {
       return code->untag()->instructions_length_;
     }
     return Instructions::Size(instr);
-#endif
-  }
-  static uword StubPayloadSizeOf(const CodePtr code) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return code->untag()->instructions_length_;
-#else
-    return Instructions::Size(InstructionsOf(code));
 #endif
   }
 

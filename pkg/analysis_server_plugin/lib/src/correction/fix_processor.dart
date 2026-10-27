@@ -14,6 +14,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
@@ -22,18 +23,25 @@ Future<List<Fix>> computeFixes(
   FixPerformance? performance,
   Set<String>? skipAlreadyCalculatedIfNonNull,
   Iterable<Diagnostic>? diagnostics,
+  CancellationToken? cancellationToken,
 }) async {
-  return [
-    ...await FixProcessor(
-      context,
-      performance: performance,
-      alreadyCalculated: skipAlreadyCalculatedIfNonNull,
-    ).compute(),
-    ...await FixInFileProcessor(
-      context,
-      alreadyCalculated: skipAlreadyCalculatedIfNonNull,
-    ).compute(diagnostics: diagnostics),
-  ];
+  var fixes = await FixProcessor(
+    context,
+    performance: performance,
+    alreadyCalculated: skipAlreadyCalculatedIfNonNull,
+    cancellationToken: cancellationToken,
+  ).compute();
+  if (cancellationToken?.isCancellationRequested ?? false) {
+    return fixes;
+  }
+
+  var fixInFileFixes = await FixInFileProcessor(
+    context,
+    alreadyCalculated: skipAlreadyCalculatedIfNonNull,
+    cancellationToken: cancellationToken,
+  ).compute(diagnostics: diagnostics);
+
+  return [...fixes, ...fixInFileFixes];
 }
 
 /// A callback for recording fix request timings.
@@ -53,6 +61,8 @@ class FixProcessor {
 
   final Set<String>? alreadyCalculated;
 
+  final CancellationToken? _cancellationToken;
+
   final List<Fix> _fixes = <Fix>[];
 
   /// If passing [alreadyCalculated] for calculations where we know the output
@@ -61,7 +71,14 @@ class FixProcessor {
   /// be amended with this information.
   /// If not passing [alreadyCalculated] the calculation will always be
   /// performed.
-  new(this._fixContext, {this._performance, this.alreadyCalculated});
+  new(
+    this._fixContext, {
+    this._performance,
+    this.alreadyCalculated,
+    this._cancellationToken,
+  });
+
+  bool get _isCancelled => _cancellationToken?.isCancellationRequested ?? false;
 
   Future<List<Fix>> compute() async {
     _timer.start();
@@ -72,6 +89,10 @@ class FixProcessor {
   }
 
   Future<void> _addFromProducer(CorrectionProducer producer) async {
+    if (_isCancelled) {
+      return;
+    }
+
     var kind = producer.fixKind;
     // If this producer is not actually designed to work as an fix, ignore it.
     if (kind == null) {
@@ -154,6 +175,7 @@ class FixProcessor {
 
     if (generators != null) {
       for (var generator in generators) {
+        if (_isCancelled) return;
         var startTime = _performance != null ? _timer.elapsedMilliseconds : 0;
         var producer = generator(context: context);
         await callProducer(producer, startTime);
@@ -161,9 +183,11 @@ class FixProcessor {
     }
     if (multiGenerators != null) {
       for (var multiGenerator in multiGenerators) {
+        if (_isCancelled) return;
         var startTime = _performance != null ? _timer.elapsedMilliseconds : 0;
         var multiProducer = multiGenerator(context: context);
         var producers = await multiProducer.producers;
+        if (_isCancelled) return;
         if (_performance != null) {
           _performance.producerTimings.add((
             className: multiProducer.runtimeType.toString(),
@@ -183,6 +207,7 @@ class FixProcessor {
         diagnosticCode.type == DiagnosticType.HINT ||
         diagnosticCode.type == DiagnosticType.STATIC_WARNING) {
       for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
+        if (_isCancelled) return;
         var startTime = _performance != null ? _timer.elapsedMilliseconds : 0;
         var producer = generator(context: context);
         if (producer.fixKind == ignoreErrorAnalysisFileKind) {

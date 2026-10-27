@@ -48,13 +48,14 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
-    int? docVersion,
+    ErrorOr<void>? Function() checkAbort,
   ) async {
     // If the token we were given is not cancelable, wrap it with one that
     // is for the rest of this request as a future refactor may need to
     // cancel this request.
     var cancelableToken = cancellationToken.asCancelable();
     manager.begin(cancelableToken);
+    checkAbort = appendToken(checkAbort, cancelableToken);
 
     try {
       // ignore: unawaited_futures
@@ -66,7 +67,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
         context,
         arguments,
         cancelableToken,
-        docVersion,
+        checkAbort,
       );
     } finally {
       manager.end(cancelableToken);
@@ -84,7 +85,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
-    int? docVersion,
+    ErrorOr<void>? Function() checkAbort,
   ) async {
     var producer = generator(context);
     var builder = ChangeBuilder(
@@ -93,9 +94,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     );
     var status = await producer.compute(arguments, builder);
 
-    if (cancellationToken.isCancellationRequested) {
-      return cancelled(cancellationToken);
-    }
+    if (checkAbort() case var reason?) return reason;
 
     if (status is ComputeStatusFailure) {
       var reason = status.reason ?? 'Cannot compute the change. No details.';
@@ -129,14 +128,12 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
         UserPromptActions.cancel,
       ], cancellationToken);
 
-      if (cancellationToken.isCancellationRequested) {
-        return cancelled(cancellationToken);
-      }
-
       // Unless they choose to refactor anyway, abort.
       if (userChoice != UserPromptActions.refactorAnyway) {
         return success(null);
       }
+
+      if (checkAbort() case var reason?) return reason;
     }
 
     var edits = builder.sourceChange.edits;
@@ -144,11 +141,8 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
       return success(null);
     }
 
-    // If the file changed while we were validating and preparing the change,
-    // we should fail to avoid sending bad edits.
-    if (fileHasBeenModified(unit.path, docVersion)) {
-      return fileModifiedError;
-    }
+    // Check if we should abort due to cancellation or file modifications.
+    if (checkAbort() case var reason?) return reason;
 
     var fileEdits = <FileEditInformation>[];
     for (var edit in edits) {

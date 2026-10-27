@@ -412,14 +412,14 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : server.getVersionedDocumentIdentifier(path);
 
       ErrorOr<R>? checkAbort() {
+        if (token.isCancellationRequested) {
+          return cancelled<R>(token);
+        }
         if (fileHasBeenModified(path, docIdentifier.version)) {
           return error<R>(
             ErrorCodes.ContentModified,
             'Document was modified before operation completed',
           );
-        }
-        if (token.isCancellationRequested) {
-          return cancelled<R>(token);
         }
         return null;
       }
@@ -518,10 +518,13 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
               (_) => requireResolvedUnit(path),
             )
           : await requireResolvedUnit(path);
-      return result.mapResult((result) async {
-        // Do an initial check since we just called requireResolvedUnit.
-        if (checkAbort() case var reason?) return reason;
 
+      if (LspAnalysisServer.delayAfterResolveForTests case var delay?) {
+        await delay;
+      }
+      if (checkAbort() case var reason?) return reason;
+
+      return result.mapResult((result) async {
         // Finally, call the handler.
         return await handler(result, docIdentifier, checkAbort);
       });

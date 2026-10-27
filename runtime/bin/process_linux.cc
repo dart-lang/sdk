@@ -606,51 +606,42 @@ class ProcessStarter {
       // Don't close any fds if keeping stdio open to the detached process.
       ASSERT(mode_ == kDetachedWithStdio);
     }
-    // Fork once more to start a new session.
+    // Start a new session.
+    if (TEMP_FAILURE_RETRY(setsid()) == -1) {
+      ReportChildError();
+      return;
+    }
+
+    // Do a final fork to not be the session leader.
     pid_t pid = TEMP_FAILURE_RETRY(fork());
     if (pid < 0) {
       ReportChildError();
     } else if (pid == 0) {
-      // Start a new session.
-      if (TEMP_FAILURE_RETRY(setsid()) == -1) {
-        ReportChildError();
+      if (mode_ == kDetached) {
+        SetupDetached();
       } else {
-        // Do a final fork to not be the session leader.
-        pid = TEMP_FAILURE_RETRY(fork());
-        if (pid < 0) {
-          ReportChildError();
-        } else if (pid == 0) {
-          if (mode_ == kDetached) {
-            SetupDetached();
-          } else {
-            SetupDetachedWithStdio();
-          }
-
-          if ((working_directory_ != nullptr) &&
-              !Directory::SetCurrent(namespc_, working_directory_)) {
-            ReportChildError();
-          }
-          if (program_environment_ != nullptr) {
-            environ = program_environment_;
-          }
-
-          char realpath[PATH_MAX];
-          if (!FindPathInNamespace(realpath, PATH_MAX)) {
-            ReportChildError();
-          }
-
-          // Report the final PID and do the exec.
-          ReportPid(getpid());  // getpid cannot fail.
-          // TODO(dart:io) Test for the existence of execveat, and use it
-          // instead.
-          execvp(realpath, const_cast<char* const*>(program_arguments_));
-          ReportChildError();
-        } else {
-          // Exit the intermediate process. Avoid calling any atexit callbacks
-          // to avoid potential issues (e.g. deadlocks).
-          _exit(0);
-        }
+        SetupDetachedWithStdio();
       }
+
+      if ((working_directory_ != nullptr) &&
+          !Directory::SetCurrent(namespc_, working_directory_)) {
+        ReportChildError();
+      }
+      if (program_environment_ != nullptr) {
+        environ = program_environment_;
+      }
+
+      char realpath[PATH_MAX];
+      if (!FindPathInNamespace(realpath, PATH_MAX)) {
+        ReportChildError();
+      }
+
+      // Report the final PID and do the exec.
+      ReportPid(getpid());  // getpid cannot fail.
+      // TODO(dart:io) Test for the existence of execveat, and use it
+      // instead.
+      execvp(realpath, const_cast<char* const*>(program_arguments_));
+      ReportChildError();
     } else {
       // Exit the intermediate process. Avoid calling any atexit callbacks
       // to avoid potential issues (e.g. deadlocks).

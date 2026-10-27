@@ -94,10 +94,11 @@ class HttpAnalysisServer {
   /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
     httpServer.listen((HttpRequest request) {
-      if (WebSocketTransformer.isUpgradeRequest(request) &&
-          // For WebSockets, verify we're same origin (since the browser would
-          // not).
-          request.headers.value('origin') == request.requestedUri.origin) {
+      if (!_validateRequest(request, httpServer)) {
+        return;
+      }
+
+      if (WebSocketTransformer.isUpgradeRequest(request)) {
         _httpHandler.handleWebSocketRequest(request);
       } else if (request.method == 'GET') {
         _httpHandler.handleGetRequest(request);
@@ -109,6 +110,42 @@ class HttpAnalysisServer {
     });
   }
 
+  /// Whether [origin] is an allowed origin for requests to [httpServer].
+  bool _isAllowedOrigin(String origin, HttpServer httpServer) {
+    Uri uri;
+    try {
+      uri = Uri.parse(origin);
+    } catch (_) {
+      return false;
+    }
+
+    var host = uri.host;
+    // Loopback is always allowed.
+    if (host == 'localhost' ||
+        host == InternetAddress.loopbackIPv4.address ||
+        host == InternetAddress.loopbackIPv6.address) {
+      return true;
+    }
+
+    if (uri.port == httpServer.port &&
+        (host == httpServer.address.address ||
+            host == httpServer.address.host)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Return a 403 Forbidden error in response to a request with an invalid
+  /// `Host` or `Origin` header.
+  void _returnForbiddenRequest(HttpRequest request, String message) {
+    var response = request.response;
+    response.statusCode = HttpStatus.forbidden;
+    response.headers.contentType = ContentType.text;
+    response.write(message);
+    response.close();
+  }
+
   /// Return an error in response to an unrecognized request received by the
   /// HTTP server.
   void _returnUnknownRequest(HttpRequest request) {
@@ -117,5 +154,33 @@ class HttpAnalysisServer {
     response.headers.contentType = ContentType.text;
     response.write('Not found');
     response.close();
+  }
+
+  /// Validates the `Host` and `Origin` headers of [request] to prevent
+  /// DNS-rebinding and cross-site request forgery (CSRF) attacks.
+  ///
+  /// If the headers are invalid, a 403 Forbidden response is written to
+  /// [request] and `false` is returned.
+  bool _validateRequest(HttpRequest request, HttpServer httpServer) {
+    // Validate Host header first to prevent DNS rebinding.
+    var hostHeaders = request.headers[HttpHeaders.hostHeader];
+    if (hostHeaders == null ||
+        hostHeaders.length != 1 ||
+        !_isAllowedOrigin('http://${hostHeaders.single}', httpServer)) {
+      _returnForbiddenRequest(request, 'forbidden host');
+      return false;
+    }
+
+    // Check the Origin header for cross-origin requests.
+    var origins = [
+      ...?request.headers['Sec-WebSocket-Origin'],
+      ...?request.headers['Origin'],
+    ];
+    if (origins.any((origin) => !_isAllowedOrigin(origin, httpServer))) {
+      _returnForbiddenRequest(request, 'forbidden origin');
+      return false;
+    }
+
+    return true;
   }
 }

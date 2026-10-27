@@ -30,6 +30,16 @@ abstract base class StubFactory {
     dynamicInvocationForwarderStubGenerator(),
   );
 
+  late final Code invokeDartCodeStub = _generateCode(
+    'InvokeDartCodeStub',
+    invokeDartCodeStubGenerator(),
+  );
+
+  late final Code invokeDartCodeFromBytecodeStub = _generateCode(
+    'InvokeDartCodeFromBytecodeStub',
+    invokeDartCodeFromBytecodeStubGenerator(),
+  );
+
   StubFactory(this.consumeGeneratedCode);
 
   StubCodeGenerator allocationStubGenerator(ast.Class cls);
@@ -43,6 +53,10 @@ abstract base class StubFactory {
   StubCodeGenerator dynamicCallStubGenerator();
 
   StubCodeGenerator dynamicInvocationForwarderStubGenerator();
+
+  StubCodeGenerator invokeDartCodeStubGenerator();
+
+  StubCodeGenerator invokeDartCodeFromBytecodeStubGenerator();
 
   StubCodeGenerator subtypeTestCacheStubGenerator(int n);
 

@@ -16,6 +16,20 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
+/// Wraps a [checkAbort] function to also report cancellation of
+/// [additionalToken].
+ErrorOr<T>? Function() appendToken<T>(
+  ErrorOr<T>? Function() checkAbort,
+  CancelableToken additionalToken,
+) {
+  return () {
+    if (additionalToken.isCancellationRequested) {
+      return cancelled<T>(additionalToken);
+    }
+    return checkAbort();
+  };
+}
+
 /// A base class for the legacy refactoring commands (EXTRACT_WIDGET, etc.) that
 /// need to create [Refactoring]s from client-supplied arguments.
 abstract class AbstractRefactorCommandHandler
@@ -32,7 +46,7 @@ abstract class AbstractRefactorCommandHandler
 
   FutureOr<ErrorOr<void>> execute(
     MessageInfo message,
-    String path,
+    ResolvedUnitResult unit,
     String kind,
     int offset,
     int length,
@@ -40,7 +54,7 @@ abstract class AbstractRefactorCommandHandler
     LspClientCapabilities clientCapabilities,
     CancellationToken cancellationToken,
     ProgressReporter reporter,
-    int? docVersion,
+    ErrorOr<void>? Function() checkAbort,
   );
 
   Future<ErrorOr<Refactoring>> getRefactoring(
@@ -141,18 +155,31 @@ abstract class AbstractRefactorCommandHandler
     var length = parameters['length'] as int;
     var options = parameters['options'] as Map<String, Object?>?;
 
-    return execute(
-      message,
-      path,
-      kind,
-      offset,
-      length,
-      options,
-      clientCapabilities,
-      cancellationToken,
-      progress,
-      docVersion,
+    // Use the client's version (if any) so we detect modifications made since
+    // the client built the command, not only since this request started.
+    var textDocument = OptionalVersionedTextDocumentIdentifier(
+      uri: uriConverter.toClientUri(path),
+      version: docVersion,
     );
+
+    return withResolvedUnit(textDocument: textDocument, cancellationToken, (
+      unit,
+      _,
+      checkAbort,
+    ) async {
+      return await execute(
+        message,
+        unit,
+        kind,
+        offset,
+        length,
+        options,
+        clientCapabilities,
+        cancellationToken,
+        progress,
+        checkAbort,
+      );
+    });
   }
 
   /// Parses "legacy" arguments passed a list, rather than in a map as a single

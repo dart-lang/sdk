@@ -2537,6 +2537,44 @@ bool BreakpointLocation::EnsureIsResolved(const Function& target_function,
   return true;
 }
 
+void GroupDebugger::MakeCodeBreakpointAtUnsafeHelper(
+    Thread* thread,
+    const Object& code_or_bytecode,
+    uword start,
+    uword pc,
+    UntaggedPcDescriptors::Kind kind,
+    BreakpointLocation* loc) {
+  CodeBreakpoint* code_bpt = GetCodeBreakpoint(pc);
+  if (code_bpt == nullptr) {
+    // No code breakpoint for this code exists; create one.
+    if (code_or_bytecode.IsBytecode()) {
+      code_bpt = new CodeBreakpoint(Bytecode::Cast(code_or_bytecode), loc, pc);
+    } else {
+      code_bpt =
+          new CodeBreakpoint(Code::Cast(code_or_bytecode), loc, pc, kind);
+    }
+    if (FLAG_verbose_debug) {
+      OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px " offset %#" Px
+                   "\n",
+                   loc->token_pos().ToCString(), pc, pc - start);
+    }
+    RegisterCodeBreakpoint(code_bpt);
+  } else {
+    if (FLAG_verbose_debug) {
+      OS::PrintErr(
+          "Adding location to existing code breakpoint at pos %s pc %#" Px
+          " offset %#" Px "\n",
+          loc->token_pos().ToCString(), pc, pc - start);
+    }
+    if (!code_bpt->HasBreakpointLocation(loc)) {
+      code_bpt->AddBreakpointLocation(loc);
+    }
+  }
+  if (loc->AnyEnabled()) {
+    code_bpt->Enable();
+  }
+}
+
 void GroupDebugger::MakeCodeBreakpointAtUnsafe(Thread* thread,
                                                const Function& func,
                                                BreakpointLocation* loc) {
@@ -2546,32 +2584,24 @@ void GroupDebugger::MakeCodeBreakpointAtUnsafe(Thread* thread,
   ASSERT(loc->token_pos().IsReal());
   ASSERT((loc != nullptr) && loc->IsResolved());
   auto* zone = thread->zone();
-  auto& code = Code::Handle(zone);
-  auto& bytecode = Bytecode::Handle(zone);
-  uword start = 0;
-  uword lowest_pc_offset = kUwordMax;
-  UntaggedPcDescriptors::Kind lowest_kind = UntaggedPcDescriptors::kAnyKind;
-  // Find the safe point with the lowest compiled code address
-  // that maps to the token position of the source breakpoint.
   if (func.HasBytecode()) {
 #if defined(DART_DYNAMIC_MODULES)
-    bytecode = func.GetBytecode();
+    auto const kind = UntaggedPcDescriptors::kAnyKind;
+    const auto& bytecode = Bytecode::Handle(zone, func.GetBytecode());
     ASSERT(!bytecode.IsNull());
     if (!bytecode.HasSourcePositions()) {
       return;
     }
-    start = bytecode.PayloadStart();
+    const uword start = bytecode.PayloadStart();
     bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
       if (iter.TokenPos() == loc->token_pos_) {
         // Breakpoints are set and located using the address of the instruction
         // following the breakpoint instruction, since frames contain
         // return addresses.
-        const uword pc_offset =
-            KernelBytecode::Next(start + iter.PcOffset()) - start;
-        if (pc_offset < lowest_pc_offset) {
-          lowest_pc_offset = pc_offset;
-        }
+        const uword pc = KernelBytecode::Next(start + iter.PcOffset());
+        MakeCodeBreakpointAtUnsafeHelper(thread, bytecode, start, pc, kind,
+                                         loc);
       }
     }
 #else
@@ -2580,52 +2610,18 @@ void GroupDebugger::MakeCodeBreakpointAtUnsafe(Thread* thread,
   } else {
     ASSERT(func.HasCode());
     ASSERT(!func.HasOptimizedCode());
-    code = func.unoptimized_code();
+    auto& code = Code::Handle(zone, func.unoptimized_code());
     ASSERT(!code.IsNull());
-    start = code.PayloadStart();
+    const uword start = code.PayloadStart();
     const auto& desc = PcDescriptors::Handle(zone, code.pc_descriptors());
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
       if (iter.TokenPos() == loc->token_pos_) {
-        if (iter.PcOffset() < lowest_pc_offset) {
-          lowest_pc_offset = iter.PcOffset();
-          lowest_kind = iter.Kind();
-        }
+        const uword pc = start + iter.PcOffset();
+        auto const kind = iter.Kind();
+        MakeCodeBreakpointAtUnsafeHelper(thread, code, start, pc, kind, loc);
       }
     }
-  }
-  if (lowest_pc_offset == kUwordMax) {
-    return;
-  }
-
-  uword lowest_pc = start + lowest_pc_offset;
-  CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
-  if (code_bpt == nullptr) {
-    // No code breakpoint for this code exists; create one.
-    if (!bytecode.IsNull()) {
-      code_bpt = new CodeBreakpoint(bytecode, loc, lowest_pc);
-    } else {
-      code_bpt = new CodeBreakpoint(code, loc, lowest_pc, lowest_kind);
-    }
-    if (FLAG_verbose_debug) {
-      OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px " offset %#" Px
-                   "\n",
-                   loc->token_pos().ToCString(), lowest_pc, lowest_pc - start);
-    }
-    RegisterCodeBreakpoint(code_bpt);
-  } else {
-    if (FLAG_verbose_debug) {
-      OS::PrintErr(
-          "Adding location to existing code breakpoint at pos %s pc %#" Px
-          " offset %#" Px "\n",
-          loc->token_pos().ToCString(), lowest_pc, lowest_pc - start);
-    }
-    if (!code_bpt->HasBreakpointLocation(loc)) {
-      code_bpt->AddBreakpointLocation(loc);
-    }
-  }
-  if (loc->AnyEnabled()) {
-    code_bpt->Enable();
   }
 }
 
