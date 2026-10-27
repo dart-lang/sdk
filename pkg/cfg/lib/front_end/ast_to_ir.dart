@@ -1851,14 +1851,61 @@ class AstToIr extends ast.RecursiveVisitor {
     final targetMember = hierarchy.getDispatchTarget(
       function.member.enclosingClass!.superclass!,
       node.name,
-    );
-    final target = functionRegistry.getFunction(targetMember!, isGetter: true);
-    builder.addDirectCall(
-      target,
-      1,
-      functionRegistry.getArgumentsShape(1),
-      _staticType(node),
-    );
+    )!;
+    assert(targetMember.isInstanceMember);
+    if (targetMember is ast.Field ||
+        (targetMember is ast.Procedure && targetMember.isGetter)) {
+      final target = functionRegistry.getFunction(targetMember, isGetter: true);
+      builder.addDirectCall(
+        target,
+        1,
+        functionRegistry.getArgumentsShape(1),
+        _staticType(node),
+      );
+    } else {
+      final closureFunction = functionRegistry.getFunction(
+        targetMember,
+        isTearOff: true,
+      ) as TearOffFunction;
+      final closureLayout = _computeClosureLayout(closureFunction);
+
+      final receiver = builder.pop();
+      final closure = builder.addAllocateClosure(
+        closureFunction,
+        closureLayout,
+        _staticType(node),
+      );
+
+      if (closureLayout.hasClassTypeArgs) {
+        assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+        builder.push(closure);
+        if (classTypeParameters != null) {
+          builder.push(classTypeParameters!);
+        } else {
+          // Enclosing class doesn't have type parameters, but a superclass has.
+          builder.push(receiver);
+          builder.push(builder.addTypeParameters(.classTypeParameters, 1));
+        }
+        builder.addStoreInstanceField(
+          CField(ClosureField(closureLayout.classTypeArgsIndex)),
+        );
+      }
+
+      if (closureLayout.hasFunctionTypeArgs) {
+        assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+        builder.push(closure);
+        builder.push(functionTypeParameters!);
+        builder.addStoreInstanceField(
+          CField(ClosureField(closureLayout.functionTypeArgsIndex)),
+        );
+      }
+
+      builder.push(closure);
+      builder.push(receiver);
+      builder.addStoreInstanceField(
+        CField(ClosureField(closureLayout.firstContextIndex)),
+      );
+    }
   }
 
   @override

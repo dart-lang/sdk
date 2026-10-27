@@ -23,6 +23,7 @@ const vmSharedPragmaName = "vm:shared";
 const vmDeeplyImmutablePragmaName = "vm:deeply-immutable";
 const vmInvisiblePragmaName = "vm:invisible";
 const vmAwaiterLinkPragmaName = "vm:awaiter-link";
+const vmPreferInlinePragmaName = "vm:prefer-inline";
 
 // Pragmas recognized by dart2wasm
 const wasmEntryPointPragmaName = "wasm:entry-point";
@@ -345,6 +346,10 @@ extension MemberPragmaHelpers on Member {
   /// Returns true if this member is annotated with 'vm:invisible' pragma.
   bool isInvisible(CoreTypes coreTypes) =>
       hasPragma(vmInvisiblePragmaName, coreTypes);
+
+  /// Returns true if this member is annotated with 'vm:prefer-inline' pragma.
+  bool isPreferInline(CoreTypes coreTypes) =>
+      hasPragma(vmPreferInlinePragmaName, coreTypes);
 
   /// Returns true if this member is annotated with 'dyn-module:entry-point' pragma.
   bool isDynModuleEntryPoint(CoreTypes coreTypes) =>

@@ -77,6 +77,23 @@ class RefactoringStatus {
   /// Returns the current severity of this [RefactoringStatus].
   RefactoringProblemSeverity? get severity => _severity;
 
+  /// Returns the message of the [RefactoringProblem] with highest severity,
+  /// plus a suffix indicating the count of any additional problems.
+  ///
+  /// `null` if there are no problems.
+  String? get summarizedMessage {
+    var message = this.message;
+    if (message == null) {
+      return null;
+    }
+
+    return switch (problems.length - 1) {
+      < 1 => message,
+      1 => '$message (+ 1 other error)',
+      var otherErrorCount => '$message (+ $otherErrorCount other errors)',
+    };
+  }
+
   /// Adds an ERROR problem with the given message and location.
   void addError(String msg, [Location? location]) {
     _addProblem(

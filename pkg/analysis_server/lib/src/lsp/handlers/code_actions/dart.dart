@@ -15,7 +15,6 @@ import 'package:analysis_server/src/services/correction/refactoring_performance.
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
@@ -27,7 +26,6 @@ import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Produces [CodeActionLiteral]s from Dart source commands, fixes, assists and
@@ -384,21 +382,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           timer: timer,
         );
 
-        // Extract Local Variable
-        if (ExtractLocalRefactoring(unitResult, offset, length).isAvailable()) {
-          refactorActions.add(
-            createRefactor(
-              CodeActionKind.RefactorExtract,
-              'Extract Local Variable',
-              RefactoringKind.EXTRACT_LOCAL_VARIABLE,
-            ),
-          );
-        }
-        performanceTracker.addTiming(
-          className: 'ExtractLocalRefactoring',
-          timer: timer,
-        );
-
         // Extract Widget
         if (server.prefersLegacyRefactors &&
             ExtractWidgetRefactoring(
@@ -421,96 +404,6 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         );
       }
 
-      var timer = Stopwatch();
-      // Inlines
-      if (shouldIncludeKind(CodeActionKind.RefactorInline)) {
-        timer.start();
-        // Inline Local Variable
-        if (InlineLocalRefactoring(
-          server.searchEngine,
-          unitResult,
-          offset,
-        ).isAvailable()) {
-          refactorActions.add(
-            createRefactor(
-              CodeActionKind.RefactorInline,
-              'Inline Local Variable',
-              RefactoringKind.INLINE_LOCAL_VARIABLE,
-            ),
-          );
-        }
-        performanceTracker.addTiming(
-          className: 'InlineLocalRefactoring',
-          timer: timer,
-        );
-
-        // Inline Method
-        if (InlineMethodRefactoring(
-          server.searchEngine,
-          unitResult,
-          offset,
-        ).isAvailable()) {
-          refactorActions.add(
-            createRefactor(
-              CodeActionKind.RefactorInline,
-              'Inline Method',
-              RefactoringKind.INLINE_METHOD,
-            ),
-          );
-        }
-        performanceTracker.addTiming(
-          className: 'InlineMethodRefactoring',
-          timer: timer,
-        );
-      }
-
-      // Converts/Rewrites
-      if (shouldIncludeKind(CodeActionKind.RefactorRewrite)) {
-        timer.restart();
-
-        var node = unitResult.unit.nodeCovering(offset: offset);
-        var element = node?.getElement();
-
-        // Getter to Method
-        if (element is GetterElement &&
-            ConvertGetterToMethodRefactoring(
-              server.refactoringWorkspace,
-              unitResult,
-              element,
-            ).isAvailable()) {
-          refactorActions.add(
-            createRefactor(
-              CodeActionKind.RefactorRewrite,
-              'Convert Getter to Method',
-              RefactoringKind.CONVERT_GETTER_TO_METHOD,
-            ),
-          );
-        }
-        performanceTracker.addTiming(
-          className: 'ConvertGetterToMethodRefactoring',
-          timer: timer,
-        );
-
-        // Method to Getter
-        if (element is ExecutableElement &&
-            ConvertMethodToGetterRefactoring(
-              server.refactoringWorkspace,
-              unitResult,
-              element,
-            ).isAvailable()) {
-          refactorActions.add(
-            createRefactor(
-              CodeActionKind.RefactorRewrite,
-              'Convert Method to Getter',
-              RefactoringKind.CONVERT_METHOD_TO_GETTER,
-            ),
-          );
-        }
-        performanceTracker.addTiming(
-          className: 'ConvertMethodToGetterRefactoring',
-          timer: timer,
-        );
-      }
       if (performance != null) {
         server.recentPerformance.getRefactorings.add(
           GetRefactoringsPerformance(

@@ -14,9 +14,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
 
 /// A base class for the legacy refactoring commands (EXTRACT_WIDGET, etc.) that
 /// need to create [Refactoring]s from client-supplied arguments.
@@ -76,24 +74,6 @@ abstract class AbstractRefactorCommandHandler
         refactor.extractAll = false;
         return success(refactor);
 
-      case RefactoringKind.EXTRACT_LOCAL_VARIABLE:
-        var refactor = ExtractLocalRefactoring(result, offset, length);
-
-        var preferredName = options != null ? options['name'] as String : null;
-        // checkInitialConditions will populate names with suggestions.
-        if (preferredName == null) {
-          await refactor.checkInitialConditions();
-          if (refactor.names.isNotEmpty) {
-            preferredName = refactor.names.first;
-          }
-        }
-        refactor.name = preferredName ?? 'newVariable';
-
-        // Defaults to true, but may be surprising if users didn't have an option
-        // to opt in.
-        refactor.extractAll = false;
-        return success(refactor);
-
       case RefactoringKind.EXTRACT_WIDGET:
         var refactor = ExtractWidgetRefactoring(
           server.searchEngine,
@@ -111,54 +91,6 @@ abstract class AbstractRefactorCommandHandler
             ? options['name'] as String
             : 'NewWidget';
         return success(refactor);
-
-      case RefactoringKind.INLINE_LOCAL_VARIABLE:
-        var refactor = InlineLocalRefactoring(
-          server.searchEngine,
-          result,
-          offset,
-        );
-        return success(refactor);
-
-      case RefactoringKind.INLINE_METHOD:
-        var refactor = InlineMethodRefactoring(
-          server.searchEngine,
-          result,
-          offset,
-        );
-        return success(refactor);
-
-      case RefactoringKind.CONVERT_GETTER_TO_METHOD:
-        var node = result.unit.nodeCovering(offset: offset);
-        var element = node?.getElement();
-        if (element is GetterElement) {
-          var refactor = ConvertGetterToMethodRefactoring(
-            server.refactoringWorkspace,
-            result,
-            element,
-          );
-          return success(refactor);
-        }
-        return error(
-          ServerErrorCodes.invalidCommandArguments,
-          'Location supplied to $commandName $kind is no longer valid',
-        );
-
-      case RefactoringKind.CONVERT_METHOD_TO_GETTER:
-        var node = result.unit.nodeCovering(offset: offset);
-        var element = node?.getElement();
-        if (element is ExecutableElement) {
-          var refactor = ConvertMethodToGetterRefactoring(
-            server.refactoringWorkspace,
-            result,
-            element,
-          );
-          return success(refactor);
-        }
-        return error(
-          ServerErrorCodes.invalidCommandArguments,
-          'Location supplied to $commandName $kind is no longer valid',
-        );
 
       default:
         return error(

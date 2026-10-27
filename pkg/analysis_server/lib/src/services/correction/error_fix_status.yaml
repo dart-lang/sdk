@@ -2416,6 +2416,8 @@ invalid_runtime_check_with_js_interop_types_dart_as_js:
     In other cases, JS interop helpers may be used to do the type test instead.
 invalid_runtime_check_with_js_interop_types_dart_is_js:
   status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_and_dart_js:
+    status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_js_as_dart:
   status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:

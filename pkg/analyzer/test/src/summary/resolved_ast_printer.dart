@@ -189,6 +189,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitBlockClassBody(BlockClassBody node) {
     _sink.writeln('BlockClassBody');
@@ -197,6 +198,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitBlockEnumBody(BlockEnumBody node) {
     _sink.writeln('BlockEnumBody');
@@ -386,6 +388,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _sink.writeln('ClassDeclaration');
@@ -404,6 +407,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     _sink.writeln('ClassTypeAlias');
@@ -556,6 +560,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _sink.writeln('ConstructorDeclaration');
@@ -829,6 +834,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitEmptyClassBody(EmptyClassBody node) {
     _sink.writeln('EmptyClassBody');
@@ -837,6 +843,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitEmptyEnumBody(EmptyEnumBody node) {
     _sink.writeln('EmptyEnumBody');
@@ -871,6 +878,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _checkChildrenEntitiesLinking(node);
@@ -897,6 +905,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _sink.writeln('EnumDeclaration');
@@ -951,6 +960,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _sink.writeln('ExtensionDeclaration');
@@ -1001,6 +1011,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _sink.writeln('ExtensionTypeDeclaration');
@@ -1028,6 +1039,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _sink.writeln('FieldDeclaration');
@@ -1136,6 +1148,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _sink.writeln('FunctionDeclaration');
@@ -1145,6 +1158,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _sink.writeln('FunctionDeclarationStatement');
@@ -1201,6 +1215,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _sink.writeln('FunctionTypeAlias');
@@ -1244,6 +1259,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     _sink.writeln('GenericTypeAlias');
@@ -1751,6 +1767,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _sink.writeln('MethodDeclaration');
@@ -1782,6 +1799,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _sink.writeln('MixinDeclaration');
@@ -2095,6 +2113,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     _sink.writeln('PrimaryConstructorBody');
@@ -2592,6 +2611,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _sink.writeln('TopLevelVariableDeclaration');
@@ -2710,6 +2730,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _sink.writeln('VariableDeclaration');
@@ -2719,6 +2740,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
     _sink.writeln('VariableDeclarationList');
@@ -2727,6 +2749,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
+  @V1Ast('Prints a V1 node.')
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _sink.writeln('VariableDeclarationStatement');

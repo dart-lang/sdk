@@ -38,20 +38,21 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
       return;
     }
 
-    InterfaceElement targetElement;
+    InterfaceFragment targetFragment;
     switch (targetDeclaration) {
       case ClassDeclaration():
-        targetElement = targetDeclaration.declaredFragment!.element;
+        targetFragment = targetDeclaration.declaredFragment!;
       case EnumDeclaration():
-        targetElement = targetDeclaration.declaredFragment!.element;
+        targetFragment = targetDeclaration.declaredFragment!;
       default:
         return;
     }
+    var targetElement = targetFragment.element;
 
     var missingNames = {
-      ...InheritanceOverrideVerifier.missingOverrideNames(targetDeclaration),
+      ...InheritanceOverrideVerifier.missingOverrideNames(targetFragment),
       ...InheritanceOverrideVerifier.missingMustBeOverriddenNames(
-        targetDeclaration,
+        targetFragment,
       ),
     };
     var signatures = [

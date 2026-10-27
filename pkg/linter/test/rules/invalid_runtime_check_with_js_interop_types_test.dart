@@ -241,6 +241,64 @@ export 'dart:_js_annotations' show JS, staticInterop;
     );
   }
 
+  test_dartJsTypesAs() async {
+    await _testCasts(
+      [
+        _AsCast('JsObject', 'JSObject', dartJs: true),
+        _AsCast('JSObject', 'JsObject', dartJs: true),
+        _AsCast('A', 'JsObject', dartJs: true),
+        _AsCast('JsObject', 'B', dartJs: true),
+        _AsCast('List<JSAny>', 'List<JsObject>', dartJs: true),
+        _AsCast('T', 'JSAny', dartJs: true),
+        _AsCast('C', 'JSObject', dartJs: true),
+        _AsCast('Object', 'JsObject', lint: false),
+      ],
+      typeParameters: ['T extends JsObject'],
+      typeDeclarations: [
+        r'''
+      extension type A(JSObject _) {}
+      ''',
+        r'''
+      @JS()
+      @staticInterop
+      class B {}
+      ''',
+        r'''
+      extension type C(JsObject _) {}
+      ''',
+      ],
+    );
+  }
+
+  test_dartJsTypesIs() async {
+    await _testChecks(
+      [
+        _IsCheck('JsObject', 'JSObject', dartJs: true),
+        _IsCheck('JSObject', 'JsObject', dartJs: true),
+        _IsCheck('A', 'JsObject', dartJs: true),
+        _IsCheck('JsObject', 'B', dartJs: true),
+        _IsCheck('List<JSAny>', 'List<JsObject>', dartJs: true),
+        _IsCheck('T', 'JSAny', dartJs: true),
+        _IsCheck('C', 'JSObject', dartJs: true),
+        _IsCheck('Object', 'JsObject', lint: false),
+      ],
+      typeParameters: ['T extends JsObject'],
+      typeDeclarations: [
+        r'''
+      extension type A(JSObject _) {}
+      ''',
+        r'''
+      @JS()
+      @staticInterop
+      class B {}
+      ''',
+        r'''
+      extension type C(JsObject _) {}
+      ''',
+      ],
+    );
+  }
+
   // TODO(srujzs): Some of the following type tests should result in an error,
   // but `canBeSubtypeOf` doesn't nest for function types.
   test_functionTypesAs_function_type_with_js_types_as() async {
@@ -1214,19 +1272,11 @@ export 'dart:_js_annotations' show JS, staticInterop;
     ]);
   }
 
-  test_wasmIncompatibleTypesAs_dart_js_type_as_js_type() async {
-    await _testCasts([_AsCast('JsObject', 'JSAny', lint: false)]);
-  }
-
   test_wasmIncompatibleTypesAs_js_type_as_dart_html_type() async {
     await _testCasts([
       _AsCast('JSString', 'Event', lint: false),
       _AsCast('JSString', 'Window', lint: false),
     ]);
-  }
-
-  test_wasmIncompatibleTypesAs_js_type_as_dart_js_type() async {
-    await _testCasts([_AsCast('JSAny', 'JsObject', lint: false)]);
   }
 
   test_wasmIncompatibleTypesAs_js_type_as_package_js_type() async {
@@ -1253,12 +1303,10 @@ export 'dart:_js_annotations' show JS, staticInterop;
       [
         _AsCast('T', 'JSAny', lint: false),
         _AsCast('U', 'JSObject', lint: false),
-        _AsCast('V', 'JSArray', lint: false),
         _AsCast('JSString', 'T', lint: false),
         _AsCast('JSString', 'U', lint: false),
-        _AsCast('JSString', 'V', lint: false),
       ],
-      typeParameters: ['T extends A', 'U extends Event', 'V extends JsObject'],
+      typeParameters: ['T extends A', 'U extends Event'],
       typeDeclarations: [
         r'''
       @js.JS()
@@ -1295,19 +1343,11 @@ export 'dart:_js_annotations' show JS, staticInterop;
     ]);
   }
 
-  test_wasmIncompatibleTypesIs_dart_js_type_is_js_type() async {
-    await _testChecks([_IsCheck('JsObject', 'JSAny', lint: false)]);
-  }
-
   test_wasmIncompatibleTypesIs_js_type_is_dart_html_type() async {
     await _testChecks([
       _IsCheck('JSString', 'Event', lint: false),
       _IsCheck('JSString', 'Window', lint: false),
     ]);
-  }
-
-  test_wasmIncompatibleTypesIs_js_type_is_dart_js_type() async {
-    await _testChecks([_IsCheck('JSAny', 'JsObject', lint: false)]);
   }
 
   test_wasmIncompatibleTypesIs_js_type_is_package_js_type() async {
@@ -1334,12 +1374,10 @@ export 'dart:_js_annotations' show JS, staticInterop;
       [
         _IsCheck('T', 'JSAny', lint: false),
         _IsCheck('U', 'JSObject', lint: false),
-        _IsCheck('V', 'JSArray', lint: false),
         _IsCheck('JSString', 'T', lint: false),
         _IsCheck('JSString', 'U', lint: false),
-        _IsCheck('JSString', 'V', lint: false),
       ],
-      typeParameters: ['T extends A', 'U extends Event', 'V extends JsObject'],
+      typeParameters: ['T extends A', 'U extends Event'],
       typeDeclarations: [
         r'''
       @js.JS()
@@ -1406,7 +1444,18 @@ export 'dart:_js_annotations' show JS, staticInterop;
     tempVarCount = 1;
     for (var typeTest in typeTests) {
       var test = 't${tempVarCount++} ${cast ? 'as' : 'is'} ${typeTest.type}';
-      if (typeTest.lint) lints.add(lint(code.length, test.length));
+      if (typeTest.lint) {
+        lints.add(
+          lint(
+            code.length,
+            test.length,
+            messageContainsAll: [
+              if (typeTest.dartJs)
+                "involves both a 'dart:js_interop' type and a 'dart:js' type",
+            ],
+          ),
+        );
+      }
       if (typeTest.unnecessary) {
         if (cast) {
           lints.add(error(diag.unnecessaryCast, code.length, test.length));
@@ -1447,13 +1496,25 @@ export 'dart:_js_annotations' show JS, staticInterop;
 
 /// Represents an `as` cast from a value of type [valueType] to [type].
 final class _AsCast extends _TypeTest {
-  new(super.valueType, super.type, {super.lint, super.unnecessary});
+  new(
+    super.valueType,
+    super.type, {
+    super.lint,
+    super.unnecessary,
+    super.dartJs,
+  });
 }
 
 /// Represents an `is` check against [type] where the value is of type
 /// [valueType].
 final class _IsCheck extends _TypeTest {
-  new(super.valueType, super.type, {super.lint, super.unnecessary});
+  new(
+    super.valueType,
+    super.type, {
+    super.lint,
+    super.unnecessary,
+    super.dartJs,
+  });
 }
 
 /// Represents a type test using a runtime check.
@@ -1468,5 +1529,17 @@ abstract class _TypeTest {
   /// test should ignore the related warning.
   bool unnecessary;
 
-  new(this.valueType, this.type, {this.lint = true, this.unnecessary = false});
+  /// Whether the emitted lint is expected to be the one for type tests between
+  /// a `dart:js_interop` type and a `dart:js` type.
+  ///
+  /// Only relevant if [lint] is true.
+  bool dartJs;
+
+  new(
+    this.valueType,
+    this.type, {
+    this.lint = true,
+    this.unnecessary = false,
+    this.dartJs = false,
+  });
 }

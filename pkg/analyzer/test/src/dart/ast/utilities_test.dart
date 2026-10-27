@@ -181,6 +181,55 @@ void f(int parameter) {
   }
 
   @V1Ast('Tests the V1 projection.')
+  void test_localFunction_views() {
+    var code = '''
+void f() {
+  void g() {}
+  new C();
+  void h() {}
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'g'});
+    expect(finder2.locals, finder.locals);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_switchMember_views() {
+    var code = '''
+void f(int x) {
+  switch (x) {
+    case 0:
+      var local = 0;
+      new C();
+      var after = 1;
+  }
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'x', 'local'});
+    expect(finder2.locals, finder.locals);
+  }
+
+  @V1Ast('Tests the V1 projection.')
   void test_topLevelSetter_views() {
     var code = '''
 set foo(int parameter) {

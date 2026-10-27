@@ -207,6 +207,10 @@ class ObjectLayout {
     'dart:core',
     '_WeakReference',
   );
+  late final ast.Class _finalizerImplClass = _libraryIndex.getClass(
+    'dart:core',
+    '_FinalizerImpl',
+  );
   late final ast.Class _linkedHashBaseClass = _libraryIndex.getClass(
     'dart:_compact_hash',
     '_LinkedHashBase',
@@ -214,6 +218,14 @@ class ObjectLayout {
   late final ast.Class _linkedHashImmutableBaseClass = _libraryIndex.getClass(
     'dart:_compact_hash',
     '_LinkedHashImmutableBase',
+  );
+  late final ast.Class _finalizerBaseClass = _libraryIndex.getClass(
+    'dart:_internal',
+    'FinalizerBase',
+  );
+  late final ast.Class _finalizerEntryClass = _libraryIndex.getClass(
+    'dart:_internal',
+    'FinalizerEntry',
   );
   late final ast.Class _suspendStateClass = _libraryIndex.getClass(
     'dart:async',
@@ -315,6 +327,20 @@ class ObjectLayout {
     _coreTypes.intNonNullableRawType,
     vmOffsets.AbstractType_hash_offset,
   );
+  late final CField FinalizerImpl_callback = _createBuiltinField(
+    _finalizerImplClass,
+    'callback',
+    ast.FunctionType(
+      ast.DartTypeList(
+        ast.TypeParameterType.withDefaultNullability(
+          _finalizerImplClass.typeParameters.single,
+        ),
+      ),
+      const ast.VoidType(),
+      .nonNullable,
+    ),
+    vmOffsets.Finalizer_callback_offset,
+  );
 
   // dart:_compact_hash
   late final CField LinkedHashBase_index = _createBuiltinField(
@@ -353,6 +379,55 @@ class ObjectLayout {
     _coreTypes.nullableRawType(_uint32ListClass),
     vmOffsets.LinkedHashBase_index_offset,
     memoryOrder: .acquireRelease,
+  );
+
+  // dart:_internal
+  late final CField FinalizerBase_isolate = _createBuiltinField(
+    _finalizerBaseClass,
+    'isolate',
+    _coreTypes.intNonNullableRawType, // Address
+    vmOffsets.FinalizerBase_isolate_offset,
+    isUnboxed: true,
+  );
+  late final CField FinalizerBase_allEntries = _createBuiltinField(
+    _finalizerBaseClass,
+    'allEntries',
+    ast.InterfaceType(
+      _coreTypes.setClass,
+      .nonNullable,
+      ast.DartTypeList(_coreTypes.nonNullableRawType(_finalizerEntryClass)),
+    ),
+    vmOffsets.FinalizerBase_all_entries_offset,
+  );
+  late final CField FinalizerEntry_value = _createBuiltinField(
+    _finalizerEntryClass,
+    'value',
+    _coreTypes.objectNullableRawType,
+    vmOffsets.FinalizerEntry_value_offset,
+  );
+  late final CField FinalizerEntry_detach = _createBuiltinField(
+    _finalizerEntryClass,
+    'detach',
+    _coreTypes.objectNullableRawType,
+    vmOffsets.FinalizerEntry_detach_offset,
+  );
+  late final CField FinalizerEntry_token = _createBuiltinField(
+    _finalizerEntryClass,
+    'token',
+    _coreTypes.objectNullableRawType,
+    vmOffsets.FinalizerEntry_token_offset,
+  );
+  late final CField FinalizerEntry_finalizer = _createBuiltinField(
+    _finalizerEntryClass,
+    'finalizer',
+    _coreTypes.nonNullableRawType(_finalizerBaseClass),
+    vmOffsets.FinalizerEntry_finalizer_offset,
+  );
+  late final CField FinalizerEntry_externalSize = _createBuiltinField(
+    _finalizerEntryClass,
+    'externalSize',
+    _coreTypes.intNonNullableRawType, // intptr_t
+    vmOffsets.FinalizerEntry_external_size_offset,
   );
 
   // dart:async
@@ -438,6 +513,20 @@ class ObjectLayout {
     supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
     fileUri: ast.dummyUri,
   )..parent = _vmLibrary;
+  late final CField Thread_isolate = _createBuiltinField(
+    _threadClass,
+    'isolate',
+    _coreTypes.intNonNullableRawType, // Address.
+    vmOffsets.Thread_isolate_offset,
+    isUnboxed: true,
+  );
+  late final CField Thread_isolateGroup = _createBuiltinField(
+    _threadClass,
+    'isolateGroup',
+    _coreTypes.intNonNullableRawType, // Address.
+    vmOffsets.Thread_isolate_group_offset,
+    isUnboxed: true,
+  );
   late final CField Thread_threadLocals = _createBuiltinField(
     _threadClass,
     'threadLocals',
@@ -471,6 +560,17 @@ class ObjectLayout {
     _coreTypes.intNonNullableRawType, // Address.
     vmOffsets.Thread_predefined_symbols_address_offset,
     isUnboxed: true,
+  );
+  late final ast.Class _isolateClass = ast.Class(
+    name: '#Isolate',
+    supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
+    fileUri: ast.dummyUri,
+  )..parent = _vmLibrary;
+  late final CField Isolate_finalizers = _createBuiltinField(
+    _isolateClass,
+    'finalizers',
+    _coreTypes.listNullableRawType,
+    vmOffsets.Isolate_finalizers_offset,
   );
   late final ast.Class _timelineStreamClass = ast.Class(
     name: '#TimelineStream',
@@ -512,6 +612,10 @@ class ObjectLayout {
       vmOffsets.WeakReference_InstanceSize,
       vmOffsets.WeakReference_type_arguments_offset,
     ),
+    '_FinalizerImpl': (
+      vmOffsets.Finalizer_InstanceSize,
+      vmOffsets.Finalizer_type_arguments_offset,
+    ),
     'Object': vmOffsets.Instance_InstanceSize,
   };
 
@@ -529,6 +633,10 @@ class ObjectLayout {
       vmOffsets.LinkedHashBase_InstanceSize,
       vmOffsets.LinkedHashBase_type_arguments_offset,
     ),
+  };
+
+  late final Map<String, Object> _dartInternalInstanceLayout = {
+    'FinalizerEntry': vmOffsets.FinalizerEntry_InstanceSize,
   };
 
   late final Map<String, Object> _dartNativewrappersInstanceLayout = {
@@ -550,6 +658,9 @@ class ObjectLayout {
   late final ast.Library _compactHashLibrary = _libraryIndex.getLibrary(
     'dart:_compact_hash',
   );
+  late final ast.Library _internalLibrary = _libraryIndex.getLibrary(
+    'dart:_internal',
+  );
   late final ast.Library _nativewrappersLibrary = _libraryIndex.getLibrary(
     'dart:nativewrappers',
   );
@@ -567,6 +678,8 @@ class ObjectLayout {
       layout = _dartTypedDataInstanceLayout[cls.name];
     } else if (library == _compactHashLibrary) {
       layout = _dartCompactHashInstanceLayout[cls.name];
+    } else if (library == _internalLibrary) {
+      layout = _dartInternalInstanceLayout[cls.name];
     } else if (library == _nativewrappersLibrary) {
       layout = _dartNativewrappersInstanceLayout[cls.name];
     } else if (library == _vmLibrary) {

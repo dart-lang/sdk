@@ -4165,6 +4165,7 @@ abstract final class Block implements Statement {
 }
 
 /// The class body with members.
+@V1Ast('The V2 counterpart is BlockInstanceDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class BlockClassBody implements ClassBody {
   /// The left curly bracket.
@@ -4299,6 +4300,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
 }
 
 /// The enum declaration body, with constants and members.
+@V1Ast('The V2 counterpart is BlockEnumDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BlockEnumBody implements EnumBody {
   /// The left curly bracket.
@@ -7615,6 +7617,7 @@ class ChildEntity {
 }
 
 /// The body of a class declaration.
+@V1Ast('The V2 counterpart is InstanceDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {
   /// The members declared in the body.
@@ -7637,6 +7640,7 @@ sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
 ///     classModifiers ::= 'sealed'
 ///       | 'abstract'? ('base' | 'interface' | 'final')?
 ///       | 'abstract'? 'base'? 'mixin'
+@V1Ast('The V2 counterpart is ClassDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ClassDeclaration implements CompilationUnitMember {
   /// The `abstract` keyword, or `null` if the keyword was absent.
@@ -8438,9 +8442,11 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
 /// A node that declares a name within the scope of a class, enum, extension,
 /// extension type, or mixin declaration.
+@V1Ast('The V2 counterpart is MemberDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassMember implements Declaration {}
 
+@V1Ast('The V2 counterpart is MemberDeclarationImpl.')
 sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Initializes a newly created member of a class.
   ///
@@ -8479,6 +8485,7 @@ sealed class ClassNamePartImpl extends AstNodeImpl implements ClassNamePart {
 ///
 ///     mixinApplication ::=
 ///         [NamedType] [WithClause] [ImplementsClause]? ';'
+@V1Ast('The V2 counterpart is ClassTypeAlias2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ClassTypeAlias implements TypeAlias {
   /// The token for the `abstract` keyword, or `null` if this isn't defining an
@@ -10346,9 +10353,11 @@ final class CompilationUnitImpl extends AstNodeImpl
 ///       | [TypeAlias]
 ///       | [FunctionDeclaration]
 ///       | [TopLevelVariableDeclaration]
+@V1Ast('The V2 counterpart is TopLevelDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CompilationUnitMember implements Declaration {}
 
+@V1Ast('The V2 counterpart is TopLevelDeclarationImpl.')
 sealed class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
   /// Initializes a newly created compilation unit member.
@@ -11476,6 +11485,7 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///
 ///     initializerList ::=
 ///         ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
+@V1Ast('The V2 counterpart is ConstructorDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorDeclaration implements ClassMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -17107,6 +17117,7 @@ final class DynamicPropertyWriteResolutionImpl extends NamedWriteResolutionImpl
 }
 
 /// The empty class body.
+@V1Ast('The V2 counterpart is SemicolonInstanceDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class EmptyClassBody implements ClassBody {
   /// The semicolon token.
@@ -17213,6 +17224,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
 }
 
 /// The empty enum body.
+@V1Ast('The V2 counterpart is SemicolonEnumDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EmptyEnumBody implements EnumBody {
   /// The semicolon token.
@@ -17493,6 +17505,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 }
 
 /// The body of an enum declaration.
+@V1Ast('The V2 counterpart is EnumDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
@@ -17761,6 +17774,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 }
 
 /// The declaration of an enum constant.
+@V1Ast('The V2 counterpart is EnumConstantDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumConstantDeclaration implements Declaration {
   /// The explicit arguments (there are always implicit `index` and `name`
@@ -18135,6 +18149,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///         metadata 'enum' name [TypeParameterList]?
 ///         [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///         (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
+@V1Ast('The V2 counterpart is EnumDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -19608,12 +19623,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
             return (current, constKeyword);
           }
           return null;
-        case VariableDeclarationList():
-          var keyword = current.keyword;
-          if (keyword != null && keyword.keyword == Keyword.CONST) {
-            return (current, keyword);
-          }
-          return null;
         case ArgumentList():
         case Expression():
         case Field2():
@@ -20018,6 +20027,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///         'extension' [SimpleIdentifier]? [TypeParameterList]?
 ///         'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///         '{' [ClassMember]* '}'
+@V1Ast('The V2 counterpart is ExtensionDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -21191,6 +21201,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///         '{'
 ///             (<metadata> <extensionTypeMemberDeclaration>)*
 ///         '}'
+@V1Ast('The V2 counterpart is ExtensionTypeDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -21926,6 +21937,7 @@ final class Field2Impl extends AstNodeImpl
 /// (Note: there's no `<fieldDeclaration>` production in the grammar; this is a
 /// subset of the grammar production `<declaration>`, which encompasses
 /// everything that can appear inside a class declaration except methods).
+@V1Ast('The V2 counterpart is FieldsDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword isn't used.
@@ -25907,6 +25919,11 @@ final class FunctionCallTearOffResolutionImpl extends NamedReadResolutionImpl
 //  augmented and declarations that can't be augmented. This results in getters
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
+@V1Ast(
+  'The V2 counterparts are LocalFunctionDeclaration, '
+  'TopLevelFunctionDeclaration, TopLevelGetterDeclaration, and '
+  'TopLevelSetterDeclaration.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
@@ -26151,6 +26168,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 }
 
 /// A [FunctionDeclaration] used as a statement.
+@V1Ast('The V2 counterpart is LocalFunctionDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionDeclarationStatement implements Statement {
   /// The function declaration being wrapped.
@@ -27516,6 +27534,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 ///
 ///     functionPrefix ::=
 ///         [TypeAnnotation]? [SimpleIdentifier]
+@V1Ast('The V2 counterpart is FunctionTypeAlias2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypeAlias implements TypeAlias {
   @override
@@ -28623,6 +28642,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 ///     functionTypeAlias ::=
 ///         'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///         [FunctionType] ';'
+@V1Ast('The V2 counterpart is GenericTypeAlias2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class GenericTypeAlias implements TypeAlias {
   /// The equal sign separating the name being defined from the function type.
@@ -39807,6 +39827,10 @@ sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
 /// Prior to the 'extension-methods' experiment, these nodes were always
 /// children of a class declaration. When the experiment is enabled, these nodes
 /// can also be children of an extension declaration.
+@V1Ast(
+  'The V2 counterparts are GetterDeclaration, MethodDeclaration2, '
+  'OperatorDeclaration, and SetterDeclaration.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodDeclaration implements ClassMember {
   /// The token for the `augment` keyword.
@@ -41093,6 +41117,7 @@ final class MissingDotShorthandContextResolutionImpl
 ///     mixinDeclaration ::=
 ///         'base'? 'mixin' name [TypeParameterList]?
 ///         [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+@V1Ast('The V2 counterpart is MixinDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MixinDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -48430,6 +48455,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 }
 
 /// The body of a primary constructor.
+@V1Ast('The V2 counterpart is PrimaryConstructorBody2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 // TODO(scheglov): This should not be a `Declaration`.
 abstract final class PrimaryConstructorBody implements ClassMember {
@@ -59538,6 +59564,7 @@ final class TopLevelVariable2Impl extends AstNodeImpl
 /// this is a subset of the grammar production `<topLevelDeclaration>`, which
 /// encompasses everything that can appear inside a Dart file after part
 /// directives).
+@V1Ast('The V2 counterpart is TopLevelVariablesDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
@@ -60309,6 +60336,10 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///         [ClassTypeAlias]
 ///       | [FunctionTypeAlias]
 ///       | [GenericTypeAlias]
+@V1Ast(
+  'The V2 counterparts are ClassTypeAlias2, FunctionTypeAlias2, and '
+  'GenericTypeAlias2.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeAlias implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -60324,6 +60355,10 @@ abstract final class TypeAlias implements CompilationUnitMember {
   Token get typedefKeyword;
 }
 
+@V1Ast(
+  'The V2 counterparts are ClassTypeAlias2Impl, FunctionTypeAlias2Impl, '
+  'and GenericTypeAlias2Impl.',
+)
 sealed class TypeAliasImpl extends CompilationUnitMemberImpl
     implements TypeAlias {
   @override
@@ -62478,6 +62513,7 @@ sealed class VariableBindingImpl implements AstNodeImpl, FlowAnalysisRootImpl {
 //  augmented and declarations that can't be augmented. This results in getters
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
+@V1Ast('The V2 counterparts are Field2, LocalVariable, and TopLevelVariable2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclaration implements Declaration {
   /// The fragment declared by this declaration.
@@ -62694,6 +62730,10 @@ final class VariableDeclarationImpl extends DeclarationImpl
 ///       | 'const' [TypeAnnotation]?
 ///       | 'var'
 ///       | 'late'? [TypeAnnotation]
+@V1Ast(
+  'The V2 counterparts are FieldsDeclaration, LocalVariablesDeclaration, '
+  'and TopLevelVariablesDeclaration.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclarationList implements AnnotatedNode {
   /// Whether the variables in this list were declared with the 'const'
@@ -62937,6 +62977,7 @@ sealed class VariableDeclarationListV1OriginImpl implements AstNodeImpl {
 ///
 ///     variableDeclarationStatement ::=
 ///         [VariableDeclarationList] ';'
+@V1Ast('The V2 counterpart is LocalVariablesDeclarationStatement.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclarationStatement implements Statement {
   /// The semicolon terminating the statement.

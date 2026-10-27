@@ -23,7 +23,10 @@ _dart_root = get_path_info("../..", "abspath")
 #     minification) regardless of the build mode.
 template("compile_dart2wasm") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+
   dartaotruntime_action(target_name) {
+    mnemonic = "DART2WASM"
+
     forward_variables_from(invoker,
                            [
                              "testonly",

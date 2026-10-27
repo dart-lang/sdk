@@ -362,6 +362,9 @@ final class Simplification extends Pass
   Instruction visitUnboxDouble(UnboxDouble instr) => instr;
 
   @override
+  Instruction visitReachabilityFence(ReachabilityFence instr) => instr;
+
+  @override
   Instruction visitParallelMove(ParallelMove instr) => instr;
 
   @override
