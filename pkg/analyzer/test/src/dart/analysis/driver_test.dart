@@ -6311,7 +6311,7 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
     await _runChangeScenarioTA(
       initialA: r'''
 final class A {}
-class B extends A {}
+final class B extends A {}
 class C {}
 void foo() {}
 ''',
@@ -6368,10 +6368,10 @@ import 'a.dart';
 ''',
       updatedA: r'''
 final class A {}
-class B extends A {}
+final class B extends A {}
 class C {}
 void foo() {}
-class D extends A {}
+final class D extends A {}
 ''',
       expectedUpdatedEvents: r'''
 [status] working
@@ -6442,7 +6442,7 @@ class D extends A {}
     await _runChangeScenarioTA(
       initialA: r'''
 final class A {}
-class B extends A {}
+final class B extends A {}
 ''',
       testCode: r'''
 import 'a.dart';
@@ -6491,7 +6491,7 @@ import 'a.dart';
 ''',
       updatedA: r'''
 final class A {}
-class B extends A {}
+final class B extends A {}
 class C {}
 ''',
       expectedUpdatedEvents: r'''
@@ -60142,7 +60142,7 @@ class B {}
     await _runLibraryManifestScenario(
       initialCode: r'''
 final class A {}
-class B extends A {}
+final class B extends A {}
 class C {}
 ''',
       expectedInitialEvents: r'''
@@ -60157,8 +60157,9 @@ class C {}
         allSubtypes: #M1
         interface: #M2
       B: #M1
-        flags: isSimplyBounded
+        flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
+        allSubtypes: []
         interface: #M3
       C: #M4
         flags: isSimplyBounded
@@ -60172,9 +60173,9 @@ class C {}
 ''',
       updatedCode: r'''
 final class A {}
-class B extends A {}
+final class B extends A {}
 class C {}
-class D extends B {}
+final class D extends B {}
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -60187,16 +60188,18 @@ class D extends B {}
         allSubtypes: #M1 #M7
         interface: #M2
       B: #M1
-        flags: isSimplyBounded
+        flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
+        allSubtypes: #M7
         interface: #M3
       C: #M4
         flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
       D: #M7
-        flags: isSimplyBounded
+        flags: isFinal isSimplyBounded
         supertype: B @ package:test/test.dart
+        allSubtypes: []
         interface: #M8
     exportMapId: #M9
     exportMap
@@ -60214,7 +60217,7 @@ class D extends B {}
     await _runLibraryManifestScenario(
       initialCode: r'''
 final class A {}
-class extends A {}
+final class extends A {}
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -60233,8 +60236,8 @@ class extends A {}
 ''',
       updatedCode: r'''
 final class A {}
-class extends A {}
-class C extends A {}
+final class extends A {}
+final class C extends A {}
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -60247,8 +60250,9 @@ class C extends A {}
         allSubtypes: #M3
         interface: #M1
       C: #M3
-        flags: isSimplyBounded
+        flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
+        allSubtypes: []
         interface: #M4
     exportMapId: #M5
     exportMap
@@ -60264,7 +60268,7 @@ class C extends A {}
     await _runLibraryManifestScenario(
       initialCode: r'''
 final class A {}
-mixin B on A {}
+final class B extends A {}
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
@@ -60277,11 +60281,10 @@ mixin B on A {}
         supertype: Object @ dart:core
         allSubtypes: #M1
         interface: #M2
-    declaredMixins
       B: #M1
-        flags: isSimplyBounded
-        superclassConstraints
-          A @ package:test/test.dart
+        flags: isFinal isSimplyBounded
+        supertype: A @ package:test/test.dart
+        allSubtypes: []
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -60290,8 +60293,8 @@ mixin B on A {}
 ''',
       updatedCode: r'''
 final class A {}
-mixin B on A {}
-mixin C implements A {}
+final class B extends A {}
+base mixin C implements A {}
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
@@ -60301,16 +60304,15 @@ mixin C implements A {}
       A: #M0
         flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
-        allSubtypes: #M1 #M5
         interface: #M2
-    declaredMixins
       B: #M1
-        flags: isSimplyBounded
-        superclassConstraints
-          A @ package:test/test.dart
+        flags: isFinal isSimplyBounded
+        supertype: A @ package:test/test.dart
+        allSubtypes: []
         interface: #M3
+    declaredMixins
       C: #M5
-        flags: isSimplyBounded
+        flags: isBase isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interfaces

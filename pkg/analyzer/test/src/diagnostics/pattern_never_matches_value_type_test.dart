@@ -157,6 +157,39 @@ enum E implements A {
 ''');
   }
 
+  test_interfaceType2_matchedFinal_extensionTypeSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R _) {}
+//           ^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R'.
+}
+
+final class A {}
+extension type E(A it) implements A {}
+class R {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_hasBaseSubtype() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+final class A {}
+base class A2 extends A {}
+''',
+      testFile: r'''
+import 'a.dart';
+
+void f(A x) {
+  if (x case R _) {}
+}
+
+base class B extends A2 implements R {}
+class R {}
+''',
+    });
+  }
+
   test_interfaceType2_matchedFinal_hasSubtypes_noneImplementsRequired() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(A x) {
@@ -388,6 +421,25 @@ mixin class R {}
 ''');
   }
 
+  test_interfaceType2_matchedFinal_mixinSubtype() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+final class A {}
+base mixin M implements A {}
+''',
+      testFile: r'''
+import 'a.dart';
+
+void f(A x) {
+  if (x case R _) {}
+}
+
+base class B with M implements R {}
+class R {}
+''',
+    });
+  }
+
   test_interfaceType2_matchedFinal_requiredFutureOrIt() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';
@@ -558,6 +610,21 @@ enum E implements A {
 ''');
   }
 
+  test_interfaceType2_matchedSealed_extensionTypeSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R _) {}
+//           ^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R'.
+}
+
+sealed class A {}
+final class A2 extends A {}
+extension type E(A2 it) implements A {}
+class R {}
+''');
+  }
+
   test_interfaceType2_matchedSealed_hasNonFinalSubtype() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(A x) {
@@ -623,6 +690,25 @@ sealed class A {}
 final class A2 extends A implements R {}
 class R {}
 ''');
+  }
+
+  test_interfaceType2_requiredFinal_hasBaseSubtype() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/r.dart'): r'''
+final class R {}
+base class R2 extends R {}
+''',
+      testFile: r'''
+import 'r.dart';
+
+void f(A x) {
+  if (x case R _) {}
+}
+
+class A {}
+base class B extends R2 implements A {}
+''',
+    });
   }
 
   test_interfaceType2_requiredFinal_matchedSelf() async {
