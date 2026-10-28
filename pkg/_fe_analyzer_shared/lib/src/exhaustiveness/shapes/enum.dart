@@ -4,7 +4,7 @@
 
 part of '../types.dart';
 
-/// Interface implemented by analyzer/CFE to support [StaticType]s for enums.
+/// Interface implemented by analyzer/CFE to support [Shape]s for enums.
 abstract class EnumOperations<
   Type extends Object,
   EnumClass extends Object,
@@ -35,8 +35,8 @@ abstract class EnumOperations<
   Type getEnumElementType(EnumElement enumElement);
 }
 
-/// [EnumInfo] stores information to compute the static type for and the type
-/// of and enum class and its enum elements.
+/// [EnumInfo] stores information to compute the shapes for an enum class and
+/// its enum elements.
 class EnumInfo<
   Type extends Object,
   EnumClass extends Object,
@@ -44,42 +44,40 @@ class EnumInfo<
   EnumElementValue extends Object
 > {
   final TypeOperations<Type> _typeOperations;
-  final FieldLookup<Type> _fieldLookup;
+  final PropertyLookup<Type> _propertyLookup;
   final EnumOperations<Type, EnumClass, EnumElement, EnumElementValue>
   _enumOperations;
   final EnumClass _enumClass;
-  Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>>?
-  _enumElements;
+  Map<EnumElementValue, EnumElementShape<Type, EnumElement>>? _enumElements;
 
   new(
     this._typeOperations,
-    this._fieldLookup,
+    this._propertyLookup,
     this._enumOperations,
     this._enumClass,
   );
 
-  /// Returns a map of the enum elements and their corresponding [StaticType]s
+  /// Returns a map of the enum elements and their corresponding [Shape]s
   /// declared by [_enumClass].
-  Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>>
-  get enumElements => _enumElements ??= _createEnumElements();
+  Map<EnumElementValue, EnumElementShape<Type, EnumElement>> get enumElements =>
+      _enumElements ??= _createEnumElements();
 
-  /// Returns the [StaticType] corresponding to [enumElementValue].
-  EnumElementStaticType<Type, EnumElement> getEnumElement(
+  /// Returns the [Shape] corresponding to [enumElementValue].
+  EnumElementShape<Type, EnumElement> getEnumElement(
     EnumElementValue enumElementValue,
   ) {
     return enumElements[enumElementValue]!;
   }
 
-  Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>>
+  Map<EnumElementValue, EnumElementShape<Type, EnumElement>>
   _createEnumElements() {
-    Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>> elements =
-        {};
+    Map<EnumElementValue, EnumElementShape<Type, EnumElement>> elements = {};
     for (EnumElement element in _enumOperations.getEnumElements(_enumClass)) {
       EnumElementValue? value = _enumOperations.getEnumElementValue(element);
       if (value != null) {
-        elements[value] = new EnumElementStaticType<Type, EnumElement>(
+        elements[value] = new EnumElementShape<Type, EnumElement>(
           _typeOperations,
-          _fieldLookup,
+          _propertyLookup,
           _enumOperations.getEnumElementType(element),
           new IdentityRestriction<EnumElement>(element),
           _enumOperations.getEnumElementName(element),
@@ -92,27 +90,27 @@ class EnumInfo<
   }
 }
 
-/// [StaticType] for an instantiation of an enum that support access to the
-/// enum values that populate its type through the [getSubtypes] getter.
-class EnumStaticType<Type extends Object, EnumElement extends Object>
-    extends TypeBasedStaticType<Type> {
+/// [Shape] for an instantiation of an enum that supports access to the
+/// enum values that populate its shape through the [getSubshapes] method.
+class EnumShape<Type extends Object, EnumElement extends Object>
+    extends TypeBasedShape<Type> {
   final EnumInfo<Type, Object, EnumElement, Object> _enumInfo;
-  List<StaticType>? _enumElements;
+  List<Shape>? _enumElements;
 
-  new(super.typeOperations, super.fieldLookup, super.type, this._enumInfo)
+  new(super.typeOperations, super.propertyLookup, super.type, this._enumInfo)
     : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => enumElements;
+  Iterable<Shape> getSubshapes(Set<Key> keysOfInterest) => enumElements;
 
-  List<StaticType> get enumElements => _enumElements ??= _createEnumElements();
+  List<Shape> get enumElements => _enumElements ??= _createEnumElements();
 
-  List<StaticType> _createEnumElements() {
-    List<StaticType> elements = [];
-    for (EnumElementStaticType<Type, EnumElement> enumElement
+  List<Shape> _createEnumElements() {
+    List<Shape> elements = [];
+    for (EnumElementShape<Type, EnumElement> enumElement
         in _enumInfo.enumElements.values) {
       // For generic enums, the individual enum elements might not be subtypes
       // of the concrete enum type. For instance
@@ -142,22 +140,22 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
       )) {
         // Since the type of the enum element might not itself be a subtype of
         // [_type], for instance in the example above the type of `Enum.a`,
-        // `Enum<int>`, is not a subtype of `Enum<T>`, we wrap the static type
-        // to establish the subtype relation between the [StaticType] for the
-        // enum element and this [StaticType].
-        elements.add(new WrappedStaticType(enumElement, this));
+        // `Enum<int>`, is not a subtype of `Enum<T>`, we wrap the shape to
+        // establish the subshape relation between the [Shape] for the enum
+        // element and this [Shape].
+        elements.add(new WrappedShape(enumElement, this));
       }
     }
     return elements;
   }
 }
 
-/// [StaticType] for a single enum element.
+/// [Shape] for a single enum element.
 ///
-/// In the [StaticType] model, individual enum elements are represented as
-/// unique subtypes of the enum type, modelled using [EnumStaticType].
-class EnumElementStaticType<Type extends Object, EnumElement extends Object>
-    extends ValueStaticType<Type, EnumElement> {
+/// In the [Shape] model, individual enum elements are represented as
+/// unique subshapes of the enum shape, modelled using [EnumShape].
+class EnumElementShape<Type extends Object, EnumElement extends Object>
+    extends ValueShape<Type, EnumElement> {
   final EnumElement _value;
 
   /// The simple name of the enum element without the enum prefix, i.e. `a`
@@ -166,7 +164,7 @@ class EnumElementStaticType<Type extends Object, EnumElement extends Object>
 
   new(
     super.typeOperations,
-    super.fieldLookup,
+    super.propertyLookup,
     super.type,
     super.restriction,
     super.name,

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:test/test.dart';
 
 import 'env.dart';
@@ -132,6 +132,6 @@ void main() {
   });
 }
 
-void expectExpand(StaticType type, String expected) {
-  expect(expandSealedSubtypes(type, const {}).join('|'), expected);
+void expectExpand(Shape shape, String expected) {
+  expect(expandSealedSubshapes(shape, const {}).join('|'), expected);
 }

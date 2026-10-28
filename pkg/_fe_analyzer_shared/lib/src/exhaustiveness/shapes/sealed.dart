@@ -4,7 +4,7 @@
 
 part of '../types.dart';
 
-/// Interface implemented by analyzer/CFE to support [StaticType]s for sealed
+/// Interface implemented by analyzer/CFE to support [Shape]s for sealed
 /// classes.
 abstract class SealedClassOperations<
   Type extends Object,
@@ -35,8 +35,8 @@ abstract class SealedClassOperations<
   Type? getSubclassAsInstanceOf(Class subClass, Type sealedClassType);
 }
 
-/// [SealedClassInfo] stores information to compute the static type for a
-/// sealed class.
+/// [SealedClassInfo] stores information to compute the shape for a sealed
+/// class.
 class SealedClassInfo<Type extends Object, Class extends Object> {
   final SealedClassOperations<Type, Class> _sealedClassOperations;
   final Class _sealedClass;
@@ -50,17 +50,17 @@ class SealedClassInfo<Type extends Object, Class extends Object> {
       _subClasses ??= _sealedClassOperations.getDirectSubclasses(_sealedClass);
 }
 
-/// [StaticType] for a sealed class type.
-class SealedClassStaticType<Type extends Object, Class extends Object>
-    extends TypeBasedStaticType<Type> {
+/// [Shape] for a sealed class type.
+class SealedClassShape<Type extends Object, Class extends Object>
+    extends TypeBasedShape<Type> {
   final ExhaustivenessCache<Type, dynamic, dynamic, dynamic, Class> _cache;
   final SealedClassOperations<Type, Class> _sealedClassOperations;
   final SealedClassInfo<Type, Class> _sealedInfo;
-  Iterable<StaticType>? _subtypes;
+  Iterable<Shape>? _subshapes;
 
   new(
     super.typeOperations,
-    super.fieldLookup,
+    super.propertyLookup,
     super.type,
     this._cache,
     this._sealedClassOperations,
@@ -71,11 +71,11 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) =>
-      _subtypes ??= _createSubtypes();
+  Iterable<Shape> getSubshapes(Set<Key> keysOfInterest) =>
+      _subshapes ??= _createSubshapes();
 
-  List<StaticType> _createSubtypes() {
-    List<StaticType> subtypes = [];
+  List<Shape> _createSubshapes() {
+    List<Shape> subshapes = [];
     for (Class subClass in _sealedInfo.subClasses) {
       Type? subtype = _sealedClassOperations.getSubclassAsInstanceOf(
         subClass,
@@ -106,15 +106,14 @@ class SealedClassStaticType<Type extends Object, Class extends Object>
             continue;
           }
         }
-        StaticType staticType = _cache.getStaticType(subtype);
-        // Since the type of the [subtype] might not itself be a subtype of
-        // [_type], for instance in the example above the type of `case C:`,
-        // `C<num>`, is not a subtype of `A<T>`, we wrap the static type
-        // to establish the subtype relation between the [StaticType] for the
-        // enum element and this [StaticType].
-        subtypes.add(new WrappedStaticType(staticType, this));
+        Shape subshape = _cache.getShapeForType(subtype);
+        // Since the [subtype] might not itself be a subtype of [_type], for
+        // instance in the example above the type of `case C:`, `C<num>`, is
+        // not a subtype of `A<T>`, we wrap the shape to establish the subshape
+        // relation between the [Shape] for the subclass and this [Shape].
+        subshapes.add(new WrappedShape(subshape, this));
       }
     }
-    return subtypes;
+    return subshapes;
   }
 }

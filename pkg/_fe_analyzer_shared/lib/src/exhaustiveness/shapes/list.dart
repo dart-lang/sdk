@@ -4,8 +4,8 @@
 
 part of '../types.dart';
 
-/// [StaticType] for a list type which can be divided into subtypes of
-/// [ListPatternStaticType].
+/// [Shape] for a list type which can be divided into subshapes of
+/// [ListPatternShape].
 ///
 /// This is used to support exhaustiveness checking for list types by
 /// contextually dividing the list into relevant cases for checking.
@@ -53,16 +53,15 @@ part of '../types.dart';
 /// cases that should match it. We find the maximal number, n, of fixed, i.e.
 /// non-rest, elements in the cases, and then create the lists of sizes 0 to n-1
 /// and the list of n or more elements as the witness candidates.
-class ListTypeStaticType<Type extends Object>
-    extends TypeBasedStaticType<Type> {
-  new(super.typeOperations, super.fieldLookup, super.type)
+class ListShape<Type extends Object> extends TypeBasedShape<Type> {
+  new(super.typeOperations, super.propertyLookup, super.type)
     : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) {
+  Iterable<Shape> getSubshapes(Set<Key> keysOfInterest) {
     int maxHeadSize = 0;
     int maxTailSize = 0;
     for (Key key in keysOfInterest) {
@@ -77,7 +76,7 @@ class ListTypeStaticType<Type extends Object>
       }
     }
     int maxSize = maxHeadSize + maxTailSize;
-    List<StaticType> subtypes = [];
+    List<Shape> subshapes = [];
     Type elementType = _typeOperations.getListElementType(_type)!;
     String typeArgumentText;
     if (_typeOperations.isDynamic(elementType)) {
@@ -86,48 +85,48 @@ class ListTypeStaticType<Type extends Object>
       typeArgumentText = '<${_typeOperations.typeToString(elementType)}>';
     }
     for (int size = 0; size < maxSize; size++) {
-      ListTypeRestriction<Type> identity = new ListTypeRestriction(
+      ListShapeRestriction<Type> identity = new ListShapeRestriction(
         elementType,
         typeArgumentText,
         size: size,
         hasRest: false,
       );
-      subtypes.add(
-        new ListPatternStaticType<Type>(
+      subshapes.add(
+        new ListPatternShape<Type>(
           _typeOperations,
-          _fieldLookup,
+          _propertyLookup,
           _type,
           identity,
           identity.toString(),
         ),
       );
     }
-    ListTypeRestriction<Type> identity = new ListTypeRestriction(
+    ListShapeRestriction<Type> identity = new ListShapeRestriction(
       elementType,
       typeArgumentText,
       size: maxSize,
       hasRest: true,
     );
-    subtypes.add(
-      new ListPatternStaticType<Type>(
+    subshapes.add(
+      new ListPatternShape<Type>(
         _typeOperations,
-        _fieldLookup,
+        _propertyLookup,
         _type,
         identity,
         identity.toString(),
       ),
     );
-    return subtypes;
+    return subshapes;
   }
 }
 
-/// [StaticType] for a list pattern type using a [ListTypeRestriction] for its
+/// [Shape] for a list pattern type using a [ListShapeRestriction] for its
 /// uniqueness.
-class ListPatternStaticType<Type extends Object>
-    extends RestrictedStaticType<Type, ListTypeRestriction<Type>> {
+class ListPatternShape<Type extends Object>
+    extends RestrictedShape<Type, ListShapeRestriction<Type>> {
   new(
     super.typeOperations,
-    super.fieldLookup,
+    super.propertyLookup,
     super.type,
     super.restriction,
     super.name,
@@ -160,13 +159,13 @@ class ListPatternStaticType<Type extends Object>
   void witnessToDart(
     DartTemplateBuffer buffer,
     PropertyWitness witness,
-    Map<Key, PropertyWitness> witnessFields, {
+    Map<Key, PropertyWitness> witnessProperties, {
     required bool forCorrection,
   }) {
     int maxHeadSize = 0;
     int maxTailSize = 0;
     PropertyWitness? restWitness;
-    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessProperties.entries) {
       Key key = entry.key;
       if (key is HeadKey && key.index >= maxHeadSize) {
         maxHeadSize = key.index + 1;
@@ -186,7 +185,7 @@ class ListPatternStaticType<Type extends Object>
     for (int index = 0; index < maxHeadSize; index++) {
       buffer.write(comma);
       Key key = new HeadKey(index);
-      PropertyWitness? witness = witnessFields[key];
+      PropertyWitness? witness = witnessProperties[key];
       if (witness != null) {
         witness.witnessToDart(buffer, forCorrection: forCorrection);
       } else {
@@ -205,7 +204,7 @@ class ListPatternStaticType<Type extends Object>
     for (int index = maxTailSize - 1; index >= 0; index--) {
       buffer.write(comma);
       Key key = new TailKey(index);
-      PropertyWitness? witness = witnessFields[key];
+      PropertyWitness? witness = witnessProperties[key];
       if (witness != null) {
         witness.witnessToDart(buffer, forCorrection: forCorrection);
       } else {
@@ -215,11 +214,11 @@ class ListPatternStaticType<Type extends Object>
     }
     buffer.write(']');
 
-    // If we have restrictions on the record type we create an and pattern.
+    // If we have restrictions on the shape we create an and-pattern.
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     comma = '';
-    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessProperties.entries) {
       Key key = entry.key;
       if (key is! ListKey) {
         buffer.write(additionalStart);
@@ -238,13 +237,13 @@ class ListPatternStaticType<Type extends Object>
   }
 }
 
-/// Restriction object used for creating a unique [ListPatternStaticType] for a
+/// Restriction object used for creating a unique [ListPatternShape] for a
 /// list pattern.
 ///
 /// The uniqueness is defined by the element type, the number of elements at the
 /// start of the list, whether the list pattern has a rest element, and the
 /// number elements at the end of the list, after the rest element.
-class ListTypeRestriction<Type extends Object> implements Restriction<Type> {
+class ListShapeRestriction<Type extends Object> implements Restriction<Type> {
   final Type elementType;
   final int size;
   final bool hasRest;
@@ -269,7 +268,7 @@ class ListTypeRestriction<Type extends Object> implements Restriction<Type> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is ListTypeRestriction<Type> &&
+    return other is ListShapeRestriction<Type> &&
         elementType == other.elementType &&
         size == other.size &&
         hasRest == other.hasRest;
@@ -278,7 +277,7 @@ class ListTypeRestriction<Type extends Object> implements Restriction<Type> {
   @override
   bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other) {
     if (other.isUnrestricted) return true;
-    if (other is! ListTypeRestriction<Type>) return false;
+    if (other is! ListShapeRestriction<Type>) return false;
     if (!typeOperations.isSubtypeOf(elementType, other.elementType)) {
       return false;
     }
