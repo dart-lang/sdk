@@ -529,6 +529,21 @@ void f() {
     _assertSource(code, node);
   }
 
+  void test_visitCascadeExpression_assignment() {
+    var code = 'a..b = 1';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCascadeExpression;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var assignmentV1 = parseResult.findNodeV1.singleAssignmentExpression;
+    expect(assignmentV1.toSource(), '..b = 1');
+  }
+
   void test_visitCascadeExpression_field() {
     var code = 'a..b..c';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -538,6 +553,10 @@ void f() {
 ''');
     var node = parseResult.findNode.singleCascadeExpression;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var propertyV1 = parseResult.findNodeV1.propertyAccess('b..');
+    expect(propertyV1.toSource(), '..b');
   }
 
   void test_visitCascadeExpression_index() {
@@ -549,6 +568,25 @@ void f() {
 ''');
     var node = parseResult.findNode.singleCascadeExpression;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var indexV1 = parseResult.findNodeV1.index('[0]');
+    expect(indexV1.toSource(), '..[0]');
+  }
+
+  void test_visitCascadeExpression_index_withSelector() {
+    var code = 'a..b()[0]';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCascadeExpression;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var indexV1 = parseResult.findNodeV1.singleIndexExpression;
+    expect(indexV1.toSource(), '..b()[0]');
   }
 
   void test_visitCascadeExpression_method() {
@@ -560,6 +598,55 @@ void f() {
 ''');
     var node = parseResult.findNode.singleCascadeExpression;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var invocationV1 = parseResult.findNodeV1.methodInvocation('b()');
+    expect(invocationV1.toSource(), '..b()');
+  }
+
+  void test_visitCascadeExpression_method_withSelector() {
+    var code = 'a..b().c';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCascadeExpression;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var propertyV1 = parseResult.findNodeV1.singlePropertyAccess;
+    expect(propertyV1.toSource(), '..b().c');
+  }
+
+  void test_visitCascadeExpression_nullAware() {
+    var code = 'a?..b()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCascadeExpression;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var invocationV1 = parseResult.findNodeV1.singleMethodInvocation;
+    expect(invocationV1.toSource(), '?..b()');
+  }
+
+  void test_visitCascadeExpression_typeArguments() {
+    var code = 'a..b<int>';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleCascadeExpression;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var referenceV1 = parseResult.findNodeV1.singleFunctionReference;
+    expect(referenceV1.toSource(), '..b<int>');
   }
 
   void test_visitCastPattern() {
@@ -1347,6 +1434,7 @@ final x = new $code();
     // ignore: analyzer_v1_ast_use
     var nodeV1 = parseResult.findNodeV1.singleConstructorName;
     expect(nodeV1.toSource(), code);
+    expect(nodeV1.type.toSource(), 'prefix.A');
 
     // ignore: analyzer_v1_ast_use
     var creationV1 = parseResult.findNodeV1.singleInstanceCreationExpression;
@@ -2843,6 +2931,10 @@ final x = $code;
 ''');
     var node = parseResult.findNode.singleReceiverIndexExpression;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = parseResult.findNodeV1.singleIndexExpression;
+    expect(nodeV1.toSource(), code);
   }
 
   void test_visitIndexExpression_nullAware() {
@@ -3137,6 +3229,10 @@ void f() {
 ''');
     var node = parseResult.findNode.singleLocalVariablesDeclaration;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = parseResult.findNodeV1.singleVariableDeclarationList;
+    expect(nodeV1.toSource(), code);
   }
 
   void test_visitLocalVariablesDeclarationStatement() {
@@ -3710,6 +3806,25 @@ void f() {
 ''');
     var node = parseResult.findNode.parsedExpression(code);
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = parseResult.findNodeV1.singleMethodInvocation;
+    expect(nodeV1.toSource(), code);
+  }
+
+  void test_visitParsedExpression_invocation_target_withSelector() {
+    var code = 'a.foo().bar';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.parsedExpression(code);
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var invocationV1 = parseResult.findNodeV1.singleMethodInvocation;
+    expect(invocationV1.toSource(), 'a.foo()');
   }
 
   void test_visitParsedExpression_invocation_typeArguments() {
@@ -4404,6 +4519,10 @@ class A {
 ''');
     var node = parseResult.findNode.singleSuperReference;
     _assertSource('super', node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = parseResult.findNodeV1.singleSuperExpression;
+    expect(nodeV1.toSource(), 'super');
   }
 
   void test_visitSwitchCase_multipleLabels() {
@@ -4761,6 +4880,10 @@ $code
 ''');
     var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var listV1 = parseResult.findNodeV1.singleVariableDeclarationList;
+    expect(listV1.toSource(), 'var a = 0, b = 1');
   }
 
   void test_visitTopLevelVariablesDeclaration_single() {

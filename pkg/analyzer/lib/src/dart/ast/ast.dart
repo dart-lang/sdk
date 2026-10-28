@@ -3161,6 +3161,21 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     return _parent;
   }
 
+  /// The cascade operator that begins this V1 projection, or an empty string.
+  ///
+  /// A V1 node that begins a cascade section includes the cascade operator,
+  /// but its V2 source does not, so the operator is printed before the
+  /// source.
+  @V1Ast()
+  String get _v1CascadeOperator {
+    var token = beginToken;
+    if (token.type == TokenType.PERIOD_PERIOD ||
+        token.type == TokenType.QUESTION_PERIOD_PERIOD) {
+      return token.lexeme;
+    }
+    return '';
+  }
+
   /// The canonical node from which this V1 projection was built, or `null`
   /// if this node is not a V1 projection, or was built without one.
   ///
@@ -3288,7 +3303,8 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     if (_astNodeApi == AstNodeApi.v1) {
       // ignore: analyzer_v1_ast_use
       if (_v1ProjectionSource case var source?) {
-        return source.toSource();
+        // ignore: analyzer_v1_ast_use
+        return '$_v1CascadeOperator${source.toSource()}';
       }
     }
     StringBuffer buffer = StringBuffer();
@@ -27547,8 +27563,9 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   String toSource() => switch (_v1ProjectionOrigin) {
-    ParsedExpressionImpl origin => origin._toSourceThrough(endToken),
-    var origin => origin.toSource(),
+    ParsedExpressionImpl origin =>
+      '$_v1CascadeOperator${origin._toSourceThrough(endToken)}',
+    var origin => '$_v1CascadeOperator${origin.toSource()}',
   };
 
   @generated
@@ -33807,11 +33824,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
-  String toSource() {
-    var origin = _v1ProjectionOrigin;
-    var source = origin.toSource();
-    return isCascaded ? '${period!.lexeme}$source' : source;
-  }
+  String toSource() => '$_v1CascadeOperator${_v1ProjectionOrigin.toSource()}';
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -41073,10 +41086,15 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  String toSource() =>
-      _v1ProjectionOrigin?.toSource() ??
-      _parsedExpressionOrigin?._toSourceThrough(endToken) ??
-      super.toSource();
+  String toSource() {
+    if (_v1ProjectionOrigin case var origin?) {
+      return '$_v1CascadeOperator${origin.toSource()}';
+    }
+    if (_parsedExpressionOrigin case var origin?) {
+      return '$_v1CascadeOperator${origin._toSourceThrough(endToken)}';
+    }
+    return super.toSource();
+  }
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -49752,8 +49770,9 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
       '${operator.lexeme}${origin.name.lexeme}',
     CascadePropertyExtractionImpl origin =>
       '${operator.lexeme}${origin.name.lexeme}',
-    ParsedExpressionImpl origin => origin._toSourceThrough(endToken),
-    var origin => origin.toSource(),
+    ParsedExpressionImpl origin =>
+      '$_v1CascadeOperator${origin._toSourceThrough(endToken)}',
+    var origin => '$_v1CascadeOperator${origin.toSource()}',
   };
 
   @generated
@@ -62951,6 +62970,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   String toSource() {
     return [
+      for (var annotation in metadata) annotation.toSource(),
       ?lateKeyword?.lexeme,
       ?keyword?.lexeme,
       ?type?.toSource(),
