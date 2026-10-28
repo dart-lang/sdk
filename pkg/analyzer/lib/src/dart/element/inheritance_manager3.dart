@@ -1189,17 +1189,15 @@ class InheritanceManager3 {
     }
 
     // Update covariance of the parameters of the chosen executable.
-    List<FormalParameterElementImpl>? transformedParameters;
+    List<InternalFormalParameterElement>? transformedParameters;
     for (var index = 0; index < parameters.length; index++) {
       var parameter = parameters[index];
       var shouldBeCovariant = covariantParameters.contains(
         _ParameterDesc(index, parameter),
       );
       if (parameter.isCovariant != shouldBeCovariant) {
-        transformedParameters ??= [
-          for (var parameter in parameters) parameter.baseElement,
-        ];
-        transformedParameters[index] = parameter.baseElement.copyWith(
+        transformedParameters ??= parameters.toList();
+        transformedParameters[index] = parameter.copyWith(
           isCovariant: shouldBeCovariant,
         );
       }
@@ -1243,7 +1241,7 @@ class InheritanceManager3 {
       return result;
     }
 
-    if (executable is SetterElementImpl) {
+    if (executable is InternalSetterElement) {
       var fragmentName = executable.name ?? '';
       var setterReference = class_.reference.getOrCreateSetter(fragmentName);
       if (setterReference.element case SetterElementImpl result) {
