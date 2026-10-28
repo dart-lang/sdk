@@ -439,8 +439,8 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
-        if (B0 != null && isSubtypeOf(B0, T1)) {
+        var B0 = T0.element.bound ?? _objectQuestion;
+        if (isSubtypeOf(B0, T1)) {
           return true;
         }
       }
@@ -467,8 +467,8 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
-        if (B0 != null && isSubtypeOf(B0, T1)) {
+        var B0 = T0.element.bound ?? _objectQuestion;
+        if (isSubtypeOf(B0, T1)) {
           return true;
         }
       }
@@ -493,8 +493,8 @@ class SubtypeHelper {
         return true;
       }
 
-      var B0 = T0.element.bound;
-      if (B0 != null && isSubtypeOf(B0, T1)) {
+      var B0 = T0.element.bound ?? _objectQuestion;
+      if (isSubtypeOf(B0, T1)) {
         return true;
       }
     }
