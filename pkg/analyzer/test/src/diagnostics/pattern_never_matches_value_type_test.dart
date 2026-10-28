@@ -184,6 +184,32 @@ class R {}
 ''');
   }
 
+  test_interfaceType2_matchedFinal_hasSubtypes_oneImplementsGenericRequired_argumentSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<num> _) {}
+}
+
+final class A {}
+final class A2 extends A implements R<int> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_hasSubtypes_oneImplementsGenericRequired_argumentUnrelated() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<String> _) {}
+//           ^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R<String>'.
+}
+
+final class A {}
+final class A2 extends A implements R<int> {}
+class R<T> {}
+''');
+  }
+
   test_interfaceType2_matchedFinal_hasSubtypes_oneImplementsRequired() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(A x) {
@@ -232,6 +258,53 @@ class R<T> {}
 ''');
   }
 
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_isGeneric_argumentSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A<num> x) {
+  if (x case R<int> _) {}
+}
+
+final class A<T> extends R<T> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_isGeneric_argumentUnrelated() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A<int> x) {
+  if (x case R<String> _) {}
+//           ^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A<int>' can never match the required type 'R<String>'.
+}
+
+final class A<T> extends R<T> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_argumentExtensionType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<int> _) {}
+}
+
+final class A extends R<E> {}
+class R<T> {}
+extension type E(int it) {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_argumentSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<num> _) {}
+}
+
+final class A extends R<int> {}
+class R<T> {}
+''');
+  }
+
   test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_differentArguments() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(A x) {
@@ -241,6 +314,54 @@ void f(A x) {
 }
 
 final class A extends R<num> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<T> _) {}
+}
+
+final class A extends R<int> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter_contravariant() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<void Function(T)> _) {}
+}
+
+final class A extends R<void Function(int)> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter_differentArguments() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<Map<int, T>> _) {}
+//           ^^^^^^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R<Map<int, T>>'.
+}
+
+final class A extends R<Map<num, Object>> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter_differentElements() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<List<T>> _) {}
+//           ^^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R<List<T>>'.
+}
+
+final class A extends R<int> {}
 class R<T> {}
 ''');
   }

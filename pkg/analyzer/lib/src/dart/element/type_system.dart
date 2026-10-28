@@ -231,6 +231,53 @@ class TypeSystemImpl implements TypeSystem {
         return true;
       }
 
+      // Checks if an instance of [candidate] can be an instance of [right].
+      bool canBeSubtypeOfSuperinterface(
+        InterfaceTypeImpl candidate,
+        InterfaceTypeImpl right,
+      ) {
+        var candidateElement = candidate.element;
+        var declared = candidateElement.thisType.asInstanceOf(right.element);
+        if (declared == null) {
+          return false;
+        }
+        var typeParameters = candidateElement.typeParameters.toSet();
+        var substitution = Substitution.fromInterfaceType(candidate);
+        var declaredArguments = declared.typeArguments;
+        var rightArguments = right.typeArguments;
+        for (var i = 0; i < declaredArguments.length; i++) {
+          var declaredArgument = declaredArguments[i];
+          if (declaredArgument.referencesAny(typeParameters)) {
+            // The runtime type arguments of the candidate can be subtypes of
+            // its static type arguments.
+            if (!canBeSubtypeOf(
+              substitution.substituteType(declaredArgument),
+              rightArguments[i],
+              eraseTypes: eraseTypes,
+            )) {
+              return false;
+            }
+          } else {
+            // Fixed by the declaration, the same for every instance. But the
+            // right argument can reference type parameters of enclosing
+            // declarations, and its greatest closure is a supertype of every
+            // instantiation of these type parameters.
+            var rightArgument = rightArguments[i];
+            var freeParameters = getFreeParameters(rightArgument);
+            if (freeParameters != null) {
+              rightArgument = greatestClosure(rightArgument, freeParameters);
+            }
+            if (!isSubtypeOf(
+              declaredArgument.extensionTypeErasure,
+              rightArgument,
+            )) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
       // If the left is enum, we know types of all its instances.
       if (leftElement is EnumElementImpl) {
         for (var constant in leftElement.constants) {
@@ -251,11 +298,8 @@ class TypeSystemImpl implements TypeSystem {
         var allSubtypes = leftElement.allSubtypes;
         if (allSubtypes != null) {
           for (var candidate in [left, ...allSubtypes]) {
-            var asRight = candidate.asInstanceOf(rightElement);
-            if (asRight != null) {
-              if (_canBeEqualArguments(asRight, right)) {
-                return true;
-              }
+            if (canBeSubtypeOfSuperinterface(candidate, right)) {
+              return true;
             }
           }
           return false;
@@ -571,11 +615,11 @@ class TypeSystemImpl implements TypeSystem {
   /// If a non-null [candidates] set is given, then only type parameters
   /// appearing in it are considered; otherwise all type parameters are
   /// considered.
-  List<TypeParameterElement>? getFreeParameters(
+  List<TypeParameterElementImpl>? getFreeParameters(
     DartType rootType, {
     Set<TypeParameterElement>? candidates,
   }) {
-    List<TypeParameterElement>? parameters;
+    List<TypeParameterElementImpl>? parameters;
     Set<DartType> visitedTypes = HashSet<DartType>();
     Set<TypeParameterElement> boundTypeParameters =
         HashSet<TypeParameterElement>();
@@ -588,11 +632,11 @@ class TypeSystemImpl implements TypeSystem {
         return;
       }
       visitedTypes.add(type);
-      if (type is TypeParameterType) {
+      if (type is TypeParameterTypeImpl) {
         var element = type.element;
         if ((candidates == null || candidates.contains(element)) &&
             !boundTypeParameters.contains(element)) {
-          parameters ??= <TypeParameterElement>[];
+          parameters ??= <TypeParameterElementImpl>[];
           parameters!.add(element);
         }
       } else if (type is FunctionType) {
@@ -1780,34 +1824,6 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     return type;
-  }
-
-  /// Optimistically estimates, if type arguments of [left] can be equal to
-  /// the type arguments of [right]. Both types must be instantiations of the
-  /// same element.
-  bool _canBeEqualArguments(InterfaceType left, InterfaceType right) {
-    assert(left.element == right.element);
-    var leftArguments = left.typeArguments;
-    var rightArguments = right.typeArguments;
-    assert(leftArguments.length == rightArguments.length);
-    for (var i = 0; i < leftArguments.length; i++) {
-      var leftArgument = leftArguments[i];
-      var rightArgument = rightArguments[i];
-      if (!_canBeEqualTo(leftArgument, rightArgument)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /// Optimistically estimates, if [left] can be equal to [right].
-  bool _canBeEqualTo(DartType left, DartType right) {
-    if (left is InterfaceType && right is InterfaceType) {
-      if (left.element != right.element) {
-        return false;
-      }
-    }
-    return true;
   }
 
   List<TypeImpl> _defaultTypeArguments(
