@@ -3652,6 +3652,34 @@ void f(x) {
     _assertSource('(3)', node);
   }
 
+  void test_parsedCascadeName() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  a..b();
+}
+''');
+    var node = parseResult.findNode.singleParsedCascadeName;
+    _assertSource('b', node);
+  }
+
+  void test_parsedDotShorthandExpression() {
+    var code = '.foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleParsedDotShorthandExpression;
+    _assertSource(code, node);
+  }
+
+  void test_parsedDotShorthandName() {
+    var code = '.foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code();
+''');
+    var node = parseResult.findNode.singleParsedDotShorthandName;
+    _assertSource(code, node);
+  }
+
   void test_parsedNameAccess() {
     var code = 'foo.bar';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -3711,6 +3739,50 @@ void f() {
     // ignore: analyzer_v1_ast_use
     var invocationV1 = parseResult.findNodeV1.singleMethodInvocation;
     expect(invocationV1.toSource(), 'a.foo()');
+  }
+
+  void test_parsedNameAccessAssignmentTarget() {
+    var code = 'a.b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code = 0;
+}
+''');
+    var node = parseResult.findNode.singleParsedNameAccessAssignmentTarget;
+    _assertSource(code, node);
+  }
+
+  void test_parsedNameAccessAssignmentTarget_nullAware() {
+    var code = 'a?.b';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code = 0;
+}
+''');
+    var node = parseResult.findNode.singleParsedNameAccessAssignmentTarget;
+    _assertSource(code, node);
+  }
+
+  void test_parsedTypeArguments() {
+    var code = 'foo<int>';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleParsedTypeArguments;
+    _assertSource(code, node);
+  }
+
+  void test_parsedUnqualifiedName() {
+    var code = 'foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code;
+}
+''');
+    var node = parseResult.findNode.singleParsedUnqualifiedName;
+    _assertSource(code, node);
   }
 
   void test_parsedValueArguments_dotShorthand() {

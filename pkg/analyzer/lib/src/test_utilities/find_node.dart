@@ -866,6 +866,20 @@ abstract class _FindNodeBase {
 
   ParenthesizedPattern get singleParenthesizedPattern => _single();
 
+  ParsedCascadeName get singleParsedCascadeName => _single();
+
+  ParsedDotShorthandExpression get singleParsedDotShorthandExpression =>
+      _single();
+
+  ParsedDotShorthandName get singleParsedDotShorthandName => _single();
+
+  ParsedNameAccessAssignmentTarget get singleParsedNameAccessAssignmentTarget =>
+      _single();
+
+  ParsedTypeArguments get singleParsedTypeArguments => _single();
+
+  ParsedUnqualifiedName get singleParsedUnqualifiedName => _single();
+
   PartDirective get singlePartDirective => _single();
 
   PartOfDirective get singlePartOfDirective => _single();
