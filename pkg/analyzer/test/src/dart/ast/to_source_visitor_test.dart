@@ -3088,6 +3088,11 @@ void f() {
 ''');
     var node = parseResult.findNode.localFunctionDeclaration(code);
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var declarationV1 = parseResult.findNodeV1.functionDeclaration('foo()');
+    var functionV1 = declarationV1.functionExpression;
+    expect(functionV1.toSource(), '() => 42;');
   }
 
   void test_visitLocalVariable_initialized() {
@@ -4657,10 +4662,15 @@ void f() {
   }
 
   void test_visitTopLevelFunctionDeclaration_typeParameters() {
-    var code = 'void foo<T>() {}';
+    var code = 'void foo<T>(int a) {}';
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var declarationV1 = parseResult.findNodeV1.singleFunctionDeclaration;
+    var functionV1 = declarationV1.functionExpression;
+    expect(functionV1.toSource(), '<T>(int a) {}');
   }
 
   void test_visitTopLevelFunctionDeclaration_withMetadata() {
@@ -4675,6 +4685,11 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleTopLevelGetterDeclaration;
     _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var declarationV1 = parseResult.findNodeV1.singleFunctionDeclaration;
+    var functionV1 = declarationV1.functionExpression;
+    expect(functionV1.toSource(), ' {}');
   }
 
   void test_visitTopLevelSetterDeclaration() {

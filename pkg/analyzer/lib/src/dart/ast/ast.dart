@@ -26669,9 +26669,14 @@ final class FunctionExpressionImpl extends ExpressionImpl
     typeAnalyzer.visitFunctionExpression(this, contextType: contextType);
   }
 
+  /// The source of a V1 projection is the whole function declaration, so
+  /// only this function is printed.
   @override
-  String toSource() =>
-      _v1ProjectionOrigin == null ? super.toSource() : body.toSource();
+  String toSource() {
+    var buffer = StringBuffer();
+    ToSourceVisitor(buffer).visitFunctionExpression(this);
+    return buffer.toString();
+  }
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
