@@ -208,7 +208,7 @@ class DillLoader extends Loader {
   // and only those of the [SourceLoader] are used elsewhere. Use
   // [currentSourceLoader] to forward messages to the [SourceLoader] instead.
   @override
-  FormattedMessage? addProblem(
+  FormattedMessage? addLibraryProblem(
     Message message,
     int charOffset,
     int length,
@@ -216,7 +216,6 @@ class DillLoader extends Loader {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
     List<Uri>? involvedFiles,
   }) {
     return _addMessage(

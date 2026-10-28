@@ -15,22 +15,24 @@ static method foo3() → asy::Future<void> async /* emittedValueType= void */ {
     break #L1;
   }
 }
-static method foo4() → asy::Future<core::int> async /* emittedValueType= core::int */ {
-  try {
-    return 3;
-  }
-  finally {
-    return 2;
-  }
-}
-static method foo5() → asy::Future<core::int> async /* emittedValueType= core::int */ {
-  try {
-    return 3;
-  }
-  on core::Object catch(final core::Object e) {
-    return 2;
-  }
-}
+static method foo4() → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ 
+  return asy::Future::sync<core::int>(() → FutureOr<core::int> {
+    try {
+      return 3;
+    }
+    finally {
+      return 2;
+    }
+  });
+static method foo5() → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ 
+  return asy::Future::sync<core::int>(() → FutureOr<core::int> {
+    try {
+      return 3;
+    }
+    on core::Object catch(final core::Object e) {
+      return 2;
+    }
+  });
 static method main() → void {
   self::foo1();
   self::foo2();

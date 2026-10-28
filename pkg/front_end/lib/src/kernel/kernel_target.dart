@@ -2048,7 +2048,13 @@ class KernelDiagnosticReporter
     Uri? fileUri, {
     List<LocatedMessage>? context,
   }) {
-    loader.addProblem(message, charOffset, noLength, fileUri, context: context);
+    loader.addComponentProblem(
+      message,
+      charOffset,
+      noLength,
+      fileUri,
+      context: context,
+    );
   }
 }
 

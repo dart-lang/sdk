@@ -434,7 +434,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // Coverage-ignore-block(suite): Not run.
         // This is the entry point library, and nobody access it directly. So
         // we need to report a problem.
-        loader.addProblem(message, -1, 1, null);
+        loader.addComponentProblem(message, -1, 1, null);
       }
       for (int i = 0; i < accessors.length; i++) {
         LibraryAccess access = accessors[i];

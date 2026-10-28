@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:expect/variations.dart';
 
 void main() {
   asyncStart();
@@ -19,6 +20,9 @@ void main() {
     await testSyncErrorCompletion();
     await testZoneErrorCallback();
     await testZoneCallbackRegistration();
+    await testReturnAwaitNestedFuture();
+    await testReturnAwaitTiming();
+    testFutureChainingStaticTypes();
     asyncEnd();
   }();
 }
@@ -246,7 +250,11 @@ Future<void> testFutureChaining() {
   return completer.future;
 }
 
-class _ConstFuture<T> implements Future<T> {
+class _Base {
+  const _Base();
+}
+
+class _ConstFuture<T> extends _Base implements Future<T> {
   final T _value;
   const _ConstFuture(this._value);
 
@@ -307,19 +315,40 @@ Future<void> testErrorCompletionAfterAwait() {
 Future<void> testSyncErrorCompletion() {
   final completer = Completer<void>();
   final log = <String>[];
+  const dynamic nonIntConstant = 'not an int';
 
   Future<void> failSync() async {
     throw 'sync boom';
   }
 
+  Future<int> failDynamicConstReturn() async => nonIntConstant;
+  Future<int> failCastConstReturn() async => nonIntConstant as int;
+
   final future = failSync();
+  final implicitCastFuture = checkedImplicitDowncasts
+      ? failDynamicConstReturn()
+      : null;
+  final explicitCastFuture = failCastConstReturn();
   log.add('after call');
   future.catchError((Object e) {
     log.add('caught: $e');
   });
+  implicitCastFuture?.catchError((Object e) {
+    log.add('caught implicit cast: ${e is TypeError}');
+    return 0;
+  });
+  explicitCastFuture.catchError((Object e) {
+    log.add('caught explicit cast: ${e is TypeError}');
+    return 0;
+  });
 
   Timer.run(() {
-    Expect.listEquals(['after call', 'caught: sync boom'], log);
+    Expect.listEquals([
+      'after call',
+      'caught: sync boom',
+      if (checkedImplicitDowncasts) 'caught implicit cast: true',
+      'caught explicit cast: true',
+    ], log);
     completer.complete();
   });
   return completer.future;
@@ -328,6 +357,7 @@ Future<void> testSyncErrorCompletion() {
 Future<void> testZoneErrorCallback() {
   final completer = Completer<void>();
   final log = <String>[];
+  final rootErrorFuture = Future<void>.error('root boom')..ignore();
 
   Future<void> failSync() async {
     throw 'sync boom';
@@ -338,9 +368,16 @@ Future<void> testZoneErrorCallback() {
     throw 'async boom';
   }
 
+  Future<void> failReturnAwait() async {
+    return await rootErrorFuture;
+  }
+
   runZoned(
     () {
       failSync().catchError((Object e) {
+        log.add('caught: $e');
+      });
+      failReturnAwait().catchError((Object e) {
         log.add('caught: $e');
       });
       failAsync().catchError((Object e) {
@@ -357,6 +394,7 @@ Future<void> testZoneErrorCallback() {
 
   return completer.future.whenComplete(() {
     Expect.listEquals([
+      'caught: intercepted: root boom',
       'caught: intercepted: sync boom',
       'caught: intercepted: async boom',
     ], log);
@@ -399,4 +437,76 @@ Future<void> testZoneCallbackRegistration() async {
   Expect.equals(3, registerCallbackCount);
   Expect.isTrue(registerUnaryCallbackCount <= 1);
   Expect.equals(1, registerBinaryCallbackCount);
+}
+
+Future<void> testReturnAwaitNestedFuture() async {
+  Future<Object> foo() async {
+    final fi = Future<int>.syncValue(42);
+    final ffi = Future<Future<int>>.syncValue(fi);
+    return await ffi;
+  }
+
+  Expect.equals(42, await foo());
+}
+
+/// Tests that `return await` completes in a single microtask when awaiting a
+/// synchronously completed future or non-future (rather than adding an extra
+/// microtask as lowering `return await e` to `Future.value(e)` would), ensuring
+/// consistent microtask timing across backends.
+///
+/// Intentionally written without `async`/`await` on the outer test function so
+/// the test harness does not rely on the feature under test.
+Future<void> testReturnAwaitTiming() {
+  final completer = Completer<void>();
+  final log = <String>[];
+
+  Future<int> returnAwaitSyncFuture() async => await Future<int>.syncValue(10);
+  Future<int> returnAwaitNonFuture() async => await 20;
+
+  final f1 = returnAwaitSyncFuture();
+  final f2 = returnAwaitNonFuture();
+  scheduleMicrotask(() => log.add('microtask'));
+  f1.then((v) => log.add('f1: $v'));
+  f2.then((v) => log.add('f2: $v'));
+
+  Timer.run(() {
+    Expect.listEquals(['f1: 10', 'f2: 20', 'microtask'], log);
+    completer.complete();
+  });
+  return completer.future;
+}
+
+extension type const _ExtFuture(Future<int> _) implements Object {}
+
+/// Tests that `async` functions returning an expression whose static type does
+/// not directly look like a [Future] (such as `FutureOr<int>`, `FutureOr<int>?`,
+/// a promoted type parameter `T & Object`, an extension type erasing to
+/// [Future], or a non-[Future] superclass implemented alongside [Future]) still
+/// chain a runtime [Future] value into a fresh [Future] of the function's
+/// return type.
+///
+/// If a compiler optimization wrongly concluded from the returned expression's
+/// static type that it could never evaluate to a [Future] and lowered the body
+/// to `Future<R>.sync(() => x)`, `Future.sync` would return `x` directly and it
+/// would retain its more specific runtime type (e.g. `Future<int>` or
+/// `_ConstFuture<_Base>`).
+void testFutureChainingStaticTypes() {
+  Future<Object> returnFutureOrSubtype(FutureOr<int> x) async => x;
+  Future<int?> returnNullableFutureOr(FutureOr<int>? x) async => x;
+  Future<Object> returnPromotedTypeParam<T>(T x) async {
+    if (x is Object) return x;
+    return 0;
+  }
+
+  Future<Object> returnExtensionType(_ExtFuture x) async => x;
+  Future<_Base> returnSubclassFuture(_Base x) async => x;
+
+  final intFuture = Future<int>.syncValue(42);
+  Expect.notType<Future<int>>(returnFutureOrSubtype(intFuture));
+  Expect.notType<Future<int>>(returnNullableFutureOr(intFuture));
+  Expect.notType<Future<int>>(returnPromotedTypeParam<Object?>(intFuture));
+  Expect.notType<Future<int>>(returnExtensionType(_ExtFuture(intFuture)));
+  Expect.notType<_ConstFuture<_Base>>(
+    returnSubclassFuture(const _ConstFuture<_Base>(_Base())),
+  );
 }

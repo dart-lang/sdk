@@ -17,7 +17,7 @@ const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 abstract class Loader {
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
-  FormattedMessage? addProblem(
+  FormattedMessage? addLibraryProblem(
     Message message,
     int charOffset,
     int length,
@@ -25,7 +25,6 @@ abstract class Loader {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
     List<Uri>? involvedFiles,
   });
 
