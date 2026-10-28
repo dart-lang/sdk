@@ -1327,6 +1327,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               for (DillLibraryBuilder invalidated
                   in reusedResult.directlyInvalidated) {
                 directlyInvalidatedImportUris.add(invalidated.fileUri);
+                for (LibraryPart part in invalidated.library.parts) {
+                  // Coverage-ignore-block(suite): Not run.
+                  directlyInvalidatedImportUris.add(part.fileUri);
+                }
               }
             }
             for (Uri relatedUri in relatedUris) {
