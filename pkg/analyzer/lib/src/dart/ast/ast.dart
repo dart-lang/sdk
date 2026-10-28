@@ -4338,6 +4338,8 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @override
   final Token rightBracket;
 
+  final BlockEnumDeclarationBodyImpl _v1ProjectionOrigin;
+
   /// A V1 projection of [origin].
   ///
   /// The constants and members are projected eagerly, so that their V1
@@ -4345,7 +4347,8 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   new v1Projection(BlockEnumDeclarationBodyImpl origin)
     : leftBracket = origin.leftBracket,
       semicolon = origin.membersSeparator,
-      rightBracket = origin.rightBracket {
+      rightBracket = origin.rightBracket,
+      _v1ProjectionOrigin = origin {
     constants._initialize(this, [
       for (var constant in origin.constants) constant.v1Projection,
     ]);
@@ -17242,8 +17245,11 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
+  final SemicolonEnumDeclarationBodyImpl _v1ProjectionOrigin;
+
   new v1Projection(SemicolonEnumDeclarationBodyImpl origin)
-    : semicolon = origin.semicolon;
+    : semicolon = origin.semicolon,
+      _v1ProjectionOrigin = origin;
 
   @generated
   @override
@@ -62211,7 +62217,9 @@ enum V1Projection {
     ClassDeclarationImpl() => node._v1ProjectionOrigin,
     ExtensionTypeDeclarationImpl() => node._v1ProjectionOrigin,
     BlockClassBodyImpl() => node._v1ProjectionOrigin,
+    BlockEnumBodyImpl() => node._v1ProjectionOrigin,
     EmptyClassBodyImpl() => node._v1ProjectionOrigin,
+    EmptyEnumBodyImpl() => node._v1ProjectionOrigin,
     FieldDeclarationImpl() => node._v1ProjectionOrigin,
     PrimaryConstructorBodyImpl() => node._v1ProjectionOrigin,
     FunctionDeclarationImpl() => node._v1ProjectionOrigin,

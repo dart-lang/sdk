@@ -339,6 +339,29 @@ var x = foo;
 
 @reflectiveTest
 class ToSourceVisitorTest extends ParserDiagnosticsTest {
+  @V1Ast('Tests the V1 projection.')
+  void test_blockClassBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  void foo() {}
+}
+''');
+    var node = parseResult.findNodeV1.singleBlockClassBody;
+    expect(node.toSource(), ' {void foo() {}}');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_blockEnumBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+enum E {
+  v;
+  void foo() {}
+}
+''');
+    var node = parseResult.findNodeV1.singleBlockEnumBody;
+    expect(node.toSource(), ' {v; void foo() {}}');
+  }
+
   test_class_emptyBody() {
     var code = 'class A;';
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -393,6 +416,24 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleClassDeclaration;
     _assertSource(code, node);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_emptyClassBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A;
+''');
+    var node = parseResult.findNodeV1.singleEmptyClassBody;
+    expect(node.toSource(), ';');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_emptyEnumBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+enum E;
+''');
+    var node = parseResult.findNodeV1.singleEmptyEnumBody;
+    expect(node.toSource(), ';');
   }
 
   test_enum_emptyBody() {

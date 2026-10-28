@@ -22,6 +22,8 @@ class FindNode extends _FindNodeBase {
 
   BlockClassBody get singleBlockClassBody => _single();
 
+  BlockEnumBody get singleBlockEnumBody => _single();
+
   ClassDeclaration get singleClassDeclaration => _single();
 
   ClassTypeAlias get singleClassTypeAlias => _single();
@@ -33,6 +35,10 @@ class FindNode extends _FindNodeBase {
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
+
+  EmptyClassBody get singleEmptyClassBody => _single();
+
+  EmptyEnumBody get singleEmptyEnumBody => _single();
 
   EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
 
