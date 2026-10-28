@@ -46,6 +46,8 @@ class FindNode extends _FindNodeBase {
 
   ExtensionDeclaration get singleExtensionDeclaration => _single();
 
+  ExtensionOverride get singleExtensionOverride => _single();
+
   ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
   FieldDeclaration get singleFieldDeclaration => _single();
@@ -333,6 +335,8 @@ class FindNode2 extends _FindNodeBase {
   EnumDeclaration2 get singleEnumDeclaration => _single();
 
   ExtensionDeclaration2 get singleExtensionDeclaration => _single();
+
+  ExtensionOverride2 get singleExtensionOverride => _single();
 
   ExtensionTypeDeclaration2 get singleExtensionTypeDeclaration => _single();
 

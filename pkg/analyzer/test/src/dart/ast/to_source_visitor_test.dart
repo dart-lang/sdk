@@ -68,6 +68,80 @@ A x = .foo.bar;
     _assertSource('.foo', result.findNode.singleDotShorthandNameExpression);
   }
 
+  test_extensionOverride() async {
+    var code = 'E(0)';
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  void foo() {}
+}
+void f() {
+  $code.foo();
+}
+''');
+    var node = result.findNode.singleExtensionOverride;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = result.findNodeV1.singleExtensionOverride;
+    _assertSource(code, nodeV1);
+  }
+
+  test_extensionOverride_importPrefix() async {
+    var code = 'p.E(0)';
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'test.dart' as p;
+extension E on int {
+  void foo() {}
+}
+void f() {
+  $code.foo();
+}
+''');
+    var node = result.findNode.singleExtensionOverride;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = result.findNodeV1.singleExtensionOverride;
+    _assertSource(code, nodeV1);
+  }
+
+  test_extensionOverride_importPrefix_typeArguments() async {
+    var code = 'p.E<int>(0)';
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'test.dart' as p;
+extension E<T> on T {
+  void foo() {}
+}
+void f() {
+  $code.foo();
+}
+''');
+    var node = result.findNode.singleExtensionOverride;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = result.findNodeV1.singleExtensionOverride;
+    _assertSource(code, nodeV1);
+  }
+
+  test_extensionOverride_typeArguments() async {
+    var code = 'E<int>(0)';
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E<T> on T {
+  void foo() {}
+}
+void f() {
+  $code.foo();
+}
+''');
+    var node = result.findNode.singleExtensionOverride;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var nodeV1 = result.findNodeV1.singleExtensionOverride;
+    _assertSource(code, nodeV1);
+  }
+
   test_functionInstantiation() async {
     var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T value) => value;
@@ -1841,50 +1915,6 @@ $code
     // ignore: analyzer_v1_ast_use
     var nodeV1 = parseResult.findNodeV1.singleExtensionDeclaration;
     expect(nodeV1.toSource(), code);
-  }
-
-  void test_extensionOverride_prefixedName_noTypeArgs() {
-    // TODO(scheglov): restore
-    // _assertSource(
-    //     'p.E(o)',
-    //     AstTestFactory.extensionOverride(
-    //         extensionName: AstTestFactory.identifier5('p', 'E'),
-    //         argumentList: AstTestFactory.argumentList(
-    //             [AstTestFactory.identifier3('o')])));
-  }
-
-  void test_extensionOverride_prefixedName_typeArgs() {
-    // TODO(scheglov): restore
-    // _assertSource(
-    //     'p.E<A>(o)',
-    //     AstTestFactory.extensionOverride(
-    //         extensionName: AstTestFactory.identifier5('p', 'E'),
-    //         typeArguments: AstTestFactory.typeArgumentList(
-    //             [AstTestFactory.namedType4('A')]),
-    //         argumentList: AstTestFactory.argumentList(
-    //             [AstTestFactory.identifier3('o')])));
-  }
-
-  void test_extensionOverride_simpleName_noTypeArgs() {
-    // TODO(scheglov): restore
-    // _assertSource(
-    //     'E(o)',
-    //     AstTestFactory.extensionOverride(
-    //         extensionName: AstTestFactory.identifier3('E'),
-    //         argumentList: AstTestFactory.argumentList(
-    //             [AstTestFactory.identifier3('o')])));
-  }
-
-  void test_extensionOverride_simpleName_typeArgs() {
-    // TODO(scheglov): restore
-    // _assertSource(
-    //     'E<A>(o)',
-    //     AstTestFactory.extensionOverride(
-    //         extensionName: AstTestFactory.identifier3('E'),
-    //         typeArguments: AstTestFactory.typeArgumentList(
-    //             [AstTestFactory.namedType4('A')]),
-    //         argumentList: AstTestFactory.argumentList(
-    //             [AstTestFactory.identifier3('o')])));
   }
 
   void test_extensionTypeDeclaration() {
