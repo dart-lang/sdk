@@ -1,0 +1,4 @@
+// This is binary (hex: EE 84 - your editor will likely change it if you save
+// the file) and invalid (and we then are missing an ending brace):
+î„
+void main() {

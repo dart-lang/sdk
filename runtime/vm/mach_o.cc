@@ -3024,7 +3024,7 @@ void MachOHeader::InitializeSymbolTables() {
   if (is_stripped_) {
     // Create a separate symbol table that is actually written to the output.
     // This one will only contain what's needed for the dynamic symbol table.
-    auto* const table = new (zone())
+    table = new (zone())
         MachOSymbolTable(zone(), /*in_segment=*/type_ != SnapshotType::Object);
     table->Initialize(type_, path_, sections, is_stripped_);
   }

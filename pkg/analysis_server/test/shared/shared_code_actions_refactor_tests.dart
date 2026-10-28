@@ -9,8 +9,13 @@ import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
+import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
+import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
+import 'package:analysis_server/src/services/refactoring/extract_local_variable.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
+import 'package:analysis_server/src/services/refactoring/inline_local_variable.dart';
+import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
@@ -51,7 +56,7 @@ void f() {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ConvertGetterToMethod.commandName,
       title: refactorTitle,
     );
   }
@@ -63,7 +68,7 @@ set ^a(String value) {}
 
     await expectNoAction(
       content,
-      command: Commands.performRefactor,
+      command: ConvertGetterToMethod.commandName,
       title: refactorTitle,
     );
   }
@@ -89,7 +94,7 @@ class A {
 
     await expectNoAction(
       content,
-      command: Commands.performRefactor,
+      command: ConvertMethodToGetter.commandName,
       title: refactorTitle,
     );
   }
@@ -113,7 +118,7 @@ void f() {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ConvertMethodToGetter.commandName,
       title: refactorTitle,
     );
   }
@@ -794,7 +799,7 @@ void foo(int arg) {}
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ExtractLocalVariable.commandName,
       title: extractVariableTitle,
     );
   }
@@ -821,7 +826,7 @@ void foo(int arg) {}
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ExtractLocalVariable.commandName,
       title: extractVariableTitle,
     );
   }
@@ -846,7 +851,7 @@ void f() {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: InlineMethod.commandName,
       title: inlineMethodTitle,
     );
   }
@@ -871,7 +876,7 @@ void f() {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: InlineMethod.commandName,
       title: inlineMethodTitle,
     );
   }
@@ -900,7 +905,7 @@ class A {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: InlineMethod.commandName,
       title: inlineMethodTitle,
     );
   }
@@ -929,7 +934,7 @@ class A {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: InlineMethod.commandName,
       title: inlineMethodTitle,
     );
   }
@@ -945,7 +950,7 @@ int get test => 42;
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ConvertMethodToGetter.commandName,
       title: convertMethodToGetterTitle,
     );
   }
@@ -961,7 +966,7 @@ int get test<T> => 42;
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ConvertMethodToGetter.commandName,
       title: convertMethodToGetterTitle,
     );
   }
@@ -981,7 +986,7 @@ class A {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ConvertMethodToGetter.commandName,
       title: convertMethodToGetterTitle,
     );
   }
@@ -1001,7 +1006,7 @@ class A {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: ConvertMethodToGetter.commandName,
       title: convertMethodToGetterTitle,
     );
   }
@@ -1426,7 +1431,7 @@ void f() {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: InlineLocalVariable.commandName,
       title: inlineVariableTitle,
       openTargetFile: true,
     );
@@ -1441,8 +1446,7 @@ mixin SharedInlineMethodRefactorCodeActionsTests
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
-        ClientCapabilitiesHelperMixin,
-        LspNotificationsMixin {
+        ClientCapabilitiesHelperMixin {
   final inlineMethodTitle = 'Inline Method';
 
   Future<void> test_error_cancel() async {
@@ -1469,7 +1473,7 @@ void b^ar(int a) {
       () async {
         var codeAction = await expectCodeActionLiteral(
           content,
-          command: Commands.performRefactor,
+          command: InlineMethod.commandName,
           title: inlineMethodTitle,
         );
         // The command will return successfully with null, but no edit would've
@@ -1482,10 +1486,6 @@ void b^ar(int a) {
   }
 
   Future<void> test_error_promptNotSupported() async {
-    if (!clientSupportsShowMessageNotification) {
-      return;
-    }
-
     failTestOnErrorDiagnostic = false;
     setSupportsWindowShowMessageRequest(false);
 
@@ -1499,21 +1499,20 @@ void b^ar(int a) {
 }
 ''';
 
-    // Expect an error notification because we don't support the prompt.
-    var error = await expectErrorNotification(() async {
-      var codeAction = await expectCodeActionLiteral(
-        content,
-        command: Commands.performRefactor,
-        title: inlineMethodTitle,
-      );
-      // The command will return successfully with null, but no edit would've
-      // been sent (we have not set up a handler, so if it was, we would
-      // have thrown).
-      var result = await executeCommand(codeAction.command!);
-      expect(result, isNull);
-    });
-
-    expect(error.message, 'No argument for the parameter "a".');
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: InlineMethod.commandName,
+      title: inlineMethodTitle,
+    );
+    await expectLater(
+      executeCommand(codeAction.command!),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.refactoringComputeStatusFailure,
+          message: 'No argument for the parameter "a".',
+        ),
+      ),
+    );
   }
 
   Future<void> test_error_refactorAnyway() async {
@@ -1546,7 +1545,7 @@ void f() {
         await verifyCodeActionLiteralEdits(
           content,
           expectedContent,
-          command: Commands.performRefactor,
+          command: InlineMethod.commandName,
           title: inlineMethodTitle,
         );
       },
@@ -1585,7 +1584,7 @@ void f() {
         await verifyCodeActionLiteralEdits(
           content,
           expectedContent,
-          command: Commands.performRefactor,
+          command: InlineMethod.commandName,
           title: inlineMethodTitle,
         );
       },
@@ -1623,7 +1622,7 @@ void bar() {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: InlineMethod.commandName,
       title: inlineMethodTitle,
     );
   }
@@ -1655,7 +1654,7 @@ void foo2() {
     await verifyCodeActionLiteralEdits(
       content,
       expectedContent,
-      command: Commands.performRefactor,
+      command: InlineMethod.commandName,
       title: inlineMethodTitle,
     );
   }

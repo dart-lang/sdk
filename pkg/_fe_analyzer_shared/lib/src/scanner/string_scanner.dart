@@ -87,9 +87,8 @@ class StringScanner extends AbstractScanner {
   }
 
   @override
-  @pragma('vm:unsafe:no-bounds-checks')
   int current() {
-    if (scanOffset > _stringLengthMinusOne) return $EOF;
+    if (scanOffset < 0 || scanOffset > _stringLengthMinusOne) return $EOF;
     return _string.codeUnitAt(scanOffset);
   }
 

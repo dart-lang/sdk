@@ -318,6 +318,11 @@ abstract base class CodeGenerator extends Pass
     // Generated via ParallelMove instructions inserted by register allocator.
   }
 
+  @override
+  void visitReachabilityFence(ReachabilityFence instr) {
+    // No-op, just keep its input alive.
+  }
+
   /// Ensure that all destinations are distinct and
   /// stack locations are not used both as a source and destination.
   static bool _verifyParallelMoveDestinations(ParallelMove instr) {

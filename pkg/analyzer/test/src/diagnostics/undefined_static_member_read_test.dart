@@ -38,7 +38,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::foo
@@ -137,7 +136,6 @@ DotShorthandNameExpression
     lookupType: C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::foo
-    invokeType: C Function()
     type: C
   staticType: C
 V1: DotShorthandPropertyAccess
@@ -172,7 +170,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::foo
@@ -232,7 +229,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::foo
@@ -355,7 +351,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: void Function() Function()
       type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -419,7 +414,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -477,7 +471,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -516,7 +509,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -555,7 +547,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::X::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -594,7 +585,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::M::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -651,7 +641,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@class::C::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -697,7 +686,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier
@@ -737,7 +725,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

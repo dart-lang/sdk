@@ -15,21 +15,7 @@ import("//build/toolchain/rbe.gni")
 #      Same as gcc_toolchain
 template("android_toolchain") {
   gcc_toolchain(target_name) {
-    if (use_rbe && !use_siso) {
-      compiler_args =
-          rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
-
-      # TODO: Unfortunately I see no way to get build_arch reliably.
-      if (rbe_os != host_os) {
-        compiler_args += [
-          "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
-          "--remote_wrapper=../../build/rbe/llvm.sh",
-        ]
-      }
-      assembler_prefix = ""
-      compiler_prefix = string_join(" ", compiler_args) + " "
-      link_prefix = ""
-    } else if (use_ccache) {
+    if (use_ccache) {
       assembler_prefix = "ccache "
       compiler_prefix = "ccache "
       link_prefix = "ccache "
@@ -51,31 +37,10 @@ template("android_toolchain") {
     ld = "${link_prefix}${prefix}/clang++"
     readelf = prefix + "/llvm-readelf"
     nm = prefix + "/llvm-nm"
-    android_strip = prefix + "/llvm-strip"
+    strip = prefix + "/llvm-strip"
 
     toolchain_os = "android"
     toolchain_cpu = invoker.toolchain_cpu
-
-    # We make the assumption that the gcc_toolchain will produce a soname with
-    # the following definition.
-    soname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
-
-    stripped_soname = "lib.stripped/${soname}"
-    temp_stripped_soname = "${stripped_soname}.tmp"
-
-    strip_command =
-        "$android_strip --strip-unneeded -o $temp_stripped_soname $soname"
-    replace_command = "if ! cmp -s $temp_stripped_soname $stripped_soname; then mv $temp_stripped_soname $stripped_soname; fi"
-    postsolink = "$strip_command && $replace_command"
-    solink_outputs = [ stripped_soname ]
-    default_output_extension = android_product_extension
-
-    # We make the assumption that the gcc_toolchain will produce an exe with
-    # the following definition.
-    exe = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
-    stripped_exe = "exe.stripped/$exe"
-    postlink = "$android_strip --strip-unneeded -o $stripped_exe $exe"
-    link_outputs = [ stripped_exe ]
 
     toolchain_args = {
       if (defined(invoker.toolchain_args)) {

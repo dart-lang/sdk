@@ -493,7 +493,7 @@ String dart2WasmStandaloneHtml(String title, String wasmPath) {
       expandoSet: (expando, target, _hash, value) => expando.set(target, value),
       finalizerCreate: (callback, firstParameter) => {
         return new FinalizationRegistry((heldValue) => {
-          callback(heldValue, firstParameter);
+          callback(firstParameter, heldValue);
         });
       },
       finalizerAttach: (finalizer, object, token, detachToken) => {

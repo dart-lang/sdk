@@ -66,13 +66,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
 
   @override
   void visitElement(Element element) {
-    for (var annotation in element.metadata.annotations) {
-      var ast = (annotation as ElementAnnotationImpl).annotationAst;
-      _detachNode(ast);
-      if (ast.expression case ConstructorInvocationImpl(:var argumentList)) {
-        _sanitizeArguments(argumentList.arguments2);
-      }
-    }
+    _detachMetadata(element.metadata);
     super.visitElement(element);
   }
 
@@ -83,9 +77,39 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
+  void visitExecutableElement(covariant ExecutableElementImpl element) {
+    // A formal parameter that only an augmenting fragment declares is not in
+    // `formalParameters`, so `children` does not reach it. The other formal
+    // parameters are in `children`, and `super` visits them.
+    for (var formalParameter in element.formalParametersIncludingRecovery) {
+      if (formalParameter.firstFragment.isOriginOtherFragmentOfEnclosing) {
+        formalParameter.accept(this);
+      }
+    }
+    super.visitExecutableElement(element);
+  }
+
+  @override
   void visitFormalParameterElement(FormalParameterElement element) {
     _detachConstVariable(element);
     super.visitFormalParameterElement(element);
+  }
+
+  @override
+  void visitLibraryElement(covariant LibraryElementImpl element) {
+    // Directives are not elements, so `children` does not include them.
+    for (var fragment in element.fragments) {
+      for (var import in fragment.libraryImports) {
+        _detachMetadata(import.metadata);
+      }
+      for (var export in fragment.libraryExports) {
+        _detachMetadata(export.metadata);
+      }
+      for (var partInclude in fragment.parts) {
+        _detachMetadata(partInclude.metadata);
+      }
+    }
+    super.visitLibraryElement(element);
   }
 
   @override
@@ -117,6 +141,16 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
         }
       }
       element.resetConstantInitializer();
+    }
+  }
+
+  void _detachMetadata(Metadata metadata) {
+    for (var annotation in metadata.annotations) {
+      var ast = (annotation as ElementAnnotationImpl).annotationAst;
+      _detachNode(ast);
+      if (ast.expression case ConstructorInvocationImpl(:var argumentList)) {
+        _sanitizeArguments(argumentList.arguments2);
+      }
     }
   }
 

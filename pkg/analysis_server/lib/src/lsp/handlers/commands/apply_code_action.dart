@@ -154,7 +154,7 @@ class ApplyCodeActionCommandHandler
         // CodeActionLiterals.
         allowSnippets: false,
       );
-      var actions = await computer.compute();
+      var actions = await computer.compute(cancellationToken);
 
       if (checkAbort() case var reason?) return reason;
 

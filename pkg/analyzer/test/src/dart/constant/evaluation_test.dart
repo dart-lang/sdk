@@ -6660,6 +6660,8 @@ class A {
   final int x = 0;
   final int f = x;
 //              ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 // [diag.implicitThisReferenceInInitializer] The instance member 'x' can't be accessed in an initializer.
   const A();
 //^^^^^
@@ -6678,6 +6680,8 @@ class A {
   int get x => 0;
   final int f = x;
 //              ^
+// [diag.invalidConstant] Invalid constant value.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 // [diag.implicitThisReferenceInInitializer] The instance member 'x' can't be accessed in an initializer.
   const A();
 //^^^^^

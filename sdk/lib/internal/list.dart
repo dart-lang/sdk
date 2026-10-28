@@ -10,70 +10,84 @@ part of "dart:_internal";
  * Intended to mix-in on top of [ListMixin] for fixed-length lists.
  */
 mixin FixedLengthListMixin<E> {
-  /** This operation is not supported by a fixed length list. */
-  set length(int newLength) {
-    throw UnsupportedError("Cannot change the length of a fixed-length list");
-  }
+  // Overridden by [UnmodifiableFixedLengthListMixin].
+  Never _unsupported(String action) =>
+      throw UnsupportedError("Cannot $action a fixed-length list");
 
   /** This operation is not supported by a fixed length list. */
-  void add(E value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  set length(int newLength) => _unsupported("change the length of");
 
   /** This operation is not supported by a fixed length list. */
-  void insert(int index, E value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  void add(E value) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  void insertAll(int at, Iterable<E> iterable) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  void insert(int index, E value) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  void addAll(Iterable<E> iterable) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
+  void insertAll(int at, Iterable<E> iterable) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  bool remove(Object? element) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void addAll(Iterable<E> iterable) => _unsupported("add to");
 
   /** This operation is not supported by a fixed length list. */
-  void removeWhere(bool Function(E element) test) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  bool remove(Object? element) => _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void retainWhere(bool Function(E element) test) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void removeWhere(bool Function(E element) test) =>
+      _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void clear() {
-    throw UnsupportedError("Cannot clear a fixed-length list");
-  }
+  void retainWhere(bool Function(E element) test) =>
+      _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  E removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void clear() => _unsupported("clear");
 
   /** This operation is not supported by a fixed length list. */
-  E removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  E removeAt(int index) => _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void removeRange(int start, int end) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  E removeLast() => _unsupported("remove from");
 
   /** This operation is not supported by a fixed length list. */
-  void replaceRange(int start, int end, Iterable<E> iterable) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
+  void removeRange(int start, int end) => _unsupported("remove from");
+
+  /** This operation is not supported by a fixed length list. */
+  void replaceRange(int start, int end, Iterable<E> iterable) =>
+      _unsupported("remove from");
+}
+
+/// Mixin that throws on the [List] members that modify elements without
+/// changing the length.
+///
+/// Intended to mix-in on top of [FixedLengthListMixin], which already throws
+/// on the members that change the length, for unmodifiable fixed-length
+/// lists. All errors then report an unmodifiable list.
+mixin UnmodifiableFixedLengthListMixin<E> on FixedLengthListMixin<E>
+    implements List<E> {
+  Never _unsupported(String action) =>
+      throw UnsupportedError("Cannot $action an unmodifiable list");
+
+  void operator []=(int index, E value) => _unsupported("modify");
+
+  set first(E element) => _unsupported("modify");
+
+  set last(E element) => _unsupported("modify");
+
+  Never setAll(int at, Iterable<E> iterable) => _unsupported("modify");
+
+  Never sort([int Function(E a, E b)? compare]) => _unsupported("modify");
+
+  Never shuffle([Random? random]) => _unsupported("modify");
+
+  Never setRange(
+    int start,
+    int end,
+    Iterable<E> iterable, [
+    int skipCount = 0,
+  ]) => _unsupported("modify");
+
+  Never fillRange(int start, int end, [E? fillValue]) => _unsupported("modify");
 }
 
 /**

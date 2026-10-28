@@ -977,7 +977,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     FormattedMessage? formattedMessage = super.addProblem(
       message,
@@ -987,7 +986,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: true,
     );
     if (formattedMessage != null) {
       library.problemsAsJson ??= <String>[];

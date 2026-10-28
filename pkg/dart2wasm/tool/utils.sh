@@ -35,3 +35,29 @@ function get_host_arch() {
       ;;
   esac
 }
+
+function host_os() {
+  if [[ `uname` == 'Darwin' ]]; then
+    echo 'macos'
+  else
+    echo 'linux'
+  fi
+}
+
+# Locate build directory, containing executables, snapshots and platform dill.
+if [[ `uname` == 'Darwin' ]]; then
+  OUT_DIR="$SDK_DIR/xcodebuild"
+else
+  OUT_DIR="$SDK_DIR/out"
+fi
+HOST_ARCH="$(get_host_arch | tr '[:lower:]' '[:upper:]')"
+DART_CONFIGURATION=${DART_CONFIGURATION:-Release$HOST_ARCH}
+BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
+
+DART="$BIN_DIR/dart"
+DART_AOT_RUNTIME="$BIN_DIR/dartaotruntime"
+LIBRARIES_JSON_ARG="--libraries-spec=$SDK_DIR/sdk/lib/libraries.json"
+
+D8_BIN="$SDK_DIR/third_party/d8/$(host_os)/$(get_host_arch)/d8"
+JSSHELL_BIN="$SDK_DIR/third_party/firefox_jsshell/js"
+JSC_BIN="$SDK_DIR/third_party/jsc/jsc"

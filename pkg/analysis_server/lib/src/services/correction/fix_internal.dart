@@ -1283,6 +1283,7 @@ final _builtInNonLintMultiGenerators = {
     AddSuperConstructorInvocation.new,
   ],
   diag.undefinedExtensionMemberReadNotFound: [DataDriven.new],
+  diag.undefinedExtensionMemberWriteNotFound: [DataDriven.new],
   diag.undefinedInstanceMemberReadNotFound: [
     CreateClass.new,
     DataDriven.new,
@@ -1388,6 +1389,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forTypeOrMember,
   ],
   diag.uriDoesNotExist: [DataDriven.new],
+  diag.uriDoesNotExistInDocImport: [DataDriven.new],
   diag.useOfPrivateParameterName: [ChangeArgumentName.new],
   diag.wrongNumberOfTypeArguments: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],

@@ -39,6 +39,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
@@ -112,7 +113,20 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 749;
+  static const int DATA_VERSION = 752;
+
+  /// The signature of the numbering of token types.
+  ///
+  /// Bundles store indexes into [tokenTypesByIndex], so they can be read back
+  /// only with the same numbering, which `_fe_analyzer_shared` can change
+  /// without anyone updating [DATA_VERSION].
+  static final Uint32List _tokenTypesSignature = () {
+    var signature = ApiSignature();
+    for (var type in tokenTypesByIndex) {
+      signature.addString(type.name);
+    }
+    return signature.toUint32List();
+  }();
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -327,14 +341,19 @@ class AnalysisDriver {
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
        declaredVariables = declaredVariables ?? DeclaredVariables(),
        testingData = retainDataForTesting ? TestingData() : null,
-       _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
+       _saltForUnlinked = _calculateSaltForUnlinked(
+         enableIndex: enableIndex,
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
+       ),
        _saltForElements = _calculateSaltForElements(
          declaredVariables ?? DeclaredVariables(),
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
        ),
        _saltForResolution = _calculateSaltForResolution(
          enableIndex: enableIndex,
          analysisContext: analysisContext,
          declaredVariables: declaredVariables ?? DeclaredVariables(),
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
        ) {
     analysisContext?.driver = this;
     testView?.driver = this;
@@ -2512,10 +2531,13 @@ class AnalysisDriver {
   }
 
   static Uint32List _calculateSaltForElements(
-    DeclaredVariables declaredVariables,
-  ) {
+    DeclaredVariables declaredVariables, {
+    required Version sdkLanguageVersion,
+  }) {
     var buffer = ApiSignature();
     buffer.addInt(DATA_VERSION);
+    buffer.addUint32List(_tokenTypesSignature);
+    buffer.addLanguageVersion(sdkLanguageVersion);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
     return buffer.toUint32List();
   }
@@ -2524,10 +2546,12 @@ class AnalysisDriver {
     required bool enableIndex,
     required DriverBasedAnalysisContext? analysisContext,
     required DeclaredVariables declaredVariables,
+    required Version sdkLanguageVersion,
   }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addLanguageVersion(sdkLanguageVersion);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -2536,10 +2560,14 @@ class AnalysisDriver {
     return buffer.toUint32List();
   }
 
-  static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
+  static Uint32List _calculateSaltForUnlinked({
+    required bool enableIndex,
+    required Version sdkLanguageVersion,
+  }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addLanguageVersion(sdkLanguageVersion);
 
     return buffer.toUint32List();
   }

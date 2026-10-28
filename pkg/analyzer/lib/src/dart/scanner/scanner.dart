@@ -40,6 +40,10 @@ class Scanner {
   /// So, we need to know the full feature set for the context.
   late final FeatureSet _featureSetForOverriding;
 
+  /// The latest language version that [fasta.LanguageVersionToken] can
+  /// specify.
+  late final Version _latestLanguageVersion;
+
   /// The flag specifying whether documentation comments should be parsed.
   bool _preserveComments = preserveCommentsDefaultForTesting;
   List<int>? _lineStarts;
@@ -74,12 +78,20 @@ class Scanner {
   }
 
   /// Configures the scanner appropriately for the given [featureSet].
+  ///
+  /// The [latestLanguageVersion] should be the language version of the SDK,
+  /// because the compiler of this SDK does not accept language version
+  /// overrides greater than it, even when the analyzer is newer or older
+  /// than the SDK. The default is the language version of the analyzer.
   void configureFeatures({
     required FeatureSet featureSetForOverriding,
     required FeatureSet featureSet,
+    Version? latestLanguageVersion,
   }) {
     _featureSetForOverriding = featureSetForOverriding;
     _featureSet = featureSet;
+    _latestLanguageVersion =
+        latestLanguageVersion ?? ExperimentStatus.currentVersion;
   }
 
   Token tokenize() {
@@ -110,7 +122,7 @@ class Scanner {
     var overrideVersion = Version(overrideMajor, overrideMinor, 0);
     _overrideVersion = overrideVersion;
 
-    var latestVersion = ExperimentStatus.currentVersion;
+    var latestVersion = _latestLanguageVersion;
     if (overrideVersion > latestVersion) {
       reportError(
         diag.invalidLanguageVersionOverrideGreater

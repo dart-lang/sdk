@@ -1,3 +1,10 @@
+## v0.2.0-wip
+ - `Workspace.id` and `LanguageServer.id` are no longer public.
+ - `LanguageServer.workspace` and `WorkspaceWatcher.workspace` are no longer
+   public.
+ - `EventKind` and `EventStreams` from `package:vm_service` are no longer
+   re-exported.
+
 ## v0.1.4
  - Bundle `cupertino_icons` when running `dart run dartpad setup flutter`.
 

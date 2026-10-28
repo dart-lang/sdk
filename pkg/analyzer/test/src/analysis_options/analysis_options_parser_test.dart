@@ -285,8 +285,6 @@ analyzer:
 AnalysisOptionsImpl
   contextFeatures
     test-experiment: true
-  nonPackageFeatureSet
-    test-experiment: true
 ''');
   }
 
@@ -300,8 +298,6 @@ analyzer:
     assertAnalysisOptionsText(analysisOptions, r'''
 AnalysisOptionsImpl
   contextFeatures
-    test-experiment: true
-  nonPackageFeatureSet
     test-experiment: true
 ''');
   }

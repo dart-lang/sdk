@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:collection/collection.dart';
@@ -307,20 +306,29 @@ class MemoryProfile {
 }
 
 class MemoryJsonFile {
-  MemoryJsonFile.create(this._absoluteFileName) {
-    file = io.File(_absoluteFileName);
-    _outputStream = file.openWrite(mode: io.FileMode.append);
+  MemoryJsonFile.create(String absoluteFileName)
+    : _raFile = io.File(absoluteFileName).openSync(mode: .writeOnly) {
+    // Start with an empty but valid payload. Each sample is written in front
+    // of the trailer, so the file stays valid JSON if the process is killed.
+    _raFile
+      ..writeStringSync('${SamplesMemoryJson.header}${MemoryJson.trailer}')
+      ..flushSync();
   }
 
-  final String _absoluteFileName;
-  late final io.File file;
-  late final io.IOSink _outputStream;
+  final io.RandomAccessFile _raFile;
+  final _encoder = SamplesMemoryJson();
+  var _hasSamples = false;
 
   void writeSample(HeapSample sample) {
-    _outputStream.writeln(jsonEncode(sample.toJson()));
+    final encodedSample = _hasSamples
+        ? _encoder.encodeAnother(sample)
+        : _encoder.encode(sample);
+    _raFile
+      ..setPositionSync(_raFile.positionSync() - MemoryJson.trailer.length)
+      ..writeStringSync('$encodedSample${MemoryJson.trailer}')
+      ..flushSync();
+    _hasSamples = true;
   }
 
-  void close() {
-    _outputStream.close();
-  }
+  void close() => _raFile.closeSync();
 }

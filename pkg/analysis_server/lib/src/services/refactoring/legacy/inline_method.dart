@@ -334,9 +334,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /// The builder used to build the edits.
   ///
   /// This refactor is unusual in that it builds the edits as part of checking
-  /// the final conditions rather than waiting until [buildChange] is called. It
-  /// also creates the builder while checking the initial conditions.
-  late ChangeBuilder builder;
+  /// the final conditions rather than waiting until [createChange] is called,
+  /// so the builder is supplied (or created) in the constructor.
+  final ChangeBuilder builder;
 
   @override
   bool isDeclaration = false;
@@ -362,8 +362,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /// calls into the same block.
   final Map<AstNode, Set<String>> _introducedVariablesByBlock = {};
 
-  new(this.searchEngine, this.unitResult, this.offset)
-    : sessionHelper = AnalysisSessionHelper(unitResult.session),
+  new(this.searchEngine, this.unitResult, this.offset, {ChangeBuilder? builder})
+    : builder = builder ?? ChangeBuilder(session: unitResult.session),
+      sessionHelper = AnalysisSessionHelper(unitResult.session),
       utils = CorrectionUtils(unitResult);
 
   @override
@@ -418,7 +419,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    builder = ChangeBuilder(session: unitResult.session);
     var result = RefactoringStatus();
     // prepare method information
     result.addStatus(await _prepareMethod());
@@ -469,6 +469,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange({ChangeBuilder? builder}) {
     // The parameter `builder` is unused because the edits were already built
     // in [checkFinalConditions].
+    assert(builder == null || builder == this.builder);
+
     var sourceChange = this.builder.sourceChange;
     sourceChange.message = refactoringName;
     return Future.value(sourceChange);
@@ -1002,9 +1004,11 @@ class _ReferenceProcessor {
           }
           if (refElement is ExecutableElement) {
             var executable = refElement as ExecutableElement;
-            if (!executable.returnType.isDartAsyncFuture) {
+            var returnType = executable.returnType;
+            if (!returnType.isDartAsyncFuture &&
+                !returnType.isDartAsyncFutureOr) {
               status.addFatalError(
-                "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
+                "Can't inline an 'async' method into a function that doesn't return a 'Future' or 'FutureOr'.",
                 newLocation_fromNode(_node),
               );
               return;

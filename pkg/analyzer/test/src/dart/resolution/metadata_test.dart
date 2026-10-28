@@ -37,7 +37,6 @@ Annotation
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   name: SimpleIdentifier
@@ -117,7 +116,6 @@ Annotation
     name: v
     resolution: GetterInvocationResolution
       element: <testLibrary>::@enum::E::@getter::v
-      invokeType: E Function()
       type: E
     staticType: E
   name: SimpleIdentifier
@@ -794,7 +792,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   name: PrefixedIdentifier
@@ -905,7 +902,6 @@ Annotation
           name: x
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::x
-            invokeType: int Function()
             type: int
           correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
           staticType: int
@@ -1775,7 +1771,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: InvalidType Function()
       type: InvalidType
     staticType: InvalidType
   name: PrefixedIdentifier
@@ -2830,7 +2825,6 @@ Annotation
     name: x
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     staticType: int
   name: SimpleIdentifier
@@ -3216,7 +3210,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   name: PrefixedIdentifier
@@ -3341,7 +3334,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   name: PrefixedIdentifier
@@ -3396,7 +3388,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   name: PrefixedIdentifier
@@ -3839,7 +3830,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   name: PrefixedIdentifier
@@ -4681,7 +4671,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   name: SimpleIdentifier
@@ -4730,7 +4719,6 @@ Annotation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   name: SimpleIdentifier

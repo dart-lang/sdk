@@ -9,7 +9,6 @@
 #include "bin/options.h"
 #include "platform/globals.h"
 #include "platform/growable_array.h"
-#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -88,7 +87,9 @@ class Options {
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
-  static dart::SimpleHashMap* environment() { return environment_; }
+  static const char** environment_array() {
+    return OptionProcessor::environment_array();
+  }
 
   static void PrintUsage();
   static void PrintVersion();
@@ -101,7 +102,6 @@ class Options {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
  private:
-  static void DestroyEnvironment();
 #if defined(DART_PRECOMPILED_RUNTIME)
   static void DestroyEnvArgv();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -121,8 +121,6 @@ class Options {
 
   static bool resident_;
   static const char* resident_compiler_info_file_path_;
-
-  static dart::SimpleHashMap* environment_;
 
   static char** env_argv_;
   static int env_argc_;

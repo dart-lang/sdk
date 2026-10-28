@@ -353,10 +353,6 @@ abstract final class Annotation implements AstNode {
   @V1Ast('The V2 counterpart is parent2.')
   AstNode get parent;
 
-  @experimental
-  @override
-  AstNode get parent2;
-
   /// The period before the constructor name, or `null` if this annotation isn't
   /// the invocation of a named constructor.
   @V1Ast('The V2 counterpart is expression.')
@@ -448,10 +444,6 @@ final class AnnotationImpl extends AstNodeImpl
   @override
   @V1Ast('The V2 counterpart is parent2.')
   AstNodeImpl get parent => super.parent!;
-
-  @experimental
-  @override
-  AstNodeImpl get parent2 => super.parent2!;
 
   @V1Ast('The V2 counterpart is expression.')
   @override
@@ -2682,6 +2674,9 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     throw StateError('AssignmentExpression is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -2716,9 +2711,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('AssignmentExpression is a V1 projection.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -3162,14 +3154,37 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     if (_parent case var parent?) {
       return parent;
     }
-    var source = _astNodeApi == AstNodeApi.v1
-        ? V1Projection._sourceOf(this)
-        : this;
+    var source = _astNodeApi == AstNodeApi.v1 ? _v1ProjectionSource : this;
     if (source != null) {
       V1Projection._materializeEnclosingTree(source);
     }
     return _parent;
   }
+
+  /// The cascade operator that begins this V1 projection, or an empty string.
+  ///
+  /// A V1 node that begins a cascade section includes the cascade operator,
+  /// but its V2 source does not, so the operator is printed before the
+  /// source.
+  @V1Ast()
+  String get _v1CascadeOperator {
+    var token = beginToken;
+    if (token.type == TokenType.PERIOD_PERIOD ||
+        token.type == TokenType.QUESTION_PERIOD_PERIOD) {
+      return token.lexeme;
+    }
+    return '';
+  }
+
+  /// The canonical node from which this V1 projection was built, or `null`
+  /// if this node is not a V1 projection, or was built without one.
+  ///
+  /// Every V1-only node class must override this getter; the AST generator
+  /// enforces it. Existing origin fields let a projection requested directly
+  /// from its canonical node discover its parent without retaining another
+  /// tree link.
+  @V1Ast()
+  AstNodeImpl? get _v1ProjectionSource => null;
 
   void detachFromParent() {
     // ignore: analyzer_v1_ast_use
@@ -3287,8 +3302,9 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     // A V1 projection without a V2 view prints its canonical source node.
     if (_astNodeApi == AstNodeApi.v1) {
       // ignore: analyzer_v1_ast_use
-      if (V1Projection._sourceOf(this) case var source?) {
-        return source.toSource();
+      if (_v1ProjectionSource case var source?) {
+        // ignore: analyzer_v1_ast_use
+        return '$_v1CascadeOperator${source.toSource()}';
       }
     }
     StringBuffer buffer = StringBuffer();
@@ -3795,6 +3811,9 @@ final class BinaryExpressionImpl extends ExpressionImpl
     throw StateError('BinaryExpression is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -3828,9 +3847,6 @@ final class BinaryExpressionImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('BinaryExpression is a V1 projection.');
   }
-
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -4165,6 +4181,7 @@ abstract final class Block implements Statement {
 }
 
 /// The class body with members.
+@V1Ast('The V2 counterpart is BlockInstanceDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class BlockClassBody implements ClassBody {
   /// The left curly bracket.
@@ -4242,6 +4259,9 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
     throw StateError('BlockClassBody is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -4299,6 +4319,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
 }
 
 /// The enum declaration body, with constants and members.
+@V1Ast('The V2 counterpart is BlockEnumDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BlockEnumBody implements EnumBody {
   /// The left curly bracket.
@@ -4344,6 +4365,8 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @override
   final Token rightBracket;
 
+  final BlockEnumDeclarationBodyImpl _v1ProjectionOrigin;
+
   /// A V1 projection of [origin].
   ///
   /// The constants and members are projected eagerly, so that their V1
@@ -4351,7 +4374,8 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   new v1Projection(BlockEnumDeclarationBodyImpl origin)
     : leftBracket = origin.leftBracket,
       semicolon = origin.membersSeparator,
-      rightBracket = origin.rightBracket {
+      rightBracket = origin.rightBracket,
+      _v1ProjectionOrigin = origin {
     constants._initialize(this, [
       for (var constant in origin.constants) constant.v1Projection,
     ]);
@@ -4391,6 +4415,9 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   ChildEntities get _childEntities2 {
     throw StateError('BlockEnumBody is not in the V2 AST view.');
   }
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -7615,6 +7642,7 @@ class ChildEntity {
 }
 
 /// The body of a class declaration.
+@V1Ast('The V2 counterpart is InstanceDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassBody implements AstNode {
   /// The members declared in the body.
@@ -7637,6 +7665,7 @@ sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
 ///     classModifiers ::= 'sealed'
 ///       | 'abstract'? ('base' | 'interface' | 'final')?
 ///       | 'abstract'? 'base'? 'mixin'
+@V1Ast('The V2 counterpart is ClassDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ClassDeclaration implements CompilationUnitMember {
   /// The `abstract` keyword, or `null` if the keyword was absent.
@@ -8349,6 +8378,9 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -8438,9 +8470,11 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
 
 /// A node that declares a name within the scope of a class, enum, extension,
 /// extension type, or mixin declaration.
+@V1Ast('The V2 counterpart is MemberDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class ClassMember implements Declaration {}
 
+@V1Ast('The V2 counterpart is MemberDeclarationImpl.')
 sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Initializes a newly created member of a class.
   ///
@@ -8479,6 +8513,7 @@ sealed class ClassNamePartImpl extends AstNodeImpl implements ClassNamePart {
 ///
 ///     mixinApplication ::=
 ///         [NamedType] [WithClause] [ImplementsClause]? ';'
+@V1Ast('The V2 counterpart is ClassTypeAlias2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ClassTypeAlias implements TypeAlias {
   /// The token for the `abstract` keyword, or `null` if this isn't defining an
@@ -9131,6 +9166,9 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -10346,9 +10384,11 @@ final class CompilationUnitImpl extends AstNodeImpl
 ///       | [TypeAlias]
 ///       | [FunctionDeclaration]
 ///       | [TopLevelVariableDeclaration]
+@V1Ast('The V2 counterpart is TopLevelDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CompilationUnitMember implements Declaration {}
 
+@V1Ast('The V2 counterpart is TopLevelDeclarationImpl.')
 sealed class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
   /// Initializes a newly created compilation unit member.
@@ -11476,6 +11516,7 @@ final class ConstantPatternImpl extends DartPatternImpl
 ///
 ///     initializerList ::=
 ///         ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
+@V1Ast('The V2 counterpart is ConstructorDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorDeclaration implements ClassMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -12221,6 +12262,9 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -13005,6 +13049,9 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   ChildEntities get _childEntities2 =>
       throw StateError('ConstructorName is not in the V2 AST view.');
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin as AstNodeImpl?;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -13375,6 +13422,9 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     return parent is ImplicitFunctionInstantiationImpl ? parent : _origin;
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -13409,10 +13459,6 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('ConstructorReference is a V1 projection.');
   }
-
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -15923,6 +15969,9 @@ final class DotShorthandConstructorInvocationImpl
     );
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -15959,9 +16008,6 @@ final class DotShorthandConstructorInvocationImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('DotShorthandConstructorInvocation is a V1 projection.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -16231,6 +16277,10 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('DotShorthandInvocation is not in the V2 AST view.');
   }
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource =>
+      _v1ProjectionOrigin ?? _parsedExpressionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -16765,6 +16815,10 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     throw StateError('DotShorthandPropertyAccess is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource =>
+      _v1ProjectionOrigin ?? _parsedExpressionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -17107,6 +17161,7 @@ final class DynamicPropertyWriteResolutionImpl extends NamedWriteResolutionImpl
 }
 
 /// The empty class body.
+@V1Ast('The V2 counterpart is SemicolonInstanceDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class EmptyClassBody implements ClassBody {
   /// The semicolon token.
@@ -17162,6 +17217,9 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
     throw StateError('EmptyClassBody is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -17213,6 +17271,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
 }
 
 /// The empty enum body.
+@V1Ast('The V2 counterpart is SemicolonEnumDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EmptyEnumBody implements EnumBody {
   /// The semicolon token.
@@ -17238,8 +17297,11 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
     .._initialize(this, null);
 
+  final SemicolonEnumDeclarationBodyImpl _v1ProjectionOrigin;
+
   new v1Projection(SemicolonEnumDeclarationBodyImpl origin)
-    : semicolon = origin.semicolon;
+    : semicolon = origin.semicolon,
+      _v1ProjectionOrigin = origin;
 
   @generated
   @override
@@ -17268,6 +17330,9 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   ChildEntities get _childEntities2 {
     throw StateError('EmptyEnumBody is not in the V2 AST view.');
   }
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -17493,6 +17558,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
 }
 
 /// The body of an enum declaration.
+@V1Ast('The V2 counterpart is EnumDeclarationBody.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
@@ -17761,6 +17827,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
 }
 
 /// The declaration of an enum constant.
+@V1Ast('The V2 counterpart is EnumConstantDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumConstantDeclaration implements Declaration {
   /// The explicit arguments (there are always implicit `index` and `name`
@@ -18067,6 +18134,9 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -18135,6 +18205,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///         metadata 'enum' name [TypeParameterList]?
 ///         [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///         (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
+@V1Ast('The V2 counterpart is EnumDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class EnumDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -18600,6 +18671,9 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -19608,12 +19682,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
             return (current, constKeyword);
           }
           return null;
-        case VariableDeclarationList():
-          var keyword = current.keyword;
-          if (keyword != null && keyword.keyword == Keyword.CONST) {
-            return (current, keyword);
-          }
-          return null;
         case ArgumentList():
         case Expression():
         case Field2():
@@ -20018,6 +20086,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 ///         'extension' [SimpleIdentifier]? [TypeParameterList]?
 ///         'on' [TypeAnnotation] [ShowClause]? [HideClause]?
 ///         '{' [ClassMember]* '}'
+@V1Ast('The V2 counterpart is ExtensionDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -20447,6 +20516,9 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -21101,6 +21173,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     throw StateError('ExtensionOverride is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -21135,10 +21210,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('ExtensionOverride is a V1 projection.');
   }
-
-  @DoNotGenerate(reason: 'The canonical receiver owns the source spelling')
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -21191,6 +21262,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///         '{'
 ///             (<metadata> <extensionTypeMemberDeclaration>)*
 ///         '}'
+@V1Ast('The V2 counterpart is ExtensionTypeDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -21631,6 +21703,9 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -21926,6 +22001,7 @@ final class Field2Impl extends AstNodeImpl
 /// (Note: there's no `<fieldDeclaration>` production in the grammar; this is a
 /// subset of the grammar production `<declaration>`, which encompasses
 /// everything that can appear inside a class declaration except methods).
+@V1Ast('The V2 counterpart is FieldsDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FieldDeclaration implements ClassMember {
   /// The `abstract` keyword, or `null` if the keyword isn't used.
@@ -22071,6 +22147,9 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -25907,6 +25986,11 @@ final class FunctionCallTearOffResolutionImpl extends NamedReadResolutionImpl
 //  augmented and declarations that can't be augmented. This results in getters
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
+@V1Ast(
+  'The V2 counterparts are LocalFunctionDeclaration, '
+  'TopLevelFunctionDeclaration, TopLevelGetterDeclaration, and '
+  'TopLevelSetterDeclaration.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
@@ -26082,6 +26166,9 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -26105,9 +26192,6 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -26151,6 +26235,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 }
 
 /// A [FunctionDeclaration] used as a statement.
+@V1Ast('The V2 counterpart is LocalFunctionDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionDeclarationStatement implements Statement {
   /// The function declaration being wrapped.
@@ -26221,6 +26306,9 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
     throw StateError('FunctionDeclarationStatement is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -26245,9 +26333,6 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -26523,6 +26608,9 @@ final class FunctionExpressionImpl extends ExpressionImpl
       ..addNode('body', body);
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -26597,9 +26685,14 @@ final class FunctionExpressionImpl extends ExpressionImpl
     typeAnalyzer.visitFunctionExpression(this, contextType: contextType);
   }
 
+  /// The source of a V1 projection is the whole function declaration, so
+  /// only this function is printed.
   @override
-  String toSource() =>
-      _v1ProjectionOrigin == null ? super.toSource() : body.toSource();
+  String toSource() {
+    var buffer = StringBuffer();
+    ToSourceVisitor(buffer).visitFunctionExpression(this);
+    return buffer.toString();
+  }
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -26844,6 +26937,9 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     throw StateError('FunctionExpressionInvocation is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -26878,9 +26974,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('FunctionExpressionInvocation is a V1 projection.');
   }
-
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -27431,6 +27524,9 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     throw StateError('FunctionReference is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -27467,8 +27563,9 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @override
   String toSource() => switch (_v1ProjectionOrigin) {
-    ParsedExpressionImpl origin => origin._toSourceThrough(endToken),
-    var origin => origin.toSource(),
+    ParsedExpressionImpl origin =>
+      '$_v1CascadeOperator${origin._toSourceThrough(endToken)}',
+    var origin => '$_v1CascadeOperator${origin.toSource()}',
   };
 
   @generated
@@ -27516,6 +27613,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 ///
 ///     functionPrefix ::=
 ///         [TypeAnnotation]? [SimpleIdentifier]
+@V1Ast('The V2 counterpart is FunctionTypeAlias2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionTypeAlias implements TypeAlias {
   @override
@@ -27916,6 +28014,9 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -27939,9 +28040,6 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -28623,6 +28721,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 ///     functionTypeAlias ::=
 ///         'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///         [FunctionType] ';'
+@V1Ast('The V2 counterpart is GenericTypeAlias2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class GenericTypeAlias implements TypeAlias {
   /// The equal sign separating the name being defined from the function type.
@@ -29003,6 +29102,9 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -29026,9 +29128,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -29415,8 +29514,6 @@ abstract final class GetterInvocationResolution
     implements NamedReadResolutionWithElement {
   @override
   GetterElement get element;
-
-  FunctionType get invokeType;
 }
 
 final class GetterInvocationResolutionImpl
@@ -29429,9 +29526,6 @@ final class GetterInvocationResolutionImpl
   final TypeImpl type;
 
   new({required this.element, required this.type});
-
-  @override
-  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// The pattern with an optional [WhenClause].
@@ -31291,6 +31385,9 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
     throw StateError('ImplicitCallReference is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -31325,9 +31422,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('ImplicitCallReference is a V1 projection.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -33679,6 +33773,9 @@ final class IndexExpressionImpl extends ExpressionImpl
     throw StateError('IndexExpression is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -33727,11 +33824,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @override
-  String toSource() {
-    var origin = _v1ProjectionOrigin;
-    var source = origin.toSource();
-    return isCascaded ? '${period!.lexeme}$source' : source;
-  }
+  String toSource() => '$_v1CascadeOperator${_v1ProjectionOrigin.toSource()}';
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -33959,6 +34052,9 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('InstanceCreationExpression is not in the V2 AST view.');
   }
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin ?? _parsedOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -39812,6 +39908,10 @@ sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
 /// Prior to the 'extension-methods' experiment, these nodes were always
 /// children of a class declaration. When the experiment is enabled, these nodes
 /// can also be children of an extension declaration.
+@V1Ast(
+  'The V2 counterparts are GetterDeclaration, MethodDeclaration2, '
+  'OperatorDeclaration, and SetterDeclaration.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodDeclaration implements ClassMember {
   /// The token for the `augment` keyword.
@@ -40405,6 +40505,9 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -40428,9 +40531,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -40550,9 +40650,6 @@ abstract final class MethodIndexReadResolution
   /// The selected substituted `operator []` method.
   @override
   MethodElement get element;
-
-  /// The substituted function type used for this invocation.
-  FunctionType get invokeType;
 }
 
 final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
@@ -40567,9 +40664,6 @@ final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
 
   @override
   TypeImpl get indexContextType => element.formalParameters[0].type;
-
-  @override
-  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// An index write resolved to a statically selected `operator []=` method.
@@ -40580,9 +40674,6 @@ abstract final class MethodIndexWriteResolution
   /// The selected substituted `operator []=` method.
   @override
   MethodElement get element;
-
-  /// The substituted function type used for this invocation.
-  FunctionType get invokeType;
 }
 
 final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
@@ -40597,9 +40688,6 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
 
   @override
   TypeImpl get indexContextType => element.formalParameters[0].type;
-
-  @override
-  FunctionTypeImpl get invokeType => element.type;
 }
 
 /// The invocation of either a function or a method.
@@ -40956,6 +41044,10 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     throw StateError('MethodInvocation is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource =>
+      _v1ProjectionOrigin ?? _parsedExpressionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -40994,10 +41086,15 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @override
-  String toSource() =>
-      _v1ProjectionOrigin?.toSource() ??
-      _parsedExpressionOrigin?._toSourceThrough(endToken) ??
-      super.toSource();
+  String toSource() {
+    if (_v1ProjectionOrigin case var origin?) {
+      return '$_v1CascadeOperator${origin.toSource()}';
+    }
+    if (_parsedExpressionOrigin case var origin?) {
+      return '$_v1CascadeOperator${origin._toSourceThrough(endToken)}';
+    }
+    return super.toSource();
+  }
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -41110,6 +41207,7 @@ final class MissingDotShorthandContextResolutionImpl
 ///     mixinDeclaration ::=
 ///         'base'? 'mixin' name [TypeParameterList]?
 ///         [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+@V1Ast('The V2 counterpart is MixinDeclaration2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MixinDeclaration implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -41599,6 +41697,9 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -42320,6 +42421,9 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
       ..addNode('typeArguments', typeArguments)
       ..addToken('question', question);
   }
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _constructorTypeReferenceOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -47902,6 +48006,9 @@ final class PostfixExpressionImpl extends ExpressionImpl
     throw StateError('PostfixExpression is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -47935,9 +48042,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('PostfixExpression is a V1 projection.');
   }
-
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -48139,6 +48243,9 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   ChildEntities get _childEntities2 {
     throw StateError('PrefixedIdentifier is not in the V2 AST view.');
   }
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -48374,6 +48481,9 @@ final class PrefixExpressionImpl extends ExpressionImpl
     throw StateError('PrefixExpression is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -48407,9 +48517,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('PrefixExpression is a V1 projection.');
   }
-
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -48447,6 +48554,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 }
 
 /// The body of a primary constructor.
+@V1Ast('The V2 counterpart is PrimaryConstructorBody2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 // TODO(scheglov): This should not be a `Declaration`.
 abstract final class PrimaryConstructorBody implements ClassMember {
@@ -48805,6 +48913,9 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -49613,6 +49724,9 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     throw StateError('PropertyAccess is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -49656,8 +49770,9 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
       '${operator.lexeme}${origin.name.lexeme}',
     CascadePropertyExtractionImpl origin =>
       '${operator.lexeme}${origin.name.lexeme}',
-    ParsedExpressionImpl origin => origin._toSourceThrough(endToken),
-    var origin => origin.toSource(),
+    ParsedExpressionImpl origin =>
+      '$_v1CascadeOperator${origin._toSourceThrough(endToken)}',
+    var origin => '$_v1CascadeOperator${origin.toSource()}',
   };
 
   @generated
@@ -54629,6 +54744,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     throw StateError('SimpleIdentifier is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -56036,6 +56154,9 @@ final class SuperExpressionImpl extends ExpressionImpl
   ChildEntities get _childEntities2 {
     throw StateError('SuperExpression is not in the V2 AST view.');
   }
+
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _origin;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -59555,6 +59676,7 @@ final class TopLevelVariable2Impl extends AstNodeImpl
 /// this is a subset of the grammar production `<topLevelDeclaration>`, which
 /// encompasses everything that can appear inside a Dart file after part
 /// directives).
+@V1Ast('The V2 counterpart is TopLevelVariablesDeclaration.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
@@ -59674,6 +59796,9 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -59698,9 +59823,6 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -60326,6 +60448,10 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///         [ClassTypeAlias]
 ///       | [FunctionTypeAlias]
 ///       | [GenericTypeAlias]
+@V1Ast(
+  'The V2 counterparts are ClassTypeAlias2, FunctionTypeAlias2, and '
+  'GenericTypeAlias2.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeAlias implements CompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
@@ -60341,6 +60467,10 @@ abstract final class TypeAlias implements CompilationUnitMember {
   Token get typedefKeyword;
 }
 
+@V1Ast(
+  'The V2 counterparts are ClassTypeAlias2Impl, FunctionTypeAlias2Impl, '
+  'and GenericTypeAlias2Impl.',
+)
 sealed class TypeAliasImpl extends CompilationUnitMemberImpl
     implements TypeAlias {
   @override
@@ -62179,59 +62309,6 @@ enum V1Projection {
     );
   }
 
-  /// Existing origin fields let a projection requested directly from its
-  /// canonical node discover its parent without retaining another tree link.
-  @V1Ast()
-  static AstNodeImpl? _sourceOf(AstNodeImpl node) => switch (node) {
-    AssignmentExpressionImpl() => node._v1ProjectionOrigin,
-    BinaryExpressionImpl() => node._origin,
-    ConstructorReferenceImpl() => node._origin,
-    ConstructorNameImpl() => node._origin as AstNodeImpl?,
-    DotShorthandConstructorInvocationImpl() => node._v1ProjectionOrigin,
-    DotShorthandInvocationImpl() =>
-      node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
-    DotShorthandPropertyAccessImpl() =>
-      node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
-    ClassTypeAliasImpl() => node._v1ProjectionOrigin,
-    ConstructorDeclarationImpl() => node._v1ProjectionOrigin,
-    EnumConstantDeclarationImpl() => node._v1ProjectionOrigin,
-    EnumDeclarationImpl() => node._v1ProjectionOrigin,
-    ExtensionDeclarationImpl() => node._v1ProjectionOrigin,
-    MixinDeclarationImpl() => node._v1ProjectionOrigin,
-    ClassDeclarationImpl() => node._v1ProjectionOrigin,
-    ExtensionTypeDeclarationImpl() => node._v1ProjectionOrigin,
-    BlockClassBodyImpl() => node._v1ProjectionOrigin,
-    EmptyClassBodyImpl() => node._v1ProjectionOrigin,
-    FieldDeclarationImpl() => node._v1ProjectionOrigin,
-    PrimaryConstructorBodyImpl() => node._v1ProjectionOrigin,
-    FunctionDeclarationImpl() => node._v1ProjectionOrigin,
-    MethodDeclarationImpl() => node._v1ProjectionOrigin,
-    TopLevelVariableDeclarationImpl() => node._v1ProjectionOrigin,
-    VariableDeclarationImpl() => node._v1ProjectionOrigin,
-    VariableDeclarationListImpl() => node._v1ProjectionOrigin,
-    FunctionDeclarationStatementImpl() => node._v1ProjectionOrigin,
-    VariableDeclarationStatementImpl() => node._v1ProjectionOrigin,
-    FunctionExpressionImpl() => node._v1ProjectionOrigin,
-    FunctionExpressionInvocationImpl() => node._origin,
-    FunctionReferenceImpl() => node._v1ProjectionOrigin,
-    FunctionTypeAliasImpl() => node._v1ProjectionOrigin,
-    GenericTypeAliasImpl() => node._v1ProjectionOrigin,
-    ImplicitCallReferenceImpl() => node._v1ProjectionOrigin,
-    IndexExpressionImpl() => node._v1ProjectionOrigin,
-    InstanceCreationExpressionImpl() => node._origin ?? node._parsedOrigin,
-    MethodInvocationImpl() =>
-      node._v1ProjectionOrigin ?? node._parsedExpressionOrigin,
-    NamedTypeImpl() => node._constructorTypeReferenceOrigin,
-    PostfixExpressionImpl() => node._origin,
-    PrefixedIdentifierImpl() => node._v1ProjectionOrigin,
-    PrefixExpressionImpl() => node._origin,
-    PropertyAccessImpl() => node._v1ProjectionOrigin,
-    SimpleIdentifierImpl() => node._v1ProjectionOrigin,
-    SuperExpressionImpl() => node._origin,
-    ExtensionOverrideImpl() => node._origin,
-    _ => null,
-  };
-
   @V1Ast()
   static ExpressionImpl? _toV1Expression(
     ExpressionImpl node, {
@@ -62495,6 +62572,7 @@ sealed class VariableBindingImpl implements AstNodeImpl, FlowAnalysisRootImpl {
 //  augmented and declarations that can't be augmented. This results in getters
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
+@V1Ast('The V2 counterparts are Field2, LocalVariable, and TopLevelVariable2.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclaration implements Declaration {
   /// The fragment declared by this declaration.
@@ -62636,6 +62714,9 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -62659,9 +62740,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -62711,6 +62789,10 @@ final class VariableDeclarationImpl extends DeclarationImpl
 ///       | 'const' [TypeAnnotation]?
 ///       | 'var'
 ///       | 'late'? [TypeAnnotation]
+@V1Ast(
+  'The V2 counterparts are FieldsDeclaration, LocalVariablesDeclaration, '
+  'and TopLevelVariablesDeclaration.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclarationList implements AnnotatedNode {
   /// Whether the variables in this list were declared with the 'const'
@@ -62857,6 +62939,9 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   ChildEntities get _childEntities2 => super._childEntities2;
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -62885,6 +62970,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   String toSource() {
     return [
+      for (var annotation in metadata) annotation.toSource(),
       ?lateKeyword?.lexeme,
       ?keyword?.lexeme,
       ?type?.toSource(),
@@ -62954,6 +63040,7 @@ sealed class VariableDeclarationListV1OriginImpl implements AstNodeImpl {
 ///
 ///     variableDeclarationStatement ::=
 ///         [VariableDeclarationList] ';'
+@V1Ast('The V2 counterpart is LocalVariablesDeclarationStatement.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class VariableDeclarationStatement implements Statement {
   /// The semicolon terminating the statement.
@@ -63036,6 +63123,9 @@ final class VariableDeclarationStatementImpl extends StatementImpl
     throw StateError('VariableDeclarationStatement is not in the V2 AST view.');
   }
 
+  @override
+  AstNodeImpl? get _v1ProjectionSource => _v1ProjectionOrigin;
+
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
@@ -63060,9 +63150,6 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')

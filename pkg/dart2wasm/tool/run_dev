@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Script to run a program compiled using dart2wasm_dev. Assumes the Dart repo's
+# directory structure.
+#
+# This is also used by the test runner.
+
+set -e
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+source "$PROG_DIR/utils.sh"
+
+RUN_WASM_DEV="$SDK_DIR/pkg/dart2wasm/bin/run_wasm_dev.js"
+DEV_RT_MJS="$BIN_DIR/wasm_dev_rt.mjs"
+DEV_RT_WASM="$BIN_DIR/wasm_dev_rt.wasm"
+
+SHELL_BIN="$D8_BIN"
+SHELL_OPTIONS=()
+SHELL_ARG_SEPERATOR="--"
+WASM_FILE=""
+EXTRA_JS_FILES=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --d8)
+      SHELL_BIN="$D8_BIN"
+      SHELL_ARG_SEPERATOR="--"
+      shift
+      ;;
+
+    --jsshell)
+      SHELL_BIN="$JSSHELL_BIN"
+      SHELL_ARG_SEPERATOR=""
+      shift
+      ;;
+
+    --jsc)
+      SHELL_BIN="$JSC_BIN"
+      SHELL_ARG_SEPERATOR="--"
+      shift
+      ;;
+
+    --shell-option=*)
+      SHELL_OPTIONS+=("${1#--shell-option=}")
+      shift
+      ;;
+
+    *.js)
+      EXTRA_JS_FILES+=("$1")
+      shift
+      ;;
+
+    *.wasm)
+      WASM_FILE="$(get_realpath "$1")"
+      shift
+      ;;
+
+    *)
+      # Any arguments that are not the above will be arguments to the dart's
+      # main function.
+      break
+      ;;
+  esac
+done
+
+exec "$SHELL_BIN" "${SHELL_OPTIONS[@]}" "${EXTRA_JS_FILES[@]}" "$RUN_WASM_DEV" $SHELL_ARG_SEPERATOR "$DEV_RT_MJS" "$DEV_RT_WASM" "$WASM_FILE" -- "$@"

@@ -4237,7 +4237,6 @@ ExtensionTypeDeclaration2
                 name: deprecated
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               element: dart:core::@getter::deprecated
@@ -4511,7 +4510,6 @@ ExtensionTypeDeclaration2
                 name: deprecated
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               element: dart:core::@getter::deprecated
@@ -4586,7 +4584,6 @@ ExtensionTypeDeclaration2
                 name: deprecated
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               element: dart:core::@getter::deprecated
@@ -5206,7 +5203,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -5231,7 +5227,6 @@ PrimaryConstructorDeclaration
                 name: foo
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@extensionType::E::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5250,7 +5245,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@extensionType::E::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             value(v1): SimpleIdentifier
@@ -5434,7 +5428,6 @@ ExtensionTypeDeclaration2
                   name: it
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@extensionType::A::@getter::it
-                    invokeType: bool Function()
                     type: bool
                   staticType: bool
                 semicolon: ;
@@ -5465,7 +5458,6 @@ ExtensionTypeDeclaration2
                   name: it
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@extensionType::A::@getter::it
-                    invokeType: bool Function()
                     type: bool
                   staticType: bool
                 semicolon: ;
@@ -5576,7 +5568,6 @@ PrimaryConstructorBody2
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
       element: dart:core::@getter::deprecated
@@ -5706,7 +5697,6 @@ PrimaryConstructorBody2
             name: it
             resolution: GetterInvocationResolution
               element: <testLibrary>::@extensionType::A::@getter::it
-              invokeType: int Function()
               type: int
             staticType: int
           semicolon: ;

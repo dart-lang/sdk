@@ -9,6 +9,7 @@ import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
@@ -17,13 +18,19 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 final class FixInFileProcessor {
   final DartFixContext _fixContext;
   final Set<String>? alreadyCalculated;
+  final CancellationToken? _cancellationToken;
 
   /// If passing [alreadyCalculated] a result will only be calculated if one
   /// hasn't been calculated already (for a similar situation). If calculating
   /// the Set will be ammended with this information.
   /// If not passing [alreadyCalculated] the calculation will always be
   /// performed.
-  new(this._fixContext, {this.alreadyCalculated});
+  ///
+  /// If [_cancellationToken] is cancelled, [compute] returns early with any
+  /// fixes computed so far.
+  new(this._fixContext, {this.alreadyCalculated, this._cancellationToken});
+
+  bool get _isCancelled => _cancellationToken?.isCancellationRequested ?? false;
 
   Future<List<Fix>> compute({Iterable<Diagnostic>? diagnostics}) async {
     var diagnostic = _fixContext.diagnostic;
@@ -61,9 +68,9 @@ final class FixInFileProcessor {
 
     var fixes = <Fix>[];
     for (var generator in generators) {
-      if (generator(
-        context: StubCorrectionProducerContext.instance,
-      ).canBeAppliedAcrossSingleFile) {
+      if (_isCancelled) return fixes;
+      if (generator(context: StubCorrectionProducerContext.instance)
+          .canBeAppliedAcrossSingleFile) {
         _FixState fixState = _EmptyFixState(
           ChangeBuilder(
             workspace: _fixContext.workspace,
@@ -96,6 +103,7 @@ final class FixInFileProcessor {
 
         // Compute fixes for the rest of the errors.
         for (var d in diagnostics.where((item) => item != diagnostic)) {
+          if (_isCancelled) return fixes;
           var fixContext = DartFixContext(
             instrumentationService: _fixContext.instrumentationService,
             workspace: _fixContext.workspace,

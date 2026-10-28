@@ -9,9 +9,9 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/dart_template_buffer.dart
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/witness.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
@@ -245,8 +245,8 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   final TypeSystemImpl _typeSystem;
   final LibraryElement _enclosingLibrary;
 
-  final Map<InterfaceTypeImpl, Map<Key, TypeImpl>> _interfaceFieldTypesCaches =
-      {};
+  final Map<InterfaceTypeImpl, Map<Key, TypeImpl>>
+  _interfacePropertyTypesCaches = {};
 
   new(this._typeSystem, this._enclosingLibrary);
 
@@ -262,25 +262,6 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   @override
   TypeImpl getExtensionTypeErasure(TypeImpl type) {
     return type.extensionTypeErasure;
-  }
-
-  @override
-  Map<Key, TypeImpl> getFieldTypes(TypeImpl type) {
-    if (type is InterfaceTypeImpl) {
-      return _getInterfaceFieldTypes(type);
-    } else if (type is RecordTypeImpl) {
-      Map<Key, TypeImpl> fieldTypes = {};
-      fieldTypes.addAll(getFieldTypes(_typeSystem.typeProvider.objectType));
-      for (int index = 0; index < type.positionalFields.length; index++) {
-        var field = type.positionalFields[index];
-        fieldTypes[RecordIndexKey(index)] = field.type;
-      }
-      for (var field in type.namedFields) {
-        fieldTypes[RecordNameKey(field.name)] = field.type;
-      }
-      return fieldTypes;
-    }
-    return getFieldTypes(_typeSystem.typeProvider.objectType);
   }
 
   @override
@@ -314,6 +295,27 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   @override
   TypeImpl getNonNullable(TypeImpl type) {
     return _typeSystem.promoteToNonNull(type);
+  }
+
+  @override
+  Map<Key, TypeImpl> getPropertyTypes(TypeImpl type) {
+    if (type is InterfaceTypeImpl) {
+      return _getInterfacePropertyTypes(type);
+    } else if (type is RecordTypeImpl) {
+      Map<Key, TypeImpl> propertyTypes = {};
+      propertyTypes.addAll(
+        getPropertyTypes(_typeSystem.typeProvider.objectType),
+      );
+      for (int index = 0; index < type.positionalFields.length; index++) {
+        var field = type.positionalFields[index];
+        propertyTypes[RecordIndexKey(index)] = field.type;
+      }
+      for (var field in type.namedFields) {
+        propertyTypes[RecordNameKey(field.name)] = field.type;
+      }
+      return propertyTypes;
+    }
+    return getPropertyTypes(_typeSystem.typeProvider.objectType);
   }
 
   @override
@@ -414,12 +416,12 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   @override
   String typeToString(TypeImpl type) => type.toString();
 
-  Map<Key, TypeImpl> _getInterfaceFieldTypes(InterfaceTypeImpl type) {
-    var fieldTypes = _interfaceFieldTypesCaches[type];
-    if (fieldTypes == null) {
-      _interfaceFieldTypesCaches[type] = fieldTypes = {};
+  Map<Key, TypeImpl> _getInterfacePropertyTypes(InterfaceTypeImpl type) {
+    var propertyTypes = _interfacePropertyTypesCaches[type];
+    if (propertyTypes == null) {
+      _interfacePropertyTypesCaches[type] = propertyTypes = {};
       for (var supertype in type.allSupertypes) {
-        fieldTypes.addAll(_getInterfaceFieldTypes(supertype));
+        propertyTypes.addAll(_getInterfacePropertyTypes(supertype));
       }
       for (var getter in type.getters) {
         if (getter.isPrivate && getter.library != _enclosingLibrary) {
@@ -430,7 +432,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
           continue;
         }
         if (!getter.isStatic) {
-          fieldTypes[NameKey(name)] = getter.type.returnType;
+          propertyTypes[NameKey(name)] = getter.type.returnType;
         }
       }
       for (var method in type.methods) {
@@ -442,11 +444,11 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
           continue;
         }
         if (!method.isStatic) {
-          fieldTypes[NameKey(name)] = method.type;
+          propertyTypes[NameKey(name)] = method.type;
         }
       }
     }
-    return fieldTypes;
+    return propertyTypes;
   }
 }
 
@@ -455,11 +457,11 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 class ExhaustivenessDataForTesting {
   /// Access to interface for looking up `Object` members on non-interface
   /// types.
-  final ObjectPropertyLookup objectFieldLookup;
+  final ObjectPropertyLookup objectPropertyLookup;
 
-  /// Map from switch statement/expression nodes to the static type of the
+  /// Map from switch statement/expression nodes to the shape of the
   /// scrutinee.
-  Map<AstNode, StaticType> switchScrutineeType = {};
+  Map<AstNode, Shape> switchScrutineeShape = {};
 
   /// Map from switch statement/expression nodes the spaces for its cases.
   Map<AstNode, List<Space>> switchCases = {};
@@ -475,7 +477,7 @@ class ExhaustivenessDataForTesting {
   /// non-exhaustive, to information about their non-exhaustiveness.
   Map<AstNode, NonExhaustiveness> nonExhaustivenesses = {};
 
-  new(this.objectFieldLookup);
+  new(this.objectPropertyLookup);
 }
 
 class MissingPatternEnumValuePart extends MissingPatternPart {
@@ -544,49 +546,49 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
   });
 
   @override
-  ObjectPropertyLookup get objectFieldLookup => cache;
+  ObjectPropertyLookup get objectPropertyLookup => cache;
 
   @override
   TypeOperations<TypeImpl> get typeOperations => cache.typeOperations;
 
   @override
-  StaticType createListType(
+  Shape createListShape(
     TypeImpl type,
-    ListTypeRestriction<TypeImpl> restriction,
+    ListShapeRestriction<TypeImpl> restriction,
   ) {
-    return cache.getListStaticType(type, restriction);
+    return cache.getListShape(type, restriction);
   }
 
   @override
-  StaticType createMapType(
+  Shape createMapShape(
     TypeImpl type,
-    MapTypeRestriction<TypeImpl> restriction,
+    MapShapeRestriction<TypeImpl> restriction,
   ) {
-    return cache.getMapStaticType(type, restriction);
+    return cache.getMapShape(type, restriction);
   }
 
   @override
-  StaticType createStaticType(TypeImpl type) {
+  Shape createShapeForType(TypeImpl type) {
     hasInvalidType |= type is InvalidTypeImpl;
-    return cache.getStaticType(type);
+    return cache.getShapeForType(type);
   }
 
   @override
-  StaticType createUnknownStaticType() {
-    return cache.getUnknownStaticType();
+  Shape createUnknownShape() {
+    return cache.getUnknownShape();
   }
 
   @override
   Space dispatchPattern(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     DartPattern pattern, {
     required bool nonNull,
   }) {
     if (pattern is DeclaredVariablePatternImpl) {
       return createVariableSpace(
         path,
-        contextType,
+        contextShape,
         pattern.declaredFragment!.element.type,
         nonNull: nonNull,
       );
@@ -617,7 +619,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       }
       return createObjectSpace(
         path,
-        contextType,
+        contextShape,
         pattern.type.typeOrThrow,
         properties,
         extensionPropertyTypes,
@@ -626,7 +628,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is WildcardPattern) {
       return createWildcardSpace(
         path,
-        contextType,
+        contextShape,
         pattern.type?.typeOrThrow,
         nonNull: nonNull,
       );
@@ -658,7 +660,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       );
       return createRecordSpace(
         path,
-        contextType,
+        contextShape,
         recordType,
         positionalPatterns,
         namedPatterns,
@@ -666,26 +668,26 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is LogicalOrPattern) {
       return createLogicalOrSpace(
         path,
-        contextType,
+        contextShape,
         pattern.leftOperand,
         pattern.rightOperand,
         nonNull: nonNull,
       );
     } else if (pattern is NullCheckPattern) {
-      return createNullCheckSpace(path, contextType, pattern.pattern);
+      return createNullCheckSpace(path, contextShape, pattern.pattern);
     } else if (pattern is ParenthesizedPattern) {
       return dispatchPattern(
         path,
-        contextType,
+        contextShape,
         pattern.pattern,
         nonNull: nonNull,
       );
     } else if (pattern is NullAssertPattern) {
-      return createNullAssertSpace(path, contextType, pattern.pattern);
+      return createNullAssertSpace(path, contextShape, pattern.pattern);
     } else if (pattern is CastPattern) {
       return createCastSpace(
         path,
-        contextType,
+        contextShape,
         pattern.type.typeOrThrow,
         pattern.pattern,
         nonNull: nonNull,
@@ -693,7 +695,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is LogicalAndPattern) {
       return createLogicalAndSpace(
         path,
-        contextType,
+        contextShape,
         pattern.leftOperand,
         pattern.rightOperand,
         nonNull: nonNull,
@@ -784,11 +786,11 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     var type = value.type;
     var state = value.state;
     if (value.isNull) {
-      return Space(path, StaticType.nullType);
+      return Space(path, Shape.nullShape);
     } else if (state is BoolState) {
       var value = state.value;
       if (value != null) {
-        return Space(path, cache.getBoolValueStaticType(state.value!));
+        return Space(path, cache.getBoolValueShape(state.value!));
       }
     } else if (state is RecordState) {
       var properties = <Key, Space>{};
@@ -801,18 +803,18 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
         var key = RecordNameKey(entry.key);
         properties[key] = _convertConstantValue(entry.value, path.add(key));
       }
-      return Space(path, cache.getStaticType(type), properties: properties);
+      return Space(path, cache.getShapeForType(type), properties: properties);
     }
     if (type is InterfaceTypeImpl) {
       var element = type.element;
       if (element is EnumElementImpl) {
-        return Space(path, cache.getEnumElementStaticType(element, value));
+        return Space(path, cache.getEnumElementShape(element, value));
       }
     }
 
-    StaticType staticType;
+    Shape shape;
     if (value.hasPrimitiveEquality(featureSet)) {
-      staticType = cache.getUniqueStaticType<DartObjectImpl>(
+      shape = cache.getUniqueShape<DartObjectImpl>(
         type,
         value,
         value.state.toString(),
@@ -820,10 +822,10 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else {
       // If [value] doesn't have primitive equality we cannot tell if it is
       // equal to itself.
-      staticType = cache.getUnknownStaticType();
+      shape = cache.getUnknownShape();
     }
 
-    return Space(path, staticType);
+    return Space(path, shape);
   }
 }
 

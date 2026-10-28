@@ -364,14 +364,16 @@ class _RecordClassGenerator {
           );
         },
       );
-      if (fields.length <= 20) {
-        // Object.hash(field1, field2, ...)
+      // `Object.hash` has 20 positional parameters, and the shape id is one
+      // of the arguments.
+      if (arguments.length <= 20) {
+        // Object.hash(shapeId, field1, field2, ...)
         returnValue = StaticInvocation(
           objectHashProcedure,
           Arguments(arguments),
         );
       } else {
-        // Object.hashAll([field1, field2, ...])
+        // Object.hashAll([shapeId, field1, field2, ...])
         returnValue = StaticInvocation(
           objectHashAllProcedure,
           Arguments(ExpressionList(ListLiteral(arguments))),

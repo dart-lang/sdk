@@ -4,21 +4,21 @@
 
 import 'key.dart';
 import 'path.dart';
-import 'static_type.dart';
+import 'shape.dart';
 
-/// The main pattern for matching types and destructuring.
+/// The main pattern for matching shapes and destructuring.
 ///
-/// It has a type which determines the type of values it contains. The type may
-/// be [StaticType.nullableObject] to indicate that it doesn't filter by type.
+/// It has a shape which determines the values it contains. The shape may be
+/// [Shape.nullableObject] to indicate that it doesn't filter by shape.
 ///
 /// It may also contain zero or more named properties. The pattern then only
 /// matches values where the property values are matched by the corresponding
 /// property patterns.
 class SingleSpace {
-  static final SingleSpace empty = new SingleSpace(StaticType.neverType);
+  static final SingleSpace empty = new SingleSpace(Shape.neverShape);
 
-  /// The type of values the pattern matches.
-  final StaticType type;
+  /// The shape of the values the pattern matches.
+  final Shape shape;
 
   /// Any property subpatterns the pattern matches.
   final Map<Key, Space> properties;
@@ -27,14 +27,14 @@ class SingleSpace {
   final Map<Key, Space> additionalProperties;
 
   new(
-    this.type, {
+    this.shape, {
     this.properties = const {},
     this.additionalProperties = const {},
   });
 
   @override
   late final int hashCode = Object.hash(
-    type,
+    shape,
     Object.hashAllUnordered(properties.keys),
     Object.hashAllUnordered(properties.values),
   );
@@ -43,7 +43,7 @@ class SingleSpace {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! SingleSpace) return false;
-    if (type != other.type) return false;
+    if (shape != other.shape) return false;
     if (properties.length != other.properties.length) return false;
     if (properties.isNotEmpty) {
       for (MapEntry<Key, Space> entry in properties.entries) {
@@ -57,7 +57,7 @@ class SingleSpace {
 
   @override
   String toString() {
-    return type.spaceToText(properties, additionalProperties);
+    return shape.spaceToText(properties, additionalProperties);
   }
 }
 
@@ -77,12 +77,12 @@ class Space {
 
   new(
     Path path,
-    StaticType type, {
+    Shape shape, {
     Map<Key, Space> properties = const {},
     Map<Key, Space> additionalProperties = const {},
   }) : this._(path, [
          new SingleSpace(
-           type,
+           shape,
            properties: properties,
            additionalProperties: additionalProperties,
          ),
@@ -106,14 +106,18 @@ class Space {
     if (singleSpacesSet.isEmpty) {
       singleSpacesList.add(SingleSpace.empty);
     } else if (singleSpacesList.length == 2) {
-      if (singleSpacesList[0].type == StaticType.nullType &&
+      if (singleSpacesList[0].shape == Shape.nullShape &&
           singleSpacesList[0].properties.isEmpty &&
           singleSpacesList[1].properties.isEmpty) {
-        singleSpacesList = [new SingleSpace(singleSpacesList[1].type.nullable)];
-      } else if (singleSpacesList[1].type == StaticType.nullType &&
+        singleSpacesList = [
+          new SingleSpace(singleSpacesList[1].shape.nullable),
+        ];
+      } else if (singleSpacesList[1].shape == Shape.nullShape &&
           singleSpacesList[1].properties.isEmpty &&
           singleSpacesList[0].properties.isEmpty) {
-        singleSpacesList = [new SingleSpace(singleSpacesList[0].type.nullable)];
+        singleSpacesList = [
+          new SingleSpace(singleSpacesList[0].shape.nullable),
+        ];
       }
     }
     return new Space._(path, singleSpacesList);

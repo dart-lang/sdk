@@ -78,6 +78,9 @@ abstract class CompilerConfiguration {
       case Compiler.dart2wasm:
         return Dart2WasmCompilerConfiguration(configuration);
 
+      case Compiler.dart2wasmDev:
+        return Dart2WasmDevCompilerConfiguration(configuration);
+
       case Compiler.ddc:
         return DevCompilerConfiguration(configuration);
 
@@ -544,6 +547,36 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         (obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm',
       ),
       ...args,
+    ];
+  }
+}
+
+/// Configuration for "dart2wasm_dev".
+class Dart2WasmDevCompilerConfiguration extends Dart2WasmCompilerConfiguration {
+  Dart2WasmDevCompilerConfiguration(super.configuration);
+
+  @override
+  String computeCompilerPath() {
+    if (_useSdk) {
+      // TODO: Once we ship wasm dev compiler as part of the Dart SDK,
+      // the Dart SDK folder will contain wasm dev runtime & platform files.
+      // (until then we don't want to make Dart SDK bigger)
+      throw "--compiler=dart2wasm_dev and --use-sdk cannot be used together";
+    }
+    return 'pkg/dart2wasm/tool/compile_dev';
+  }
+
+  @override
+  List<String> computeCompilerArguments(
+    TestFile testFile,
+    List<String> vmOptions,
+    List<String> args,
+  ) {
+    assert(!_useSdk);
+    return [
+      if (_enableHostAsserts) '--compiler-asserts',
+      // The file being compiled is the last argument.
+      args.last,
     ];
   }
 }

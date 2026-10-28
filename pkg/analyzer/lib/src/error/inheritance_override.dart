@@ -234,25 +234,21 @@ class InheritanceOverrideVerifier {
     );
   }
 
-  /// Returns names of members that the given class must override because of
-  /// `@mustBeOverridden`.
+  /// Returns names of members that the declaration of [fragment] must
+  /// override because of `@mustBeOverridden`.
   ///
-  /// The names are recorded for the fragment, which is shared by both AST
-  /// views of the declaration.
-  static List<Name> missingMustBeOverriddenNames(CompilationUnitMember node) {
-    var fragment = node.declaredFragment;
-    if (fragment == null) return const [];
+  /// The names are recorded for the fragment, so that they are available for
+  /// both AST views of the declaration.
+  static List<Name> missingMustBeOverriddenNames(InterfaceFragment fragment) {
     return _missingMustBeOverriddenNames[fragment]?.toList() ?? const [];
   }
 
-  /// Returns names of inherited abstract members that the given class must
-  /// override.
+  /// Returns names of inherited abstract members that the declaration of
+  /// [fragment] must override.
   ///
-  /// The names are recorded for the fragment, which is shared by both AST
-  /// views of the declaration.
-  static List<Name> missingOverrideNames(CompilationUnitMember node) {
-    var fragment = node.declaredFragment;
-    if (fragment == null) return const [];
+  /// The names are recorded for the fragment, so that they are available for
+  /// both AST views of the declaration.
+  static List<Name> missingOverrideNames(InterfaceFragment fragment) {
     return _missingOverrideNames[fragment]?.toList() ?? const [];
   }
 }

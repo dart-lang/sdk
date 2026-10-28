@@ -1563,6 +1563,13 @@ class SsaPhiConditioning extends HGraphVisitor implements CodegenPhase {
         break;
       }
 
+      // The block containing HTry must contain only the HTry control flow
+      // instruction, so hoisted values must be placed in its dominator, before
+      // the try statement.
+      while (dominator.last is HTry) {
+        dominator = dominator.dominator!;
+      }
+
       dominator.addBefore(dominator.last, value);
 
       for (final (phi, index) in bestReferences) {

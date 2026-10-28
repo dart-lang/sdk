@@ -11,6 +11,7 @@ resolution: workspace
 dependencies:
   args: any
   browser_launcher: any
+  dap_adapters: any
   dart_runtime_service: any
   dds: any
   dds_service_extensions: any

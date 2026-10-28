@@ -39,7 +39,7 @@ class AnnotationVerifier {
     if (element == null) {
       return;
     }
-    var parent = node.parent2;
+    var parent = node.parent2!;
     if (element.isAwaitNotRequired) {
       _checkAwaitNotRequired(node);
     } else if (element.isDeprecated) {
@@ -326,7 +326,7 @@ class AnnotationVerifier {
   /// Reports a warning at [node] if its parent is not a valid target for an
   /// `@internal` annotation.
   void _checkInternal(Annotation node) {
-    var parent = node.parent2;
+    var parent = node.parent2!;
     var parentElement = _declaredElement(parent);
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;
     if (parent is TopLevelVariablesDeclaration) {
@@ -437,7 +437,7 @@ class AnnotationVerifier {
   /// Reports a warning at [node] if its parent is not a valid target for a
   /// `@redeclare` annotation.
   void _checkRedeclare(Annotation node) {
-    var parent = node.parent2;
+    var parent = node.parent2!;
     var parent2 = parent.parent2;
     var parent3 = parent2?.parent2;
     if (parent2 is! BlockInstanceDeclarationBody ||
@@ -517,7 +517,7 @@ class AnnotationVerifier {
   /// Reports a warning if [node], a `@UseResult` annotation, references an
   /// unknown parameter as an argument to 'unless'.
   void _checkUseResult(Annotation node, ElementAnnotation element) {
-    var parent = node.parent2;
+    var parent = node.parent2!;
     var undefinedParameter = _findUndefinedUseResultParameter(
       element,
       node,
@@ -555,7 +555,7 @@ class AnnotationVerifier {
   /// (`visibleForTemplate`, `visibleOutsideTemplate`, `visibleForTesting`,
   /// `visibleForOverride`) annotation.
   void _checkVisibility(Annotation node, ElementAnnotation element) {
-    var parent = node.parent2;
+    var parent = node.parent2!;
     if (parent is! Declaration &&
         parent is! TopLevelDeclaration &&
         parent is! MemberDeclaration &&

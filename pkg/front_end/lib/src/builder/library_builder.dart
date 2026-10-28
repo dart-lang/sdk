@@ -183,11 +183,10 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     fileUri ??= this.fileUri;
 
-    return loader.addProblem(
+    return loader.addLibraryProblem(
       message,
       charOffset,
       length,
@@ -195,7 +194,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: true,
     );
   }
 

@@ -225,13 +225,13 @@ class DartdevRunner extends CommandRunner<int> {
         isBot(environment: environment) &&
         !_isAnalyticsTest &&
         agentName == null;
-    final envSuppressAnalytics =
-        environment[DashEnvVar.suppressAnalytics.name] == 'true';
     final suppressAnalytics =
         !topLevelResults.flag('analytics') ||
         topLevelResults.flag('suppress-analytics') ||
-        implicitlySuppressAnalytics ||
-        envSuppressAnalytics;
+        areAnalyticsSuppressedIn(
+          environment,
+          defaultValue: implicitlySuppressAnalytics,
+        );
 
     if (topLevelResults.wasParsed('analytics')) {
       log.stderr(
@@ -243,7 +243,6 @@ class DartdevRunner extends CommandRunner<int> {
     final disableAnalytics = topLevelResults.flag('disable-analytics');
 
     if (!implicitlySuppressAnalytics &&
-        !envSuppressAnalytics &&
         suppressAnalytics &&
         (enableAnalytics || disableAnalytics)) {
       // This isn't an error if we're implicitly disabling analytics because

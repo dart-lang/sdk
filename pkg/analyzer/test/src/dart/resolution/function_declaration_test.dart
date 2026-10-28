@@ -178,6 +178,63 @@ V1: FunctionDeclaration
 ''');
   }
 
+  test_augmentation_formalParameter_missingInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void foo(int x);
+//   ^^^
+// [context 1] The declaration being augmented.
+
+augment void foo() {
+//               ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+  x;
+//^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
+  token: x
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_augmentation_formalParameter_onlyInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+void foo();
+//   ^^^
+// [context 1] The declaration being augmented.
+
+augment void foo([int x = 0]) {
+//               ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+  x;
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::foo::@formalParameter::x
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: x
+  element: <testLibrary>::@function::foo::@formalParameter::x
+  staticType: int
+''');
+  }
+
   test_formalParameterScope_defaultValue() async {
     var result = await resolveTestCodeWithDiagnostics('''
 const foo = 0;
@@ -192,7 +249,6 @@ UnqualifiedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -612,6 +668,30 @@ V1: FunctionDeclaration
   declaredFragment: <testLibraryFragment> foo@8
     element: <testLibrary>::@getter::foo
       type: int Function()
+''');
+  }
+
+  test_getter_augmentation_formalParameter_onlyInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+int get foo;
+
+augment int get foo([int x = 0]) => x;
+//                 ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: x@null
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: x
+  element: x@null
+  staticType: int
 ''');
   }
 

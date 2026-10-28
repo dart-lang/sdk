@@ -62,7 +62,7 @@ class CodeActionHandler
       performance: performance,
     );
 
-    return await computer.compute();
+    return await computer.compute(token);
   }
 }
 

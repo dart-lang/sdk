@@ -29,6 +29,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.allowCommands,
     required super.analysisOptions,
     required super.allowSnippets,
+    required super.token,
   });
 
   @override
@@ -50,7 +51,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     var session = await server.getAnalysisSession(path);
-    if (session == null) {
+    if (session == null || token.isCancellationRequested) {
       return [];
     }
 
@@ -85,6 +86,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
         defaultEol: server.defaultEol,
       );
       var fixes = await generator.computeFixes();
+      if (token.isCancellationRequested) return [];
       if (fixes.isEmpty) {
         continue;
       }

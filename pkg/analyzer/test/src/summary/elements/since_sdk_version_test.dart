@@ -423,14 +423,12 @@ library
                       name: v1 @-1
                       resolution: GetterInvocationResolution
                         element: dart:foo::@enum::E::@getter::v1
-                        invokeType: E Function()
                         type: E
                       staticType: E
                     UnqualifiedNameExpression
                       name: v2 @-1
                       resolution: GetterInvocationResolution
                         element: dart:foo::@enum::E::@getter::v2
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)
@@ -552,7 +550,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: dart:foo::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)

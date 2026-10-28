@@ -6,60 +6,26 @@ import("../../sdk_args.gni")
 import("../../utils/compile_platform.gni")
 import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
-import("../create_timestamp.gni")
-
-create_timestamp_file("dart2js_files_stamp") {
-  path = rebase_path("../../pkg/compiler/lib")
-  output = "$target_gen_dir/dart2js_files.stamp"
-}
-
-create_timestamp_file("runtime_lib_files_stamp") {
-  path = rebase_path("../../runtime/lib")
-  output = "$target_gen_dir/runtime_lib_files.stamp"
-}
-
-create_timestamp_file("dartdoc_files_stamp") {
-  path = rebase_path("../../sdk/lib/_internal/dartdoc")
-  output = "$target_gen_dir/dartdoc_files.stamp"
-}
-
-prebuilt_dart_action("dart2js_create_snapshot_entry") {
-  deps = [
-    ":dart2js_files_stamp",
-    ":dartdoc_files_stamp",
-    ":runtime_lib_files_stamp",
-  ]
-
-  output_dir = rebase_path(target_gen_dir)
-
-  script = "create_snapshot_entry.dart"
-
-  inputs = [
-    "$target_gen_dir/dart2js_files.stamp",
-    "../../tools/make_version.py",
-    "../../tools/VERSION",
-  ]
-
-  outputs = [ "$target_gen_dir/dart2js.dart" ]
-
-  packages = "../../.dart_tool/package_config.json"
-
-  args = [ "--output_dir=" + rebase_path(output_dir, root_build_dir) ]
-  if (!dart_version_git_info) {
-    args += [ "--no-git-hash" ]
-  }
-}
 
 sdk_root = "../../sdk"
 
+if (dart_version_git_info) {
+  dart2js_version =
+      exec_script("../../tools/make_version.py", [], "trim string")
+} else {
+  dart2js_version = exec_script("../../tools/make_version.py",
+                                [ "--no-git-hash" ],
+                                "trim string")
+}
+
 application_snapshot("dart2js") {
-  deps = [ ":dart2js_create_snapshot_entry" ]
   training_deps = [ ":dart2js_platform" ]
   training_inputs = [
     "$root_out_dir/dart2js_platform.dill",
     "$root_out_dir/dart2js_outline.dill",
   ]
-  main_dart = "$target_gen_dir/dart2js.dart"
+  main_dart = "../../pkg/compiler/lib/src/dart2js.dart"
+  vm_args = [ "-DbuildID=" + dart2js_version ]
   training_args = [
     "--invoker=gn_build",
     "--packages=" +
@@ -77,24 +43,21 @@ application_snapshot("dart2js") {
 }
 
 aot_snapshot("dart2js_aot") {
-  deps = [ ":dart2js_create_snapshot_entry" ]
-
-  main_dart = "$target_gen_dir/dart2js.dart"
+  main_dart = "../../pkg/compiler/lib/src/dart2js.dart"
+  gen_kernel_args = [ "-DbuildID=" + dart2js_version ]
   name = "dart2js_aot"
 }
 
 aot_snapshot("dart2js_sdk_aot") {
-  deps = [ ":dart2js_create_snapshot_entry" ]
-
-  main_dart = "$target_gen_dir/dart2js.dart"
+  main_dart = "../../pkg/compiler/lib/src/dart2js.dart"
+  gen_kernel_args = [ "-DbuildID=" + dart2js_version ]
   name = "dart2js_aot.dart"
   output = "$root_gen_dir/dart2js_aot.dart.snapshot"
 }
 
 aot_snapshot("dart2js_sdk_aot_product") {
-  deps = [ ":dart2js_create_snapshot_entry" ]
-
-  main_dart = "$target_gen_dir/dart2js.dart"
+  main_dart = "../../pkg/compiler/lib/src/dart2js.dart"
+  gen_kernel_args = [ "-DbuildID=" + dart2js_version ]
   name = "dart2js_aot_product.dart"
   output = "$root_gen_dir/dart2js_aot_product.dart.snapshot"
 

@@ -23,6 +23,7 @@ import 'tools/file_watch.dart';
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
 import 'tools/sandbox.dart';
+import 'util/log.dart';
 import 'util/parameters_ext.dart';
 import 'worker_protocol_version.dart';
 
@@ -236,6 +237,8 @@ class _Session {
     unawaited(() async {
       try {
         await _rpc.listen();
+      } catch (e, st) {
+        _onUnhandledError(e, st);
       } finally {
         idleTimer.cancel();
         confirmTimer?.cancel();
@@ -325,7 +328,7 @@ class _Session {
   }
 
   void _onUnhandledError(Object? e, Object? st) {
-    print('Unhandled error not forwarded to the client: $e, $st');
+    logWarning('Unhandled error not forwarded to the client: $e, $st');
   }
 }
 

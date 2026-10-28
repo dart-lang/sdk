@@ -7,7 +7,7 @@ library _fe_analyzer_shared.scanner.utf8_bytes_scanner;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'dart:convert' show unicodeBomCharacterRune, utf8;
+import 'dart:convert' show utf8;
 
 import 'characters.dart';
 
@@ -148,9 +148,8 @@ class Utf8BytesScanner extends AbstractScanner {
   }
 
   @override
-  @pragma('vm:unsafe:no-bounds-checks')
   int current() {
-    if (byteOffset > _bytesLengthMinusOne) return $EOF;
+    if (byteOffset < 0 || byteOffset > _bytesLengthMinusOne) return $EOF;
     return _bytes[byteOffset];
   }
 
@@ -195,6 +194,7 @@ class Utf8BytesScanner extends AbstractScanner {
       byteOffset = localByteOffset;
       return next;
     }
+    byteOffset = localByteOffset;
 
     // Less than 10 bytes left in stream.
     while (true) {
@@ -308,10 +308,10 @@ class Utf8BytesScanner extends AbstractScanner {
     // Less than 10 bytes left.
     int next = advance();
     while (true) {
-      nonAsciiCount |= next;
       if ($LF == next || $CR == next || $EOF == next) {
         return nonAsciiCount & 128 == 0;
       }
+      nonAsciiCount |= next;
       next = advance();
     }
   }
@@ -377,63 +377,84 @@ class Utf8BytesScanner extends AbstractScanner {
   /// Returns the unicode code point starting at the byte offset [startOffset]
   /// with the byte [nextByte].
   int nextCodePoint(int startOffset, int nextByte) {
-    int expectedHighBytes;
-    if (nextByte < 0xC2) {
-      expectedHighBytes = 1; // Bad code unit.
-    } else if (nextByte < 0xE0) {
-      expectedHighBytes = 2;
-    } else if (nextByte < 0xF0) {
-      expectedHighBytes = 3;
-    } else if (nextByte < 0xF5) {
-      expectedHighBytes = 4;
-    } else {
-      expectedHighBytes = 1; // Bad code unit.
+    int codePoint = _decodeUtf8CodePoint(nextByte);
+    int extraBytesRead = byteOffset - startOffset;
+
+    if (codePoint < 0x10000) {
+      utf8Slack += extraBytesRead;
+      scanSlack = extraBytesRead;
+      scanSlackOffset = byteOffset;
+      return codePoint;
     }
-    int numBytes = 0;
-    for (int i = 0; i < expectedHighBytes; i++) {
-      int next = byteOffset + i;
-      if (next > _bytesLengthMinusOne) break;
-      if (_bytes[next] < 0x80) {
-        break;
+
+    // UTF-16 string has a surrogate pair (i.e. 2 "characters").
+    utf8Slack += extraBytesRead - 1;
+    scanSlack = extraBytesRead;
+    scanSlackOffset = byteOffset;
+    stringOffsetSlackOffset = byteOffset;
+    return codePoint;
+  }
+
+  /// Decodes a single code point. Follows
+  /// https://encoding.spec.whatwg.org/#utf-8-decoder (see used
+  /// version at
+  /// https://web.archive.org/web/20261017134244/https://encoding.spec.whatwg.org/#utf-8-decoder
+  /// ).
+  int _decodeUtf8CodePoint(int byte) {
+    int codePoint = 0;
+    int bytesNeeded = 0;
+    int lowerBoundary = 0x80;
+    int upperBoundary = 0xBF;
+
+    if (byte >= 0x00 && byte <= 0x7F) {
+      return byte; // 3.1
+    } else if (byte >= 0xC2 && byte <= 0xDF) {
+      // 3.2.
+      bytesNeeded = 1;
+      codePoint = byte & 0x1F;
+    } else if (byte >= 0xE0 && byte <= 0xEF) {
+      // 3.3.
+      if (byte == 0xE0) {
+        lowerBoundary = 0xA0;
+      } else if (byte == 0xED) {
+        upperBoundary = 0x9F;
       }
-      numBytes++;
-    }
-    int end = startOffset + numBytes;
-    byteOffset = end - 1;
-    if (expectedHighBytes == 1 || numBytes != expectedHighBytes) {
-      return unicodeReplacementCharacter;
-    }
-    // TODO(lry): measurably slow, decode creates first a Utf8Decoder and a
-    // _Utf8Decoder instance. Also the sublist is eagerly allocated.
-    String codePoint = utf8.decode(
-      _bytes.sublist(startOffset, end),
-      allowMalformed: true,
-    );
-    if (codePoint.length == 0) {
-      // The UTF-8 decoder discards leading BOM characters.
-      // TODO(floitsch): don't just assume that removed characters were the
-      // BOM.
-      assert(containsBomAt(startOffset));
-      codePoint = new String.fromCharCode(unicodeBomCharacterRune);
-    }
-    if (codePoint.length == 1) {
-      utf8Slack += (numBytes - 1);
-      scanSlack = numBytes - 1;
-      scanSlackOffset = byteOffset;
-      return codePoint.codeUnitAt(/* index = */ 0);
-    } else if (codePoint.length == 2) {
-      utf8Slack += (numBytes - 2);
-      scanSlack = numBytes - 1;
-      scanSlackOffset = byteOffset;
-      stringOffsetSlackOffset = byteOffset;
-      // In case of a surrogate pair, return a single code point.
-      // Gracefully degrade given invalid UTF-8.
-      RuneIterator runes = codePoint.runes.iterator;
-      if (!runes.moveNext()) return unicodeReplacementCharacter;
-      int codeUnit = runes.current;
-      return !runes.moveNext() ? codeUnit : unicodeReplacementCharacter;
+      bytesNeeded = 2;
+      codePoint = byte & 0xF;
+    } else if (byte >= 0xF0 && byte <= 0xF4) {
+      // 3.4.
+      if (byte == 0xF0) lowerBoundary = 0x90;
+      if (byte == 0xF4) upperBoundary = 0x8F;
+      bytesNeeded = 3;
+      codePoint = byte & 0x7;
     } else {
+      // 3.5
       return unicodeReplacementCharacter;
+    }
+
+    int bytesSeen = 0;
+
+    while (true) {
+      if (byteOffset >= _bytesLengthMinusOne) {
+        // 1
+        return unicodeReplacementCharacter;
+      }
+
+      byte = advance();
+
+      // 9
+      if (byte < lowerBoundary || byte > upperBoundary) {
+        byteOffset--;
+        return unicodeReplacementCharacter;
+      }
+
+      // 10-16
+      lowerBoundary = 0x80;
+      upperBoundary = 0xBF;
+      codePoint = (codePoint << 6) | (byte & 0x3F);
+      bytesSeen++;
+      if (bytesSeen != bytesNeeded) continue;
+      return codePoint;
     }
   }
 
@@ -472,7 +493,7 @@ class Utf8BytesScanner extends AbstractScanner {
    * return the offset of the first one, which is one position more left than
    * the [utf8Slack].
    */
-  int stringOffsetSlackOffset = -1;
+  int stringOffsetSlackOffset = -2;
 
   @override
   int get stringOffset {

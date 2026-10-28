@@ -236,7 +236,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int?
   staticType: int?
 V1: PrefixedIdentifier
@@ -293,7 +292,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_foo
-    invokeType: int? Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

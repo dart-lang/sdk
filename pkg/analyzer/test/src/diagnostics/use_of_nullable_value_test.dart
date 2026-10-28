@@ -448,7 +448,6 @@ DirectAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: ?.
@@ -511,7 +510,6 @@ DirectAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: .
@@ -671,14 +669,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -740,14 +736,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
     name: y
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::y
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::y
@@ -830,14 +824,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: ?.
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -899,14 +891,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: .
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -1446,7 +1436,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: T Function<T>(T)? Function()
       type: T Function<T>(T)?
     staticType: T Function<T>(T)?
   typeArguments: TypeArgumentList
@@ -1877,7 +1866,6 @@ ReceiverPropertyExtraction
   name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: PrefixedIdentifier

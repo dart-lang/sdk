@@ -205,7 +205,6 @@ TopLevelVariable
               name: length
               resolution: GetterInvocationResolution
                 element: dart:core::@class::String::@getter::length
-                invokeType: int Function()
                 type: int
               staticType: int
             expression(v1): PrefixedIdentifier

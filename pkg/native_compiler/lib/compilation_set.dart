@@ -29,6 +29,8 @@ class CompilationSet {
   late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
     functionRegistry,
     config.objectLayout,
+    config.targetCPU,
+    config.targetOS,
   );
   late final SnapshotSerializer _snapshot;
   late final StubFactory _stubFactory;
@@ -112,6 +114,14 @@ class CompilationSet {
       _snapshot.addRootStub(
         StubCode.DynamicInvocationForwarder,
         _stubFactory.dynamicInvocationForwarderStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCode,
+        _stubFactory.invokeDartCodeStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCodeFromBytecode,
+        _stubFactory.invokeDartCodeFromBytecodeStub,
       );
     }
   }

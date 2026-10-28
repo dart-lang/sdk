@@ -707,6 +707,7 @@ class ContextManagerImpl implements ContextManager {
         var watchers = <ResourceWatcher>[];
         var collection = _collection = AnalysisContextCollectionImpl(
           includedPaths: includedPaths,
+          excludedPaths: excludedPaths,
           byteStore: _byteStore,
           drainStreams: false,
           enableIndex: true,

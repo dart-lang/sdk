@@ -48,7 +48,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::foo
@@ -289,7 +288,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::foo
@@ -367,7 +365,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::foo
@@ -442,7 +439,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -598,7 +594,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -676,7 +671,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -750,7 +744,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -906,7 +899,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -984,7 +976,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo

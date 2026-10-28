@@ -88,6 +88,10 @@ int nestedLoopsWithBreakContinue(int maxI, int maxJ) {
   return total;
 }
 
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool negateBool(bool b) => !b;
+
 void main() {
   final int0 = int.parse('0');
   final int1 = int.parse('1');
@@ -128,4 +132,8 @@ void main() {
 
   // Nested loops with break & continue
   Expect.equals(144, nestedLoopsWithBreakContinue(int5, int4));
+
+  // UnaryBoolOp (`!`)
+  Expect.isFalse(negateBool(int5 > int0));
+  Expect.isTrue(negateBool(int0 > int5));
 }

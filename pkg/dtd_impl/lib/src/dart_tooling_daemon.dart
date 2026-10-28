@@ -186,7 +186,11 @@ class DartToolingDaemon {
     internalServices = Map.fromEntries(
       [
         ConnectedAppService(secret: secret, unrestrictedMode: unrestrictedMode),
-        FileSystemService(secret: secret, unrestrictedMode: unrestrictedMode),
+        FileSystemService(
+          secret: secret,
+          unrestrictedMode: unrestrictedMode,
+          onWorkspaceRootsChanged: _updateDtdConnectionInfo,
+        ),
         UnifiedAnalyticsService(fake: useFakeAnalytics),
       ].map((service) => MapEntry(service.serviceName, service)),
     );
@@ -226,6 +230,15 @@ class DartToolingDaemon {
 
   /// The path to the file containing this daemon's connection info, if started.
   String? _pidFilePath;
+
+  /// The milliseconds since epoch when this DTD instance was started.
+  final int _epoch = DateTime.now().millisecondsSinceEpoch;
+
+  /// The working directory when this DTD instance was started.
+  final String _workingDirectory = Directory.current.path;
+
+  /// The IDE name from the environment when this DTD instance was started.
+  final String? _ideName = Platform.environment['DASH__IDE_NAME'];
 
   Future<void> _startService({required int port}) async {
     final host =
@@ -522,25 +535,50 @@ class DartToolingDaemon {
     }
   }
 
+  DTDConnectionInfo _createConnectionInfo({
+    List<Uri> workspaceRoots = const <Uri>[],
+  }) {
+    return DTDConnectionInfo(
+      wsUri: uri.toString(),
+      epoch: _epoch,
+      pid: pid,
+      dartVersion: Platform.version,
+      workingDirectory: _workingDirectory,
+      workspaceRoots: <String>[
+        for (final root in workspaceRoots) p.normalize(root.toFilePath()),
+      ],
+      ideName: _ideName,
+    );
+  }
+
   /// Writes out DTD connection information to a file named with the DTD process
   /// PID in the [dtdDirName] directory within the Dart data home directory.
   void _recordDtdConnectionInfo() {
     final dataHome = _getDtdDataHome();
     if (dataHome == null) return;
     try {
-      final info = DTDConnectionInfo(
-        wsUri: uri.toString(),
-        epoch: DateTime.now().millisecondsSinceEpoch,
-        pid: pid,
-        dartVersion: Platform.version,
-        workspaceRoot: Directory.current.path,
-        ideName: Platform.environment['DASH__IDE_NAME'],
-      );
+      final info = _createConnectionInfo();
       if (createPidFile(dataHome, jsonEncode(info.toJson()))) {
         _pidFilePath = p.join(dataHome, pid.toString());
       }
     } catch (_) {
-      // Ignore errors when writing the pid file.
+      // PID file discovery (`dart tooling-daemon --list`) is best-effort.
+      // Ignore filesystem errors (e.g. read-only environments or permission
+      // issues) so they do not prevent the daemon from starting.
+    }
+  }
+
+  /// Updates the DTD connection information in the PID file when the IDE
+  /// workspace roots change.
+  void _updateDtdConnectionInfo(List<Uri> workspaceRoots) {
+    if (_pidFilePath == null) return;
+    try {
+      final info = _createConnectionInfo(workspaceRoots: workspaceRoots);
+      updatePidFile(jsonEncode(info.toJson()));
+    } catch (_) {
+      // PID file discovery (`dart tooling-daemon --list`) is best-effort.
+      // Ignore filesystem errors (e.g. read-only environments or permission
+      // issues) so they do not fail the RPC request or crash the daemon.
     }
   }
 

@@ -21,6 +21,46 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => null;
 
+  /// The analyzer is newer than the SDK, so the language version of the SDK
+  /// is the latest one, as for the compiler of this SDK.
+  test_equalToSdk_sdkOlderThanAnalyzer() async {
+    sdkLanguageVersion = Version.parse('3.13.0');
+    _configureTestPackageLanguageVersion('3.12');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.13
+class A {}
+''');
+    _assertUnitLanguageVersion(
+      result,
+      package: Version.parse('3.12.0'),
+      override: Version.parse('3.13.0'),
+    );
+  }
+
+  /// The analyzer is older than the SDK, so the language version of the SDK
+  /// is the latest one, even though it is newer than the analyzer.
+  test_greaterThanAnalyzer_sdkNewerThanAnalyzer() async {
+    var analyzerVersion = ExperimentStatus.currentVersion;
+    var sdkVersion = Version(
+      analyzerVersion.major,
+      analyzerVersion.minor + 1,
+      0,
+    );
+    sdkLanguageVersion = sdkVersion;
+    _configureTestPackageLanguageVersion(
+      '${analyzerVersion.major}.${analyzerVersion.minor}',
+    );
+    var result = await resolveTestCodeWithDiagnostics('''
+// @dart = ${sdkVersion.major}.${sdkVersion.minor}
+class A {}
+''');
+    _assertUnitLanguageVersion(
+      result,
+      package: analyzerVersion,
+      override: sdkVersion,
+    );
+  }
+
   test_greaterThanLatest() async {
     var latestVersion = ExperimentStatus.currentVersion;
     var result = await resolveTestCodeWithDiagnostics('''
@@ -41,6 +81,23 @@ int? a;
       result,
       package: Version.parse('2.5.0'),
       override: Version.parse('2.12.0'),
+    );
+  }
+
+  /// The analyzer is newer than the SDK, so the language version of the SDK
+  /// is the latest one, as for the compiler of this SDK.
+  test_greaterThanSdk_sdkOlderThanAnalyzer() async {
+    sdkLanguageVersion = Version.parse('3.13.0');
+    _configureTestPackageLanguageVersion('3.12');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+// @dart = 3.14
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 15] The language version override can't specify a version greater than the latest known language version: 3.13.
+class A {}
+''');
+    _assertUnitLanguageVersion(
+      result,
+      package: Version.parse('3.12.0'),
+      override: null,
     );
   }
 

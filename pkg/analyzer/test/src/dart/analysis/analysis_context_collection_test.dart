@@ -131,6 +131,30 @@ linter:
     );
   }
 
+  test_new_excludedPaths_notAbsolute() {
+    expect(
+      () => AnalysisContextCollectionImpl(
+        resourceProvider: resourceProvider,
+        includedPaths: [convertPath('/home/test')],
+        excludedPaths: ['build'],
+        withFineDependencies: true,
+      ),
+      throwsArgumentError,
+    );
+  }
+
+  test_new_excludedPaths_notNormalized() {
+    expect(
+      () => AnalysisContextCollectionImpl(
+        resourceProvider: resourceProvider,
+        includedPaths: [convertPath('/home/test')],
+        excludedPaths: [convertPath('/home/test/lib/../build')],
+        withFineDependencies: true,
+      ),
+      throwsArgumentError,
+    );
+  }
+
   test_new_includedPaths_notAbsolute() {
     expect(
       () => AnalysisContextCollectionImpl(
@@ -442,6 +466,378 @@ workspaces
     pubPackages
       workspacePackage_1_0: BasicWorkspacePackage
         root: /home/test (copy)/lib/pkg1
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_containsIncludedFile() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    var aFile = newFile('/home/test/lib/a.dart', '');
+    var bFile = newFile('/home/test/build/b.dart', '');
+
+    _assertContextRootsText(
+      included: [aFile, bFile],
+      excluded: [newFolder('/home/test/build')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test/lib/a.dart
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_containsIncludedFolder() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+    newFile('/home/test/build/gen/b.dart', '');
+
+    _assertContextRootsText(
+      included: [
+        newFolder('/home/test/lib'),
+        newFolder('/home/test/build/gen'),
+      ],
+      excluded: [newFolder('/home/test/build')],
+      expected: r'''
+contexts
+  /home/test/lib
+    includedPaths
+      /home/test/lib
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_folder() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+    newFile('/home/test/build/b.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [newFolder('/home/test/build')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    excludedPaths
+      /home/test/build
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_folder_deep() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+    newFile('/home/test/lib/gen/v2/b.dart', '');
+    newFile('/home/test/lib/gen/c.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [newFolder('/home/test/lib/gen/v2')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    excludedPaths
+      /home/test/lib/gen/v2
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+      /home/test/lib/gen/c.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_folder_hasNestedPackage() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+    newAnalysisOptionsYamlFile('/home/test/build/inner', '');
+    newPackageConfigJsonFile('/home/test/build/inner', '');
+    newFile('/home/test/build/inner/lib/b.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [newFolder('/home/test/build')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    excludedPaths
+      /home/test/build
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_folder_inNestedPackage() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+    newPackageConfigJsonFile('/home/test/inner', '');
+    newFile('/home/test/inner/lib/b.dart', '');
+    newFile('/home/test/inner/build/c.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [newFolder('/home/test/inner/build')],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test
+    excludedPaths
+      /home/test/inner
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+  /home/test/inner
+    includedPaths
+      /home/test/inner
+    excludedPaths
+      /home/test/inner/build
+    packagesFile: /home/test/inner/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/inner/lib/b.dart
+        workspacePackage_1_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+  workspace_1: PackageConfigWorkspace
+    root: /home/test/inner
+    pubPackages
+      workspacePackage_1_0: BasicWorkspacePackage
+        root: /home/test/inner
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_isIncludedFile() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    var aFile = newFile('/home/test/lib/a.dart', '');
+    var bFile = newFile('/home/test/lib/b.dart', '');
+
+    _assertContextRootsText(
+      included: [aFile, bFile],
+      excluded: [bFile],
+      expected: r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test/lib/a.dart
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_isIncludedFolder() {
+    var rootFolder = newFolder('/home/test');
+    newPackageConfigJsonFile(rootFolder.path, '');
+    newFile('/home/test/lib/a.dart', '');
+
+    _assertContextRootsText(
+      included: [rootFolder],
+      excluded: [rootFolder],
+      expected: '',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_workspaceMember() {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
+    );
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newFile('$package2RootPath/lib/library2.dart', '');
+
+    _assertContextRootsText(
+      included: [getFolder(package1RootPath), getFolder(package2RootPath)],
+      excluded: [getFolder(package2RootPath)],
+      expected: r'''
+contexts
+  /home
+    includedPaths
+      /home/package1
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/package1/pubspec.yaml
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/package1
+        sdkVersionConstraint: ^3.6.0
+''',
+    );
+  }
+
+  void test_contextRoots_excludedByPaths_workspaceMember_folder() {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath)),
+    );
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newAnalysisOptionsYamlFile('$package1RootPath/build/inner', '');
+    newPackageConfigJsonFile('$package1RootPath/build/inner', '');
+    newFile('$package1RootPath/build/inner/lib/b.dart', '');
+
+    _assertContextRootsText(
+      included: [getFolder(package1RootPath)],
+      excluded: [getFolder('$package1RootPath/build')],
+      expected: r'''
+contexts
+  /home
+    includedPaths
+      /home/package1
+    excludedPaths
+      /home/package1/build
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/package1/pubspec.yaml
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/package1
+        sdkVersionConstraint: ^3.6.0
 ''',
     );
   }
@@ -3083,6 +3479,47 @@ workspaces
     );
   }
 
+  /// The client passes `enabledExperiments`, which are enabled for the
+  /// language version of the host SDK. A file outside of any package uses
+  /// this version, so gets the experiments, even if the SDK is older than the
+  /// analyzer.
+  test_enabledExperiments_nonPackage_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withAnalysisOptionsWithoutFiles = true
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    newFile('/home/test/test.dart', '');
+
+    _assertWorkspaceCollectionText(
+      '/home/test',
+      enabledExperiments: ['variance'],
+      r'''
+contexts
+  /home/test
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: <no file>
+    features
+      variance: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/test
+    workspacePackage_0_0
+''',
+    );
+  }
+
   /// The context root has no analysis options file. The client passes
   /// `enabledExperiments`, and they are enabled in the default options.
   test_enabledExperiments_noOptions() async {
@@ -3197,6 +3634,57 @@ workspaces
   workspace_0: BasicWorkspace
     root: /home
     workspacePackage_0_0
+''',
+    );
+  }
+
+  /// The client passes `enabledExperiments`, which are enabled for the
+  /// language version of the host SDK. A library in a package with this
+  /// language version gets the experiments, even if the SDK is older than the
+  /// analyzer.
+  test_enabledExperiments_package_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withAnalysisOptionsWithoutFiles = true
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    var root = newFolder('/home/test');
+    newPackageConfigJsonFileFromBuilder(
+      root.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'test', rootFolder: root, languageVersion: '3.13'),
+    );
+    newFile('/home/test/lib/test.dart', '');
+
+    _assertWorkspaceCollectionText(
+      '/home/test',
+      enabledExperiments: ['variance'],
+      r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/test.dart
+        uri: package:test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: <no file>
+    features
+      variance: enabled
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
 ''',
     );
   }
@@ -3595,6 +4083,50 @@ workspaces
 ''');
   }
 
+  /// Experiments from the analysis options file are enabled for the language
+  /// version of the host SDK. A file outside of any package uses this version,
+  /// so gets the experiments, even if the SDK is older than the analyzer.
+  test_nonPackage_enabledExperiment_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    newAnalysisOptionsYamlFile('/home/test', r'''
+analyzer:
+  enable-experiment:
+    - variance
+''');
+    var file = newFile('/home/test/test.dart', '');
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path],
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+    features
+      variance: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/test
+    workspacePackage_0_0
+''');
+  }
+
   test_packageConfigWorkspace_enabledExperiment() async {
     configuration.withFeatures = [
       ExperimentalFeatures.digit_separators,
@@ -3704,6 +4236,57 @@ workspaces
         root: /home/test
 ''',
     );
+  }
+
+  /// Experiments from the analysis options file are enabled for the language
+  /// version of the host SDK. A library in a package with this language
+  /// version gets the experiments, even if the SDK is older than the analyzer.
+  test_packageConfigWorkspace_enabledExperiment_sdkOlderThanAnalyzer() async {
+    configuration
+      ..withFeatures = [ExperimentalFeatures.variance]
+      ..withFileFeatures = true
+      ..withPackageLanguageVersion = true;
+
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+
+    var root = newFolder('/home/test');
+    newPackageConfigJsonFileFromBuilder(
+      root.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'test', rootFolder: root, languageVersion: '3.13'),
+    );
+    newAnalysisOptionsYamlFile(root.path, r'''
+analyzer:
+  enable-experiment:
+    - variance
+''');
+    newFile('/home/test/lib/test.dart', '');
+
+    _assertWorkspaceCollectionText('/home/test', r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/analysis_options.yaml
+      /home/test/lib/test.dart
+        uri: package:test/test.dart
+        packageLanguageVersion: 3.13.0
+        features
+          variance: enabled
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+    features
+      variance: enabled
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''');
   }
 
   test_packageConfigWorkspace_includedAnalysisOptions_exclude_packageUri() async {
@@ -5443,6 +6026,7 @@ workspaces
   /// Asserts a collection created from context-root discovery inputs.
   void _assertContextRootsText({
     required List<Resource> included,
+    List<Resource> excluded = const [],
     File? optionsFile,
     File? packageConfigFile,
     required String expected,
@@ -5458,6 +6042,7 @@ workspaces
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: included.map((resource) => resource.path).toList(),
+      excludedPaths: excluded.map((resource) => resource.path).toList(),
       optionsFile: optionsFile?.path,
       packageConfigFile: packageConfigFile?.path,
       withFineDependencies: true,
@@ -5746,6 +6331,10 @@ class _AnalysisContextCollectionPrinter {
         sink.writelnWithIndent('packageLanguageVersion: $versionStr');
       }
 
+      if (configuration.withFileFeatures) {
+        _writeFeatures(fileState.restrictedFeatureSet);
+      }
+
       var analysisOptions = fileState.analysisOptions;
       if (configuration.withAnalysisOptionsWithoutFiles ||
           analysisOptions.file != null) {
@@ -5878,6 +6467,7 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEmptyContextRoots = false;
   bool withExcludedPaths = false;
   List<ExperimentalFeature> withFeatures = [];
+  bool withFileFeatures = false;
   bool withLintRules = false;
   bool withLegacyPlugins = false;
   bool withIncludedPaths = false;

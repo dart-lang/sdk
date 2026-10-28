@@ -13,15 +13,13 @@ static method foo2() → asy::Future<void> /* emittedValueType= void */ /* origi
     final core::int c = 3;
   });
 static method foo3() → dynamic /* emittedValueType= dynamic */ /* originally async */ 
-  return asy::Future::sync<dynamic>(() → FutureOr<dynamic>? {
-    return 234;
-  });
+  return asy::Future::syncValue<dynamic>(234);
 static method bar(() → asy::Future<core::int> func) → void {
   func(){() → asy::Future<core::int>};
 }
 static method foo4() → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
   await asy::Future::value<core::int>(2);
-  self::bar(() → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ => asy::Future::sync<core::int>(() → FutureOr<core::int> => 3));
+  self::bar(() → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ => asy::Future::syncValue<core::int>(3));
   return true;
 }
 static method foo5(core::bool x) → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ 

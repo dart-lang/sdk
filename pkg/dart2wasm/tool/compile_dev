@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Script to compile a Dart program using dart2wasm_dev. Assumes the Dart repo's
+# directory structure.
+
+set -e
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+PROG_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+source "$PROG_DIR/utils.sh"
+
+RUN_SRC=0
+PLATFORM_FILENAME="$BIN_DIR/dart2wasm_dev_platform.dill"
+SNAPSHOT_NAME="dart2wasm_dev"
+
+VM_ARGS=()
+DART_FILE=""
+OUTPUT_FILE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --src)
+      RUN_SRC=1
+      shift
+      ;;
+
+    --compiler-asserts)
+      SNAPSHOT_NAME="dart2wasm_dev_asserts"
+      VM_ARGS+=("--enable-asserts")
+      shift
+      ;;
+
+    *)
+      if [ -z "$DART_FILE" ]; then
+        DART_FILE="$1"
+        shift
+      elif [ -z "$OUTPUT_FILE" ]; then
+        OUTPUT_FILE="$1"
+        shift
+      else
+        echo "Unexpected argument $1"
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+if [ -z "$DART_FILE" ] || [ -z "$OUTPUT_FILE" ]; then
+  echo "Expected <file.dart> <file.wasm>"
+  exit 1
+fi
+
+PLATFORM_ARG="--platform=$PLATFORM_FILENAME"
+DART2WASM_DEV_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
+DART2WASM_DEV_SRC="$SDK_DIR/pkg/dart2wasm/bin/dart2wasm_dev.dart"
+
+if [ $RUN_SRC -eq 1 ]; then
+  exec "$DART" "${VM_ARGS[@]}" "$DART2WASM_DEV_SRC" "$LIBRARIES_JSON_ARG" "$DART_FILE" "$OUTPUT_FILE"
+else
+  exec "$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_DEV_AOT_SNAPSHOT" "$PLATFORM_ARG" "$DART_FILE" "$OUTPUT_FILE"
+fi

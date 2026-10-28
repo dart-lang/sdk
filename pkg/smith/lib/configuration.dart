@@ -130,6 +130,12 @@ class Configuration {
       words.remove("dyn");
       words.add("dart2bytecode");
     }
+    // "wasm-dev" -> "dart2wasm_dev"
+    if (words.contains("wasm") && words.contains("dev")) {
+      words.remove("wasm");
+      words.remove("dev");
+      words.add("dart2wasm_dev");
+    }
     var optionsCopy = Map.of(optionsJson);
 
     // Apply overrides from the global environment variable.
@@ -931,6 +937,19 @@ enum Compiler {
     ],
     defaultMode: Mode.release,
   ),
+  dart2wasmDev._(
+    'dart2wasm_dev',
+    supportedRuntimes: [
+      Runtime.none,
+      Runtime.jsc,
+      Runtime.jsshell,
+      Runtime.d8,
+      Runtime.chrome,
+      Runtime.firefox,
+      Runtime.safari,
+    ],
+    defaultMode: Mode.release,
+  ),
   ddc._(
     'ddc',
     supportedRuntimes: [
@@ -985,6 +1004,7 @@ enum Compiler {
       case Compiler.dart2js:
         return Runtime.d8;
       case Compiler.dart2wasm:
+      case Compiler.dart2wasmDev:
         return Runtime.d8;
       case Compiler.ddc:
         return Runtime.chrome;

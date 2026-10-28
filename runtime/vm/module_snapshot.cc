@@ -231,7 +231,7 @@ class Deserializer : public ThreadStackResource {
   void Deserialize();
 
   DeserializationCluster* ReadCluster();
-  void ReadRoots();
+  bool ReadRoots();
 
   uword instructions() const {
     return reinterpret_cast<uword>(instructions_buffer_);
@@ -2277,7 +2277,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
   return nullptr;
 }
 
-void Deserializer::ReadRoots() {
+bool Deserializer::ReadRoots() {
   Deserializer* d = this;
 
   auto& stub_code = Code::Handle(d->zone());
@@ -2287,12 +2287,17 @@ void Deserializer::ReadRoots() {
     stub_code ^= d->ReadRef();
     StubCode::EntryAtPut(stub_index, stub_code.ptr());
   }
+  if (stub_count > 0) {
+    thread()->UpdateCachedVMStubs();
+  }
 
   auto& main_library = Library::Handle(d->zone());
   main_library ^= d->ReadRef();
   if (!main_library.IsNull()) {
     thread()->isolate_group()->object_store()->set_root_library(main_library);
   }
+
+  return stub_count > 0;
 }
 
 class HeapLocker : public StackResource {
@@ -2422,7 +2427,10 @@ void Deserializer::Deserialize() {
     }
   }
 
-  ReadRoots();
+  bool is_platform = ReadRoots();
+  if (is_platform) {
+    heap_->old_space()->EvaluateAfterLoading();
+  }
 
   if (isolate_group->snapshot_is_dontneed_safe()) {
     size_t clustered_length =

@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:dds/dds.dart';
+import 'package:dds/dds_launcher.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service_io.dart';
@@ -13,7 +13,7 @@ import 'common/test_helper.dart';
 
 void main() {
   late final Process process;
-  late final DartDevelopmentService dds;
+  late final DartDevelopmentServiceLauncher dds;
 
   setUp(() async {
     // We don't care what's actually running in the target process for this
@@ -29,18 +29,21 @@ void main() {
     process.kill();
   });
 
-  test('Ensure getPerfettoVMTimelineWithCpuSamples returns without error',
-      () async {
-    dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
-    );
-    expect(dds.isRunning, true);
-    final service = await vmServiceConnectUri(dds.wsUri.toString());
+  test(
+    'Ensure getPerfettoVMTimelineWithCpuSamples returns without error',
+    () async {
+      dds = await DartDevelopmentServiceLauncher.start(
+        remoteVmServiceUri: remoteVmServiceUri,
+      );
+      final service = await vmServiceConnectUri(dds.wsUri.toString());
 
-    final timeline = await service.getPerfettoVMTimelineWithCpuSamples(
-        timeOriginMicros: 1, timeExtentMicros: 1000);
-    expect(timeline.trace!, isNotEmpty);
-    expect(timeline.timeOriginMicros, isNotNull);
-    expect(timeline.timeExtentMicros, isNotNull);
-  });
+      final timeline = await service.getPerfettoVMTimelineWithCpuSamples(
+        timeOriginMicros: 1,
+        timeExtentMicros: 1000,
+      );
+      expect(timeline.trace!, isNotEmpty);
+      expect(timeline.timeOriginMicros, isNotNull);
+      expect(timeline.timeExtentMicros, isNotNull);
+    },
+  );
 }

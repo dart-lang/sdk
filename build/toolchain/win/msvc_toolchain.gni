@@ -27,20 +27,7 @@ if (use_siso) {
   ninja_path = rebase_path("//buildtools/ninja/ninja")
 }
 
-if (use_rbe && !use_siso) {
-  compiler_args =
-      rewrapper_args + [ "--labels=type=compile,compiler=clang-cl,lang=cpp" ]
-  if (rbe_os != host_os || rbe_cpu != host_cpu) {
-    compiler_args += [
-      "--env_var_allowlist=INCLUDE",
-      "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
-      "--remote_wrapper=../../build/rbe/llvm.sh",
-    ]
-  }
-  compiler_prefix = string_join(" ", compiler_args) + " "
-} else {
-  compiler_prefix = ""
-}
+compiler_prefix = ""
 
 if (current_toolchain == default_toolchain) {
   if (is_debug) {

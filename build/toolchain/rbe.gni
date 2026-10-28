@@ -6,51 +6,7 @@
 
 import("//build/toolchain/siso.gni")
 
-_dart_root = get_path_info("../..", "abspath")
-
 declare_args() {
   # Set to true to enable distributed compilation using RBE.
   use_rbe = false
-
-  # Set to the operating system to use in the RBE pool
-  rbe_os = "linux"
-
-  # Set to the architecture used in the RBE pool.
-  rbe_cpu = "x64"
-
-  # Set to the docker image to use in the RBE.
-  rbe_image = "docker://gcr.io/cloud-marketplace/google/debian12@sha256:b93235fea71bd454ee11e8f857eb7c1672d033d426d9c0401c53df3c71fd52e7"
-
-  # Do expensive RBE actions locally and remotely, taking whichever completes
-  # first. Local machines are generally faster than the RBE workers, so this
-  # usually takes the local action unless there is a cache hit.
-  # Depends on expensive actions also being limited by a GN/Ninja pool to
-  # prevent memory exhaustion from too many steps running locally at the same
-  # time. Migration to SISO would handle this better.
-  rbe_expensive_exec_strategy = "racing"
-
-  rbe_exec_root = rebase_path("//", root_build_dir)
-
-  rbe_dir = rebase_path(_dart_root + "/buildtools/reclient", root_build_dir)
 }
-
-declare_args() {
-  if (rbe_os == "linux") {
-    rbe_os_family = "Linux"
-  } else if (rbe_os == "win") {
-    rbe_os_family = "Windows"
-  } else if (rbe_os == "mac") {
-    rbe_os_family = "Mac"
-  } else {
-    rbe_os_family = rbe_os
-  }
-
-  # Set to the desired fully qualified RBE platform.
-  rbe_platform = "container-image=$rbe_image,OSFamily=$rbe_os_family"
-}
-
-rewrapper_args = [
-  "$rbe_dir/rewrapper",
-  "--exec_root=$rbe_exec_root",
-  "--platform=$rbe_platform",
-]

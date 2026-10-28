@@ -268,7 +268,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "Avoid escaping inner quotes by converting surrounding quotes.\n\n**BAD:**\n```dart\nvar s = 'It\\'s not fun';\n```\n\n**GOOD:**\n```dart\nvar s = \"It's not fun\";\n```",
+    "details": "**AVOID** escaping inner quotes by converting surrounding quotes.\n\n**BAD:**\n```dart\nvar s = 'It\\'s not fun';\n```\n\n**GOOD:**\n```dart\nvar s = \"It's not fun\";\n```",
     "sinceDartSdk": "2.8"
   },
   {

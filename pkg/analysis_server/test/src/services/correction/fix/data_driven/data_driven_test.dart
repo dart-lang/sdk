@@ -5,8 +5,11 @@
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -643,6 +646,46 @@ class B extends Old {}
 
 @reflectiveTest
 class NoProducerOverlapsTest {
+  void setUp() {
+    registerBuiltInFixGenerators();
+  }
+
+  void test_nonLintMultiProducerMap_dataDrivenParity() {
+    // Ensure that every non-lint diagnostic registered with a DataDriven
+    // producer in FixProcessor is also registered in BulkFixProcessor, except
+    // for diagnostics explicitly excluded due to nested-argument overlap bugs.
+    var fixDataDrivenCodes = <DiagnosticCode>{
+      for (var MapEntry(key: code, value: generators)
+          in registeredFixGenerators.warningMultiProducers.entries)
+        if (generators.any(
+          (generator) =>
+              generator(context: StubCorrectionProducerContext.instance)
+                  is DataDriven,
+        ))
+          code,
+    };
+    var bulkFixDataDrivenCodes = <DiagnosticCode>{
+      for (var MapEntry(key: code, value: generators)
+          in BulkFixProcessor.nonLintMultiProducerMap.entries)
+        if (generators.any(
+          (generator) =>
+              generator(context: StubCorrectionProducerContext.instance)
+                  is DataDriven,
+        ))
+          code,
+    };
+
+    expect(
+      bulkFixDataDrivenCodes,
+      unorderedEquals(
+        fixDataDrivenCodes.difference({
+          diag.extraPositionalArguments,
+          diag.extraPositionalArgumentsCouldBeNamed,
+        }),
+      ),
+    );
+  }
+
   void test_noProducerOverlaps() {
     // Ensure that no error code is used by both data-driven fixes and
     // non-data-driven fixes, as this could result in an LSP "Apply-all" code
@@ -2000,6 +2043,51 @@ void f(C a, C b) {
 ''');
   }
 
+  Future<void> test_rename_extensionOverride_removed() async {
+    setPackageContent('''
+extension E on String {
+  set new(int x) {}
+}
+extension Other on String {
+  set wrong(int x) {}
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename on Other'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    setter: 'old'
+    inExtension: 'Other'
+  changes:
+    - kind: 'rename'
+      newName: 'wrong'
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    setter: 'old'
+    inExtension: 'E'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestCode('''
+import '$importUri';
+void f(String a, String b) {
+  E(a).old = E(b).old = 1;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+void f(String a, String b) {
+  E(a).new = E(b).new = 1;
+}
+''');
+  }
+
   Future<void> test_rename_removed() async {
     setPackageContent('''
 class C {
@@ -2032,10 +2120,269 @@ void f(C a, C b) {
 }
 ''');
   }
+
+  Future<void> test_rename_topLevel_prefixed_removed() async {
+    setPackageContent('''
+set new(int x) {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to new'
+  date: 2020-09-01
+  element:
+    uris: ['$importUri']
+    setter: 'old'
+  changes:
+    - kind: 'rename'
+      newName: 'new'
+''');
+    await resolveTestCode('''
+import '$importUri' as p;
+void f() {
+  p.old = p.old = 1;
+}
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+void f() {
+  p.new = p.new = 1;
+}
+''');
+  }
 }
 
 @reflectiveTest
 class UriDoesNotExistTest extends _DataDrivenTest {
+  Future<void> test_docImport_replacedBy_bulkApplyFalse() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  bulkApply: false
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/old.dart';
+library;
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_docImport_replacedBy_deprecated() async {
+    newFile('$workspaceRootPath/p/lib/old.dart', '''
+@deprecated
+library;
+class A {}
+''');
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/old.dart';
+library;
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_docImport_replacedBy_removed() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    newFile('$workspaceRootPath/p2/lib/other.dart', '''
+class B {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
+        ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+- title: 'Replace by package:p2/other.dart'
+  date: 2026-01-01
+  library: 'package:p/old_other.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p2/other.dart'
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/old.dart' as p show A;
+/// @docImport 'package:p/old_other.dart' hide C;
+library;
+''');
+    await assertHasFix('''
+/// @docImport 'package:p/new.dart' as p show A;
+/// @docImport 'package:p2/other.dart' hide C;
+library;
+''');
+  }
+
+  Future<void>
+  test_docImport_replacedBy_removed_blockCommentAndRawString() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    newFile('$workspaceRootPath/p2/lib/other.dart', '''
+class B {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
+        ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+- title: 'Replace by package:p2/other.dart'
+  date: 2026-01-01
+  library: 'package:p/old_other.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p2/other.dart'
+''');
+    await resolveTestCode('''
+/**
+ * @docImport r'package:p/old.dart';
+ * @docImport "package:p/old_other.dart";
+ */
+library;
+''');
+    await assertHasFix('''
+/**
+ * @docImport r'package:p/new.dart';
+ * @docImport "package:p2/other.dart";
+ */
+library;
+''');
+  }
+
+  Future<void> test_docImport_replacedBy_removed_duplicateInComment() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+class B {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/old.dart' show A;
+/// @docImport 'package:p/old.dart' show B;
+library;
+''');
+    await assertHasFix('''
+/// @docImport 'package:p/new.dart' show A;
+/// @docImport 'package:p/new.dart' show B;
+library;
+''');
+  }
+
+  Future<void> test_docImport_replacedBy_removed_partOf() async {
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Replace by new.dart'
+  date: 2026-01-01
+  library: 'package:p/old.dart'
+  changes:
+    - kind: 'replacedBy'
+      newLibrary: 'package:p/new.dart'
+''');
+    newFile('$testPackageLibPath/c.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/old.dart';
+part of 'c.dart';
+''');
+    await assertHasFix('''
+/// @docImport 'package:p/new.dart';
+part of 'c.dart';
+''');
+  }
+
+  Future<void>
+  test_docImport_unmatchedTwoComponentTransformWithSameName() async {
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
+    );
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename Bar.foo'
+  date: 2026-01-01
+  element:
+    uris: ['package:p/lib.dart']
+    method: 'foo'
+    inClass: 'Bar'
+  changes:
+    - kind: 'rename'
+      newName: 'baz'
+''');
+    await resolveTestCode('''
+/// @docImport 'foo';
+library;
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_export_replacedBy_deprecated() async {
     newFile('$workspaceRootPath/p/lib/old.dart', '''
 @deprecated

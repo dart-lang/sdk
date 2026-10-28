@@ -566,7 +566,7 @@ class PluginManagerParseDepfileTest with ResourceProviderMixin {
 }
 
 @reflectiveTest
-class PluginManagerTest with ResourceProviderMixin {
+class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
   late MockProcessRunner processRunner;
   late PluginManager manager;
 
@@ -582,17 +582,6 @@ class PluginManagerTest with ResourceProviderMixin {
 
   String get aotFilePath =>
       resourceProvider.convertPath('/plugin/bin/plugin.aot');
-
-  /// A handler for [MockProcessRunner.runSyncHandler] that touches the final
-  /// AOT snapshot, whatever the command is.
-  ///
-  /// This makes the snapshot newer than everything else as soon as `pub upgrade`
-  /// has run, which is not how a real `dart compile` behaves.
-  RunSyncHandler get touchAotSnapshotHandler {
-    return simpleRunSyncHandler((_, arguments) {
-      resourceProvider.getFile(aotFilePath).writeAsStringSync('');
-    });
-  }
 
   /// A handler for [MockProcessRunner.runSyncHandler] that writes the AOT
   /// snapshot to wherever `dart compile aot-snapshot` was told to put it, and
@@ -658,6 +647,39 @@ class PluginManagerTest with ResourceProviderMixin {
         '' /* stderr */,
       );
     };
+  }
+
+  Future<void> test_addPluginToContextRoot_concurrent() async {
+    var pubCommandCount = 0;
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      if (arguments.contains('pub')) {
+        pubCommandCount++;
+      }
+    });
+
+    writeAllFiles();
+    var contextRoot1 = _newContextRoot('/pkg1');
+    var contextRoot2 = _newContextRoot('/pkg2');
+
+    await Future.wait([
+      manager.addPluginToContextRoot(
+        contextRoot1,
+        pluginDirPath,
+        isLegacyPlugin: false,
+      ),
+      manager.addPluginToContextRoot(
+        contextRoot2,
+        pluginDirPath,
+        isLegacyPlugin: false,
+      ),
+    ]);
+
+    expect(pubCommandCount, 1);
+    expect(manager.pluginIsolates, hasLength(1));
+    expect(
+      manager.pluginIsolates.single.contextRoots,
+      unorderedEquals([contextRoot1, contextRoot2]),
+    );
   }
 
   void test_pathsFor() {
@@ -877,6 +899,28 @@ class PluginManagerTest with ResourceProviderMixin {
     expectAotSnapshotIsRewritten();
   }
 
+  void test_pathsFor_legacy_incompleteCopy() {
+    writeAllFiles();
+    // Simulate a previous interrupted copy that created the state folder
+    // without copying 'bin/plugin.dart'.
+    var stateFolder = manager.pluginStateFolder(pluginDirPath);
+    stateFolder.create();
+
+    var pubCommands = <List<String>>[];
+    processRunner.runSyncHandler = simpleRunSyncHandler((_, arguments) {
+      pubCommands.add(arguments);
+      var executionFolder = stateFolder.getFolder('plugin');
+      newPackageConfigJsonFile(executionFolder.path, '');
+    });
+
+    var files = manager.filesFor(pluginDirPath, isLegacyPlugin: true);
+    expect(files.execution.exists, isTrue);
+    expect(files.packageConfig.exists, isTrue);
+    expect(pubCommands, [
+      ['pub', 'get'],
+    ]);
+  }
+
   void test_pathsFor_noAot() {
     processRunner.runSyncHandler = simpleRunSyncHandler((_, _) {
       newPackageConfigJsonFile('/plugin', '');
@@ -890,9 +934,7 @@ class PluginManagerTest with ResourceProviderMixin {
   }
 
   void test_pathsFor_packageConfigIsNewer() {
-    // The snapshot is rewritten by the `pub upgrade` step of this fake, not
-    // because the package config is a dependency of the snapshot.
-    processRunner.runSyncHandler = touchAotSnapshotHandler;
+    processRunner.runSyncHandler = writeAotSnapshotHandler;
 
     writeAllFiles();
     packageConfigFile.writeAsStringSync('');

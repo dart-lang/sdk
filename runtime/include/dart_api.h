@@ -3288,24 +3288,15 @@ typedef void* (*Dart_FfiNativeResolver)(const char* name, uintptr_t args_n);
  */
 
 /**
- * An environment lookup callback function.
+ * Sets the environment for the current isolate.
  *
- * \param name The name of the value to lookup in the environment.
+ * \param environment An array of null-terminated UTF-8 strings where
+ *                    even elements are keys and odd elements are values,
+ *                    terminated by a NULL pointer (or NULL to clear).
  *
- * \return A valid handle to a string if the name exists in the
- * current environment or Dart_Null() if not.
+ * \return A valid handle if the environment was set successfully.
  */
-typedef Dart_Handle (*Dart_EnvironmentCallback)(Dart_Handle name);
-
-/**
- * Sets the environment callback for the current isolate. This
- * callback is used to lookup environment values by name in the
- * current environment. This enables the embedder to supply values for
- * the const constructors bool.fromEnvironment, int.fromEnvironment
- * and String.fromEnvironment.
- */
-DART_EXPORT Dart_Handle
-Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback);
+DART_EXPORT Dart_Handle Dart_SetEnvironment(const char** environment);
 
 /**
  * Sets the callback used to resolve native functions for a library.

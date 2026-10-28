@@ -1728,7 +1728,6 @@ class A<T> {
     return switch (result.findNode.any('x = ')) {
       LocalVariable(:var initializer?) => initializer,
       TopLevelVariable2(:var initializer?) => initializer,
-      VariableDeclaration(:var initializer2?) => initializer2,
       _ => throw StateError('No initializer of x'),
     };
   }

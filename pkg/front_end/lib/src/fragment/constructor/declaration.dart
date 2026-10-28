@@ -26,8 +26,8 @@ import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/resolver.dart';
 import '../../kernel/type_algorithms.dart';
-import '../../source/augmented_parameters.dart';
 import '../../source/name_scheme.dart';
+import '../../source/parameters.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_function_builder.dart';
@@ -71,7 +71,7 @@ abstract class ConstructorDeclaration {
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
     required bool isImplementation,
@@ -973,7 +973,7 @@ class RegularConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
     required bool isImplementation,
@@ -1147,7 +1147,7 @@ class DefaultEnumConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
     required bool isImplementation,
@@ -1308,7 +1308,7 @@ class PrimaryConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
     required bool isImplementation,
@@ -1698,7 +1698,7 @@ class DefaultConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
     required bool isImplementation,
@@ -1776,7 +1776,7 @@ class ForwardingConstructorDeclaration
     required SourceLoader loader,
     required DeclarationBuilder declarationBuilder,
     required SourceConstructorBuilder constructorBuilder,
-    required AugmentedParameters parameters,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
     required bool isImplementation,

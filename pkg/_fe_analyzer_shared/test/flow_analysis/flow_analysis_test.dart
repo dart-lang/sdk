@@ -5765,7 +5765,6 @@ main() {
       });
 
       test('enabled', () {
-        h.enablePromotionChainIntersectionJoin();
         var s0 = FlowModel(Reachability.initial);
         var s1 = s0._setInfo(h, {
           x: model([SharedTypeView(bType), SharedTypeView(dType)]),
@@ -5789,7 +5788,6 @@ main() {
       });
 
       test('AST enabled', () {
-        h.enablePromotionChainIntersectionJoin();
         var x = Var('x');
         h.run([
           declare(x, type: 'Object', initializer: expr('Object')),

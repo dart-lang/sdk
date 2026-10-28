@@ -7,8 +7,8 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/test_helper.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
@@ -81,40 +81,40 @@ class _ExhaustivenessDataExtractor extends AstDataExtractor<Features> {
   FutureOr<Features?> computeNodeValue(Id id, AstNode node) async {
     Features features = Features();
     if (node is SwitchStatement || node is SwitchExpression) {
-      StaticType? scrutineeType = _exhaustivenessData.switchScrutineeType[node];
+      Shape? scrutineeShape = _exhaustivenessData.switchScrutineeShape[node];
       List<Space>? caseSpaces = _exhaustivenessData.switchCases[node];
-      if (scrutineeType != null && caseSpaces != null) {
-        Set<Key> fieldsOfInterest = {};
+      if (scrutineeShape != null && caseSpaces != null) {
+        Set<Key> propertiesOfInterest = {};
         Set<Key> keysOfInterest = {};
         for (Space caseSpace in caseSpaces) {
           for (SingleSpace singleSpace in caseSpace.singleSpaces) {
-            fieldsOfInterest.addAll(singleSpace.properties.keys);
+            propertiesOfInterest.addAll(singleSpace.properties.keys);
             keysOfInterest.addAll(singleSpace.additionalProperties.keys);
           }
         }
-        features[Tags.scrutineeType] = staticTypeToText(scrutineeType);
-        if (fieldsOfInterest.isNotEmpty) {
-          features[Tags.scrutineeFields] = fieldsToText(
-            scrutineeType,
-            _exhaustivenessData.objectFieldLookup,
-            fieldsOfInterest,
+        features[Tags.scrutineeType] = shapeToText(scrutineeShape);
+        if (propertiesOfInterest.isNotEmpty) {
+          features[Tags.scrutineeFields] = propertiesToText(
+            scrutineeShape,
+            _exhaustivenessData.objectPropertyLookup,
+            propertiesOfInterest,
           );
         }
-        String? subtypes = typesToText(
-          scrutineeType.getSubtypes(keysOfInterest),
+        String? subtypes = shapesToText(
+          scrutineeShape.getSubshapes(keysOfInterest),
         );
         if (subtypes != null) {
           features[Tags.subtypes] = subtypes;
         }
-        if (scrutineeType.isSealed) {
-          String? expandedSubtypes = typesToText(
-            expandSealedSubtypes(scrutineeType, keysOfInterest),
+        if (scrutineeShape.isSealed) {
+          String? expandedSubtypes = shapesToText(
+            expandSealedSubshapes(scrutineeShape, keysOfInterest),
           );
           if (subtypes != expandedSubtypes && expandedSubtypes != null) {
             features[Tags.expandedSubtypes] = expandedSubtypes;
           }
-          String? order = typesToText(
-            checkingOrder(scrutineeType, keysOfInterest),
+          String? order = shapesToText(
+            checkingOrder(scrutineeShape, keysOfInterest),
           );
           if (order != null) {
             features[Tags.checkingOrder] = order;

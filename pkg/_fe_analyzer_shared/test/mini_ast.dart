@@ -1983,7 +1983,7 @@ class Harness {
   bool get patternsEnabled => _patternsEnabled ?? true;
 
   bool get promotionChainIntersectionJoinEnabled =>
-      _promotionChainIntersectionJoinEnabled ?? false;
+      _promotionChainIntersectionJoinEnabled ?? true;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
 
@@ -2119,11 +2119,6 @@ class Harness {
   void disableThisPromotion() {
     assert(!_started);
     _thisPromotionEnabled = false;
-  }
-
-  void enablePromotionChainIntersectionJoin() {
-    assert(!_started);
-    _promotionChainIntersectionJoinEnabled = true;
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If

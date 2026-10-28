@@ -18,6 +18,10 @@ def init(ctx):
                 "OSFamily": "Linux",
                 "container-image": "docker://gcr.io/cloud-marketplace/google/debian12@sha256:b93235fea71bd454ee11e8f857eb7c1672d033d426d9c0401c53df3c71fd52e7",
             },
+            "default_windows": {
+                "OSFamily": "Windows",
+                "container-image": "docker://gcr.io/chops-private-images-prod/rbe/chromium-browser-clang/windows@sha256:a9bfec46093aa4b8fc077a2b2da6bb8de3e8f13f86c9010a08182d9d3f0171f3",
+            },
         },
         "input_deps": {},
         "rules": [],

@@ -787,7 +787,6 @@ SwitchStatement
             name: first
             resolution: GetterInvocationResolution
               element: <testLibrary>::@enum::E::@getter::first
-              invokeType: E Function()
               type: E
             staticType: E
           expression(v1): PrefixedIdentifier
@@ -824,7 +823,6 @@ SwitchStatement
             name: second
             resolution: GetterInvocationResolution
               element: <testLibrary>::@enum::E::@getter::second
-              invokeType: E Function()
               type: E
             staticType: E
           expression(v1): PrefixedIdentifier

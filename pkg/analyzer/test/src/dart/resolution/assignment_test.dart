@@ -222,7 +222,6 @@ DirectAssignment
       name: instance
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instance
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
@@ -511,13 +510,11 @@ CompoundAssignment
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: int}
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]=
         substitution: {E: int}
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: +=
   value: UnqualifiedFunctionInvocation
@@ -968,7 +965,6 @@ CompoundAssignment
     name: value
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::value
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::value
@@ -1058,7 +1054,6 @@ IfNullAssignment
     name: value
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::value
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::value
@@ -1690,11 +1685,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -1814,11 +1807,9 @@ CascadeSection
       rightBracket: ]
       read: MethodIndexReadResolution
         element: <testLibrary>::@class::A::@method::[]
-        invokeType: int? Function(int)
         type: int?
       write: MethodIndexWriteResolution
         element: <testLibrary>::@class::A::@method::[]=
-        invokeType: void Function(int, num)
         acceptedType: num
     operator: ??=
     value: IntegerLiteral
@@ -1923,11 +1914,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -1996,11 +1985,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: num Function(int)
       type: num
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: DoubleLiteral
@@ -2072,7 +2059,6 @@ CompoundAssignment
       recoveryElement: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2142,7 +2128,6 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: InvalidIndexWriteResolution
       recoveryElement: <null>
@@ -2418,11 +2403,9 @@ IfNullAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int? Function(int?)
       type: int?
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int?, num?)
       acceptedType: num?
   operator: ??=
   value: IntegerLiteral
@@ -2486,7 +2469,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     leftBracket: [
@@ -2501,7 +2483,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::B::@method::[]=
-      invokeType: void Function(String, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
@@ -2575,7 +2556,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     leftBracket: [
@@ -2590,7 +2570,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::B::@method::[]=
-      invokeType: void Function(String, int)
       acceptedType: int
   operator: =
   value: NullLiteral
@@ -2662,11 +2641,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2731,11 +2708,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2948,7 +2923,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: UnqualifiedNameExpression
@@ -3275,7 +3249,6 @@ DirectAssignment
         rightBracket: ]
         resolution: MethodIndexReadResolution
           element: <testLibrary>::@class::A::@method::[]
-          invokeType: void Function() Function(int)
           type: void Function()
         staticType: void Function()
       argumentList: ArgumentList
@@ -4177,7 +4150,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4244,7 +4216,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4542,7 +4513,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::x
@@ -4608,7 +4578,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4793,7 +4762,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4896,7 +4864,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -5102,14 +5069,12 @@ CompoundAssignment
       rightBracket: ]
       resolution: MethodIndexReadResolution
         element: <testLibrary>::@class::A::@method::[]
-        invokeType: B Function(int)
         type: B
       staticType: B
     operator: .
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::B::@setter::x
@@ -5188,7 +5153,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -5270,7 +5234,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@setter::x
@@ -5344,7 +5307,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -5545,7 +5507,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     operator: .
@@ -5623,7 +5584,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     operator: .
@@ -5702,7 +5662,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::x
@@ -6357,7 +6316,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: num Function()
       type: num
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -6418,7 +6376,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::x
-      invokeType: num? Function()
       type: num?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::B::@setter::x
@@ -6665,7 +6622,6 @@ DirectAssignment
       name: x
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::x
-        invokeType: B Function()
         type: B
       staticType: B
     operator: .
@@ -7145,7 +7101,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -7278,7 +7233,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::foo
@@ -8059,7 +8013,6 @@ CompoundAssignment
     name: $3
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::$3
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::$3
@@ -8445,7 +8398,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -8508,7 +8460,6 @@ IfNullAssignment
       element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::A::@getter::x
         substitution: {T: int}
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: SubstitutedSetterElementImpl
@@ -8580,14 +8531,12 @@ CompoundAssignment
       name: x
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::x
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
     name: y
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::y
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::y
@@ -8656,7 +8605,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -8718,7 +8666,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -9283,7 +9230,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: IntegerLiteral
@@ -10606,7 +10552,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x
@@ -10660,7 +10605,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x
@@ -10737,7 +10681,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@setter::x
@@ -10789,7 +10732,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x
@@ -10887,7 +10829,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x
@@ -10943,7 +10884,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: B? Function()
       type: B?
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x
@@ -11008,7 +10948,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x

@@ -162,5 +162,27 @@ void main() {
         await check(queue.next).throws<FormatException>();
       }
     });
+
+    test(
+      'sending MessagePort over binary channel throws FormatException',
+      () async {
+        final ctrl = StreamChannelController<Uint8List>();
+        final rpc = MessagePort.fromBinaryChannel(ctrl.local).jsonRpcChannel();
+        final (port1, port2) = MessagePortExt.createChannel();
+        addTearDown(port2.close);
+
+        check(
+          () => rpc.sink.add({
+            'jsonrpc': '2.0',
+            'method': 'connect',
+            'params': {'port': port1},
+          }),
+        ).throws<FormatException>();
+
+        // Check rpc was not closed
+        rpc.sink.add({'ping': 'pong'});
+        await check(ctrl.foreign.stream.first).completes();
+      },
+    );
   });
 }

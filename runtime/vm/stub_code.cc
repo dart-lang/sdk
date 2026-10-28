@@ -145,16 +145,16 @@ bool StubCode::InInvocationStub(Thread* T,
   }
   {
     const Code& stub = roots->x_stub_handle(kInvokeDartCodeFromBytecodeIndex);
-    uword entry = Code::StubEntryPointOf(stub.ptr());
-    uword size = Code::StubPayloadSizeOf(stub.ptr());
+    uword entry = Code::EntryPointOf(stub.ptr());
+    uword size = Code::PayloadSizeOf(stub.ptr());
     if ((pc >= entry) && (pc < (entry + size))) {
       return true;
     }
   }
 #endif  // defined(DART_DYNAMIC_MODULES)
   const Code& stub = roots->x_stub_handle(kInvokeDartCodeIndex);
-  uword entry = Code::StubEntryPointOf(stub.ptr());
-  uword size = Code::StubPayloadSizeOf(stub.ptr());
+  uword entry = Code::EntryPointOf(stub.ptr());
+  uword size = Code::PayloadSizeOf(stub.ptr());
   return (pc >= entry) && (pc < (entry + size));
 }
 
@@ -168,8 +168,8 @@ bool StubCode::InJumpToFrameStub(Thread* T, uword pc) {
   if (stub.ptr() == nullptr) {
     return false;  // Still bootstrapping.
   }
-  uword entry = Code::StubEntryPointOf(stub.ptr());
-  uword size = Code::StubPayloadSizeOf(stub.ptr());
+  uword entry = Code::EntryPointOf(stub.ptr());
+  uword size = Code::PayloadSizeOf(stub.ptr());
   return (pc >= entry) && (pc < (entry + size));
 }
 

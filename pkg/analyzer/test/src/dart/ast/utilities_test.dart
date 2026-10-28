@@ -7,12 +7,13 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/ast_type_matchers.dart';
 import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NodeLocator2Test);
+    defineReflectiveTests(ScopedNameFinder2Test);
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(ScopedNameFinderTest);
   });
 }
@@ -48,7 +49,7 @@ class A<T> {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T> {}'));
-    expect(node, isClassDeclaration2);
+    expect(node, isA<ClassDeclaration2>());
   }
 
   void test_searchWithin_constructor_afterName_beforeParameters() {
@@ -60,7 +61,7 @@ class A {
     var unit = parseTestCodeWithDiagnostics(source).unit;
     // TODO(dantup): Update these tests to use markers.
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration2);
+    expect(node, isA<ConstructorDeclaration2>());
   }
 
   void test_searchWithin_function_afterName_beforeParameters() {
@@ -89,7 +90,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isMethodDeclaration2);
+    expect(node, isA<MethodDeclaration2>());
   }
 
   void test_searchWithin_method_afterName_beforeTypeParameters() {
@@ -100,7 +101,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
-    expect(node, isMethodDeclaration2);
+    expect(node, isA<MethodDeclaration2>());
   }
 
   void test_searchWithin_namedConstructor_afterName_beforeParameters() {
@@ -111,7 +112,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration2);
+    expect(node, isA<ConstructorDeclaration2>());
   }
 
   void test_searchWithin_setter_afterName_beforeParameters() {
@@ -121,6 +122,26 @@ set s(int i) {}
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('(int i)'));
     expect(node, isA<TopLevelSetterDeclaration>());
+  }
+
+  void test_searchWithin_topLevelGetter_afterName_beforeBody() {
+    var source = r'''
+int get g=>0;
+''';
+    var unit = parseTestCodeWithDiagnostics(source).unit;
+    var node = _assertLocate(unit, source.indexOf('=>0'));
+    expect(node, isA<TopLevelGetterDeclaration>());
+  }
+
+  void test_searchWithin_topLevelGetter_afterName_beforeRecoveryParameters() {
+    var source = r'''
+int get g(int i) => 0;
+//       ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''';
+    var result = parseTestCodeWithDiagnostics(source);
+    var node = _assertLocate(result.unit, result.content.indexOf('(int i)'));
+    expect(node, isA<TopLevelGetterDeclaration>());
   }
 
   void test_startEndOffset() {
@@ -152,9 +173,132 @@ set s(int i) {}
 }
 
 @reflectiveTest
+class ScopedNameFinder2Test extends ParserDiagnosticsTest {
+  void test_constructorInvocation() {
+    var code = '''
+void f(int parameter) {
+  var local = 0;
+  new C();
+  var after = 1;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder2(offset);
+    node.accept2(finder);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder.declaration, same(unit.declarations2.single));
+  }
+
+  void test_localFunction() {
+    var code = '''
+void f() {
+  void g() {}
+  new C();
+  void h() {}
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder2(offset);
+    node.accept2(finder);
+
+    expect(finder.locals, {'g'});
+    expect(finder.declaration, same(unit.declarations2.single));
+  }
+
+  void test_switchMember() {
+    var code = '''
+void f(int x) {
+  switch (x) {
+    case 0:
+      var local = 0;
+      new C();
+      var after = 1;
+  }
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder2(offset);
+    node.accept2(finder);
+
+    expect(finder.locals, {'x', 'local'});
+    expect(finder.declaration, same(unit.declarations2.single));
+  }
+
+  void test_topLevelGetter() {
+    var code = '''
+int get foo {
+  var local = 0;
+  new C();
+  return local;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder2(offset);
+    node.accept2(finder);
+
+    expect(finder.locals, {'local'});
+    expect(finder.declaration, same(unit.declarations2.single));
+  }
+
+  void test_topLevelGetter_recoveryFormalParameters() {
+    var code = '''
+int get foo(int parameter) {
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+  var local = 0;
+  new C();
+  return local;
+}
+''';
+    var result = parseTestCodeWithDiagnostics(code);
+    var unit = result.unit;
+    var offset = result.content.indexOf('new C();');
+    var node = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder2(offset);
+    node.accept2(finder);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder.declaration, same(unit.declarations2.single));
+  }
+
+  void test_topLevelSetter() {
+    var code = '''
+set foo(int parameter) {
+  var local = 0;
+  new C();
+  var after = 1;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder2(offset);
+    node.accept2(finder);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder.declaration, same(unit.declarations2.single));
+  }
+}
+
+@reflectiveTest
+@V1Ast('The V2 counterpart is ScopedNameFinder2Test.')
 class ScopedNameFinderTest extends ParserDiagnosticsTest {
-  @V1Ast('Tests the V1 projection.')
-  void test_constructorInvocation_views() {
+  void test_constructorInvocation() {
     var code = '''
 void f(int parameter) {
   var local = 0;
@@ -165,24 +309,97 @@ void f(int parameter) {
     var unit = parseTestCodeWithDiagnostics(code).unit;
     var offset = code.indexOf('new C();');
     var node = unit.nodeCovering(offset: offset, length: 7)!;
-    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
-
-    expect(node, isA<InstanceCreationExpressionImpl>());
-    expect(node2, isA<ConstructorInvocationImpl>());
 
     var finder = ScopedNameFinder(offset);
     node.accept(finder);
-    var finder2 = ScopedNameFinder2(offset);
-    node2.accept2(finder2);
 
     expect(finder.locals, {'parameter', 'local'});
-    expect(finder2.locals, finder.locals);
     expect(finder.declaration, same(unit.declarations.single));
-    expect(finder2.declaration, same(unit.declarations2.single));
   }
 
-  @V1Ast('Tests the V1 projection.')
-  void test_topLevelSetter_views() {
+  void test_localFunction() {
+    var code = '''
+void f() {
+  void g() {}
+  new C();
+  void h() {}
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+
+    expect(finder.locals, {'g'});
+    expect(finder.declaration, same(unit.declarations.single));
+  }
+
+  void test_switchMember() {
+    var code = '''
+void f(int x) {
+  switch (x) {
+    case 0:
+      var local = 0;
+      new C();
+      var after = 1;
+  }
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+
+    expect(finder.locals, {'x', 'local'});
+    expect(finder.declaration, same(unit.declarations.single));
+  }
+
+  void test_topLevelGetter() {
+    var code = '''
+int get foo {
+  var local = 0;
+  new C();
+  return local;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+
+    expect(finder.locals, {'local'});
+    expect(finder.declaration, same(unit.declarations.single));
+  }
+
+  void test_topLevelGetter_recoveryFormalParameters() {
+    var code = '''
+int get foo(int parameter) {
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+  var local = 0;
+  new C();
+  return local;
+}
+''';
+    var result = parseTestCodeWithDiagnostics(code);
+    var unit = result.unit;
+    var offset = result.content.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder.declaration, same(unit.declarations.single));
+  }
+
+  void test_topLevelSetter() {
     var code = '''
 set foo(int parameter) {
   var local = 0;
@@ -193,14 +410,11 @@ set foo(int parameter) {
     var unit = parseTestCodeWithDiagnostics(code).unit;
     var offset = code.indexOf('new C();');
     var node = unit.nodeCovering(offset: offset, length: 7)!;
-    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
 
     var finder = ScopedNameFinder(offset);
     node.accept(finder);
-    var finder2 = ScopedNameFinder2(offset);
-    node2.accept2(finder2);
 
     expect(finder.locals, {'parameter', 'local'});
-    expect(finder2.locals, finder.locals);
+    expect(finder.declaration, same(unit.declarations.single));
   }
 }

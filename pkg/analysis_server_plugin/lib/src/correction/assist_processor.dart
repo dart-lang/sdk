@@ -10,23 +10,34 @@ import 'package:analysis_server_plugin/src/correction/assist_performance.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 
 Future<List<Assist>> computeAssists(
   DartAssistContext context, {
   AssistPerformance? performance,
-}) => AssistProcessor(context, performance: performance).compute();
+  CancellationToken? cancellationToken,
+}) {
+  return AssistProcessor(
+    context,
+    performance: performance,
+    cancellationToken: cancellationToken,
+  ).compute();
+}
 
 /// The computer for Dart assists.
 class AssistProcessor {
   final AssistPerformance? _performance;
   final DartAssistContext _assistContext;
+  final CancellationToken? _cancellationToken;
   final Stopwatch _timer = Stopwatch();
 
   final List<Assist> _assists = [];
 
-  new(this._assistContext, {this._performance});
+  new(this._assistContext, {this._performance, this._cancellationToken});
+
+  bool get _isCancelled => _cancellationToken?.isCancellationRequested ?? false;
 
   Future<List<Assist>> compute() async {
     _timer.start();
@@ -37,6 +48,10 @@ class AssistProcessor {
   }
 
   Future<void> _addFromProducer(CorrectionProducer producer) async {
+    if (_isCancelled) {
+      return;
+    }
+
     var assistKind = producer.assistKind;
     // If this producer is not actually designed to work as an assist, ignore
     // it.
@@ -88,6 +103,7 @@ class AssistProcessor {
     );
 
     for (var generator in registeredAssistGenerators.producerGenerators) {
+      if (_isCancelled) return;
       if (!_generatorAppliesToAnyLintRule(
         generator,
         registeredAssistGenerators.lintRuleMap[generator] ?? {},
@@ -98,6 +114,7 @@ class AssistProcessor {
     }
     for (var multiGenerator
         in registeredAssistGenerators.multiProducerGenerators) {
+      if (_isCancelled) return;
       var multiProducer = multiGenerator(context: context);
       for (var producer in await multiProducer.producers) {
         await _addFromProducer(producer);

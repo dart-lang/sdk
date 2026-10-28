@@ -4,53 +4,54 @@
 
 import 'dart_template_buffer.dart';
 import 'key.dart';
+import 'shape.dart';
 import 'shared.dart';
 import 'space.dart';
-import 'static_type.dart';
 import 'witness.dart';
 
-part 'types/bool.dart';
-part 'types/enum.dart';
-part 'types/future_or.dart';
-part 'types/list.dart';
-part 'types/map.dart';
-part 'types/record.dart';
-part 'types/sealed.dart';
+part 'shapes/bool.dart';
+part 'shapes/enum.dart';
+part 'shapes/future_or.dart';
+part 'shapes/list.dart';
+part 'shapes/map.dart';
+part 'shapes/record.dart';
+part 'shapes/sealed.dart';
 
-/// [StaticType] based on a non-nullable [Type].
+/// [Shape] based on a non-nullable [Type].
 ///
-/// All [StaticType] implementation in this library are based on [Type] through
-/// this class. Additionally, the `static_type.dart` library has fixed
-/// [StaticType] implementations for `Object`, `Null`, `Never` and nullable
-/// types.
-class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
+/// All [Shape] implementations in this library are based on [Type] through
+/// this class. Additionally, the `shape.dart` library has fixed [Shape]
+/// implementations for `Object`, `Null`, `Never` and nullable shapes.
+// TODO(johnniwinther): Extract an `AtomicShape` from this class and make this
+// abstract base.
+class TypeBasedShape<Type extends Object> extends NonNullableShape {
   final TypeOperations<Type> _typeOperations;
-  final FieldLookup<Type> _fieldLookup;
+  final PropertyLookup<Type> _propertyLookup;
   final Type _type;
   @override
   final bool isImplicitlyNullable;
 
   new(
     this._typeOperations,
-    this._fieldLookup,
+    this._propertyLookup,
     this._type, {
     required this.isImplicitlyNullable,
   });
 
   @override
-  Map<Key, StaticType> get fields => _fieldLookup.getFieldTypes(_type);
+  Map<Key, Shape> get properties => _propertyLookup.getPropertyShapes(_type);
 
   @override
-  StaticType? getAdditionalPropertyType(Key key) =>
-      _fieldLookup.getAdditionalFieldType(_type, key);
+  Shape? getAdditionalPropertyShape(Key key) =>
+      _propertyLookup.getAdditionalPropertyShape(_type, key);
 
-  /// Returns a [Restriction] value for static types the determines subtypes of
+  /// Returns a [Restriction] value for shapes that determines subshapes of
   /// the [_type]. For instance individual elements of an enum.
   Restriction get restriction => const Unrestricted();
 
   @override
-  bool isSubtypeOfInternal(StaticType other) {
-    return other is TypeBasedStaticType<Type> &&
+  bool isSubshapeOfInternal(Shape other) {
+    return other is TypeBasedShape<Type> &&
         _typeOperations.isSubtypeOf(_type, other._type) &&
         restriction.isSubtypeOf(_typeOperations, other.restriction);
   }
@@ -67,7 +68,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    return other is TypeBasedStaticType<Type> &&
+    return other is TypeBasedShape<Type> &&
         _type == other._type &&
         restriction == other.restriction;
   }
@@ -78,18 +79,18 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   void witnessToDart(
     DartTemplateBuffer buffer,
     PropertyWitness witness,
-    Map<Key, PropertyWitness> witnessFields, {
+    Map<Key, PropertyWitness> witnessProperties, {
     required bool forCorrection,
   }) {
     if (!_typeOperations.hasSimpleName(_type)) {
       buffer.write(name);
       buffer.write(' _');
 
-      // If we have restrictions on the record type we create an and pattern.
+      // If we have restrictions on the shape we create an and-pattern.
       String additionalStart = ' && Object(';
       String additionalEnd = '';
       String comma = '';
-      for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
+      for (MapEntry<Key, PropertyWitness> entry in witnessProperties.entries) {
         Key key = entry.key;
         if (key is! ListKey) {
           buffer.write(additionalStart);
@@ -100,8 +101,8 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
 
           buffer.write(key.name);
           buffer.write(': ');
-          PropertyWitness field = entry.value;
-          field.witnessToDart(buffer, forCorrection: forCorrection);
+          PropertyWitness property = entry.value;
+          property.witnessToDart(buffer, forCorrection: forCorrection);
         }
       }
       buffer.write(additionalEnd);
@@ -109,14 +110,14 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
       super.witnessToDart(
         buffer,
         witness,
-        witnessFields,
+        witnessProperties,
         forCorrection: forCorrection,
       );
     }
   }
 
   @override
-  void typeToDart(DartTemplateBuffer buffer) {
+  void shapeToDart(DartTemplateBuffer buffer) {
     buffer.writeGeneralType(_type, name);
   }
 
@@ -126,7 +127,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   }
 
   @override
-  bool get isEnumSubtype => _typeOperations.isEnum(_type);
+  bool get isEnumSubshape => _typeOperations.isEnum(_type);
 
   @override
   Uri? get libraryUri => _typeOperations.libraryUri(_type);
@@ -135,12 +136,12 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   bool get isPrivate => name.startsWith('_');
 }
 
-/// [StaticType] for an object restricted by its [restriction].
-abstract class RestrictedStaticType<
+/// [Shape] for an object restricted by its [restriction].
+abstract class RestrictedShape<
   Type extends Object,
   Identity extends Restriction
 >
-    extends TypeBasedStaticType<Type> {
+    extends TypeBasedShape<Type> {
   @override
   final Identity restriction;
 
@@ -149,17 +150,17 @@ abstract class RestrictedStaticType<
 
   new(
     super.typeOperations,
-    super.fieldLookup,
+    super.propertyLookup,
     super.type,
     this.restriction,
     this.name,
   ) : super(isImplicitlyNullable: false);
 }
 
-/// [StaticType] for an object restricted to a single value, where that value is
+/// [Shape] for an object restricted to a single value, where that value is
 /// a general-purpose value (not a boolean or an enum).
-class GeneralValueStaticType<Type extends Object, T extends Object>
-    extends ValueStaticType<Type, T> {
+class GeneralValueShape<Type extends Object, T extends Object>
+    extends ValueShape<Type, T> {
   final T _value;
 
   @override
@@ -169,7 +170,7 @@ class GeneralValueStaticType<Type extends Object, T extends Object>
 
   new(
     super.typeOperations,
-    super.fieldLookup,
+    super.propertyLookup,
     super.type,
     super.restriction,
     super.name,
@@ -177,14 +178,14 @@ class GeneralValueStaticType<Type extends Object, T extends Object>
   );
 }
 
-/// [StaticType] for an object restricted to a single value.
-abstract class ValueStaticType<Type extends Object, T extends Object>
-    extends RestrictedStaticType<Type, IdentityRestriction<T>> {
+/// [Shape] for an object restricted to a single value.
+abstract class ValueShape<Type extends Object, T extends Object>
+    extends RestrictedShape<Type, IdentityRestriction<T>> {
   void valueToDart(DartTemplateBuffer buffer);
 
   new(
     super.typeOperations,
-    super.fieldLookup,
+    super.propertyLookup,
     super.type,
     super.restriction,
     super.name,
@@ -194,7 +195,7 @@ abstract class ValueStaticType<Type extends Object, T extends Object>
   void witnessToDart(
     DartTemplateBuffer buffer,
     PropertyWitness witness,
-    Map<Key, PropertyWitness> witnessFields, {
+    Map<Key, PropertyWitness> witnessProperties, {
     required bool forCorrection,
   }) {
     valueToDart(buffer);
@@ -203,7 +204,7 @@ abstract class ValueStaticType<Type extends Object, T extends Object>
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     String comma = '';
-    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessProperties.entries) {
       Key key = entry.key;
       if (key is! RecordKey) {
         buffer.write(additionalStart);

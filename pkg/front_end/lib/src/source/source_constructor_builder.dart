@@ -28,8 +28,8 @@ import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
 import '../util/helpers.dart';
 import '../util/reference_map.dart';
-import 'augmented_parameters.dart';
 import 'name_scheme.dart';
+import 'parameters.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_loader.dart';
@@ -105,7 +105,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final bool isPrimaryConstructor;
 
-  final AugmentedParameters _parameters;
+  final Parameters _parameters;
 
   new({
     required this.name,

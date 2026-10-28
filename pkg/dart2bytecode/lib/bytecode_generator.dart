@@ -4200,9 +4200,11 @@ class BytecodeGenerator extends RecursiveVisitor {
         (throw 'Target label ${node.target} was not registered for break $node');
     final targetContextLevel = contextLevels![node.target]!;
 
+    // Like return, the debugger should hit the break before running any finally
+    // clauses, so emit the source position here and not in the continuation.
+    asm.emitSourcePosition();
     _generateNonLocalControlTransfer(node, node.target, () {
       _genUnwindContext(targetContextLevel);
-      asm.emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
@@ -4214,9 +4216,12 @@ class BytecodeGenerator extends RecursiveVisitor {
         (throw 'Target label ${node.target} was not registered for continue-switch $node');
     final targetContextLevel = contextLevels![node.target.parent]!;
 
+    // Like return, the debugger should hit the continue before running any
+    // finally clauses, so emit the source position here and not in the
+    // continuation.
+    asm.emitSourcePosition();
     _generateNonLocalControlTransfer(node, node.target.parent!, () {
       _genUnwindContext(targetContextLevel);
-      asm.emitSourcePosition();
       asm.emitJump(targetLabel);
     });
   }
@@ -4362,12 +4367,21 @@ class BytecodeGenerator extends RecursiveVisitor {
       node,
       null,
     );
+
+    void addReturnContinuation(void Function() continuation) {
+      // Emit a source position prior to calling _addFinallyBlocks so that
+      // a breakpoint for the return is created here, prior to any finalizers
+      // executed before the actual return instruction.
+      asm.emitSourcePosition();
+      _addFinallyBlocks(tryFinallyBlocks, continuation);
+    }
+
     if (tryFinallyBlocks.isEmpty) {
       _generateNode(expr);
       _genReturnTOS();
     } else {
       if (expr is BasicLiteral) {
-        _addFinallyBlocks(tryFinallyBlocks, () {
+        addReturnContinuation(() {
           _generateNode(expr);
           _genReturnTOS();
         });
@@ -4376,8 +4390,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         // inside finally can zap expression stack.
         _generateNode(node.expression);
         asm.emitPopLocal(locals.returnVarIndexInFrame);
-
-        _addFinallyBlocks(tryFinallyBlocks, () {
+        addReturnContinuation(() {
           asm.emitPush(locals.returnVarIndexInFrame);
           _genReturnTOS();
         });
@@ -4685,7 +4698,23 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     tryBlock.types.add(cp.addType(const DynamicType()));
 
-    _generateNode(node.finalizer);
+    void generateFinalizer() {
+      _generateNode(node.finalizer);
+      // If the finalizer has possible pause points for the debugger, then
+      // each instance of the generated finalizer block must have a separate
+      // entry in the source positions list so that creating a logical
+      // breakpoint within the finally clause creates a code breakpoint in
+      // each one.
+      //
+      // Thus, add synthetic source positions for the finally node after
+      // each instance of the finalizer block to avoid collapsing the same
+      // source position information into a single entry (which causes only
+      // the first generated finalizer block to be breakpointed).
+      _recordSourcePosition(node.fileOffset, SourcePositions.syntheticFlag);
+      asm.emitSourcePosition();
+    }
+
+    generateFinalizer();
 
     tryBlock.needsStackTrace = true; // For rethrowing.
     _genRethrow(node, isSynthetic: true);
@@ -4694,7 +4723,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.bind(finallyBlock.entry);
       _restoreContextForTryBlock(node);
       _recordBranchTargetCoverage(node.finalizer);
-      _generateNode(node.finalizer);
+      generateFinalizer();
       finallyBlock.generateContinuation();
     }
 

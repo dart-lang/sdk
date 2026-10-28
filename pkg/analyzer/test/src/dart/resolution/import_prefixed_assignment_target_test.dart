@@ -488,7 +488,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -557,7 +556,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -1527,7 +1525,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: package:test/a.dart::@getter::foo
@@ -1737,7 +1734,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -1803,7 +1799,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -1925,7 +1920,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -2258,7 +2252,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -2656,7 +2649,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -2718,7 +2710,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement

@@ -134,12 +134,9 @@ plugins:
 
     expect(manager.pluginIsolates, hasLength(2));
 
-    var isolate0 = manager.pluginIsolates.firstWhere(
-      (e) => !e.pluginId.contains('_group_1'),
-    ) as TestPluginIsolate;
-    var isolate1 = manager.pluginIsolates.firstWhere(
-      (e) => e.pluginId.contains('_group_1'),
-    ) as TestPluginIsolate;
+    var isolate0 = manager.pluginIsolates[0] as TestPluginIsolate;
+    var isolate1 = manager.pluginIsolates[1] as TestPluginIsolate;
+    expect(isolate0.pluginId, isNot(isolate1.pluginId));
 
     var setConfigurations0 =
         isolate0.requests.first as protocol.AnalysisSetConfigurationsParams;
@@ -469,6 +466,58 @@ plugins:
 
     expect(config[rootPath]!['foo']!.enabled, isTrue);
     expect(config[innerPath], isEmpty);
+  }
+
+  Future<void>
+  test_addedDriver_sameContextRoot_differentPluginConfigurations() async {
+    newPubspecYamlFile('/foo', 'name: foo');
+    newFile('/foo/tools/analyzer_plugin/bin/plugin.dart', '');
+
+    newFile(join(testPackageRootPath, 'analysis_options.yaml'), '''
+plugins:
+  foo: ^1.0.0
+''');
+
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: getFolder('/foo')),
+    );
+
+    var driver = driverFor(testFile);
+    watcher.addedDriver(driver);
+    await _waitForEvents();
+
+    var pluginFolderPath1 = manager.contextRootPlugins.values.first.first;
+    var pubspecFile1 = getFolder(pluginFolderPath1).getFile('pubspec.yaml');
+    expect(pubspecFile1.readAsStringSync(), contains('^1.0.0'));
+
+    // Simulate a second analysis (such as analyzing a different package in the
+    // same Pub workspace root) with a different plugin configuration.
+    watcher.removedDriver(driver);
+    var rootFolder = getFolder(testPackageRootPath);
+    var builder = AnalysisOptionsBuilder(
+      file: rootFolder.getFile('analysis_options.yaml'),
+    );
+    builder.pluginsOptions = PluginsOptions(
+      configurations: [
+        PluginConfiguration(
+          name: 'foo',
+          source: VersionedPluginSource(constraint: '^2.0.0'),
+        ),
+      ],
+      dependencyOverrides: null,
+    );
+    driver.analysisOptionsMap[rootFolder] = builder.build();
+
+    watcher.addedDriver(driver);
+    await _waitForEvents();
+
+    var pluginFolderPath2 = manager.contextRootPlugins.values.first.first;
+    expect(pluginFolderPath2, isNot(pluginFolderPath1));
+    // The first plugin state folder's pubspec was not overwritten.
+    expect(pubspecFile1.readAsStringSync(), contains('^1.0.0'));
+    var pubspecFile2 = getFolder(pluginFolderPath2).getFile('pubspec.yaml');
+    expect(pubspecFile2.readAsStringSync(), contains('^2.0.0'));
   }
 
   void test_creation() {

@@ -38,7 +38,6 @@ ConstantPattern
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): PrefixedIdentifier
@@ -213,7 +212,6 @@ ConstantPattern
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): PropertyAccess
@@ -263,7 +261,6 @@ ConstantPattern
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): PrefixedIdentifier
@@ -323,7 +320,6 @@ ConstantPattern
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier

@@ -7,15 +7,21 @@ import 'package:analysis_server/src/services/correction/refactoring_performance.
 import 'package:analysis_server/src/services/refactoring/add_constructor_name.dart';
 import 'package:analysis_server/src/services/refactoring/add_import_prefix.dart';
 import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
+import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
+import 'package:analysis_server/src/services/refactoring/convert_method_to_getter.dart';
 import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
+import 'package:analysis_server/src/services/refactoring/extract_local_variable.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
+import 'package:analysis_server/src/services/refactoring/inline_local_variable.dart';
+import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:analysis_server/src/services/refactoring/remove_constructor_name.dart';
 import 'package:analysis_server/src/services/refactoring/remove_import_prefix.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
@@ -31,10 +37,15 @@ class RefactoringProcessor {
     AddImportPrefix.commandName: AddImportPrefix.new,
     ConvertAllFormalParametersToNamed.commandName:
         ConvertAllFormalParametersToNamed.new,
+    ConvertGetterToMethod.commandName: ConvertGetterToMethod.new,
+    ConvertMethodToGetter.commandName: ConvertMethodToGetter.new,
     ConvertSelectedFormalParametersToNamed.commandName:
         ConvertSelectedFormalParametersToNamed.new,
+    ExtractLocalVariable.commandName: ExtractLocalVariable.new,
     ExtractMethod.commandName: ExtractMethod.new,
     ExtractWidget.commandName: ExtractWidget.new,
+    InlineLocalVariable.commandName: InlineLocalVariable.new,
+    InlineMethod.commandName: InlineMethod.new,
     MoveSelectedFormalParametersLeft.commandName:
         MoveSelectedFormalParametersLeft.new,
     MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,
@@ -47,9 +58,11 @@ class RefactoringProcessor {
 
   final RefactoringPerformance? _performance;
 
+  final CancellationToken? _token;
+
   final Stopwatch _timer = Stopwatch();
 
-  new(this.context, {this._performance});
+  new(this.context, {this._performance, this._token});
 
   /// Return a list containing one code action for each of the refactorings that
   /// are available in the current context.
@@ -57,6 +70,8 @@ class RefactoringProcessor {
     _timer.start();
     var refactorings = <CodeActionLiteral>[];
     for (var entry in RefactoringProcessor.generators.entries) {
+      if (_token?.isCancellationRequested ?? false) break;
+
       var generator = entry.value;
       var producer = generator(context);
 

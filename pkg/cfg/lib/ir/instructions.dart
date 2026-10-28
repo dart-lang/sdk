@@ -1844,6 +1844,7 @@ enum UnaryDoubleOpcode(final String token) {
   truncateToDouble('truncateToDouble'),
   isNegative('isNegative'),
   isInfinite('isInfinite'),
+  hash('hash'),
   sin('sin'),
   cos('cos'),
   tan('tan'),
@@ -1868,7 +1869,7 @@ final class UnaryDoubleOp extends Definition with Pure, Idempotent {
 
   @override
   CType get type => switch (op) {
-    .round || .floor || .ceil || .truncate => const IntType(),
+    .round || .floor || .ceil || .truncate || .hash => const IntType(),
     .isNegative || .isInfinite => const BoolType(),
     _ => const DoubleType(),
   };
@@ -2188,6 +2189,20 @@ final class UnboxDouble extends Unbox {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitUnboxDouble(this);
+}
+
+/// Keep the value alive.
+final class ReachabilityFence extends Instruction
+    with NoThrow, Pure, BackendInstruction {
+  ReachabilityFence(super.graph, super.sourcePosition, Definition value)
+    : super(inputCount: 1) {
+    setInputAt(0, value);
+  }
+
+  Definition get value => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitReachabilityFence(this);
 }
 
 /// Base class for move operations, part of [ParallelMove].

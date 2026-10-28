@@ -1218,6 +1218,91 @@ var x = sin(1);
 ''');
   }
 
+  Future<void> test_docImport_replacedBy_multipleBrokenInComment() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by new.dart'
+    date: 2026-01-01
+    library: 'package:p/old.dart'
+    changes:
+      - kind: 'replacedBy'
+        newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/old.dart';
+/// @docImport 'package:p/missing.dart';
+library;
+''');
+    await assertNoFix(
+      filter: (d) => d.offset == testCode.indexOf("'package:p/missing.dart'"),
+    );
+    await assertHasFix('''
+/// @docImport 'package:p/new.dart';
+/// @docImport 'package:p/missing.dart';
+library;
+''', filter: (d) => d.offset == testCode.indexOf("'package:p/old.dart'"));
+  }
+
+  Future<void> test_docImport_replacedBy_multipleInComment() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/other.dart', '''
+class B {}
+''');
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by new.dart'
+    date: 2026-01-01
+    library: 'package:p/old.dart'
+    changes:
+      - kind: 'replacedBy'
+        newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/other.dart';
+/// @docImport 'package:p/old.dart';
+library;
+''');
+    await assertHasFix('''
+/// @docImport 'package:p/other.dart';
+/// @docImport 'package:p/new.dart';
+library;
+''');
+  }
+
+  Future<void> test_docImport_replacedBy_removed() async {
+    setPackageContent('');
+    newFile('$workspaceRootPath/p/lib/new.dart', '''
+class A {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by new.dart'
+    date: 2026-01-01
+    library: 'package:p/old.dart'
+    changes:
+      - kind: 'replacedBy'
+        newLibrary: 'package:p/new.dart'
+''');
+    await resolveTestCode('''
+/// @docImport 'package:p/old.dart';
+library;
+''');
+    await assertHasFix('''
+/// @docImport 'package:p/new.dart';
+library;
+''');
+  }
+
   Future<void> test_new_class_uris_single() async {
     setPackageContent('');
     addPackageDataFile('''

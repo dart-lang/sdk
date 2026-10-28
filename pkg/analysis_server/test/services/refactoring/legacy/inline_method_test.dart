@@ -160,7 +160,7 @@ class A {
     _createRefactoring();
     // error
     return _assertConditionsFatal(
-      "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
+      "Can't inline an 'async' method into a function that doesn't return a 'Future' or 'FutureOr'.",
     );
   }
 
@@ -1693,6 +1693,27 @@ class A {
 ''');
   }
 
+  Future<void> test_getter_async_targetIsSync_futureOr() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get ^test async => 42;
+  FutureOr<int> foo() {
+    return test;
+  }
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> foo() async {
+    return 42;
+  }
+}
+''');
+  }
+
   Future<void> test_getter_classMember_instance() async {
     await indexTestUnit(r'''
 class A {
@@ -2192,6 +2213,71 @@ class A {
   }
 
   Future<void> y(String s) async {}
+}
+''');
+  }
+
+  Future<void> test_method_async_futureOr() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> build() {
+    return _initialize();
+  }
+  static Future<int> ^_initialize() async {
+    var value = await Future.value(42);
+    return value;
+  }
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> build() async {
+    var value = await Future.value(42);
+    return value;
+  }
+}
+''');
+  }
+
+  Future<void> test_method_async_futureOr_expressionBody() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> foo() => test();
+  Future<int> ^test() async => 42;
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> foo() async => 42;
+}
+''');
+  }
+
+  Future<void> test_method_async_futureOr_typeAlias() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+typedef Result<T> = FutureOr<T>;
+class A {
+  Result<int> foo() {
+    return test();
+  }
+  Future<int> ^test() async => 42;
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+typedef Result<T> = FutureOr<T>;
+class A {
+  Result<int> foo() async {
+    return 42;
+  }
 }
 ''');
   }

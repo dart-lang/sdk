@@ -52,7 +52,7 @@ class AnalysisSessionHelper {
   Future<ClassElement?> getFlutterClass(String className) =>
       getClass('package:flutter/widgets.dart', className);
 
-  /// Returns the declaration of the [fragment].
+  /// Returns the declaration of the [fragment] in the V1 AST view.
   ///
   /// Returns `null` if the [fragment] is synthetic, or is declared in a file
   /// that is not a part of a library.
@@ -62,6 +62,18 @@ class AnalysisSessionHelper {
     var libraryPath = fragment.libraryFragment!.source.fullName;
     var resolvedLibrary = await _getResolvedLibrary(libraryPath);
     return resolvedLibrary?.getFragmentDeclaration(fragment);
+  }
+
+  /// Returns the declaration of the [fragment] in the V2 AST view.
+  ///
+  /// Returns `null` if the [fragment] is synthetic, or is declared in a file
+  /// that is not a part of a library.
+  Future<FragmentDeclarationResult?> getFragmentDeclaration2(
+    Fragment fragment,
+  ) async {
+    var libraryPath = fragment.libraryFragment!.source.fullName;
+    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    return resolvedLibrary?.getFragmentDeclaration2(fragment);
   }
 
   /// Return the [MixinElement] with the given [name] that is exported

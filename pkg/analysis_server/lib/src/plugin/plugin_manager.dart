@@ -14,6 +14,7 @@ import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/utilities/file_paths.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
@@ -103,6 +104,11 @@ class PluginManager {
 
   /// A table mapping the paths of plugins to information about those plugins.
   final Map<String, PluginIsolate> _pluginMap = <String, PluginIsolate>{};
+
+  /// A table mapping the paths of plugins that are currently being started to
+  /// a completer that completes when the plugin has finished starting.
+  final Map<String, Completer<void>> _startingPlugins =
+      <String, Completer<void>>{};
 
   /// The parameters for the last 'analysis.setAnalysisRoots' request that was
   /// received from the client.
@@ -195,78 +201,87 @@ class PluginManager {
     String path, {
     required bool isLegacyPlugin,
   }) async {
+    while (_startingPlugins[path] != null) {
+      await _startingPlugins[path]!.future;
+    }
     var pluginIsolate = _pluginMap[path];
     if (pluginIsolate != null) {
       pluginIsolate.addContextRoot(contextRoot);
       return;
     }
 
-    var startedSuccessfully = true;
-    PluginFiles pluginFiles;
+    var startingCompleter = Completer<void>();
+    _startingPlugins[path] = startingCompleter;
     try {
-      pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
-    } catch (exception, stackTrace) {
+      var startedSuccessfully = true;
+      PluginFiles pluginFiles;
+      try {
+        pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
+      } catch (exception, stackTrace) {
+        pluginIsolate = PluginIsolate(
+          path,
+          null,
+          null,
+          _notificationManager,
+          instrumentationService,
+          sessionLogger,
+          isLegacy: isLegacyPlugin,
+        );
+        pluginIsolate.reportException(CaughtException(exception, stackTrace));
+        _pluginMap[path] = pluginIsolate;
+        return;
+      }
       pluginIsolate = PluginIsolate(
         path,
-        null,
-        null,
+        pluginFiles.execution.path,
+        pluginFiles.packageConfig.path,
         _notificationManager,
         instrumentationService,
         sessionLogger,
         isLegacy: isLegacyPlugin,
       );
-      pluginIsolate.reportException(CaughtException(exception, stackTrace));
-      _pluginMap[path] = pluginIsolate;
-      return;
-    }
-    pluginIsolate = PluginIsolate(
-      path,
-      pluginFiles.execution.path,
-      pluginFiles.packageConfig.path,
-      _notificationManager,
-      instrumentationService,
-      sessionLogger,
-      isLegacy: isLegacyPlugin,
-    );
-    try {
-      instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
-      sessionLogger.logInfo('Starting plugin "$pluginIsolate"');
-      var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
-      unawaited(
-        session?.onDone.then((_) {
-          if (_pluginMap[path] == pluginIsolate) {
-            _pluginMap.remove(path);
-            _notifyPluginsChanged();
-          }
-        }),
-      );
-    } catch (exception, stackTrace) {
-      // Record the exception (for debugging purposes) and record the fact
-      // that we should not try to communicate with the plugin.
-      pluginIsolate.reportException(CaughtException(exception, stackTrace));
-      startedSuccessfully = false;
-    }
-
-    _pluginMap[path] = pluginIsolate;
-
-    _notifyPluginsChanged();
-
-    if (!isLegacyPlugin && _analysisSetAnalysisRootsParams != null) {
-      pluginIsolate.setAnalysisRoots(_analysisSetAnalysisRootsParams!);
-    }
-    pluginIsolate.addContextRoot(contextRoot);
-    if (startedSuccessfully) {
-      // Send these cached requests to the restarted plugin in order to catch it
-      // back up to the working state.
-      var cachedRequests = [
-        ?_analysisSetSubscriptionsParams,
-        if (_overlayState.isNotEmpty)
-          AnalysisUpdateContentParams(_overlayState),
-        ?_analysisSetPriorityFilesParams,
-      ];
-      for (var cachedRequest in cachedRequests) {
-        pluginIsolate.sendRequest(cachedRequest);
+      try {
+        instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+        sessionLogger.logInfo('Starting plugin "$pluginIsolate"');
+        var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
+        unawaited(
+          session?.onDone.then((_) {
+            if (_pluginMap[path] == pluginIsolate) {
+              _pluginMap.remove(path);
+              _notifyPluginsChanged();
+            }
+          }),
+        );
+      } catch (exception, stackTrace) {
+        // Record the exception (for debugging purposes) and record the fact
+        // that we should not try to communicate with the plugin.
+        pluginIsolate.reportException(CaughtException(exception, stackTrace));
+        startedSuccessfully = false;
       }
+
+      _pluginMap[path] = pluginIsolate;
+
+      _notifyPluginsChanged();
+
+      if (!isLegacyPlugin && _analysisSetAnalysisRootsParams != null) {
+        pluginIsolate.setAnalysisRoots(_analysisSetAnalysisRootsParams!);
+      }
+      pluginIsolate.addContextRoot(contextRoot);
+      if (startedSuccessfully) {
+        // Send these cached requests to the restarted plugin in order to catch it
+        // back up to the working state.
+        var cachedRequests = [
+          ?_analysisSetSubscriptionsParams,
+          if (_overlayState.isNotEmpty)
+            AnalysisUpdateContentParams(_overlayState),
+          ?_analysisSetPriorityFilesParams,
+        ];
+        for (var cachedRequest in cachedRequests) {
+          pluginIsolate.sendRequest(cachedRequest);
+        }
+      }
+    } finally {
+      _startingPlugins.remove(path)?.complete();
     }
   }
 
@@ -379,15 +394,16 @@ class PluginManager {
     // copy the plugin contents, and the number of times we run `pub`.
 
     var parentFolder = pluginStateFolder(pluginPath);
-    if (parentFolder.exists) {
-      var executionFolder = parentFolder.getFolder(pluginFolder.shortName);
+    var executionFolder = parentFolder.getFolder(pluginFolder.shortName);
+    if (executionFolder.pluginEntrypoint.exists &&
+        executionFolder.getFile(file_paths.pubspecYaml).exists) {
       return _computeFiles(
         executionFolder,
         builtAsAot: builtAsAot,
         pubCommand: 'upgrade',
       );
     }
-    var executionFolder = pluginFolder.copyTo(parentFolder);
+    executionFolder = pluginFolder.copyTo(parentFolder);
     return _computeFiles(
       executionFolder,
       builtAsAot: builtAsAot,
@@ -719,7 +735,7 @@ class PluginManager {
     String? pubCommand,
     Workspace? workspace,
   }) {
-    var pluginFile = pluginFolder.getFolder('bin').getFile('plugin.dart');
+    var pluginFile = pluginFolder.pluginEntrypoint;
     if (!pluginFile.exists) {
       throw PluginException("File '${pluginFile.path}' does not exist.");
     }
@@ -909,9 +925,9 @@ class PluginManager {
   /// modification timestamp is newer than all of its dependencies, and `null`
   /// otherwise.
   ///
-  /// The dependencies of an AOT snapshot are the pubspec file, the
-  /// entrypoint file, and all of the files referenced in the depfile which
-  /// is generated by the `dart compile` command.
+  /// The dependencies of an AOT snapshot are the pubspec file, the package
+  /// config file, the entrypoint file, and all of the files referenced in the
+  /// depfile which is generated by the `dart compile` command.
   File? _existingAotSnapshot({
     required ResourceProvider resourceProvider,
     required File pluginFile,
@@ -924,6 +940,12 @@ class PluginManager {
     if (pluginFile.modificationStamp > snapshotModificationStamp) return null;
     var pubspecFile = pluginFolder.getFile(file_paths.pubspecYaml);
     if (pubspecFile.modificationStamp > snapshotModificationStamp) return null;
+    var packageConfigFile = pluginFolder
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
+    if (packageConfigFile.modificationStamp > snapshotModificationStamp) {
+      return null;
+    }
 
     var depfile = pluginFolder.getFolder('bin').getFile('depfile.txt');
     if (!depfile.exists) return null;

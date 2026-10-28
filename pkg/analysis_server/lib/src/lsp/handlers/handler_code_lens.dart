@@ -36,23 +36,44 @@ class CodeLensHandler
       return serverNotInitializedError;
     }
 
-    // Ask all providers to compute their CodeLenses.
-    var providerResults = await Future.wait(
-      codeLensProviders
-          .where((provider) => provider.isAvailable(clientCapabilities, params))
-          .map((provider) => provider.handle(params, message, token)),
-    );
-
-    // Merge the results, but if any errors, propogate the first error.
-    var allResults = <CodeLens>[];
-    for (var providerResult in providerResults) {
-      if (providerResult.isError) {
-        return failure(providerResult);
-      }
-      providerResult.ifResult(allResults.addAll);
+    var availableProviders = codeLensProviders
+        .where((provider) => provider.isAvailable(clientCapabilities, params))
+        .toList();
+    if (availableProviders.isEmpty) {
+      return success([]);
     }
 
-    return success(allResults);
+    return withResolvedUnit(
+      textDocument: params.textDocument,
+      performance: message.performance,
+      token,
+      (result, _, checkAbort) async {
+        // Ask all providers to compute their CodeLenses.
+        var providerResults = await Future.wait(
+          availableProviders.map(
+            (provider) => provider.handle(
+              clientCapabilities,
+              params,
+              message,
+              result,
+              checkAbort,
+            ),
+          ),
+        );
+        if (checkAbort() case var reason?) return reason;
+
+        // Merge the results, but if any errors, propagate the first error.
+        var allResults = <CodeLens>[];
+        for (var providerResult in providerResults) {
+          if (providerResult.isError) {
+            return failure(providerResult);
+          }
+          providerResult.ifResult(allResults.addAll);
+        }
+
+        return success(allResults);
+      },
+    );
   }
 }
 

@@ -828,7 +828,6 @@ package:analyzer/dart/ast/ast.dart:
     expression (getter: Expression, experimental)
     name (getter: Identifier)
     parent (getter: AstNode)
-    parent2 (getter: AstNode, experimental)
     period (getter: Token?)
     typeArguments (getter: TypeArgumentList?)
   AnonymousBlockBody (class extends Object implements AnonymousMethodBody, abstract, final, experimental):
@@ -2078,7 +2077,6 @@ package:analyzer/dart/ast/ast.dart:
     staticKeyword (getter: Token?)
   GetterInvocationResolution (class extends Object implements NamedReadResolutionWithElement, abstract, final, experimental):
     element (getter: GetterElement)
-    invokeType (getter: FunctionType)
   GuardedPattern (class extends Object implements AstNode, abstract, final):
     pattern (getter: DartPattern)
     whenClause (getter: WhenClause?)
@@ -2391,10 +2389,8 @@ package:analyzer/dart/ast/ast.dart:
     typeParameters (getter: TypeParameterList?)
   MethodIndexReadResolution (class extends Object implements ValidIndexReadResolution, abstract, final, experimental):
     element (getter: MethodElement)
-    invokeType (getter: FunctionType)
   MethodIndexWriteResolution (class extends Object implements ValidIndexWriteResolution, abstract, final, experimental):
     element (getter: MethodElement)
-    invokeType (getter: FunctionType)
   MethodInvocation (class extends Object implements InvocationExpression, abstract, final):
     isCascaded (getter: bool)
     isNullAware (getter: bool)
