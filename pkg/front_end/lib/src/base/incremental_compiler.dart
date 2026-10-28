@@ -148,7 +148,6 @@ import 'incremental_compiler_cache_impl.dart' show IncrementalCompilerCacheImpl;
 import 'incremental_compiler_utils.dart' show MD5Ish;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
-import 'loader.dart' show Loader;
 import 'lookup_result.dart' show LookupResult;
 import 'messages.dart'
     show DiagnosticMessageFromJson, Message, ProblemReporting;
@@ -2364,7 +2363,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool foundErrors = false;
     for (TypeParameter typeParam in typeDefinitions) {
       if (!isLegalIdentifier(typeParam.name!)) {
-        lastGoodKernelTarget.loader.addProblem(
+        lastGoodKernelTarget.loader.addComponentProblem(
           diag.incrementalCompilerIllegalTypeParameter.withArguments(
             typeParameterName: '$typeParam',
           ),
@@ -2385,7 +2384,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         continue;
       }
 
-      lastGoodKernelTarget.loader.addProblem(
+      lastGoodKernelTarget.loader.addComponentProblem(
         diag.incrementalCompilerIllegalParameter.withArguments(
           parameterName: name,
         ),
@@ -3234,7 +3233,7 @@ abstract class _InitializationStrategy {
 
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3254,7 +3253,7 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
   // Coverage-ignore(suite): Not run.
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3320,7 +3319,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3382,7 +3381,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3448,7 +3447,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
               : diag.initializeFromDillNotSelfContainedNoDump.withArguments(
                   previousCompilationUri: initializeFromDillUri.toString(),
                 );
-          loaderForProblemReporting.addProblem(
+          loaderForProblemReporting.addLibraryProblem(
             message,
             TreeNode.noOffset,
             1,
@@ -3468,7 +3467,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
                   exception: "$e",
                   stackTrace: "$st",
                 );
-          loaderForProblemReporting.addProblem(
+          loaderForProblemReporting.addLibraryProblem(
             message,
             TreeNode.noOffset,
             1,
@@ -3619,7 +3618,7 @@ class _InitializationFromExperimentalCache
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,

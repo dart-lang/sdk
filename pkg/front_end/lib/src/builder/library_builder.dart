@@ -186,7 +186,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }) {
     fileUri ??= this.fileUri;
 
-    return loader.addProblem(
+    return loader.addLibraryProblem(
       message,
       charOffset,
       length,
@@ -194,7 +194,6 @@ abstract class LibraryBuilderImpl extends BuilderImpl
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: true,
     );
   }
 
