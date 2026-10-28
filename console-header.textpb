@@ -42,6 +42,25 @@ links: {
 }
 
 links: {
+    name: "Infra"
+    links: {
+        text: "Pending CQ Runs"
+        url: "https://luci-change-verifier.appspot.com/ui/recents/dart?status=RUNNING"
+        alt: "Pending CQ Runs"
+    }
+    links: {
+        text: "Pending Tasks"
+        url: "https://chromium-swarm.appspot.com/tasklist?c=createdTs&c=pendingTime&c=duration&c=bot&c=builder-tag&c=os-tag&c=priority-tag&c=state&d=desc&f=pool-tag%3Aluci.dart.try&f=state%3APENDING_RUNNING&k=state&s=pendingTime"
+        alt: "Pending Tasks"
+    }
+    links: {
+        text: "Machines"
+        url: "https://chromium-swarm.appspot.com/botlist?c=id&c=task&c=machine_type&c=os&c=pool&c=status&d=asc&f=pool%3Adart.tests&s=id"
+        alt: "Machines"
+    }
+}
+
+links: {
     name: "Resources"
     links: {
         text: "Dart Infrastructure Chat"
