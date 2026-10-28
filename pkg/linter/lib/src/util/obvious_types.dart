@@ -15,71 +15,47 @@ bool _sameOrNull(DartType? t1, DartType? t2) =>
     t1 == null || t2 == null || t1 == t2;
 
 extension CollectionElementExtensions on CollectionElement {
-  DartType? get elementType {
-    switch (this) {
-      case MapLiteralEntry():
-        return null;
-      case ForElement():
-        // No need to compute the type of a non-obvious element.
-        return null;
-      case IfElement():
-        // We just need a candidate type, ignore `else`.
-        return thenElement.elementType;
-      case Expression():
-        return staticType;
-      case SpreadElement():
-        return expression.staticType.elementTypeOfIterable;
-      case NullAwareElement():
-        // This should be the non-nullable version of `value.staticType`,
-        // but since it requires computation, we return null.
-        return null;
-      default:
-        return null;
-    }
-  }
+  DartType? get elementType => switch (this) {
+    MapLiteralEntry() => null,
+    ForElement() =>
+      // No need to compute the type of a non-obvious element.
+      null,
+    IfElement() =>
+      // We just need a candidate type, ignore `else`.
+      thenElement.elementType,
+    Expression() => staticType,
+    SpreadElement() => expression.staticType.elementTypeOfIterable,
+    NullAwareElement() =>
+      // This should be the non-nullable version of `value.staticType`,
+      // but since it requires computation, we return null.
+      null,
+    _ => null,
+  };
 
-  bool get hasObviousType {
-    switch (this) {
-      case Expression():
-        return this.hasObviousType;
-      case MapLiteralEntry():
-        return key.hasObviousType && value.hasObviousType;
-      case IfElement():
-        return thenElement.hasObviousType &&
-            (elseElement?.hasObviousType ?? true);
-      case SpreadElement():
-        return expression.hasObviousType;
-      case NullAwareElement():
-        return value.hasObviousType;
-      case ForElement():
-        return false;
-      default:
-        return false;
-    }
-  }
+  bool get hasObviousType => switch (this) {
+    Expression() => this.hasObviousType,
+    MapLiteralEntry() => key.hasObviousType && value.hasObviousType,
+    IfElement() =>
+      thenElement.hasObviousType && (elseElement?.hasObviousType ?? true),
+    SpreadElement() => expression.hasObviousType,
+    NullAwareElement() => value.hasObviousType,
+    ForElement() => false,
+    _ => false,
+  };
 
-  DartType? get keyType {
-    switch (this) {
-      case MapLiteralEntry():
-        return key.elementType;
-      default:
-        return null;
-    }
-  }
+  DartType? get keyType => switch (this) {
+    MapLiteralEntry() => key.elementType,
+    _ => null,
+  };
 
-  DartType? get valueType {
-    switch (this) {
-      case MapLiteralEntry():
-        return value.elementType;
-      default:
-        return null;
-    }
-  }
+  DartType? get valueType => switch (this) {
+    MapLiteralEntry() => value.elementType,
+    _ => null,
+  };
 }
 
 extension DartTypeExtensions on DartType? {
   DartType? get elementTypeOfIterable {
-    if (this == null) return null;
     if (this is InterfaceType) {
       var iterableInterfaces = implementedInterfaces.where(
         (type) => type.isDartCoreIterable,
@@ -92,7 +68,6 @@ extension DartTypeExtensions on DartType? {
   }
 
   ({DartType? key, DartType? value})? get keyValueTypeOfMap {
-    if (this == null) return null;
     if (this is InterfaceType) {
       var mapInterfaces = implementedInterfaces.where(
         (type) => type.isDartCoreMap,

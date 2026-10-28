@@ -8153,7 +8153,30 @@ class C {
 ''');
     var node = parseResult.findNode.classDeclaration('class');
     assertParsedNodeText(node, r'''
-ClassDeclaration
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        constFinalOrVarKeyword: var
+        fields
+          Field
+            name: <empty> <synthetic>
+            equals: =
+            initializer: RecordLiteral
+              leftParenthesis: (
+              fields2
+                IntegerLiteral
+                  literal: 0
+                IntegerLiteral
+                  literal: 1
+              rightParenthesis: )
+        semicolon: ;
+    rightBracket: }
+V1: ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: C
@@ -8167,9 +8190,9 @@ ClassDeclaration
             VariableDeclaration
               name: <empty> <synthetic>
               equals: =
-              initializer2: RecordLiteral
+              initializer: RecordLiteral
                 leftParenthesis: (
-                fields2
+                fields
                   IntegerLiteral
                     literal: 0
                   IntegerLiteral

@@ -49,6 +49,7 @@ class DdsRpcHandlers {
   static const _kRequireUserPermissionToResume =
       'requireUserPermissionToResume';
   static const _kResume = 'resume';
+  static const _kSendDapRequest = 'sendDapRequest';
   static const _kSetLogHistorySize = 'setLogHistorySize';
 
   /// Returns the unmodifiable list of RPC handlers provided by DDS.
@@ -71,6 +72,7 @@ class DdsRpcHandlers {
     (_kRequirePermissionToResume, requirePermissionToResume),
     (_kRequireUserPermissionToResume, requireUserPermissionToResume),
     (_kResume, resume),
+    (_kSendDapRequest, sendDapRequest),
     (_kSetLogHistorySize, setLogHistorySize),
   ]);
 
@@ -147,18 +149,16 @@ class DdsRpcHandlers {
     return Size(size: backend.streamManager.getLogHistorySize()).toJson();
   }
 
-  /// Handles the `getPerfettoVMTimelineWithCpuSamples` RPC.
+  /// Handles the `getPerfettoVMTimelineWithCpuSamples` custom DDS RPC.
   ///
-  /// Forwards the timeline request to the VM Service with the provided time
-  /// origin and extent parameters.
+  /// Delegates to [DdsIsolateManager.getPerfettoVMTimelineWithCpuSamples] to
+  /// retrieve the VM's Perfetto timeline trace combined with CPU sample traces
+  /// from all tracked isolates.
   Future<RpcResponse> getPerfettoVMTimelineWithCpuSamples(
     json_rpc.Parameters parameters,
   ) {
-    return backend.callVmService(
-      'getPerfettoVMTimelineWithCpuSamples',
-      args: parameters.value == null
-          ? null
-          : parameters.asMap.cast<String, Object?>(),
+    return backend.isolateManager.getPerfettoVMTimelineWithCpuSamples(
+      parameters,
     );
   }
 
@@ -304,6 +304,15 @@ class DdsRpcHandlers {
   /// and resume the isolate if all required approvals are satisfied.
   Future<RpcResponse> resume(json_rpc.Parameters parameters, Client client) {
     return backend.isolateManager.resume(parameters, client);
+  }
+
+  /// Handles the `sendDapRequest` custom DDS RPC.
+  ///
+  /// Forwards the serialized DAP request message to
+  /// [DartRuntimeServiceDdsBackend.dapHandler] and returns the resulting
+  /// `DapResponse`.
+  Future<RpcResponse> sendDapRequest(json_rpc.Parameters parameters) {
+    return backend.dapHandler.sendRequest(parameters);
   }
 
   /// Handles the `setLogHistorySize` custom DDS RPC.

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/inference_failure_reporter.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -79,6 +80,19 @@ class CallInvocationInferrer
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
 
   @override
+  void _reportInferenceFailure() {
+    if (node.parent2 is AsExpression) {
+      return;
+    }
+    if (node.receiver case ExpressionImpl receiver) {
+      reportExpressionInferenceFailure(
+        typeAnalyzer.diagnosticReporter,
+        receiver,
+      );
+    }
+  }
+
+  @override
   List<FormalParameterElement>? _storeResult(
     List<TypeImpl>? typeArgumentTypes,
     FunctionTypeImpl? invokeType,
@@ -124,6 +138,28 @@ class ConstructorInvocationInferrer
     // For a constructor invocation the type arguments are on the constructor
     // reference.
     return node.constructorReference.typeReference.typeArguments;
+  }
+
+  @override
+  void _reportInferenceFailure() {
+    var constructorReference = node.constructorReference;
+    var typeReference = constructorReference.typeReference;
+    var type = typeReference.type;
+    if (type is InterfaceTypeImpl &&
+        !type.element.metadata.hasOptionalTypeArgs) {
+      var constructorName = [
+        if (typeReference.importPrefix case var importPrefix?)
+          '${importPrefix.name.lexeme}.',
+        typeReference.name.lexeme,
+        if (constructorReference.selector case var selector?)
+          '.${selector.name2.lexeme}',
+      ].join();
+      typeAnalyzer.diagnosticReporter.report(
+        diag.inferenceFailureOnInstanceCreation
+            .withArguments(function: constructorName)
+            .at(constructorReference),
+      );
+    }
   }
 
   @override
@@ -301,9 +337,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       typeArgumentTypes = const <TypeImpl>[];
     } else {
       var typeParameters = rawType.typeParameters;
-      rawType = getFreshTypeParameters(
-        typeParameters,
-      ).applyToFunctionType(rawType);
+      rawType = getFreshTypeParameters(typeParameters)
+          .applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(
         rawType.typeParameters,
         rawType,
@@ -319,7 +354,6 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         genericMetadataIsEnabled: typeAnalyzer.genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled:
             typeAnalyzer.inferenceUsingBoundsIsEnabled,
-        strictInference: typeAnalyzer.analysisOptions.strictInference,
         strictCasts: typeAnalyzer.analysisOptions.strictCasts,
         typeSystemOperations: typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: typeAnalyzer.inferenceHelper.dataForTesting,
@@ -375,6 +409,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     if (inferrer != null) {
       typeArgumentTypes = inferrer.chooseFinalTypes();
+      if (inferrer.hasUnknownTypeArguments &&
+          typeAnalyzer.analysisOptions.strictInference) {
+        _reportInferenceFailure();
+      }
     }
     FunctionTypeImpl? invokeType = typeArgumentTypes != null
         ? originalType?.instantiate(typeArgumentTypes)
@@ -416,6 +454,13 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   }
 
   TypeImpl _refineReturnType(TypeImpl returnType) => returnType;
+
+  /// Reports, under `strict-inference`, that some type arguments of the
+  /// invocation can't be inferred.
+  ///
+  /// Casts via `as` do not play a part in downward inference, so invocations
+  /// whose result is immediately cast are allowed to fail.
+  void _reportInferenceFailure() {}
 
   void _reportWrongNumberOfTypeArguments(
     TypeArgumentList typeArgumentList,
@@ -459,6 +504,17 @@ abstract class InvocationExpressionInferrer<
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  void _reportInferenceFailure() {
+    if (node.parent2 is AsExpression) {
+      return;
+    }
+    reportExpressionInferenceFailure(
+      typeAnalyzer.diagnosticReporter,
+      node.function,
+    );
+  }
 
   @override
   List<FormalParameterElement>? _storeResult(
@@ -760,25 +816,17 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
     required super.target,
   }) : super._();
 
-  Element? get _invokedElement => switch (node.resolution) {
-    ExecutableInvocationResolutionImpl(:var element) => element,
-    InvalidInvocationResolutionImpl(
-      recovery: ExecutableInvocationResolutionImpl(:var element),
-    ) =>
-      element,
+  @override
+  Token get _errorEntity => node.name;
+
+  Element? get _invokedElement => switch (target) {
+    InvocationTargetExecutableElement(:var element) => element,
     _ => null,
   };
 
   @override
   bool get _isIdentical {
-    var invokedFunction = switch (node.resolution) {
-      ExecutableInvocationResolutionImpl(:var element) => element,
-      InvalidInvocationResolutionImpl(
-        recovery: ExecutableInvocationResolutionImpl(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
+    var invokedFunction = _invokedElement;
     return invokedFunction is TopLevelFunctionElementImpl &&
         invokedFunction.isDartCoreIdentical &&
         node.argumentList.arguments2.length == 2;
@@ -817,13 +865,44 @@ class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
   @override
   TypeImpl _refineReturnType(TypeImpl returnType) {
     if (_receiverType case var receiverType?) {
-      return typeAnalyzer.typeSystem
-          .refineNumericInvocationType(receiverType, _invokedElement, [
-            for (var argument in node.argumentList.arguments2)
-              argument.argumentExpression2.typeOrThrow,
-          ], returnType);
+      return typeAnalyzer.typeSystem.refineNumericInvocationType(
+        receiverType,
+        _invokedElement,
+        [
+          for (var argument in node.argumentList.arguments2)
+            argument.argumentExpression2.typeOrThrow,
+        ],
+        returnType,
+      );
     }
     return returnType;
+  }
+
+  @override
+  void _reportInferenceFailure() {
+    if (node.parent2 is AsExpression) {
+      return;
+    }
+    var name = node.name;
+    switch (target) {
+      case InvocationTargetExecutableElement(:var element, :var rawType):
+        reportFunctionInvocationInferenceFailure(
+          typeAnalyzer.diagnosticReporter,
+          entity: name,
+          name: name.lexeme,
+          invokedElement: element,
+          invokedType: rawType,
+        );
+      case InvocationTargetFunctionTypedExpression(:var type):
+        reportFunctionInvocationInferenceFailure(
+          typeAnalyzer.diagnosticReporter,
+          entity: name,
+          name: name.lexeme,
+          invokedElement: null,
+          invokedType: type,
+        );
+      default:
+    }
   }
 
   @override

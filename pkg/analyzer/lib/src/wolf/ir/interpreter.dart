@@ -42,12 +42,11 @@ Object? interpret(
 }
 
 /// Function type invoked by [interpret] to execute a `call` instruction.
-typedef CallHandler =
-    Object? Function(
-      CallDescriptor descriptor,
-      List<Object?> positionalArguments,
-      Map<String, Object?> namedArguments,
-    );
+typedef CallHandler = Object? Function(
+  CallDescriptor descriptor,
+  List<Object?> positionalArguments,
+  Map<String, Object?> namedArguments,
+);
 
 /// Interface used by [interpret] to query the behavior of calls to external
 /// code.

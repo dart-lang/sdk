@@ -50,6 +50,10 @@
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2wasm.snapshot",
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_dev.snapshot",
+      "out/ReleaseX64/dart2wasm_dev_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_dev_outline.dill",
+      "out/ReleaseX64/dart2wasm_dev_platform.dill",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_outline.dill",
@@ -59,6 +63,8 @@
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/wasm/",
       "out/ReleaseX64/wasm-opt",
+      "out/ReleaseX64/wasm_dev_rt.mjs",
+      "out/ReleaseX64/wasm_dev_rt.wasm",
       "pkg/",
       "runtime/tests/",
       "samples/",
@@ -527,6 +533,13 @@
         "dart2wasm-options": [
           "-O0"
         ],
+        "timeout": 60
+      }
+    },
+    "wasm-dev-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
+      "options": {
+        "host-asserts": true,
+        "enable-asserts": true,
         "timeout": 60
       }
     },
@@ -1078,18 +1091,20 @@
           ]
         },
         {
-          "name": "vm aot ffi tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-arm-qemu",
-            "ffi"
+            "ffi",
+            "lib/typed_data"
           ]
         },
         {
-          "name": "vm jit ffi tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-linux-${mode}-arm-qemu",
-            "vm/cc",
-            "ffi"
+            "ffi",
+            "lib/typed_data",
+            "vm/cc"
           ],
           "fileset": "vm",
           "shards": 2
@@ -1114,18 +1129,20 @@
           ]
         },
         {
-          "name": "vm aot ffi tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-riscv64-qemu",
-            "ffi"
+            "ffi",
+            "lib/typed_data"
           ]
         },
         {
-          "name": "vm jit ffi tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-linux-${mode}-riscv64-qemu",
-            "vm/cc",
-            "ffi"
+            "ffi",
+            "lib/typed_data",
+            "vm/cc"
           ],
           "fileset": "vm",
           "shards": 2
@@ -2882,6 +2899,32 @@
             "web"
           ],
           "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-dev-linux-d8"
+      ],
+      "meta": {
+        "description": "dart2wasm dev tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart2wasm_dev"
+          ]
+        },
+        {
+          "name": "wasm dev tests",
+          "arguments": [
+            "-nwasm-dev-${system}-${runtime}",
+            "web/wasm/(cfg_shared|cfg_dev)/"
+          ],
+          "shards": 1,
           "fileset": "dart2wasm_hostasserts"
         }
       ]

@@ -22,16 +22,46 @@ class RedeclareVerifier extends RecursiveAstVisitor2<void> {
   new(this._errorReporter);
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     _currentExtensionType = node.declaredFragment!.element;
-    super.visitExtensionTypeDeclaration(node);
+    super.visitExtensionTypeDeclaration2(node);
     _currentExtensionType = null;
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  /// Return `true` if the [member] redeclares a member from a superinterface.
+  bool _redeclaresMember(ExecutableElement member) {
+    var currentType = _currentExtensionType;
+    if (currentType != null) {
+      var name = Name.forElement(member);
+      return name != null && currentType.getInheritedMember(name) != null;
+    }
+
+    return false;
+  }
+
+  void _visitMethodDeclaration(MethodDeclarationV1OriginImpl node) {
     // Only check if we're in an extension type declaration.
     if (_currentExtensionType == null) return;
 
@@ -46,32 +76,21 @@ class RedeclareVerifier extends RecursiveAstVisitor2<void> {
           _errorReporter.report(
             diag.redeclareOnNonRedeclaringMember
                 .withArguments(kind: 'method')
-                .at(node.name),
+                .at(node.nameToken),
           );
         case GetterElement():
           _errorReporter.report(
             diag.redeclareOnNonRedeclaringMember
                 .withArguments(kind: 'getter')
-                .at(node.name),
+                .at(node.nameToken),
           );
         case SetterElement():
           _errorReporter.report(
             diag.redeclareOnNonRedeclaringMember
                 .withArguments(kind: 'setter')
-                .at(node.name),
+                .at(node.nameToken),
           );
       }
     }
-  }
-
-  /// Return `true` if the [member] redeclares a member from a superinterface.
-  bool _redeclaresMember(ExecutableElement member) {
-    var currentType = _currentExtensionType;
-    if (currentType != null) {
-      var name = Name.forElement(member);
-      return name != null && currentType.getInheritedMember(name) != null;
-    }
-
-    return false;
   }
 }

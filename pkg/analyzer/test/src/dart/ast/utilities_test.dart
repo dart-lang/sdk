@@ -7,7 +7,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../util/ast_type_matchers.dart';
 import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
@@ -48,7 +47,7 @@ class A<T> {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T> {}'));
-    expect(node, isClassDeclaration);
+    expect(node, isA<ClassDeclaration2>());
   }
 
   void test_searchWithin_constructor_afterName_beforeParameters() {
@@ -60,7 +59,7 @@ class A {
     var unit = parseTestCodeWithDiagnostics(source).unit;
     // TODO(dantup): Update these tests to use markers.
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration);
+    expect(node, isA<ConstructorDeclaration2>());
   }
 
   void test_searchWithin_function_afterName_beforeParameters() {
@@ -89,7 +88,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isMethodDeclaration);
+    expect(node, isA<MethodDeclaration2>());
   }
 
   void test_searchWithin_method_afterName_beforeTypeParameters() {
@@ -100,7 +99,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('<T>() {}'));
-    expect(node, isMethodDeclaration);
+    expect(node, isA<MethodDeclaration2>());
   }
 
   void test_searchWithin_namedConstructor_afterName_beforeParameters() {
@@ -111,7 +110,7 @@ class A {
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('() {}'));
-    expect(node, isConstructorDeclaration);
+    expect(node, isA<ConstructorDeclaration2>());
   }
 
   void test_searchWithin_setter_afterName_beforeParameters() {
@@ -176,6 +175,108 @@ void f(int parameter) {
     node2.accept2(finder2);
 
     expect(finder.locals, {'parameter', 'local'});
+    expect(finder2.locals, finder.locals);
+    expect(finder.declaration, same(unit.declarations.single));
+    expect(finder2.declaration, same(unit.declarations2.single));
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_localFunction_views() {
+    var code = '''
+void f() {
+  void g() {}
+  new C();
+  void h() {}
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'g'});
+    expect(finder2.locals, finder.locals);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_switchMember_views() {
+    var code = '''
+void f(int x) {
+  switch (x) {
+    case 0:
+      var local = 0;
+      new C();
+      var after = 1;
+  }
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'x', 'local'});
+    expect(finder2.locals, finder.locals);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_topLevelGetter_recoveryFormalParameters_views() {
+    var code = '''
+int get foo(int parameter) {
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+  var local = 0;
+  new C();
+  return local;
+}
+''';
+    var result = parseTestCodeWithDiagnostics(code);
+    var unit = result.unit;
+    var offset = result.content.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder2.locals, finder.locals);
+    expect(finder.declaration, same(unit.declarations.single));
+    expect(finder2.declaration, same(unit.declarations2.single));
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_topLevelGetter_views() {
+    var code = '''
+int get foo {
+  var local = 0;
+  new C();
+  return local;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'local'});
     expect(finder2.locals, finder.locals);
     expect(finder.declaration, same(unit.declarations.single));
     expect(finder2.declaration, same(unit.declarations2.single));

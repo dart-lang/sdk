@@ -20,7 +20,8 @@ import 'package:meta/meta.dart';
 class PackageDetailsCache {
   static const cacheVersion = 3;
   static const maxCacheAge = Duration(hours: 18);
-  static const maxPackageDetailsRequestsInFlight = 5;
+
+  static const _maxPackageDetailsRequestsInFlight = 5;
 
   /// Requests to write the cache from fetching package details will be
   /// debounced by this duration to prevent many writes while the user may be
@@ -28,10 +29,23 @@ class PackageDetailsCache {
   /// descriptions/versions.
   static const _writeCacheDebounceDuration = Duration(seconds: 3);
 
-  final Map<String, PubPackage> packages;
-  DateTime lastUpdatedUtc;
+  final Map<String, PubPackage> _packages;
+  final DateTime lastUpdatedUtc;
 
-  new _(this.packages, DateTime lastUpdated)
+  @visibleForTesting
+  factory empty({DateTime? lastUpdated}) =>
+      PackageDetailsCache._({}, lastUpdated ?? DateTime.utc(2000));
+
+  @visibleForTesting
+  factory fromApiResults(
+    List<PubApiPackage> apiPackages, {
+    DateTime? lastUpdated,
+  }) => PackageDetailsCache._({
+    for (var package in apiPackages)
+      package.packageName: PubPackage.fromName(package),
+  }, lastUpdated ?? DateTime.now().toUtc());
+
+  new _(this._packages, DateTime lastUpdated)
     : lastUpdatedUtc = lastUpdated.toUtc();
 
   Duration get cacheTimeRemaining {
@@ -42,27 +56,16 @@ class PackageDetailsCache {
         : cacheTimeRemaining;
   }
 
+  List<String> get packageNames => [
+    for (var package in _packages.values) package.packageName,
+  ];
+
   Map<String, Object> toJson() {
     return {
       'version': cacheVersion,
       'lastUpdated': lastUpdatedUtc.toIso8601String(),
-      'packages': packages.values.toList(),
+      'packages': _packages.values.toList(),
     };
-  }
-
-  static PackageDetailsCache empty() {
-    return PackageDetailsCache._({}, DateTime.utc(2000));
-  }
-
-  static PackageDetailsCache fromApiResults(List<PubApiPackage> apiPackages) {
-    var packages = Map.fromEntries(
-      apiPackages.map(
-        (package) =>
-            MapEntry(package.packageName, PubPackage.fromName(package)),
-      ),
-    );
-
-    return PackageDetailsCache._(packages, DateTime.now().toUtc());
   }
 
   /// Deserializes cached package data from JSON.
@@ -143,7 +146,9 @@ class PubPackage {
 class PubPackageService {
   final InstrumentationService _instrumentationService;
   final SessionLogger _sessionLogger;
-  final PubApi _api;
+
+  /// The [PubApi] used by this service.
+  final PubApi api;
 
   /// A wrapper over the "pub" command line too.
   ///
@@ -174,7 +179,7 @@ class PubPackageService {
     this._instrumentationService,
     this._sessionLogger,
     this.resourceProvider,
-    this._api,
+    this.api,
     this._command,
   );
 
@@ -185,7 +190,7 @@ class PubPackageService {
   /// and for clients that support lazy resolution of completion items may also
   /// include their descriptions and/or version numbers.
   List<PubPackage> get cachedPackages =>
-      packageCache?.packages.values.toList() ?? [];
+      packageCache?._packages.values.toList() ?? [];
 
   @visibleForTesting
   bool get isPackageNamesTimerRunning =>
@@ -231,7 +236,7 @@ class PubPackageService {
   /// Gets the latest cached package version fetched from the Pub API for the
   /// package [packageName].
   String? cachedPubApiLatestVersion(String packageName) =>
-      packageCache?.packages[packageName]?.latestVersion;
+      packageCache?._packages[packageName]?.latestVersion;
 
   /// Gets the package versions cached using "pub outdated" for the package
   /// [packageName] for the project using [pubspecPath].
@@ -303,7 +308,7 @@ class PubPackageService {
   /// list cache - that is, when the package list cache expires, all cached
   /// package details will go with it.
   Future<PubPackage?> packageDetails(String packageName) async {
-    var packageData = packageCache?.packages[packageName];
+    var packageData = packageCache?._packages[packageName];
     // If we don't have the version for this package, we don't have its full details.
     if (packageData?.latestVersion == null &&
         // Limit the number of package details requests that can be in-flight at
@@ -312,13 +317,13 @@ class PubPackageService {
         // requests, but we may have already started the requests synchronously
         // before handling a cancellation).
         _packageDetailsRequestsInFlight <=
-            PackageDetailsCache.maxPackageDetailsRequestsInFlight) {
+            PackageDetailsCache._maxPackageDetailsRequestsInFlight) {
       _packageDetailsRequestsInFlight++;
       try {
-        var details = await _api.packageInfo(packageName);
+        var details = await api.packageInfo(packageName);
         if (details != null) {
           packageData = PubPackage.fromDetails(details);
-          packageCache?.packages[packageName] = packageData;
+          packageCache?._packages[packageName] = packageData;
           _writeDiskCacheDebounced();
         }
       } finally {
@@ -368,7 +373,7 @@ class PubPackageService {
 
   Future<void> _fetchFromServer() async {
     try {
-      var packages = await _api.allPackages();
+      var packages = await api.allPackages();
 
       // If we never got a valid response, just skip until the next refresh.
       if (packages == null) {

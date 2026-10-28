@@ -69,3 +69,13 @@ final Matcher throwsStreamNotSubscribedRPCError = throwsA(
     RpcException.streamNotSubscribed.code,
   ),
 );
+
+/// Matches exception thrown by package:json_rpc_2 when an RPC receives invalid
+/// parameters.
+final Matcher throwsInvalidParamsRPCError = throwsA(
+  isA<RPCError>().having(
+    (e) => e.code,
+    'Error code',
+    RpcException.invalidParams.code,
+  ),
+);

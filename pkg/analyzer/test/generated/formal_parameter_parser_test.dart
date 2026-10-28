@@ -2381,7 +2381,7 @@ class C {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration.parameters!;
+    var node = parseResult.findNode.singleMethodDeclaration.formalParameters;
     assertParsedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -2511,7 +2511,7 @@ class A {
     var node = parseResult
         .findNode
         .singleMethodDeclaration
-        .parameters!
+        .formalParameters
         .allFormalParameters
         .single;
     assertParsedNodeText(node, r'''

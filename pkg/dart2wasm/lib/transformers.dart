@@ -129,7 +129,7 @@ class _WasmTransformer extends Transformer {
         .getConstructor('dart:_internal', 'ReachabilityError', '')
         .reference: coreTypes.index.getTopLevelProcedure(
       'dart:_error_utils',
-      '_throwReachabilityError',
+      'throwReachabilityError',
     ),
   };
 

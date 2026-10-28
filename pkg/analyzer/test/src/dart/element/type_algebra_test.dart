@@ -432,9 +432,8 @@ class SubstituteTest extends _Base {
       var T = scope.typeParameter('T');
 
       void check(String type, DartType typeArgument, DartType expectedType) {
-        var result = Substitution.fromMap({
-          T: typeArgument,
-        }).substituteType(scope.parseType(type));
+        var result = Substitution.fromMap({T: typeArgument})
+            .substituteType(scope.parseType(type));
         expect(result, expectedType);
       }
 

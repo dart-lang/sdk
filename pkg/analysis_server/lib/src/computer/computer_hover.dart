@@ -128,7 +128,12 @@ class DartUnitHoverComputer {
           hover.containingLibraryPath = libraryInfo?.libraryPath;
         }
         // documentation
-        hover.dartdoc = _documentationComputer.compute(elementReference)?.full;
+        var docs = _documentationComputer.compute(
+          elementReference,
+          includeFull: true,
+          includeSummary: false,
+        );
+        hover.dartdoc = docs?.full;
       }
       // parameter
       hover.parameter = _parameterDisplayString(node);

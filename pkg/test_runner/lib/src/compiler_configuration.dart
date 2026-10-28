@@ -78,6 +78,9 @@ abstract class CompilerConfiguration {
       case Compiler.dart2wasm:
         return Dart2WasmCompilerConfiguration(configuration);
 
+      case Compiler.dart2wasmDev:
+        return Dart2WasmDevCompilerConfiguration(configuration);
+
       case Compiler.ddc:
         return DevCompilerConfiguration(configuration);
 
@@ -544,6 +547,36 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         (obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm',
       ),
       ...args,
+    ];
+  }
+}
+
+/// Configuration for "dart2wasm_dev".
+class Dart2WasmDevCompilerConfiguration extends Dart2WasmCompilerConfiguration {
+  Dart2WasmDevCompilerConfiguration(super.configuration);
+
+  @override
+  String computeCompilerPath() {
+    if (_useSdk) {
+      // TODO: Once we ship wasm dev compiler as part of the Dart SDK,
+      // the Dart SDK folder will contain wasm dev runtime & platform files.
+      // (until then we don't want to make Dart SDK bigger)
+      throw "--compiler=dart2wasm_dev and --use-sdk cannot be used together";
+    }
+    return 'pkg/dart2wasm/tool/compile_dev';
+  }
+
+  @override
+  List<String> computeCompilerArguments(
+    TestFile testFile,
+    List<String> vmOptions,
+    List<String> args,
+  ) {
+    assert(!_useSdk);
+    return [
+      if (_enableHostAsserts) '--compiler-asserts',
+      // The file being compiled is the last argument.
+      args.last,
     ];
   }
 }
@@ -1977,10 +2010,6 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
       ? '${_configuration.buildDirectory}/dart-sdk/bin/dartaotruntime'
       : '${_configuration.buildDirectory}/dartaotruntime';
 
-  String _dart2bytecodeSnapshot() => _useSdk
-      ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dart2bytecode.dart.snapshot'
-      : '${_configuration.buildDirectory}/gen/dart2bytecode.dart.snapshot';
-
   String _modularAotCompilerSnapshot() => _useSdk
       ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/modular_aot_compiler.dart.snapshot'
       : '${_configuration.buildDirectory}/gen/modular_aot_compiler.dart.snapshot';
@@ -1993,58 +2022,8 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
       ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/platform.dylib'
       : '${_configuration.buildDirectory}/gen/platform.dylib';
 
-  String _tempBytecodeFile(String tempDir) =>
-      Path('$tempDir/out.bytecode').toNativePath();
-
   String _tempSnapshotFile(String tempDir) =>
       Path('$tempDir/out.dylib').toNativePath();
-
-  Command computeDart2BytecodeCommand(
-    String tempDir,
-    List<String> arguments,
-    Map<String, String> environmentOverrides,
-  ) {
-    final bytecodeFile = _tempBytecodeFile(tempDir);
-    final isProductMode = _configuration.configuration.mode == Mode.product;
-    final isAsan = _configuration.configuration.sanitizer == Sanitizer.asan;
-    final isMsan = _configuration.configuration.sanitizer == Sanitizer.msan;
-    final isTsan = _configuration.configuration.sanitizer == Sanitizer.tsan;
-
-    final args = [
-      _dart2bytecodeSnapshot(),
-      '--platform=${_platformKernelFile()}',
-      '-o',
-      bytecodeFile,
-      arguments.where((name) => name.endsWith('.dart')).single,
-      ...arguments.where(
-        (name) =>
-            name.startsWith('-D') ||
-            name.startsWith('--define') ||
-            name.startsWith('--packages=') ||
-            name.startsWith('--enable-experiment='),
-      ),
-      '-Ddart.vm.product=$isProductMode',
-      '-Ddart.vm.asan=$isAsan',
-      '-Ddart.vm.msan=$isMsan',
-      '-Ddart.vm.tsan=$isTsan',
-      if (_enableAsserts ||
-          arguments.contains('--enable-asserts') ||
-          arguments.contains('--enable_asserts'))
-        '--enable-asserts',
-      if (!isProductMode)
-        '--bytecode-options=source-positions,embed-source-text',
-    ];
-
-    return CompilationCommand(
-      'dart2bytecode',
-      bytecodeFile,
-      bootstrapDependencies(),
-      computeCompilerPath(),
-      args,
-      environmentOverrides,
-      alwaysCompile: !_useSdk,
-    );
-  }
 
   Command computeModularAotCompilerCommand(
     String tempDir,
@@ -2098,7 +2077,6 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
     Map<String, String> environmentOverrides,
   ) {
     final commands = <Command>[
-      computeDart2BytecodeCommand(tempDir, arguments, environmentOverrides),
       computeModularAotCompilerCommand(
         tempDir,
         arguments,
@@ -2138,8 +2116,7 @@ class ModularAotCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       '--load-module-snapshot=${_platformSnapshotFile()}',
-      '--load-module-snapshot=${_tempSnapshotFile(dir)}',
-      ..._replaceDartFiles(originalArguments, _tempBytecodeFile(dir)),
+      ..._replaceDartFiles(originalArguments, _tempSnapshotFile(dir)),
       ...testFile.dartOptions,
     ];
   }

@@ -1631,9 +1631,11 @@ LinterLintCode:
     hasPublishedDocs: false
     documentation: |-
       #### Description
-
+      
       The analyzer produces this diagnostic when string interpolation or 
-      string literals use escaped inner quotes that can be avoided by 
+      string literals use escaped inner quotes that can be avoided by
+      The analyzer produces this diagnostic when string interpolation or
+      string literals use escaped inner quotes that can be avoided by
       choosing a different set of surrounding quotes.
 
       #### Example
@@ -5565,7 +5567,7 @@ LinterLintCode:
     state:
       stable: "2.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -6770,6 +6772,15 @@ LinterLintCode:
     sharedName: invalidRuntimeCheckWithJsInteropTypes
     problemMessage: "Runtime check between '#p0' and '#p1' checks whether a Dart value is a JS interop type, which might not be platform-consistent."
     correctionMessage: "Try using 'isA' from 'dart:js_interop' to check if the Dart value is a JS interop type."
+    hasPublishedDocs: false
+  invalidRuntimeCheckWithJsInteropTypesJsAndDartJs:
+    type: lint
+    parameters:
+      Object p0: undocumented
+      Object p1: undocumented
+    sharedName: invalidRuntimeCheckWithJsInteropTypes
+    problemMessage: "Runtime check or cast between '#p0' and '#p1' involves both a 'dart:js_interop' type and a 'dart:js' type, which are unrelated. 'dart:js' types are Dart wrappers around JS values and aren't JS values themselves."
+    correctionMessage: "Try using 'JsObject.fromBrowserObject' to convert a 'dart:js_interop' value to a 'dart:js' value, or the 'rawJSObject' member on 'JsObject' to convert a 'dart:js' value to a 'dart:js_interop' value."
     hasPublishedDocs: false
   invalidRuntimeCheckWithJsInteropTypesJsAsDart:
     type: lint
@@ -16342,7 +16353,7 @@ LinterLintCode:
     state:
       experimental: "3.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

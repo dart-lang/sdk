@@ -133,12 +133,17 @@ final class AnalysisOptionsParseSession {
 /// Mutable state used while applying the parsed include graph to options.
 final class _ApplyState {
   final AnalysisOptionsBuilder builder;
+
+  /// The language version of the host SDK, for which experiments are enabled.
+  final Version sdkLanguageVersion;
+
   final Map<String, RuleConfig> _linterRuleConfigs = {};
 
   bool _hasLinterSection = false;
   YamlNode? _legacyPluginsNode;
 
-  new(File file) : builder = AnalysisOptionsBuilder(file: file);
+  new(File file, {required this.sdkLanguageVersion})
+    : builder = AnalysisOptionsBuilder(file: file);
 
   void apply(_ParsedFileData fileData) {
     _applyAnalyzer(fileData.file, fileData.analyzer);
@@ -206,13 +211,10 @@ final class _ApplyState {
 
   void _applyEnableExperiments(_ParsedEnableExperimentsData enableExperiments) {
     if (enableExperiments.flags case var flags?) {
-      builder.contextFeatures =
-          FeatureSet.fromEnableFlags2(
-                sdkLanguageVersion: ExperimentStatus.currentVersion,
-                flags: flags,
-              )
-              as ExperimentStatus;
-      builder.nonPackageFeatureSet = builder.contextFeatures;
+      builder.contextFeatures = FeatureSet.fromEnableFlags2(
+        sdkLanguageVersion: sdkLanguageVersion,
+        flags: flags,
+      ) as ExperimentStatus;
     }
   }
 
@@ -269,9 +271,8 @@ final class _ApplyState {
         ? localNode
         : Merger().merge(_legacyPluginsNode!, localNode);
 
-    var pluginName = _ParsedLegacyPluginsData.parse(
-      _legacyPluginsNode,
-    ).firstPluginName;
+    var pluginName = _ParsedLegacyPluginsData.parse(_legacyPluginsNode)
+        .firstPluginName;
     builder.enabledLegacyPluginNames = [?pluginName];
   }
 
@@ -361,7 +362,12 @@ final class _ParseRequest {
 
     AnalysisOptionsImpl analysisOptions;
     if (initialFileNode case _ParsedFileNode initialParsedFileNode) {
-      var applyState = _ApplyState(initialParsedFileNode.file);
+      var applyState = _ApplyState(
+        initialParsedFileNode.file,
+        sdkLanguageVersion:
+            sourceFactory.dartSdk?.languageVersion ??
+            ExperimentStatus.currentVersion,
+      );
       _applyParsedFiles(
         applyState: applyState,
         file: initialParsedFileNode,

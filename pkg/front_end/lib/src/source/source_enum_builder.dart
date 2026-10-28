@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart';
@@ -28,6 +27,7 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/constructor/declaration.dart';
 import '../fragment/constructor/encoding.dart';
 import '../fragment/field/declaration.dart';
@@ -46,6 +46,7 @@ import '../kernel/utils.dart';
 import '../util/helpers.dart';
 import 'builder_factory.dart';
 import 'name_scheme.dart';
+import 'parameters.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -293,6 +294,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         declarationBuilder: this,
       );
 
+      Parameters parameters = new Parameters(hasAugmentations: false);
       SourceConstructorBuilder constructorBuilder =
           _synthesizedDefaultConstructorBuilder = new SourceConstructorBuilder(
             name: "",
@@ -304,6 +306,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
             nameScheme: nameScheme,
             declarations: [constructorDeclaration],
             implementation: constructorDeclaration,
+            parameters: parameters,
             isConst: true,
           );
       constructorDeclaration.createEncoding(
@@ -312,7 +315,9 @@ class SourceEnumBuilder extends SourceClassBuilder {
         declarationBuilder: this,
         constructorBuilder: constructorBuilder,
         typeParameterFactory: libraryBuilder.typeParameterFactory,
+        parameters: parameters,
         encodingStrategy: encodingStrategy,
+        isImplementation: true,
       );
 
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
@@ -340,6 +345,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       nameScheme: toStringNameScheme,
       declarations: [toStringDeclaration],
       implementation: toStringDeclaration,
+      parameters: new Parameters(hasAugmentations: false),
       isStatic: false,
       modifiers: Modifiers.empty,
       references: toStringReferences,
@@ -479,6 +485,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   }) {
     Name toStringName = new Name(
       _enumToStringName,
@@ -578,12 +585,6 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  ) {}
-
-  @override
   void checkVariance(
     SourceClassBuilder sourceClassBuilder,
     TypeEnvironment typeEnvironment,
@@ -599,7 +600,9 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
   }) {
     throw new UnsupportedError("$runtimeType.createEncoding");
   }
@@ -689,7 +692,7 @@ class _EnumValuesFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   }) {
     List<Expression> values = <Expression>[];
     for (EnumElementFragment enumElement in _sourceEnumBuilder._enumElements) {
@@ -824,6 +827,7 @@ class _EnumValuesFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override

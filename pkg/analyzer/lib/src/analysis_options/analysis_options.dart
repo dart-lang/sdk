@@ -29,8 +29,6 @@ final class AnalysisOptionsBuilder {
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
-  FeatureSet nonPackageFeatureSet = ExperimentStatus();
-
   List<String> enabledLegacyPluginNames = [];
 
   List<ErrorProcessor> errorProcessors = [];
@@ -72,7 +70,6 @@ final class AnalysisOptionsBuilder {
   /// Creates a builder initialized from an existing options object.
   new from(AnalysisOptionsImpl options) : file = options.file {
     contextFeatures = options.contextFeatures;
-    nonPackageFeatureSet = options.nonPackageFeatureSet;
     enabledLegacyPluginNames = options.enabledLegacyPluginNames.toList();
     pluginsOptions = PluginsOptions(
       configurations: options.pluginsOptions.configurations.toList(),
@@ -105,14 +102,12 @@ final class AnalysisOptionsBuilder {
 
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet as ExperimentStatus;
-    nonPackageFeatureSet = featureSet;
   }
 
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
       file: file,
       contextFeatures: _contextFeatures,
-      nonPackageFeatureSet: nonPackageFeatureSet,
       enabledLegacyPluginNames: enabledLegacyPluginNames.toList(),
       pluginsOptions: PluginsOptions(
         configurations: pluginsOptions.configurations.toList(),
@@ -184,13 +179,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final ExperimentStatus contextFeatures;
 
-  /// The set of features to use for libraries that are not in a package.
-  ///
-  /// If a library is in a package, this feature set is *not* used, even if the
-  /// package does not specify the language version. Instead [contextFeatures]
-  /// is used.
-  final FeatureSet nonPackageFeatureSet;
-
   @override
   final List<String> enabledLegacyPluginNames;
 
@@ -253,7 +241,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   new _({
     required this.file,
     required this.contextFeatures,
-    required this.nonPackageFeatureSet,
     required this.excludePatterns2,
     required this.enabledLegacyPluginNames,
     required this.pluginsOptions,
@@ -279,15 +266,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     "'AnalysisContext.contextRoot.analyzedFiles' instead.",
   )
   @override
-  List<String> get excludePatterns => {
-    for (var excludePattern in excludePatterns2) excludePattern.pattern,
-  }.toList();
-
-  /// The language version to use for libraries that are not in a package.
-  ///
-  /// If a library is in a package, this language version is *not* used,
-  /// even if the package does not specify the language version.
-  Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
+  List<String> get excludePatterns =>
+      {for (var excludePattern in excludePatterns2) excludePattern.pattern}
+          .toList();
 
   List<PluginConfiguration> get pluginConfigurations =>
       pluginsOptions.configurations;

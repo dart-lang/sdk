@@ -231,11 +231,11 @@ class NullSafetyDeadCodeVerifier {
       // Don't report "dead code" for the message part of an assert statement,
       // because this causes nuisance warnings for redundant `!= null`
       // asserts.
-    } else if (parent is ConstructorDeclaration &&
+    } else if (parent is ConstructorDeclaration2 &&
         firstDeadNode is EmptyFunctionBody) {
       // Don't report "dead code" for an unreachable, but syntacically required,
       // semicolon that follows one or more constructor initializers.
-    } else if (parent is ConstructorDeclaration &&
+    } else if (parent is ConstructorDeclaration2 &&
         firstDeadNode is BlockFunctionBody &&
         firstDeadNode.block.statements2.isEmpty) {
       // Don't report "dead code" for an unreachable, but empty block body that
@@ -261,7 +261,7 @@ class NullSafetyDeadCodeVerifier {
         if (node is FunctionExpression) {
           node = node.body;
         }
-        if (node is MethodDeclaration) {
+        if (node is MethodDeclarationV1OriginImpl) {
           node = node.body;
         }
         if (node is BlockFunctionBody) {

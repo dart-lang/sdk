@@ -8,31 +8,21 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
 
-class _FunctionData {
-  final List<AwaitExpression> awaits = [];
-  final Set<ReturnStatement> returnStatements = {};
-  // If we find certain control flow statements in this function, we choose to
-  // not lower it.
-  bool shouldLower = true;
-
-  _FunctionData();
-
-  /// Returns true if all [AwaitExpression]s are children of [ReturnStatement]s.
-  bool allAwaitsDirectReturn() {
-    return awaits.every(
-      (awaitExpression) => returnStatements.contains(awaitExpression.parent),
-    );
-  }
-}
-
-/// Handles simplification of basic 'async' functions into [Future]s.
+/// A transformation that simplifies basic 'async' functions into [Future]s.
 ///
 /// The JS expansion of an async/await function is a complex state machine.
-/// In many cases 'async' functions either do not use 'await' or have very
-/// simple 'await' logic which is easily captured by [Future]. By making this
-/// transformation we avoid substantial over head from the state machine.
+/// In many cases 'async' functions do not use 'await' and return known
+/// non-[Future] values, which is easily captured by [Future.sync]. By making
+/// this transformation we avoid substantial overhead from the state machine.
 class AsyncLowering {
-  final List<_FunctionData> _functions = [];
+  /// Stack tracking whether each currently visited [FunctionNode] should be
+  /// lowered.
+  ///
+  /// The top of the stack corresponds to the innermost [FunctionNode] being
+  /// visited. It starts as `true` for lowerable `async` functions and is set to
+  /// `false` if an `await`, `await for`, or return of a potential [Future] is
+  /// encountered inside that function.
+  final List<bool> _shouldLower = [];
   final CoreTypes _coreTypes;
   final TypeEnvironment _typeEnvironment;
   late final StatefulStaticTypeContext _typeContext =
@@ -49,17 +39,10 @@ class AsyncLowering {
     _typeContext.leaveMember(node);
   }
 
-  bool _shouldTryAsyncLowering(FunctionNode node) =>
-      node.asyncMarker == AsyncMarker.Async &&
-      node.emittedValueType != null &&
-      _functions.last.shouldLower;
-
   void enterFunction(FunctionNode node) {
-    _functions.add(_FunctionData());
-  }
-
-  void _exitFunction() {
-    _functions.removeLast();
+    _shouldLower.add(
+      node.asyncMarker == AsyncMarker.Async && node.emittedValueType != null,
+    );
   }
 
   void _updateFunctionBody(FunctionNode node, Statement? newBody) {
@@ -67,149 +50,174 @@ class AsyncLowering {
     newBody?.parent = node;
   }
 
+  /// Rewrites [node] from an `async` function into a synchronous function
+  /// returning a [Future] via [Future.sync] (or [Future.syncValue] for a
+  /// simple non-throwing return).
+  ///
+  /// Precondition: [node] contains no `await` expressions or `await for` loops,
+  /// and every returned expression is guaranteed not to evaluate to a [Future]
+  /// at runtime.
+  ///
+  /// Wrapping the body in [Future.sync] avoids the async state machine and
+  /// scheduling a microtask on synchronous completion while still catching
+  /// synchronous throws and turning them into error futures:
+  /// ```dart
+  /// // Before:
+  /// Future<int> foo() async {
+  ///   doSomething();
+  ///   return 3;
+  /// }
+  ///
+  /// // After:
+  /// Future<int> foo() {
+  ///   return Future<int>.sync(() {
+  ///     doSomething();
+  ///     return 3;
+  ///   });
+  /// }
+  /// ```
   void _wrapBodySync(FunctionNode node) {
     node.asyncMarker = AsyncMarker.Sync;
     final futureValueType = node.emittedValueType!;
+    final simpleReturn = _simpleNonThrowingReturn(node.body);
     _updateFunctionBody(
       node,
       ReturnStatement(
-        StaticInvocation(
-          _coreTypes.futureSyncFactory,
-          Arguments(
-            ExpressionList(
-              FunctionExpression(
-                FunctionNode(
-                  node.body,
-                  returnType: FutureOrType(
-                    futureValueType,
-                    futureValueType.nullability,
+        simpleReturn != null
+            ? StaticInvocation(
+                _coreTypes.futureSyncValueFactory,
+                Arguments(
+                  ExpressionList(simpleReturn),
+                  types: DartTypeList(futureValueType),
+                ),
+              )
+            : StaticInvocation(
+                _coreTypes.futureSyncFactory,
+                Arguments(
+                  ExpressionList(
+                    FunctionExpression(
+                      FunctionNode(
+                        node.body,
+                        returnType: FutureOrType(
+                          futureValueType,
+                          futureValueType.nullability,
+                        ),
+                      ),
+                    ),
                   ),
+                  types: DartTypeList(futureValueType),
                 ),
               ),
-            ),
-            types: DartTypeList(futureValueType),
-          ),
-        ),
       ),
     );
   }
 
-  void _transformDirectReturnAwaits(
-    FunctionNode node,
-    _FunctionData functionData,
-  ) {
-    // If every await is the direct child of a return statement then we can
-    // do the following transformation:
-    // return await e; --> return Future<T>.value(e);
-    final futureValueType = node.emittedValueType!;
-    for (final awaitExpression in functionData.awaits) {
-      awaitExpression.replaceWith(
-        StaticInvocation(
-          _coreTypes.futureValueFactory,
-          Arguments(
-            ExpressionList(awaitExpression.operand),
-            types: DartTypeList(futureValueType),
-          ),
-        ),
-      );
+  /// The returned expression if [body] consists solely of returning an
+  /// expression whose evaluation cannot possibly throw at runtime, or `null`
+  /// otherwise.
+  Expression? _simpleNonThrowingReturn(Statement? body) {
+    if (body is Block) {
+      if (body.statements.isEmpty) return NullLiteral();
+      if (body.statements.length != 1) return null;
+      body = body.statements.first;
     }
+    if (body is ReturnStatement) {
+      final expression = body.expression;
+      if (expression == null) return NullLiteral();
+      if (expression is BasicLiteral || expression is ConstantExpression) {
+        return expression;
+      }
+    }
+    return null;
   }
 
-  void _transformAsyncFunctionNode(FunctionNode node) {
-    assert(_functions.isNotEmpty, 'Must be within a function scope.');
-    final functionData = _functions.last;
-    if (!_canLowerReturns(node, functionData)) return;
-    var isLowered = false;
-    if (functionData.awaits.isEmpty) {
-      // There are no awaits within this function so convert to a simple
-      // Future.sync call with the function's returned expressions. We use
-      // this over Future.value because the expression can throw and async
-      // functions defer exceptions as errors on returned Future. Future.sync
-      // has the same deferred behavior.
-      //
-      // Before:
-      // Future<int> foo() async {
-      //   doSomething();
-      //   return 3;
-      // }
-      //
-      // After:
-      // Future<int> foo() {
-      //   return Future.sync(() {
-      //     doSomething();
-      //     return 3;
-      //   });
-      // }
-      //
-      // Edge cases to consider:
-      // 1) Function doesn't include a return expression. (e.g. Future<void>)
-      //    In this case we call Future.value(null).
-      // 2) The returned expression might itself be a future. Future.sync will
-      //    handle the unpacking of the returned future in that case.
-      // 3) The return type of the function is not specified. In this case we
-      //    instantiate Future.value with 'dynamic'.
-      isLowered = true;
-    } else if (functionData.allAwaitsDirectReturn()) {
-      _transformDirectReturnAwaits(node, functionData);
-      isLowered = true;
+  /// Whether [expression] is guaranteed to evaluate to a non-[Future] value at
+  /// runtime.
+  ///
+  /// `Future<T>.sync` returns a `Future<T>` result directly instead of chaining
+  /// it into a fresh `_Future<T>`, so we only lower when no returned expression
+  /// can be a [Future] at runtime.
+  bool _isDefinitelyNonFutureValue(Expression expression) {
+    // 1. Literals of known non-`Future` classes (even when non-const or when
+    //    their static interface type, such as `List`, could be implemented by a
+    //    custom `Future` class).
+    if (expression is BasicLiteral ||
+        expression is SymbolLiteral ||
+        expression is TypeLiteral ||
+        expression is ListLiteral ||
+        expression is SetLiteral ||
+        expression is MapLiteral ||
+        expression is RecordLiteral) {
+      return true;
     }
-    if (isLowered) {
+    // 2. Evaluated constants, whose actual runtime class can be inspected
+    //    regardless of static type (e.g. `const Object x = 42;`).
+    if (expression is ConstantExpression) {
+      return _isNonFutureConstant(expression.constant);
+    }
+    // 3. General expressions whose static type cannot be inhabited by a
+    //    `Future` instance.
+    final type = expression.getStaticType(_typeContext).extensionTypeErasure;
+    if (type is NullType ||
+        type is NeverType ||
+        type is RecordType ||
+        type is FunctionType) {
+      return true;
+    }
+    if (type is InterfaceType) {
+      final cls = type.classNode;
+      return cls == _coreTypes.intClass ||
+          cls == _coreTypes.doubleClass ||
+          cls == _coreTypes.numClass ||
+          cls == _coreTypes.boolClass ||
+          cls == _coreTypes.stringClass ||
+          cls == _coreTypes.recordClass ||
+          cls == _coreTypes.functionClass ||
+          (cls.isEnum &&
+              !_typeEnvironment.hierarchy.isSubInterfaceOf(
+                cls,
+                _coreTypes.futureClass,
+              ));
+    }
+    return false;
+  }
+
+  bool _isNonFutureConstant(Constant constant) =>
+      constant is! UnevaluatedConstant &&
+      (constant is! InstanceConstant ||
+          !_typeEnvironment.hierarchy.isSubInterfaceOf(
+            constant.classNode,
+            _coreTypes.futureClass,
+          ));
+
+  void transformFunctionNodeAndExit(FunctionNode node) {
+    if (_shouldLower.removeLast()) {
       _wrapBodySync(node);
     }
   }
 
-  bool _canLowerReturns(FunctionNode node, _FunctionData functionData) {
-    DartType? futureType;
-    for (final returnStatement in functionData.returnStatements) {
-      final expression = returnStatement.expression;
-      if (expression == null || expression is AwaitExpression) continue;
-      futureType ??= InterfaceType(
-        _coreTypes.futureClass,
-        Nullability.nonNullable,
-        DartTypeList(node.emittedValueType!),
-      );
-      if (!_isDefinitelyNonFutureValue(expression, futureType)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _isDefinitelyNonFutureValue(Expression expression, DartType futureType) {
-    final exprType = expression.getStaticType(_typeContext);
-    if (exprType is NullType) return true;
-    if (exprType is TypeParameterType) return false;
-    return !_typeEnvironment.isSubtypeOf(
-          exprType,
-          _coreTypes.futureNullableRawType,
-        ) &&
-        !_typeEnvironment.isSubtypeOf(futureType, exprType);
-  }
-
-  void transformFunctionNodeAndExit(FunctionNode node) {
-    if (_shouldTryAsyncLowering(node)) _transformAsyncFunctionNode(node);
-    _exitFunction();
-  }
-
   void visitAwaitExpression(AwaitExpression expression) {
     assert(
-      _functions.isNotEmpty,
+      _shouldLower.isNotEmpty,
       'Awaits must be within the scope of a function.',
     );
-    _functions.last.awaits.add(expression);
+    _shouldLower.last = false;
   }
 
   void visitReturnStatement(ReturnStatement statement) {
-    _functions.last.returnStatements.add(statement);
-  }
-
-  void visitForInStatement(ForInStatement statement) {
-    if (statement.isAsync && _functions.isNotEmpty) {
-      _functions.last.shouldLower = false;
+    assert(_shouldLower.isNotEmpty);
+    if (_shouldLower.last) {
+      final expression = statement.expression;
+      if (expression != null && !_isDefinitelyNonFutureValue(expression)) {
+        _shouldLower.last = false;
+      }
     }
   }
 
-  void visitTry() {
-    _functions.last.shouldLower = false;
+  void visitForInStatement(ForInStatement statement) {
+    if (statement.isAsync) {
+      assert(_shouldLower.isNotEmpty);
+      _shouldLower.last = false;
+    }
   }
 }

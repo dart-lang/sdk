@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/utilities/hash/blake3.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
@@ -190,15 +192,222 @@ class ApiSignature {
     if (_offset + spaceNeeded > oldLength) {
       int newLength = 2 * (_offset + spaceNeeded);
       ByteData newData = ByteData(newLength);
-      Uint8List.view(
-        newData.buffer,
-      ).setRange(0, oldLength, Uint8List.view(_data.buffer));
+      Uint8List.view(newData.buffer)
+          .setRange(0, oldLength, Uint8List.view(_data.buffer));
       _data = newData;
     }
   }
 }
 
-/// Hash value computed by [ApiSignature].
+/// Collects values and produces a BLAKE3-256 digest.
+///
+/// Values are encoded in call order. Integers use their low 32 bits, doubles
+/// use 64-bit IEEE 754, and both use little-endian byte order. Booleans use
+/// one byte, 0 or 1. Strings use UTF-8 with a 32-bit byte-length prefix.
+/// Raw bytes are appended without a length prefix. No type tags are added.
+///
+/// Reading the digest finalizes the signature; further additions throw
+/// [StateError]. Repeated reads return the same digest. Returned byte and
+/// word lists have independent, mutable storage.
+final class Blake3ApiSignature {
+  static final ScalarBlake3 _hasher = ScalarBlake3();
+
+  final Uint8List _buffer;
+  final ByteData _data;
+  final ByteData _doubleBytes = ByteData(8);
+  int _offset = 0;
+  Uint8List? _digest;
+
+  /// Created on the first flush.
+  /// Signatures that fit in [_buffer] use [_hasher] for one-shot hashing.
+  ScalarBlake3Sink? _sink;
+
+  new() : this._(Uint8List(4096));
+
+  new _(Uint8List buffer)
+    : _buffer = buffer,
+      _data = ByteData.sublistView(buffer);
+
+  /// Collects a boolean.
+  void addBool(bool value) {
+    _checkNotFinished();
+    _flushIfNeeded();
+    _buffer[_offset++] = value ? 1 : 0;
+  }
+
+  /// Collects bytes without a length prefix or padding.
+  /// Input is consumed synchronously and is neither modified nor retained.
+  void addBytes(Uint8List bytes) {
+    _checkNotFinished();
+
+    // If bytes fit the buffer, add there and done.
+    var length = bytes.length;
+    if (_offset + length <= _buffer.length) {
+      _buffer.setRange(_offset, _offset + length, bytes);
+      _offset += length;
+      return;
+    }
+
+    // Flush full buffers as needed, keeping the last batch buffered.
+    var start = 0;
+    while (start < length) {
+      _flushIfNeeded();
+      var count = min(length - start, _buffer.length - _offset);
+      _buffer.setRange(_offset, _offset + count, bytes, start);
+      _offset += count;
+      start += count;
+    }
+  }
+
+  /// Collects a little-endian, double-precision floating point value.
+  void addDouble(double value) {
+    _checkNotFinished();
+    if (_offset + 8 <= _buffer.length) {
+      _data.setFloat64(_offset, value, Endian.little);
+      _offset += 8;
+    } else {
+      _doubleBytes.setFloat64(0, value, Endian.little);
+      addBytes(_doubleBytes.buffer.asUint8List());
+    }
+  }
+
+  void addFeatureSet(FeatureSet featureSet) {
+    var features = ExperimentStatus.knownFeatures;
+    addInt(features.length);
+    for (var feature in features.values) {
+      addBool(featureSet.isEnabled(feature));
+    }
+  }
+
+  /// Collects the low 32 bits of [value] in little-endian order.
+  void addInt(int value) {
+    _checkNotFinished();
+    if (_offset + 4 <= _buffer.length) {
+      _data.setUint32(_offset, value, Endian.little);
+      _offset += 4;
+    } else {
+      for (var shift = 0; shift < 32; shift += 8) {
+        _addByte(value >> shift);
+      }
+    }
+  }
+
+  void addLanguageVersion(Version version) {
+    addInt(version.major);
+    addInt(version.minor);
+  }
+
+  void addList<T>(List<T> elements, void Function(T) addElement) {
+    addInt(elements.length);
+    for (var element in elements) {
+      addElement(element);
+    }
+  }
+
+  void addMapEntryList<K, V>(
+    List<MapEntry<K, V>> entries,
+    void Function(K, V) addEntry,
+  ) {
+    addInt(entries.length);
+    for (var entry in entries) {
+      addEntry(entry.key, entry.value);
+    }
+  }
+
+  /// Collects the UTF-8 byte length followed by the UTF-8 bytes of [value].
+  void addString(String value) {
+    _checkNotFinished();
+
+    // Use UTF-8 encoding if any character is non-ASCII.
+    var length = value.length;
+    for (var i = 0; i < length; i++) {
+      if (value.codeUnitAt(i) >= 128) {
+        var bytes = utf8.encode(value);
+        addInt(bytes.length);
+        addBytes(bytes);
+        return;
+      }
+    }
+
+    // Write ASCII bytes directly when the length prefix and string fit.
+    if (_offset + 4 + length <= _buffer.length) {
+      _data.setUint32(_offset, length, Endian.little);
+      _offset += 4;
+      for (var i = 0; i < length; i++) {
+        _buffer[_offset + i] = value.codeUnitAt(i);
+      }
+      _offset += length;
+      return;
+    }
+
+    // Write ASCII bytes across buffer boundaries when they do not fit.
+    addInt(length);
+    var start = 0;
+    while (start < length) {
+      _flushIfNeeded();
+      var count = length - start;
+      var space = _buffer.length - _offset;
+      if (count > space) count = space;
+      for (var i = 0; i < count; i++) {
+        _buffer[_offset + i] = value.codeUnitAt(start + i);
+      }
+      _offset += count;
+      start += count;
+    }
+  }
+
+  void addStringList(List<String> values) {
+    addList(values, addString);
+  }
+
+  /// Collects the backing buffer's bytes, matching [ApiSignature.addUint32List].
+  void addUint32List(Uint32List data) {
+    addBytes(data.buffer.asUint8List());
+  }
+
+  /// Finalizes the signature and returns its 32-byte digest.
+  Uint8List toByteList() => Uint8List.fromList(_digest ??= _finish());
+
+  /// Finalizes the signature and returns its hash value.
+  Hash toHash() => Hash._(_digest ??= _finish());
+
+  /// Finalizes the signature and returns its hex-encoded digest.
+  String toHex() => hex.encode(_digest ??= _finish());
+
+  /// Finalizes the signature and returns its digest as eight native-endian words.
+  Uint32List toUint32List() => toByteList().buffer.asUint32List();
+
+  void _addByte(int value) {
+    _flushIfNeeded();
+    _buffer[_offset++] = value;
+  }
+
+  void _checkNotFinished() {
+    if (_digest != null) {
+      throw StateError('The API signature is already finalized.');
+    }
+  }
+
+  Uint8List _finish() {
+    var bytes = Uint8List.sublistView(_buffer, 0, _offset);
+    var sink = _sink;
+    if (sink == null) return _hasher.hash(bytes);
+    sink.add(bytes);
+    return sink.finish();
+  }
+
+  void _flush() {
+    assert(_offset == _buffer.length);
+    (_sink ??= ScalarBlake3Sink()).add(_buffer);
+    _offset = 0;
+  }
+
+  void _flushIfNeeded() {
+    if (_offset == _buffer.length) _flush();
+  }
+}
+
+/// Hash value computed from an API signature.
 class Hash {
   static final Hash empty = Hash._(Uint8List(0));
 

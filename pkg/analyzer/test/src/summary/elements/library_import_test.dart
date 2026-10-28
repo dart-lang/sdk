@@ -1101,7 +1101,6 @@ library
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -1121,7 +1120,6 @@ library
                 name: a @1
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1176,7 +1174,6 @@ library
         name: a @1
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         staticType: int
       name: SimpleIdentifier
@@ -1196,7 +1193,6 @@ library
                 name: a @1
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::a
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier

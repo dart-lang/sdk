@@ -32,6 +32,7 @@ import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../../../util/diff.dart';
@@ -133,6 +134,10 @@ abstract class ContextResolutionTest
   /// Optional Dart SDK summary file, to be used instead of [sdkRoot].
   File? sdkSummaryFile;
 
+  /// The language version of the mock SDK, or `null` to use the language
+  /// version of the analyzer.
+  Version? sdkLanguageVersion;
+
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
@@ -156,6 +161,7 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       root: sdkRoot,
       additionalLibraries: additionalMockSdkLibraries,
+      languageVersion: sdkLanguageVersion,
     );
 
     collection = AnalysisContextCollectionImpl(

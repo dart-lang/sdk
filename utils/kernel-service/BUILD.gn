@@ -32,6 +32,11 @@ application_snapshot("kernel-service_snapshot") {
     "--train",
     rebase_path("../../$_kernel_service_script", root_build_dir),
   ]
+  training_deps = [ "../../runtime/vm:vm_platform" ]
+  training_inputs = [
+    "$root_out_dir/vm_platform.dill",
+    "../../.dart_tool/package_config.json",
+  ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
 
@@ -58,12 +63,12 @@ application_snapshot("frontend_server") {
     ":frontend_server_files_stamp",
     "../../runtime/vm:kernel_platform_files($host_toolchain)",
   ]
-  sdk_root = rebase_path("$root_out_dir")
+  sdk_root = rebase_path("$root_out_dir", root_build_dir)
   training_args = [
     "--train",
     "--sdk-root=$sdk_root/",
     "--platform=$sdk_root/vm_platform.dill",
-    rebase_path(main_dart),
+    rebase_path(main_dart, root_build_dir),
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
 }
@@ -92,10 +97,6 @@ template("kernel_service_dill") {
   action("kernel_service" + target_name + "_dill") {
     if (defined(invoker.pool)) {
       pool = invoker.pool
-    } else if (_is_dart) {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
-    } else {
-      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
 
     gen_kernel_tool =
@@ -109,6 +110,7 @@ template("kernel_service_dill") {
     inputs = [
       kernel_service_script,
       "$root_out_dir/vm_platform.dill",
+      "../../.dart_tool/package_config.json",
     ]
     output = "$root_gen_dir/kernel_service" + invoker.target_name + ".dill"
     outputs = [ output ]

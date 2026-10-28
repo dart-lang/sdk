@@ -10,6 +10,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import '../../cfg/to_wasm.dart';
 import '../../intrinsics.dart';
+import '../../param_info.dart';
 import '../../reference_extensions.dart';
 import '../../translator.dart';
 
@@ -103,6 +104,7 @@ final class ProdWasmInstructionLowerer
             op != BinaryIntOpcode.rem,
       UnaryIntOp(:final op) =>
         op == UnaryIntOpcode.neg || op == UnaryIntOpcode.bitNot,
+      UnaryBoolOp() => true,
       DirectCall() => _canHandleDirectCall(instr),
       _ => false,
     };
@@ -110,21 +112,17 @@ final class ProdWasmInstructionLowerer
 
   bool _canHandleDirectCall(DirectCall instr) {
     final target = instr.target;
-    // TODO(nshahan): Support getters, setters, generative constructors
-    // (paired with AllocateObject) and super calls.
-    if (target is! RegularFunction) return false;
-    final member = target.member as ast.Procedure;
-    if (member.isInstanceMember) return false;
-    // TODO(nshahan): Support generic calls (TypeArguments input).
-    if (target.hasFunctionTypeParameters) return false;
-    // TODO(nshahan): Support optional and named parameters.
-    final function = member.function;
-    final shape = instr.argumentsShape;
-    if (function.namedParameters.isNotEmpty ||
-        shape.named.isNotEmpty ||
-        shape.positional != function.positionalParameters.length) {
+    // TODO(nshahan): Support generative constructors (paired with
+    // AllocateObject) and super calls.
+    if (target is! RegularFunction &&
+        target is! GetterFunction &&
+        target is! SetterFunction) {
       return false;
     }
+    final member = target.member;
+    if (member is! ast.Procedure || member.isInstanceMember) return false;
+    // TODO(nshahan): Support generic calls (TypeArguments input).
+    if (target.hasFunctionTypeParameters) return false;
     // TODO(nshahan): Support intrinsics and external effects (see
     // `CodeGenerator.visitStaticInvocation`).
     if (member.isExternal ||
@@ -164,21 +162,10 @@ final class ProdWasmInstructionLowerer
   void visitDirectCall(DirectCall instr) {
     final reference = instr.target.member.reference;
     final signature = translator.signatureForDirectCall(reference);
-    // TODO(nshahan): Needs adjustment when adding support for type arguments
-    // and optional/named parameters.
-    assert(signature.inputs.length == instr.inputCount);
-    for (int i = 0; i < instr.inputCount; ++i) {
-      final argLocal = gen.getLocal(instr.inputDefAt(i));
-      b.local_get(argLocal);
-      // Ensure the argument types match the expected funcction parameter types.
-      translator.convertType(b, argLocal.type, signature.inputs[i]);
-    }
+    final paramInfo = translator.paramInfoForDirectCall(reference);
+    _pushArguments(instr, signature, paramInfo);
 
     final outputs = translator.callReference(reference, b);
-
-    // Nothing to do becase `callReference` already emitted `unreachable` after
-    // the call.
-    if (translator.synthesizeNoReturn(reference)) return;
 
     if (!instr.hasUses) {
       // Cleanup stack if results of the call are not used.
@@ -188,10 +175,72 @@ final class ProdWasmInstructionLowerer
       return;
     }
 
-    // All non-setter invocations return a value.
+    // `callReference` emitted `unreachable` because the call never returns.
+    if (outputs.isEmpty) return;
+
     assert(outputs.length == 1);
     final resultLocal = gen.getLocal(instr);
     translator.convertType(b, outputs.single, resultLocal.type);
     b.local_set(resultLocal);
+  }
+
+  /// Pushes the arguments of [instr] onto the stack in the order and with the
+  /// types expected by [signature], filling in the default values from
+  /// [paramInfo] for omitted optional parameters.
+  void _pushArguments(
+    DirectCall instr,
+    w.FunctionType signature,
+    ParameterInfo paramInfo,
+  ) {
+    // TODO(nshahan): Needs adjustment when adding support for type arguments.
+    assert(signature.inputs.length == paramInfo.paramCount);
+    // Nothing to push, e.g. for getters and functions without parameters.
+    if (signature.inputs.isEmpty) return;
+
+    final argumentsShape = instr.argumentsShape;
+
+    // Push the provided positional arguments.
+    for (int i = 0; i < argumentsShape.positional; ++i) {
+      final argLocal = gen.getLocal(instr.inputDefAt(i));
+      b.local_get(argLocal);
+      translator.convertType(b, argLocal.type, signature.inputs[i]);
+    }
+    // Push default values for any remaining optional positional parameters.
+    for (
+      int i = argumentsShape.positional;
+      i < paramInfo.positional.length;
+      ++i
+    ) {
+      translator.constants.instantiateConstant(
+        b,
+        paramInfo.positional[i]!,
+        signature.inputs[i],
+        dummyValueIfIncompatible: true,
+      );
+    }
+    // Evaluate named arguments in the order they appear at the call site.
+    final Map<String, w.Local> namedLocals = {
+      for (int i = 0; i < argumentsShape.named.length; ++i)
+        argumentsShape.named[i]: gen.getLocal(
+          instr.inputDefAt(argumentsShape.positional + i),
+        ),
+    };
+    // Re-order named arguments and push default values for optional named
+    // parameters.
+    for (var name in paramInfo.names) {
+      final namedLocal = namedLocals[name];
+      final type = signature.inputs[paramInfo.nameIndex[name]!];
+      if (namedLocal != null) {
+        b.local_get(namedLocal);
+        translator.convertType(b, namedLocal.type, type);
+      } else {
+        translator.constants.instantiateConstant(
+          b,
+          paramInfo.named[name]!,
+          type,
+          dummyValueIfIncompatible: true,
+        );
+      }
+    }
   }
 }

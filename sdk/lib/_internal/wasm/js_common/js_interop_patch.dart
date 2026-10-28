@@ -79,7 +79,7 @@ extension JSAnyUtilityExtension on JSAny? {
         return converted;
       }
       if (o is! JSValue) return o;
-      WasmExternRef? ref = o.toExternRef;
+      WasmExternRef ref = o.toExternRef;
       final refType = externRefType(ref);
       // TODO(srujzs): Either handle Date and Promise, or remove them completely
       // from the conversion (preferred) across all backends.
@@ -88,7 +88,7 @@ extension JSAnyUtilityExtension on JSAny? {
         convertedObjects[o] = dartMap;
         // Keys will be a list of Dart [String]s.
         final keys = toDartList(
-          js_helper.JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)),
+          js_helper.JS<WasmExternRef>('o => Object.keys(o)', jsifyRaw(o)),
         );
         for (int i = 0; i < keys.length; i++) {
           final key = keys[i];
@@ -154,7 +154,7 @@ extension NullableObjectUtilExtension on Object? {
                   o is Float64List ||
                   o is ByteData)) ||
           o is ByteBuffer) {
-        return JSValue(jsifyRaw(o));
+        return JSValue.box(jsifyRaw(o));
       }
 
       if (o is Map<Object?, Object?>) {
@@ -180,7 +180,7 @@ extension NullableObjectUtilExtension on Object? {
         return convertedIterableBox;
       } else {
         // None of the objects left will require recursive conversions.
-        return JSValue(jsifyRaw(o));
+        return JSValue.box(jsifyRaw(o));
       }
     }
 
@@ -281,8 +281,8 @@ extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
 // This is a Symbol so that different Dart applications don't share Dart
 // objects from different Dart runtimes. We expect all JSBoxedDartObjects to
 // have this Symbol.
-final WasmExternRef? _jsBoxedDartObjectPropertyExternRef = js_helper
-    .JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")');
+final WasmExternRef _jsBoxedDartObjectPropertyExternRef = js_helper
+    .JS<WasmExternRef>('() => Symbol("jsBoxedDartObjectProperty")');
 
 // Returns the value of the property we embed in every `JSBoxedDartObject` in
 // `any`.
@@ -786,7 +786,7 @@ extension StringToJSString on String {
   JSString get toJS {
     final t = this;
     return JSString._(
-      JSStringType(JSValue(jsStringFromDartString(t).toExternRef)),
+      JSStringType(JSValue(jsStringFromDartString(t).wrappedExternRef)),
     );
   }
 }
@@ -903,7 +903,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSAny add(JSAny? any) => JSAny._(
     JSAnyType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o + a',
           this.toExternRef,
           any.toExternRef,
@@ -916,7 +916,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSAny subtract(JSAny? any) => JSAny._(
     JSAnyType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o - a',
           this.toExternRef,
           any.toExternRef,
@@ -929,7 +929,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSAny multiply(JSAny? any) => JSAny._(
     JSAnyType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o * a',
           this.toExternRef,
           any.toExternRef,
@@ -942,7 +942,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSAny divide(JSAny? any) => JSAny._(
     JSAnyType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o / a',
           this.toExternRef,
           any.toExternRef,
@@ -955,7 +955,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSAny modulo(JSAny? any) => JSAny._(
     JSAnyType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o % a',
           this.toExternRef,
           any.toExternRef,
@@ -968,7 +968,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSAny exponentiate(JSAny? any) => JSAny._(
     JSAnyType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o ** a',
           this.toExternRef,
           any.toExternRef,
@@ -981,7 +981,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean greaterThan(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o > a',
           this.toExternRef,
           any.toExternRef,
@@ -994,7 +994,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean greaterThanOrEqualTo(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o >= a',
           this.toExternRef,
           any.toExternRef,
@@ -1007,7 +1007,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean lessThan(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o < a',
           this.toExternRef,
           any.toExternRef,
@@ -1020,7 +1020,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean lessThanOrEqualTo(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o <= a',
           this.toExternRef,
           any.toExternRef,
@@ -1033,7 +1033,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean equals(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o == a',
           this.toExternRef,
           any.toExternRef,
@@ -1046,7 +1046,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean notEquals(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o != a',
           this.toExternRef,
           any.toExternRef,
@@ -1059,7 +1059,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean strictEquals(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o === a',
           this.toExternRef,
           any.toExternRef,
@@ -1072,7 +1072,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSBoolean strictNotEquals(JSAny? any) => JSBoolean._(
     JSBooleanType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o !== a',
           this.toExternRef,
           any.toExternRef,
@@ -1085,7 +1085,7 @@ extension JSAnyOperatorExtension on JSAny? {
   JSNumber unsignedRightShift(JSAny? any) => JSNumber._(
     JSNumberType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '(o, a) => o >>> a',
           this.toExternRef,
           any.toExternRef,
@@ -1115,14 +1115,14 @@ extension JSAnyOperatorExtension on JSAny? {
   @patch
   JSBoolean get not => JSBoolean._(
     JSBooleanType(
-      JSValue(js_helper.JS<WasmExternRef?>('(o) => !o', this.toExternRef)),
+      JSValue(js_helper.JS<WasmExternRef>('(o) => !o', this.toExternRef)),
     ),
   );
 
   @patch
   JSBoolean get isTruthy => JSBoolean._(
     JSBooleanType(
-      JSValue(js_helper.JS<WasmExternRef?>('(o) => !!o', this.toExternRef)),
+      JSValue(js_helper.JS<WasmExternRef>('(o) => !!o', this.toExternRef)),
     ),
   );
 }
@@ -1131,7 +1131,7 @@ extension JSAnyOperatorExtension on JSAny? {
 JSPromise<JSObject> importModule(JSAny moduleName) => JSPromise<JSObject>._(
   JSPromiseType(
     JSValue(
-      js_helper.JS<WasmExternRef?>('(m) => import(m)', moduleName.toExternRef),
+      js_helper.JS<WasmExternRef>('(m) => import(m)', moduleName.toExternRef),
     ),
   ),
 );
@@ -1227,16 +1227,14 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
   final proxy = JSArray<T>._(
     JSArrayType(
       JSValue(
-        js_helper.JS<WasmExternRef?>(
+        js_helper.JS<WasmExternRef>(
           '''
     (wrapper, getIndex, setIndex, hasIndex, deleteIndex) => new Proxy(wrapper, {
       'get': function (target, prop, receiver) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp);
-            return Reflect.apply(getIndex, wrapper, args);
+            return getIndex.call(wrapper, numProp);
           }
         }
         return Reflect.get(target, prop, receiver);
@@ -1245,9 +1243,7 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp, value);
-            Reflect.apply(setIndex, wrapper, args);
+            setIndex.call(wrapper, numProp, value);
             return true;
           }
         }
@@ -1259,10 +1255,8 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp);
             // Array-like objects are assumed to have indices as properties.
-            return Reflect.apply(hasIndex, wrapper, args);
+            return hasIndex.call(wrapper, numProp);
           }
         }
         return Reflect.has(target, prop);
@@ -1271,9 +1265,7 @@ JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
         if (typeof prop == 'string') {
           const numProp = Number(prop);
           if (Number.isInteger(numProp)) {
-            const args = new Array();
-            args.push(numProp);
-            return Reflect.apply(deleteIndex, wrapper, args);
+            return deleteIndex.call(wrapper, numProp);
           }
         }
         return Reflect.deleteProperty(target, prop);

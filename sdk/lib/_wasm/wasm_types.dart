@@ -94,7 +94,7 @@ class WasmI31Ref extends WasmBase {
 extension WasmI31RefExtensions on WasmI31Ref {
   /// Convert a `i31ref` to `externref` with `extern.convert_any`.
   @pragma("wasm:intrinsic")
-  external WasmExternRef? externalize();
+  external WasmExternRef externalize();
 
   /// Wasm `i32.get_s` instruction.
   @pragma("wasm:intrinsic")

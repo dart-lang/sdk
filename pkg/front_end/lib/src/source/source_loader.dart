@@ -838,7 +838,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
           firstLibrary.importUri,
         );
       } else {
-        addProblem(diag.platformPrivateLibraryAccess, -1, noLength, null);
+        addComponentProblem(
+          diag.platformPrivateLibraryAccess,
+          -1,
+          noLength,
+          null,
+        );
       }
     }
     if (firstLibrary != null) {
@@ -953,7 +958,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
   @override
-  FormattedMessage? addProblem(
+  FormattedMessage? addLibraryProblem(
     Message message,
     int charOffset,
     int length,
@@ -961,7 +966,6 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
     List<Uri>? involvedFiles,
   }) {
     return addMessage(
@@ -972,7 +976,32 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       severity,
       wasHandled: wasHandled,
       context: context,
-      problemOnLibrary: problemOnLibrary,
+      problemOnLibrary: true,
+      involvedFiles: involvedFiles,
+    );
+  }
+
+  /// Register [message] as a problem with a severity determined by the
+  /// intrinsic severity of the message.
+  FormattedMessage? addComponentProblem(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    List<Uri>? involvedFiles,
+  }) {
+    return addMessage(
+      message,
+      charOffset,
+      length,
+      fileUri,
+      severity,
+      wasHandled: wasHandled,
+      context: context,
+      problemOnLibrary: false,
       involvedFiles: involvedFiles,
     );
   }
@@ -1381,7 +1410,7 @@ severity: $severity
           // Coverage-ignore-block(suite): Not run.
           // This is the entry point library, and nobody access it directly. So
           // we need to report a problem.
-          addProblem(message, -1, 1, null, context: context);
+          addComponentProblem(message, -1, 1, null, context: context);
         } else {
           LibraryAccess access = compilationUnit.accessors.first;
           access.accessor.addProblem(

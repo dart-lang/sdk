@@ -130,6 +130,9 @@ double atan(num x) => _atan(x.toDouble());
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:prefer-inline")
 double sqrt(num x) => _sqrt(x.toDouble());
+
+@patch
+int imul32(int a, int b) => (a * b).toSigned(32);
 @patch
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:prefer-inline")

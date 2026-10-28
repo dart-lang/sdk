@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Resolves AST in the enclosing context given to the constructor: units
 /// during library analysis, and variable initializers, default values,
@@ -123,7 +124,6 @@ class AstResolver {
       nameScope: nameScope,
       docImportScope: docImportScope,
       diagnosticListener: diagnosticListener,
-      strictInference: analysisOptions.strictInference,
       strictCasts: analysisOptions.strictCasts,
       dataForTesting: testingData != null
           ? TypeConstraintGenerationDataForTesting()
@@ -176,9 +176,8 @@ class AstResolver {
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
-  void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
+  void resolveConstructorDeclaration(ConstructorDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
-    var element = fragment.element;
 
     var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     for (var initializer in node.initializers) {
@@ -201,7 +200,7 @@ class AstResolver {
 
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
-      element.formalParameters,
+      fragment.declaredFormalParameterElements,
       visit: accept,
       // Offsets are ignored when doing summary linking.
       offset: 0,
@@ -249,9 +248,9 @@ class AstResolver {
 
   void resolvePrimaryConstructor(
     PrimaryConstructorDeclarationImpl node,
-    PrimaryConstructorBodyImpl body,
+    PrimaryConstructorBody2Impl body,
   ) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
 
     void accept(AstVisitor2<Object?> visitor) {
       body.initializers.accept2(visitor);
@@ -259,7 +258,7 @@ class AstResolver {
 
     var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     for (var initializer in body.initializers) {
-      bindingVisitor.bindSubtree(node.declaredFragment!, initializer);
+      bindingVisitor.bindSubtree(fragment, initializer);
     }
 
     _prepareEnclosingDeclarations();
@@ -267,7 +266,7 @@ class AstResolver {
 
     _flowAnalysis.flowAnalysisRoot_enter(
       body,
-      element.formalParameters,
+      fragment.declaredFormalParameterElements,
       visit: accept,
       // Offsets are ignored when doing summary linking.
       offset: 0,
@@ -285,29 +284,6 @@ class AstResolver {
     _runScopeAnalysis(unit);
     unit.accept2(_typeAnalyzer);
     _recordTypeAnalysisTestingData();
-  }
-
-  /// Resolves the initializer of [node], and returns it.
-  ///
-  /// The returned expression might be not the original `node.initializer2`,
-  /// because resolution can replace it.
-  ///
-  /// If resolving the initializer of a non-late instance field, there
-  /// might be [inScopePrimaryConstructorParameters].
-  ExpressionImpl resolveVariableInitializer(
-    VariableBindingImpl node, {
-    required TypeImpl contextType,
-    required List<FormalParameterElementImpl>?
-    inScopePrimaryConstructorParameters,
-    required bool isThisAccessible,
-  }) {
-    return _resolveExpression(
-      root: node,
-      readExpression: () => node.initializer2!,
-      contextType: contextType,
-      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
-      isThisAccessible: isThisAccessible,
-    );
   }
 
   void _prepareEnclosingDeclarations() {
@@ -404,5 +380,57 @@ class AstResolver {
         _scopeAnalyzer.dataForTesting!,
       );
     }
+  }
+
+  /// Resolves the initializer of the variable [fragment] during summary
+  /// linking, and returns it.
+  ///
+  /// The returned expression might be not the original `node.initializer2`,
+  /// because resolution can replace it.
+  ///
+  /// The enclosing declarations and the accessibility of `this` are derived
+  /// from [fragment] here, rather than by the callers, so that they cannot
+  /// disagree, and the initializer of every fragment is resolved in the same
+  /// context.
+  static ExpressionImpl resolveVariableInitializerForLinking({
+    required InheritanceManager3 inheritance,
+    required AnalysisOptions analysisOptions,
+    required PropertyInducingFragmentImpl fragment,
+    required VariableBindingImpl node,
+    required TypeImpl contextType,
+  }) {
+    var element = fragment.element;
+    var enclosingInterfaceElement = element.enclosingElement
+        .tryCast<InterfaceElementImpl>();
+
+    var astResolver = AstResolver.forLinking(
+      inheritance: inheritance,
+      libraryFragment: fragment.libraryFragment,
+      nameScope: node.initializerScope!,
+      analysisOptions: analysisOptions,
+      enclosingClassElement: enclosingInterfaceElement,
+      enclosingExecutableElement: null,
+    );
+
+    // Initializers of non-late instance fields see the parameters of the
+    // primary constructor, initializers of late instance fields see `this`.
+    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
+    var isThisAccessible = false;
+    if (element case FieldElementImpl field when field.isInstanceField) {
+      if (field.isLate) {
+        isThisAccessible = true;
+      } else {
+        inScopePrimaryConstructorParameters =
+            enclosingInterfaceElement?.primaryConstructor?.formalParameters;
+      }
+    }
+
+    return astResolver._resolveExpression(
+      root: node,
+      readExpression: () => node.initializer2!,
+      contextType: contextType,
+      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
+      isThisAccessible: isThisAccessible,
+    );
   }
 }

@@ -74,6 +74,33 @@ class Symbol implements DwarfContainerSymbol {
   @override
   late final String name;
 
+  // If any bits in (type & N_STAB) are set, then the symbol is a
+  // symbolic debugging symbol.
+  static const N_STAB = 0xe0;
+  bool get isSymbolicDebugging => (type & N_STAB) != 0;
+
+  // Otherwise, type is a bitfield described by the following masks:
+
+  // The private external symbol bit.
+  static const N_PEXT = 0x10;
+  bool get isPrivateExternal => !isSymbolicDebugging && (type & N_PEXT) != 0;
+
+  // A mask for the actual type of the symbol.
+  static const N_TYPE = 0xe;
+
+  // The external symbol bit.
+  static const N_EXT = 0x1;
+  bool get isExternal => !isSymbolicDebugging && (type & N_EXT) != 0;
+
+  int get maskedType => isSymbolicDebugging ? type : (type & N_TYPE);
+
+  // Types for non-symbolic debugging symbols:
+
+  // The type of a variable defined in a specific section (sect).
+  static const N_SECT = 0xe;
+
+  bool get isSection => maskedType == N_SECT;
+
   Symbol._(this.index, this.type, this.sect, this.desc, this.value);
 
   static Symbol fromReader(Reader reader) {
@@ -740,12 +767,12 @@ class MachOHeader {
 class MachO extends DwarfContainer {
   final MachOHeader header;
   final List<LoadCommand> _commands;
-  final SymbolTable _symbolTable;
+  final SymbolTable symbolTable;
   final SegmentCommand? _dwarfSegment;
   final StringTable? _debugStringTable;
   final StringTable? _debugLineStringTable;
 
-  MachO._(this.header, this._commands, this._symbolTable, this._dwarfSegment,
+  MachO._(this.header, this._commands, this.symbolTable, this._dwarfSegment,
       this._debugStringTable, this._debugLineStringTable);
 
   static MachO? fromReader(Reader machOReader) {
@@ -835,12 +862,12 @@ class MachO extends DwarfContainer {
       _dwarfSegment?.sections['__debug_info']?.shrink(containerReader);
 
   @override
-  int? get vmStartAddress => _symbolTable[constants.oldVmSymbolName]?.value;
+  int? get vmStartAddress => symbolTable[constants.oldVmSymbolName]?.value;
 
   @override
   int? get isolateStartAddress =>
-      _symbolTable[constants.textSymbolName]?.value ??
-      _symbolTable[constants.oldIsolateSymbolName]?.value;
+      symbolTable[constants.textSymbolName]?.value ??
+      symbolTable[constants.oldIsolateSymbolName]?.value;
 
   @override
   String? get buildId =>
@@ -855,7 +882,7 @@ class MachO extends DwarfContainer {
   @override
   Symbol? staticSymbolAt(int address) {
     Symbol? bestSym;
-    for (final symbol in _symbolTable.values) {
+    for (final symbol in symbolTable.values) {
       if (symbol.value > address) continue;
       // Pick the symbol with a value closest to the given address.
       if (bestSym == null || (bestSym.value < symbol.value)) {
@@ -866,7 +893,7 @@ class MachO extends DwarfContainer {
   }
 
   @override
-  Iterable<Symbol> get staticSymbols => _symbolTable.values;
+  Iterable<Symbol> get staticSymbols => symbolTable.values;
 
   @override
   void writeToStringBuffer(StringBuffer buffer) {

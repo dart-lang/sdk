@@ -667,22 +667,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
       if (pendingReg == invalidReg) {
         pendingReg = reg;
       } else {
-        // TODO: support large offsets
-        _asm.stp(pendingReg, reg, RegOffsetAddress(stackPointerReg, offset));
+        _asm.stp(pendingReg, reg, _asm.pairAddress(stackPointerReg, offset));
         pendingReg = invalidReg;
         offset += 2 * wordSize;
       }
     }
     if (pendingReg != invalidReg) {
-      // TODO: support large offsets
-      _asm.str(pendingReg, RegOffsetAddress(stackPointerReg, offset));
+      _asm.str(pendingReg, _asm.address(stackPointerReg, offset));
       offset += wordSize;
     }
     int numArgs = instr.inputCount;
     if (instr is DynamicCall && !instr.hasTypeArguments) {
       // Reserve extra slot to pass default type arguments (in case target method is generic).
       // TODO: pass type arguments on register.
-      _asm.str(nullReg, RegOffsetAddress(stackPointerReg, offset));
+      _asm.str(nullReg, _asm.address(stackPointerReg, offset));
       offset += wordSize;
       ++numArgs;
     }
@@ -2695,6 +2693,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
     }
   }
 
+  void _generateIntHash(
+    Register resultReg,
+    Register operandReg,
+    Register scratch1,
+    Register scratch2,
+  ) {
+    _asm.loadImmediate(scratch1, 0x2d51);
+    _asm.mul(scratch2, operandReg, scratch1);
+    _asm.umulh(resultReg, operandReg, scratch1);
+    _asm.eor(resultReg, resultReg, scratch2);
+    _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
+    _asm.ubfm(resultReg, resultReg, 63, 29);
+  }
+
   @override
   void visitUnaryIntOp(UnaryIntOp instr) {
     final operandReg = inputReg(instr, 0);
@@ -2708,12 +2720,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .hash:
         final scratch = temporaryReg(instr, 0);
         final resultReg = outputReg(instr);
-        _asm.loadImmediate(scratch, 0x2d51);
-        _asm.mul(tempReg, operandReg, scratch);
-        _asm.umulh(resultReg, operandReg, scratch);
-        _asm.eor(resultReg, resultReg, tempReg);
-        _asm.eor(resultReg, resultReg, ShiftedRegOperand(resultReg, .LSR, 32));
-        _asm.ubfm(resultReg, resultReg, 63, 29);
+        _generateIntHash(resultReg, operandReg, scratch, tempReg);
       case .bitLength:
         final resultReg = outputReg(instr);
         // XOR with sign bit to complement bits if value is negative.
@@ -2750,10 +2757,64 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.fmul(outputFPReg(instr), leftReg, rightReg);
       case .div:
         _asm.fdiv(outputFPReg(instr), leftReg, rightReg);
-      default:
-        _asm.unimplemented(
-          'Unimplemented: code generation for BinaryDoubleOp ${instr.op.token}',
-        );
+      case .pow:
+        final done = Label();
+        final callPow = Label();
+        // pow(x, 0.0) == 1.0
+        final rightIsZero = addSlowPath(() {
+          _asm.loadDoubleImmediate(outputFPReg(instr), 1.0);
+          _asm.b(done);
+        });
+        _asm.fcmp(rightReg, Immediate(0));
+        _asm.b(rightIsZero, .equal);
+        // pow(x, 1.0) == x
+        assert(outputFPReg(instr) == leftReg);
+        _asm.loadDoubleImmediate(fpTempReg, 1.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(done, .equal);
+        // pow(1.0, x) == 1.0
+        _asm.fcmp(leftReg, fpTempReg);
+        _asm.b(done, .equal);
+        // pow(x, 2.0) == x*x
+        final rightIsTwo = addSlowPath(() {
+          _asm.fmul(outputFPReg(instr), leftReg, leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 2.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsTwo, .equal);
+        // pow(x, 3.0) == x*x*x
+        final rightIsThree = addSlowPath(() {
+          _asm.fmul(fpTempReg, leftReg, leftReg);
+          _asm.fmul(outputFPReg(instr), fpTempReg, leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 3.0);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsThree, .equal);
+        // pow(x, 0.5) when (x != -inf && x != 0.0) == sqrt(x)
+        final rightIsHalf = addSlowPath(() {
+          _asm.loadDoubleImmediate(fpTempReg, double.negativeInfinity);
+          _asm.fcmp(leftReg, fpTempReg);
+          _asm.b(callPow, .equal);
+          _asm.fcmp(leftReg, Immediate(0));
+          _asm.b(callPow, .equal);
+          _asm.fsqrt(outputFPReg(instr), leftReg);
+          _asm.b(done);
+        });
+        _asm.loadDoubleImmediate(fpTempReg, 0.5);
+        _asm.fcmp(rightReg, fpTempReg);
+        _asm.b(rightIsHalf, .equal);
+        // default case - call pow()
+        _asm.bind(callPow);
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcPow);
+        _asm.bind(done);
+      case .mod:
+        _asm.callLeafRuntime(LeafRuntimeEntry.DartModulo);
+      case .rem:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcFmod);
+      case .atan2:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAtan2);
     }
   }
 
@@ -2832,6 +2893,33 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.frintp(outputFPReg(instr), operandReg);
       case .truncateToDouble:
         _asm.frintz(outputFPReg(instr), operandReg);
+      case .hash:
+        final scratch = temporaryReg(instr, 0);
+        final resultReg = outputReg(instr);
+        final hashInt = Label();
+        _asm.fcvtzs(resultReg, operandReg);
+        _asm.scvtf(fpTempReg, resultReg);
+        _asm.fcmp(operandReg, fpTempReg);
+        _asm.b(hashInt, .equal);
+        _asm.fmov(resultReg, operandReg);
+        _asm.bind(hashInt);
+        _generateIntHash(resultReg, resultReg, scratch, tempReg);
+      case .sin:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcSin);
+      case .cos:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcCos);
+      case .tan:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcTan);
+      case .asin:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAsin);
+      case .acos:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAcos);
+      case .atan:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcAtan);
+      case .exp:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcExp);
+      case .log:
+        _asm.callLeafRuntime(LeafRuntimeEntry.LibcLog);
     }
   }
 

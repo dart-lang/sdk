@@ -100,18 +100,18 @@ class CompiledApp {
         }
         return frames.slice(drop).join('\n');
       },
-      F: () => new Error().stack,
-      G: s => JSON.stringify(s),
-      H: Function.prototype.call.bind(Number.prototype.toString),
-      I: Function.prototype.call.bind(BigInt.prototype.toString),
-      J: (exn) => {
+      F: o => String(o),
+      G: () => new Error().stack,
+      H: s => JSON.stringify(s),
+      I: Function.prototype.call.bind(Number.prototype.toString),
+      J: Function.prototype.call.bind(BigInt.prototype.toString),
+      K: (exn) => {
         if (exn instanceof Error) {
           return exn.stack;
         } else {
           return null;
         }
       },
-      K: o => String(o),
       L: o => o === undefined,
 
     };

@@ -974,7 +974,6 @@ var B = 0;
       name: B
       resolution: GetterInvocationResolution
         element: package:test/b.dart::@getter::B
-        invokeType: int Function()
         type: int
       staticType: int
 [status] idle
@@ -1003,7 +1002,6 @@ var B = 1.2;
       name: B
       resolution: GetterInvocationResolution
         element: package:test/b.dart::@getter::B
-        invokeType: double Function()
         type: double
       staticType: double
 [status] idle
@@ -4109,6 +4107,14 @@ class A {}
       assertParsedNodeText(result.unit, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4158,6 +4164,14 @@ class A {}
     assertParsedNodeText(result.unit, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -6255,6 +6269,7 @@ class DriverEventCollector {
         case driver_events.LinkLibraryCycle():
         case driver_events.CheckLibraryDiagnosticsRequirements():
         case driver_events.CheckLinkedBundleRequirements():
+        case driver_events.DiscardMemoryExpensiveData():
         case driver_events.ReuseLinkedBundle():
         case ErrorsResult():
         case ResolvedUnitResult():
@@ -11955,6 +11970,145 @@ class A {
 [status] idle
 [future] getErrors T2
   ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_invoked_compoundAssignment() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A operator +(int other) => this;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a += 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredMethods
+          +: #M1
+        interface: #M2
+          map
+            +: #M1
+          implemented
+            +: #M1
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      f: #M4
+    exportMapId: #M5
+    exportMap
+      f: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            methods
+              +: #M1
+[status] idle
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class A {
+  A operator +(num other) => this;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredMethods
+          +: #M7
+        interface: #M8
+          map
+            +: #M7
+          implemented
+            +: #M7
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: +
+    expectedId: #M1
+    actualId: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            methods
+              +: #M7
+[status] idle
+[future] getErrors T2
+  ErrorsResult #1
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary
@@ -45758,6 +45912,273 @@ typedef B = A;
     flags: isLibrary
 ''',
     );
+  }
+
+  test_discardMemoryExpensiveData_explicit() async {
+    configuration
+      ..withDiscardMemoryExpensiveData = true
+      ..withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    driver.addFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 0; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // The explicit discard does not keep IDs.
+    driver.discardMemoryExpensiveData();
+    await assertEventsText(collector, r'''
+[operation] discardMemoryExpensiveData
+  root: /home/test
+''');
+
+    // And forgets that they were requested before.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 1; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+  }
+
+  test_discardMemoryExpensiveData_idsRequestedTwice() async {
+    configuration
+      ..withDiscardMemoryExpensiveData = true
+      ..withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Requested once, during the initial analysis.
+    driver.addFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+
+    // Requested twice.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 0; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // Requested again.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 1; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // Not requested.
+    newFile(testFile.path, r'''
+void f() {}
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+[status] idle
+''');
+  }
+
+  test_discardMemoryExpensiveData_workWithoutIds_doesNotEndPeriod() async {
+    configuration
+      ..withDiscardMemoryExpensiveData = true
+      ..withStreamResolvedUnitResults = false;
+
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) {}
+''');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver, idProvider: idProvider);
+
+    // Requested once, during the initial analysis.
+    driver.addFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+[status] idle
+''');
+
+    // Requested twice.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 0; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // Work that does not request IDs does not end the period.
+    await driver.getFilesReferencingNames({'A'});
+    await assertEventsText(collector, r'''
+[status] working
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
+
+    // So the IDs are still requested during each of the last two periods.
+    newFile(testFile.path, r'''
+import 'a.dart';
+void f(A _) { 1; }
+''');
+    driver.changeFile2(testFile);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[operation] discardMemoryExpensiveData
+  root: /home/test
+  keptIds
+    dart:core
+    package:test/a.dart
+[status] idle
+''');
   }
 
   test_manifest_baseName2_private2() async {

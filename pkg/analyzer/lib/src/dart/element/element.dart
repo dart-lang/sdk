@@ -1401,8 +1401,11 @@ class DeferredResolutionReadingHelper {
 
   static void withoutLoadingResolution(void Function() operation) {
     _lockResolutionLoading++;
-    operation();
-    _lockResolutionLoading--;
+    try {
+      operation();
+    } finally {
+      _lockResolutionLoading--;
+    }
   }
 }
 
@@ -2861,6 +2864,30 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   @override
   List<FragmentImpl> get children => [...typeParameters, ...formalParameters];
 
+  /// The elements of [declaredFormalParameters].
+  List<FormalParameterElementImpl> get declaredFormalParameterElements {
+    return [for (var fragment in declaredFormalParameters) fragment.element];
+  }
+
+  /// The formal parameters that this fragment declares, which are the ones
+  /// that its initializers and body can reference.
+  ///
+  /// Scopes and flow analysis of this fragment use these, rather than
+  /// `element.formalParameters`. They differ when an invalid augmentation
+  /// declares a formal parameter that the introductory declaration does not:
+  /// the element hides it from its signature, but the augmentation can still
+  /// reference it.
+  List<FormalParameterFragmentImpl> get declaredFormalParameters {
+    var formalParameters = this.formalParameters;
+    if (formalParameters.none((f) => f.isOriginOtherFragmentOfEnclosing)) {
+      return formalParameters;
+    }
+
+    return formalParameters
+        .where((fragment) => !fragment.isOriginOtherFragmentOfEnclosing)
+        .toList();
+  }
+
   @override
   ExecutableElementImpl get element;
 
@@ -4219,6 +4246,12 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   List<FragmentImpl> get children => const [];
 
   @override
+  ExpressionImpl? get constantInitializer2 {
+    _ensureEnclosingFragmentReadResolution();
+    return super.constantInitializer2;
+  }
+
+  @override
   FormalParameterElementImpl get element => _element;
 
   @generated
@@ -4368,6 +4401,12 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   @override
+  MetadataImpl get metadata {
+    _ensureEnclosingFragmentReadResolution();
+    return super.metadata;
+  }
+
+  @override
   List<FormalParameterFragmentImpl> get precedingFragments {
     return [
       for (
@@ -4402,6 +4441,18 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     }
 
     FormalParameterElementImpl(firstFragment);
+  }
+
+  /// Reads the resolution of the enclosing fragment, which sets the default
+  /// value and metadata of this fragment.
+  ///
+  /// This fragment can be reached before its enclosing fragment is read,
+  /// for example via [nextFragment] when the element combines the default
+  /// value and metadata of all its fragments.
+  void _ensureEnclosingFragmentReadResolution() {
+    if (enclosingFragment case DeferredResolutionReadingMixin enclosing) {
+      enclosing._ensureReadResolution();
+    }
   }
 
   static void _linkFragments<T extends FragmentImpl>(
@@ -5178,7 +5229,7 @@ sealed class InstanceElementImpl extends ElementImpl
   @override
   @trackedIndirectly
   List<ElementImpl> get children {
-    return [...fields, ...getters, ...setters, ...methods];
+    return [...typeParameters, ...fields, ...getters, ...setters, ...methods];
   }
 
   @override
@@ -11221,6 +11272,10 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   TypeAliasElementImpl get baseElement => this;
+
+  @override
+  @trackedIndirectly
+  List<ElementImpl> get children => [...typeParameters];
 
   @override
   @trackedIncludedInId

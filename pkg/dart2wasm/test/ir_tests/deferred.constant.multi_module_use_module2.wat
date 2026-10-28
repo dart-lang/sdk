@@ -4,7 +4,7 @@
   (type $JSExternWrapper (sub $Object (struct
     (field $#classId i32)
     (field $#identityHash (mut i32))
-    (field $_externRef externref))))
+    (field $_externRef (ref extern)))))
   (type $MyConstClass (sub final $Object (struct
     (field $#classId i32)
     (field $#identityHash (mut i32))
@@ -15,9 +15,9 @@
   (global $.h0-nonshared-const (import "" "h0-nonshared-const") (ref extern))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 17 funcref)
   (global $MyConstClass (ref $MyConstClass)
-    (i32.const 113)
+    (i32.const 114)
     (i32.const 0)
-    (i32.const 66)
+    (i32.const 68)
     (i32.const 0)
     (global.get $.h0-nonshared-const)
     (struct.new $JSExternWrapper)

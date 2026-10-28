@@ -56,8 +56,11 @@ extension AstNodeExtension on AstNode {
         case FunctionExpression():
           return node;
         case LocalFunctionDeclaration() ||
-            ConstructorDeclaration() ||
-            MethodDeclaration() ||
+            ConstructorDeclaration2() ||
+            GetterDeclaration() ||
+            MethodDeclaration2() ||
+            OperatorDeclaration() ||
+            SetterDeclaration() ||
             TopLevelFunctionDeclaration() ||
             TopLevelGetterDeclaration() ||
             TopLevelSetterDeclaration():
@@ -90,10 +93,10 @@ extension AstNodeExtension on AstNode {
       if (node is LocalFunctionDeclaration) {
         return node.declaredFragment?.element;
       }
-      if (node is ConstructorDeclaration) {
+      if (node is ConstructorDeclaration2) {
         return node.declaredFragment?.element;
       }
-      if (node is MethodDeclaration) {
+      if (node is MethodDeclarationV1OriginImpl) {
         return node.declaredFragment?.element;
       }
       if (node is TopLevelFunctionDeclaration) {
@@ -228,16 +231,31 @@ extension AstNodeExtension on AstNode {
 }
 
 extension AstNodeNullableExtension on AstNode? {
+  @V1Ast('The V2 counterpart is classMembers2.')
   List<ClassMember> get classMembers {
     var self = this;
     return switch (self) {
       BlockClassBody() => self.members,
       BlockEnumBody() => self.members,
-      ClassDeclarationImpl() => self.body.members,
+      ClassDeclaration() => self.body.members,
       EnumDeclaration() => self.body.members,
       ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
       MixinDeclaration() => self.body.members,
+      _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
+  }
+
+  List<AnnotatedNode> get classMembers2 {
+    var self = this;
+    return switch (self) {
+      BlockEnumDeclarationBody() => self.members,
+      BlockInstanceDeclarationBody() => self.members,
+      ClassDeclaration2Impl() => self.body.members,
+      EnumDeclaration2() => self.body.members,
+      ExtensionDeclaration2() => self.body.members,
+      ExtensionTypeDeclaration2Impl() => self.body.members,
+      MixinDeclaration2() => self.body.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }
@@ -263,9 +281,20 @@ extension ExtensionElementExtension on ExtensionElement {
       extendedType.tryCast<InterfaceType>()?.element;
 }
 
+extension Field2Extension on Field2 {
+  FieldElementImpl get declaredElement {
+    return declaredFragment!.element as FieldElementImpl;
+  }
+}
+
+@V1Ast('The V2 counterpart is FieldsDeclarationExtension.')
 extension FieldDeclarationExtension on FieldDeclaration {
   Element get firstVariableElement =>
       fields.variables.first.declaredFragment!.element;
+}
+
+extension FieldsDeclarationExtension on FieldsDeclaration {
+  Element get firstVariableElement => fields.first.declaredFragment!.element;
 }
 
 extension InterpolationExpressionExtension on InterpolationExpression {
@@ -315,6 +344,7 @@ extension TopLevelVariablesDeclarationExtension
   Element get firstVariableElement => variables.first.declaredFragment!.element;
 }
 
+@V1Ast('The V2 counterpart is Field2Extension.')
 extension VariableDeclarationExtension on VariableDeclaration {
   FieldElementImpl get declaredFieldElement {
     return declaredFragment!.element as FieldElementImpl;

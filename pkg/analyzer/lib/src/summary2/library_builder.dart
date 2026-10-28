@@ -126,7 +126,7 @@ class DefiningLinkingUnit extends LinkingUnit {
 class ImplicitEnumNodes {
   final EnumFragmentImpl fragment;
   final ast.NamedTypeImpl valuesTypeNode;
-  final ast.VariableDeclarationImpl valuesNode;
+  final ast.Field2Impl valuesNode;
   final FieldFragmentImpl valuesFragment;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
@@ -354,11 +354,11 @@ class LibraryBuilder {
   void collectMixinSuperInvokedNames() {
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations2) {
-        if (declaration is ast.MixinDeclarationImpl) {
+        if (declaration is ast.MixinDeclaration2Impl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.body.members) {
-            if (executable is ast.MethodDeclarationImpl) {
+            if (executable is ast.MethodDeclarationV1OriginImpl) {
               executable.body.accept2(collector);
             }
           }

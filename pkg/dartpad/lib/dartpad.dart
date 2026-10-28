@@ -18,8 +18,7 @@ import 'package:web/web.dart' as web;
 import 'src/message_port/message_port.dart';
 import 'src/worker_client.dart';
 
-export 'package:vm_service/vm_service.dart'
-    show EventKind, EventStreams, VmService;
+export 'package:vm_service/vm_service.dart' show VmService;
 
 export 'src/dartpad_config.dart' show DartPadConfig;
 export 'src/exceptions.dart' hide rethrowAsDartPadException;

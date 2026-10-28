@@ -81,9 +81,15 @@ class _ReachabilityDataExtractor
       _checkBodyCompletion(node.body, result);
     } else if (node is TopLevelSetterDeclaration) {
       _checkBodyCompletion(node.body, result);
-    } else if (node is ConstructorDeclaration) {
+    } else if (node is ConstructorDeclaration2) {
       _checkBodyCompletion(node.body, result);
-    } else if (node is MethodDeclaration) {
+    } else if (node is MethodDeclaration2) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is OperatorDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is GetterDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is SetterDeclaration) {
       _checkBodyCompletion(node.body, result);
     }
     return result.isEmpty ? null : result;

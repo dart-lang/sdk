@@ -21,22 +21,13 @@ assert(is_win)
 # This tool will is used as a wrapper for various commands below.
 tool_wrapper_path = rebase_path("tool_wrapper.py", root_build_dir)
 
-ninja_path = rebase_path("//buildtools/ninja/ninja")
-
-if (use_rbe) {
-  compiler_args =
-      rewrapper_args + [ "--labels=type=compile,compiler=clang-cl,lang=cpp" ]
-  if (rbe_os != host_os || rbe_cpu != host_cpu) {
-    compiler_args += [
-      "--env_var_allowlist=INCLUDE",
-      "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm",
-      "--remote_wrapper=../../build/rbe/llvm.sh",
-    ]
-  }
-  compiler_prefix = string_join(" ", compiler_args) + " "
+if (use_siso) {
+  ninja_path = "ninja"
 } else {
-  compiler_prefix = ""
+  ninja_path = rebase_path("//buildtools/ninja/ninja")
 }
+
+compiler_prefix = ""
 
 if (current_toolchain == default_toolchain) {
   if (is_debug) {
@@ -72,6 +63,14 @@ template("msvc_toolchain") {
 
     cl = invoker.cl
 
+    if (defined(invoker.sys_include_flags)) {
+      env_wrapper = ""
+      sys_include_flags = "${invoker.sys_include_flags} "
+    } else {
+      env_wrapper = "$ninja_path -t msvc -e $env -- "
+      sys_include_flags = ""
+    }
+
     # Make these apply to all tools below.
     lib_switch = ""
     lib_dir_switch = "/LIBPATH:"
@@ -82,7 +81,7 @@ template("msvc_toolchain") {
       # TODO(brettw) enable this when GN support in the binary has been rolled.
       #precompiled_header_type = "msvc"
       pdbname = "{{target_out_dir}}/{{target_output_name}}_c.pdb"
-      command = "$ninja_path -t msvc -e $env -- $cl /nologo /showIncludes /FC {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} /c {{source}} /Fo{{output}} /Fd$pdbname"
+      command = "$env_wrapper$cl /nologo /showIncludes /FC $sys_include_flags{{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} /c {{source}} /Fo{{output}} /Fd$pdbname"
       depsformat = "msvc"
       description = "CC {{output}}"
       outputs = [
@@ -103,7 +102,7 @@ template("msvc_toolchain") {
       if (is_clang && invoker.current_cpu == "x86") {
         flags = "-m32"
       }
-      command = "$ninja_path -t msvc -e $env -- $cl $flags /nologo /showIncludes /FC {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} /c {{source}} /Fo{{output}} /Fd$pdbname"
+      command = "$env_wrapper$cl $flags /nologo /showIncludes /FC $sys_include_flags{{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} /c {{source}} /Fo{{output}} /Fd$pdbname"
       depsformat = "msvc"
       description = "CXX {{output}}"
       outputs = [
@@ -113,7 +112,6 @@ template("msvc_toolchain") {
     }
 
     tool("rc") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       command = "$python_path $tool_wrapper_path rc-wrapper $env rc.exe /nologo {{defines}} {{include_dirs}} /fo{{output}} {{source}}"
       depsformat = "msvc"
       outputs = [
@@ -123,7 +121,6 @@ template("msvc_toolchain") {
     }
 
     tool("asm") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       if (toolchain_args.current_cpu == "x86") {
         command = "$python_path $tool_wrapper_path asm-wrapper $env ml.exe {{defines}} {{include_dirs}} {{asmflags}} /c /Fo {{output}} {{source}}"
       } else if (toolchain_args.current_cpu == "x64") {
@@ -151,7 +148,6 @@ template("msvc_toolchain") {
     }
 
     tool("alink") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       rspfile = "{{output}}.rsp"
       command = "$python_path $tool_wrapper_path link-wrapper $env False $lib /nologo /ignore:4221 /OUT:{{output}} @$rspfile"
       description = "LIB {{output}}"
@@ -168,7 +164,6 @@ template("msvc_toolchain") {
     }
 
     tool("solink") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       dllname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"  # e.g.
                                                                                # foo.dll
       libname = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}.lib"  # e.g.
@@ -200,7 +195,6 @@ template("msvc_toolchain") {
     }
 
     tool("solink_module") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       dllname =
           "{{output_dir}}/{{target_output_name}}{{output_extension}}"  # e.g.
                                                                        # foo.dll
@@ -225,7 +219,6 @@ template("msvc_toolchain") {
     }
 
     tool("link") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       binary_output =
           "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
       rspfile = "$binary_output.rsp"

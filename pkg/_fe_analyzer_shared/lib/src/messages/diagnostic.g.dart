@@ -455,6 +455,15 @@ const MessageCode defaultInSwitchExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode defaultValueAlreadySpecifiedInAugmentationChain =
+    const MessageCode(
+      "DefaultValueAlreadySpecifiedInAugmentationChain",
+      sharedCode: SharedCode.defaultValueAlreadySpecifiedInAugmentationChain,
+      problemMessage: """The default value for this optional parameter was already specified in the augmentation chain.""",
+      correctionMessage: """Try removing all but one of the default values.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode deferredAfterPrefix = const MessageCode(
   "DeferredAfterPrefix",
   sharedCode: SharedCode.deferredAfterPrefix,
@@ -3109,6 +3118,7 @@ enum SharedCode {
   covariantAndStatic,
   covariantMember,
   defaultInSwitchExpression,
+  defaultValueAlreadySpecifiedInAugmentationChain,
   deferredAfterPrefix,
   directiveAfterDeclaration,
   duplicateDeferred,

@@ -29,12 +29,14 @@ class CompilationSet {
   late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
     functionRegistry,
     config.objectLayout,
+    config.targetCPU,
+    config.targetOS,
   );
   late final SnapshotSerializer _snapshot;
   late final StubFactory _stubFactory;
   late final AsmIntrinsics _asmIntrinsics;
 
-  CompilationSet(this.libraries, this.config)
+  CompilationSet(this.config, this.libraries, ast.Procedure? mainMethod)
     : _imageWriter = config.createImageWriter() {
     _snapshot = SnapshotSerializer(
       config.targetCPU,
@@ -44,6 +46,14 @@ class CompilationSet {
     );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
     _asmIntrinsics = config.createAsmIntrinsics(functionRegistry);
+
+    // Currently VM loads declarations of core libraries from core snapshot.
+    if (!config.compilePlatform) {
+      _snapshot.declareLibraries(libraries);
+      if (mainMethod != null) {
+        _snapshot.addMainMethod(mainMethod);
+      }
+    }
   }
 
   /// Add [function] to be compiled.
@@ -104,6 +114,14 @@ class CompilationSet {
       _snapshot.addRootStub(
         StubCode.DynamicInvocationForwarder,
         _stubFactory.dynamicInvocationForwarderStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCode,
+        _stubFactory.invokeDartCodeStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCodeFromBytecode,
+        _stubFactory.invokeDartCodeFromBytecodeStub,
       );
     }
   }

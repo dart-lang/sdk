@@ -29,6 +29,32 @@ main() {
 ''');
   }
 
+  test_assignmentExpression_compound_assignedInValue() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(bool b) {
+  late final int v;
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+  if (b) v = 0;
+  v += (v = 1);
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
+}
+''');
+  }
+
+  test_assignmentExpression_ifNull_assignedInValue() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(bool b) {
+  late final int? v;
+  if (b) v = 0;
+  v ??= (v = 1);
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
+}
+''');
+  }
+
   test_assignmentExpression_simple() async {
     await resolveTestCodeWithDiagnostics('''
 main() {
@@ -38,6 +64,30 @@ main() {
 //^
 // [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
   v;
+}
+''');
+  }
+
+  test_assignmentExpression_simple_assignedInValue() async {
+    await resolveTestCodeWithDiagnostics('''
+void f() {
+  late final int v;
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+  v = (v = 1);
+//^
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
+}
+''');
+  }
+
+  test_assignmentExpression_simple_assignedInValue_potentially() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(bool b) {
+  late final int v;
+//               ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+  v = b ? (v = 1) : 0;
 }
 ''');
   }
@@ -89,6 +139,20 @@ main() {
 ''');
   }
 
+  test_postfixExpression_inc_never() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(Never x) {
+  late final v = x;
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+  v++;
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
+}
+''');
+  }
+
   test_postfixExpression_nullCheck() async {
     await resolveTestCodeWithDiagnostics('''
 main() {
@@ -109,6 +173,20 @@ main() {
 //  ^
 // [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
   v;
+}
+''');
+  }
+
+  test_prefixExpression_inc_never() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(Never x) {
+  late final v = x;
+//           ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+  ++v;
+//  ^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+// [diag.lateFinalLocalAlreadyAssigned] The late final local variable is already assigned.
 }
 ''');
   }

@@ -89,6 +89,157 @@ String describe(Object o) => 'value: $o';
 @pragma('wasm:cfg')
 String callDescribe(int x) => describe(x);
 
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int get five => 5;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callGetter(int x) => five + x;
+
+// Unused getter returned values need cleanup so they don't pollute the stack.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callGetterUnused(int x) {
+  five;
+  return x;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+set recordedValue(int x) {
+  record(x);
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callCfgSetter(int x) {
+  recordedValue = x;
+  return recordedValue = x + 1;
+}
+
+// Declared to return `num`, but TFA infers `int`, so the wasm getter returns
+// an unboxed `i64`.
+@pragma('wasm:never-inline')
+num get numFive => 5;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+num callNumGetter() => numFive;
+
+String lastDescribed = '';
+
+// Not compiled via CFG (string interpolation and static field write).
+@pragma('wasm:never-inline')
+set describedObject(Object o) {
+  lastDescribed = 'set: $o';
+}
+
+// Passing an unboxed `int` to an `Object` setter parameter needs boxing, while
+// the assignment expression still evaluates to the unboxed `int`.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callObjectSetter(int x) => describedObject = x;
+
+// The phi for `x > 0 ? a : b` gets a nullable local, but `describedObject`
+// takes a non-nullable `Object`, so the setter argument needs a null check.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callSetterPhi(int x, String a, String b) =>
+    describedObject = (x > 0 ? a : b);
+
+@pragma('wasm:never-inline')
+Never get failGetter => throw ArgumentError('failGetter');
+
+@pragma('wasm:never-inline')
+set failSetter(int x) => throw ArgumentError.value(x);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNeverGetter(int x) => x < 0 ? failGetter : x;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNeverSetter(int x) {
+  if (x < 0) failSetter = x;
+  return x;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int sum3(int a, [int b = 20, int c = 300]) => a + b + c;
+
+// Omitted optional positional arguments are filled in with default values.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callSum3(int x) => sum3(x) + sum3(x, x) + sum3(x, x, x);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String optionalString(bool c, [String s = 'default']) => c ? s : 'other';
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callOptionalString(int x) => optionalString(x > 0);
+
+@pragma('wasm:never-inline')
+bool isNull([int? x]) =>
+    // `==` on `int?` is not compiled via CFG.
+    x == null;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsNull() => isNull();
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int named(int a, {int b = 20, required int c, int d = 4000}) => a + b + c + d;
+
+// Named arguments are passed in a different order than they are declared and
+// omitted optional named arguments are filled in with default values.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNamed(int x) =>
+    named(x, c: 300) +
+    named(x, c: x, b: x) +
+    named(x, d: x, c: x, b: x) +
+    named(x, d: x, c: x);
+
+@pragma('wasm:never-inline')
+int logged(int x) {
+  record(x);
+  return x;
+}
+
+// Named arguments should be evaluated in the order they appear at the call
+// site.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callNamedEvaluationOrder() =>
+    named(logged(1), d: logged(2), c: logged(3), b: logged(4));
+
+// Named parameters with different wasm types would fail validation if passed in
+// the wrong order.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String pickNamed({required bool c, String a = 'a', String b = 'b'}) =>
+    c ? a : b;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callPickNamedB(int x, String s) => pickNamed(b: s, c: x > 0);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callPickNamedA(int x, String s) => pickNamed(c: x > 0, a: s);
+
+@pragma('wasm:never-inline')
+bool isNullNamed({int? x}) => x == null;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsNullNamed() => isNullNamed();
+
 void main() {
   final int0 = int.parse('0');
   final int1 = int.parse('1');
@@ -129,4 +280,50 @@ void main() {
   Expect.equals('b', callPickPhi(int0, 'a', 'b'));
   Expect.equals('value: 5', callDescribe(int5));
   Expect.equals('value: s', describe('s'));
+
+  // Static getters and setters.
+  Expect.equals(8, callGetter(int3));
+  Expect.equals(4, callGetterUnused(int4));
+  log.clear();
+  Expect.equals(6, callCfgSetter(int5));
+  Expect.listEquals([5, 6], log);
+  Expect.equals(5, callNumGetter());
+  Expect.equals(5, callObjectSetter(int5));
+  Expect.equals('set: 5', lastDescribed);
+  Expect.equals('a', callSetterPhi(int1, 'a', 'b'));
+  Expect.equals('set: a', lastDescribed);
+  Expect.equals('b', callSetterPhi(int0, 'a', 'b'));
+  Expect.equals('set: b', lastDescribed);
+  describedObject = 's';
+  Expect.equals('set: s', lastDescribed);
+  Expect.equals(int1, callNeverGetter(int1));
+  Expect.throwsArgumentError(() => callNeverGetter(negOne));
+  Expect.equals(int1, callNeverSetter(int1));
+  Expect.throwsArgumentError(() => callNeverSetter(negOne));
+
+  // Optional positional parameters.
+  Expect.equals((1 + 20 + 300) + (1 + 1 + 300) + (1 + 1 + 1), callSum3(int1));
+  Expect.equals('default', callOptionalString(int1));
+  Expect.equals('other', callOptionalString(int0));
+  Expect.equals('s', optionalString(true, 's'));
+  Expect.isTrue(callIsNull());
+  Expect.isFalse(isNull(int1));
+
+  // Named parameters.
+  Expect.equals(
+    (1 + 20 + 300 + 4000) +
+        (1 + 1 + 1 + 4000) +
+        (1 + 1 + 1 + 1) +
+        (1 + 20 + 1 + 1),
+    callNamed(int1),
+  );
+  log.clear();
+  Expect.equals(1 + 4 + 3 + 2, callNamedEvaluationOrder());
+  Expect.listEquals([1, 2, 3, 4], log);
+  Expect.equals('a', callPickNamedB(int1, 's'));
+  Expect.equals('s', callPickNamedB(int0, 's'));
+  Expect.equals('s', callPickNamedA(int1, 's'));
+  Expect.equals('b', callPickNamedA(int0, 's'));
+  Expect.isTrue(callIsNullNamed());
+  Expect.isFalse(isNullNamed(x: int1));
 }

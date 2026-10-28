@@ -101,7 +101,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -222,7 +221,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extensionType::X::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extensionType::X::@getter::foo
@@ -343,7 +341,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -454,7 +451,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -828,7 +824,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -892,7 +887,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -1057,7 +1051,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::foo
@@ -1336,7 +1329,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -1447,7 +1439,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -1943,7 +1934,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -2007,7 +1997,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -2197,6 +2186,104 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_notFound_cascadeDirectAssignment_call_Function() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Function c) {
+  c..call = c;
+//   ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'Function'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: CascadePropertyAssignmentTarget
+    name: call
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: Function
+    correspondingParameter: <null>
+    staticType: Function
+  staticType: Function
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: Function
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: Function
+''');
+  }
+
+  test_notFound_cascadeDirectAssignment_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(void Function() c) {
+  c..call = c;
+//   ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: CascadePropertyAssignmentTarget
+    name: call
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: void Function()
+    correspondingParameter: <null>
+    staticType: void Function()
+  staticType: void Function()
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: void Function()
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()
+''');
+  }
+
   test_notFound_cascadeDirectAssignment_new() async {
     await resolveTestCodeWithDiagnostics('''
 class C {}
@@ -2285,6 +2372,70 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_notFound_compoundAssignment_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int Function(int) c) {
+  c.call += 1;
+//  ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'int Function(int)'.
+//       ^^
+// [diag.undefinedOperator] The operator '+' isn't defined for the type 'int Function(int)'.
+}
+''');
+
+    var node = result.findNode.singleCompoundAssignment;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: int Function(int)
+      staticType: int Function(int)
+    operator: .
+    name: call
+    read: FunctionCallTearOffResolution
+      type: int Function(int)
+      associatedFunctionType: int Function(int)
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: int Function(int)
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: int Function(int)
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_notFound_compoundAssignment_staticGetter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -2313,7 +2464,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::C::@getter::foo
@@ -2476,6 +2626,256 @@ V1: AssignmentExpression
   writeType: InvalidType
   element: <null>
   staticType: int
+''');
+  }
+
+  test_notFound_directAssignment_call_Function() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Function c) {
+  c.call = c;
+//  ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'Function'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: Function
+      staticType: Function
+    operator: .
+    name: call
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: Function
+    correspondingParameter: <null>
+    staticType: Function
+  staticType: Function
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: Function
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: Function
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: Function
+''');
+  }
+
+  test_notFound_directAssignment_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(void Function() c) {
+  c.call = c;
+//  ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: void Function()
+      staticType: void Function()
+    operator: .
+    name: call
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: void Function()
+    correspondingParameter: <null>
+    staticType: void Function()
+  staticType: void Function()
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: void Function()
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: void Function()
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()
+''');
+  }
+
+  test_notFound_directAssignment_call_functionType_extensionHasSetter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension on void Function() {
+  set call(void Function() _) {}
+//    ^^^^
+// [diag.unusedElement] The declaration 'call' isn't referenced.
+}
+
+void f(void Function() c) {
+  c.call = c;
+//  ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: void Function()
+      staticType: void Function()
+    operator: .
+    name: call
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: void Function()
+    correspondingParameter: <null>
+    staticType: void Function()
+  staticType: void Function()
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: void Function()
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: void Function()
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()
+''');
+  }
+
+  test_notFound_directAssignment_call_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f<T extends void Function()>(T c) {
+  c.call = c;
+//  ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'T'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: T
+      staticType: T
+    operator: .
+    name: call
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: T
+    correspondingParameter: <null>
+    staticType: T
+  staticType: T
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: T
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: T
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: T
 ''');
   }
 
@@ -3162,6 +3562,73 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_notFound_ifNullAssignment_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(void Function() c) {
+  c.call ??= c;
+//  ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
+//           ^^
+// [diag.deadCode] Dead code.
+//           ^
+// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+}
+''');
+
+    var node = result.findNode.singleIfNullAssignment;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: void Function()
+      staticType: void Function()
+    operator: .
+    name: call
+    read: FunctionCallTearOffResolution
+      type: void Function()
+      associatedFunctionType: void Function()
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: void Function()
+    correspondingParameter: <null>
+    staticType: void Function()
+  staticType: void Function()
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: void Function()
+    period: .
+    identifier: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: void Function()
+  readElement: <null>
+  readType: void Function()
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()
+''');
+  }
+
   test_notFound_increment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
@@ -3214,6 +3681,62 @@ V1: PostfixExpression
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
+''');
+  }
+
+  test_notFound_increment_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(void Function() c) {
+  c.call++;
+//  ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
+//      ^^
+// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
+}
+''');
+
+    var node = result.findNode.singleIncrementOrDecrement;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: void Function()
+      staticType: void Function()
+    operator: .
+    name: call
+    read: FunctionCallTearOffResolution
+      type: void Function()
+      associatedFunctionType: void Function()
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: void Function()
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: void Function()
+    operator: .
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: void Function()
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()
 ''');
   }
 
@@ -3272,6 +3795,66 @@ V1: AssignmentExpression
   writeType: InvalidType
   element: <null>
   staticType: int?
+''');
+  }
+
+  test_notFound_nullAwareDirectAssignment_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(void Function()? c) {
+  c?.call = c;
+//   ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: void Function()?
+      staticType: void Function()?
+    operator: ?.
+    name: call
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: void Function()
+    correspondingParameter: <null>
+    staticType: void Function()
+  staticType: void Function()?
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SimpleIdentifier
+      token: c
+      element: <testLibrary>::@function::f::@formalParameter::c
+      staticType: void Function()?
+    operator: ?.
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: SimpleIdentifier
+    token: c
+    correspondingParameter: <null>
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: void Function()
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: void Function()?
 ''');
   }
 

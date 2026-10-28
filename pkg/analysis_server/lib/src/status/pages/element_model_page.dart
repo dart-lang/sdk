@@ -65,7 +65,7 @@ class ElementModelPage extends DiagnosticPageWithNav {
   @override
   Future<void> generatePage(Map<String, String> params) async {
     try {
-      _description = params['file'];
+      _description = escape(params['file']);
       await super.generatePage(params);
     } finally {
       _description = null;

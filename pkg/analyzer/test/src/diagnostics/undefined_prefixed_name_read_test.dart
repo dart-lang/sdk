@@ -39,7 +39,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -198,7 +197,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: void Function() Function()
       type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -252,7 +250,6 @@ ImportPrefixedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: package:test/a.dart::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PrefixedIdentifier

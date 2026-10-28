@@ -1,3 +1,17 @@
+## v0.2.0-wip
+ - `Workspace.id` and `LanguageServer.id` are no longer public.
+ - `LanguageServer.workspace` and `WorkspaceWatcher.workspace` are no longer
+   public.
+ - `EventKind` and `EventStreams` from `package:vm_service` are no longer
+   re-exported.
+
+## v0.1.4
+ - Bundle `cupertino_icons` when running `dart run dartpad setup flutter`.
+
+## v0.1.3
+ - Support the `kernel/ddc/canary/dart_sdk.js` layout in `flutter_web_sdk` when
+   running `dart run dartpad setup flutter`.
+
 ## v0.1.2
  - Support loading Flutter assets from the workspace and dependency packages.
  - Retain Git history when cloning Flutter in `dart run dartpad setup flutter --channel`.

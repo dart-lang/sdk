@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This generator reads the analyzer's own AST through the V1 API.
+// ignore_for_file: analyzer_v1_ast_use, unnecessary_ignore
+
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -125,9 +128,7 @@ class _ElementGenerator {
   }
 
   void _replaceGeneratedFlags() {
-    var declarations = unitResult
-        .unit
-        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
+    var declarations = unitResult.unit.declarations;
     for (var declaration in declarations) {
       if (declaration is! ClassDeclarationImpl) {
         continue;
@@ -282,9 +283,7 @@ class _ElementGenerator {
   }
 
   void _replaceStorageEnums() {
-    var declarations = unitResult
-        .unit
-        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
+    var declarations = unitResult.unit.declarations;
     for (var declaration in declarations) {
       if (declaration is EnumDeclarationImpl) {
         var name = declaration.declaredFragment!.element.name!;

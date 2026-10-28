@@ -17,6 +17,7 @@ void main() {
 
 @reflectiveTest
 class GetRefactoringTest extends AbstractAnalysisServerIntegrationTest {
+  @TestTimeout(Timeout.factor(2))
   Future<void> test_rename() async {
     var pathname = sourcePath('test.dart');
     var text = r'''
@@ -70,9 +71,10 @@ void bar() {
     for (var edit in fileEdit.edits) {
       text = text.replaceRange(edit.offset, edit.end, edit.replacement);
     }
-    await sendAnalysisUpdateContent({pathname: AddContentOverlay(text)});
-
-    await analysisFinished;
+    await Future.wait([
+      sendAnalysisUpdateContent({pathname: AddContentOverlay(text)}),
+      analysisFinished,
+    ]);
     expect(currentAnalysisErrors[pathname], isEmpty);
   }
 }

@@ -245,7 +245,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
 
     _enclosingClass = element;
@@ -264,7 +264,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         nameToken: node.namePart.typeName,
       );
       _checkForInvalidSealedSuperclass(node);
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
@@ -274,14 +274,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     _immutableVerifier.checkDeclaration(node, nameToken: node.name);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedFunctionalityVerifier.classTypeAlias(node);
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -322,9 +322,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(covariant ConstructorDeclaration2 node) {
     _checkStrictInferenceInParameters(
-      node.parameters,
+      node.formalParameters,
       body: node.body,
       initializers: node.initializers,
     );
@@ -335,7 +335,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     _deprecatedFunctionalityVerifier.constructorDeclaration(node);
 
     try {
-      super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -390,12 +390,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
     _deprecatedFunctionalityVerifier.enumDeclaration(node);
 
     try {
-      super.visitEnumDeclaration(node);
+      super.visitEnumDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -417,11 +417,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration2(ExtensionDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitExtensionDeclaration(node);
+      super.visitExtensionDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -434,29 +434,42 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node) {
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitExtensionTypeDeclaration(node);
+      super.visitExtensionTypeDeclaration2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _checkForColonDefaultValue(node);
+    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
+    _elementUsageFrontierDetector.formalParameter(node);
+    _checkFinalParameter(node);
+    try {
+      super.visitFieldFormalParameter(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+    }
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
     _elementUsageFrontierDetector.pushElement(node.firstVariableElement);
 
     try {
-      super.visitFieldDeclaration(node);
-      for (var field in node.fields.variables) {
+      super.visitFieldsDeclaration(node);
+      for (var field in node.fields) {
         if (!_invalidAccessVerifier._inTestDirectory) {
-          _checkForAssignmentOfDoNotStore(field.initializer2);
+          _checkForAssignmentOfDoNotStore(field.initializer);
         }
 
         var element = field.declaredFragment!.element;
-        var enclosingElement = element.enclosingElement!;
+        var enclosingElement = element.enclosingElement;
         if (enclosingElement is! InterfaceElement) {
           continue;
         }
@@ -487,19 +500,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
           );
         }
       }
-    } finally {
-      _elementUsageFrontierDetector.popElement();
-    }
-  }
-
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    _checkForColonDefaultValue(node);
-    _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
-    _elementUsageFrontierDetector.formalParameter(node);
-    _checkFinalParameter(node);
-    try {
-      super.visitFieldFormalParameter(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -556,6 +556,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -627,99 +632,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    bool wasInDoNotStoreMember = _inDoNotStoreMember;
-    var nameToken = node.name;
-    var element = node.declaredFragment!.element;
-    var enclosingElement = element.enclosingElement;
-
-    _elementUsageFrontierDetector.pushElement(element);
-    if (element.metadata.hasDoNotStore) {
-      _inDoNotStoreMember = true;
-    }
-    try {
-      _mustCallSuperVerifier.checkMethodDeclaration(node);
-      _checkForUnnecessaryNoSuchMethod(node);
-      _checkForNullableEqualsParameterType(node);
-
-      var name = Name.forElement(element);
-      if (name == null) {
-        return;
-      }
-
-      var elementIsOverride = false;
-      if (enclosingElement is InterfaceElement) {
-        if (element is MethodElement || element is PropertyAccessorElement) {
-          elementIsOverride = enclosingElement.getOverridden(name) != null;
-        }
-      }
-
-      if (!node.isSetter && !elementIsOverride) {
-        _checkStrictInferenceReturnType(
-          node.returnType,
-          node,
-          nameToken.lexeme,
-        );
-      }
-      if (!elementIsOverride) {
-        _checkStrictInferenceInParameters(node.parameters, body: node.body);
-      }
-
-      var overriddenElement = enclosingElement is InterfaceElement
-          ? enclosingElement.getInheritedConcreteMember(name)
-          : null;
-
-      if (overriddenElement != null &&
-          _hasNonVirtualAnnotation(overriddenElement)) {
-        // Overridden members are always inside classes or mixins, which are
-        // always named, so we can safely assume
-        // `overriddenElement.enclosingElement3.name` is non-`null`.
-        _diagnosticReporter.report(
-          diag.invalidOverrideOfNonVirtualMember
-              .withArguments(
-                memberName: nameToken.lexeme,
-                definingClass: overriddenElement.enclosingElement!.displayName,
-              )
-              .at(nameToken),
-        );
-      }
-
-      // Returns `true` if the first tokens of the method are any of:
-      // - factory
-      // - external factory
-      // - augment factory
-      // - augment external factory
-      bool isAmbiguousFactoryMethod() {
-        if (nameToken.lexeme != Keyword.FACTORY.lexeme) return false;
-        var firstToken = node.firstTokenAfterCommentAndMetadata;
-        if (firstToken == nameToken) return true;
-        var secondToken = firstToken.next!;
-        if (firstToken.lexeme == Keyword.EXTERNAL.lexeme) {
-          return secondToken == nameToken;
-        }
-        if (_currentLibrary.featureSet.isEnabled(Feature.augmentations) &&
-            firstToken.lexeme == Keyword.AUGMENT.lexeme) {
-          return secondToken == nameToken ||
-              (secondToken.lexeme == Keyword.EXTERNAL.lexeme &&
-                  secondToken.next == nameToken);
-        }
-        return false;
-      }
-
-      if (!_currentLibrary.featureSet.isEnabled(Feature.primary_constructors) &&
-          isAmbiguousFactoryMethod()) {
-        _diagnosticReporter.report(diag.deprecatedFactoryMethod.at(nameToken));
-      }
-
-      super.visitMethodDeclaration(node);
-    } finally {
-      _elementUsageFrontierDetector.popElement();
-      _inDoNotStoreMember = wasInDoNotStoreMember;
-    }
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     var element = node.declaredFragment!.element;
 
     _enclosingClass = element;
@@ -731,7 +649,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     try {
       _immutableVerifier.checkDeclaration(node, nameToken: node.name);
       _checkForInvalidSealedSuperclass(node);
-      super.visitMixinDeclaration(node);
+      super.visitMixinDeclaration2(node);
     } finally {
       _enclosingClass = null;
       _invalidAccessVerifier._enclosingClass = null;
@@ -787,6 +705,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
+  }
+
+  @override
   void visitPatternField(covariant PatternFieldImpl node) {
     _elementUsageFrontierDetector.patternField(node);
     _invalidAccessVerifier.verifyPatternField(node);
@@ -794,12 +717,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     var element = node.declaration?.declaredFragment!.element;
     _elementUsageFrontierDetector.pushElement(element);
     // TODO(srawlins): Account for @doNotStore, as in
     // `visitLocalFunctionDeclaration`.
-    super.visitPrimaryConstructorBody(node);
+    super.visitPrimaryConstructorBody2(node);
     _elementUsageFrontierDetector.popElement();
   }
 
@@ -871,6 +794,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _checkForDuplications(node);
     super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -1209,14 +1137,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     });
   }
 
-  void _checkForInvalidSealedSuperclass(CompilationUnitMember node) {
+  void _checkForInvalidSealedSuperclass(FragmentDeclaringNode node) {
     bool currentPackageContains(Element element) {
       return _isLibraryInWorkspacePackage(element.library);
     }
 
     // [NamedCompilationUnitMember.declaredElement] is not necessarily a
     // ClassElement, but [_checkForInvalidSealedSuperclass] should only be
-    // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias]. The
+    // called with a [ClassOrMixinDeclaration], or a [ClassTypeAlias2]. The
     // `declaredElement` of these specific classes is a [ClassElement].
     var element = node.declaredFragment!.element as InterfaceElement;
     // TODO(srawlins): Perhaps replace this with a getter on Element, like
@@ -1385,12 +1313,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     return false;
   }
 
-  void _checkForNullableEqualsParameterType(MethodDeclaration node) {
-    if (node.name.type != TokenType.EQ_EQ) {
+  void _checkForNullableEqualsParameterType(
+    MethodDeclarationV1OriginImpl node,
+  ) {
+    if (node.nameToken.type != TokenType.EQ_EQ) {
       return;
     }
 
-    var parameters = node.parameters;
+    var parameters = node.writtenFormalParameters;
     if (parameters == null) {
       return;
     }
@@ -1410,7 +1340,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
 
     if (_typeSystem.isNullable(parameterElement.type)) {
-      _diagnosticReporter.report(diag.nonNullableEqualsParameter.at(node.name));
+      _diagnosticReporter.report(
+        diag.nonNullableEqualsParameter.at(node.nameToken),
+      );
     }
   }
 
@@ -1439,7 +1371,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       var parent = expression!.thisOrAncestorMatching2(
         (e) =>
             e is LocalFunctionDeclaration ||
-            e is MethodDeclaration ||
+            e is MethodDeclarationV1OriginImpl ||
             e is TopLevelFunctionDeclaration ||
             e is TopLevelGetterDeclaration ||
             e is TopLevelSetterDeclaration,
@@ -1472,8 +1404,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   /// calling another `noSuchMethod` which is not defined by `Object`.
   ///
   /// Returns `true` if a warning code is generated for [node].
-  bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
-    if (node.name.lexeme != MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
+  bool _checkForUnnecessaryNoSuchMethod(MethodDeclarationV1OriginImpl node) {
+    if (node.nameToken.lexeme != MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
       return false;
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
@@ -1496,7 +1428,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     FunctionBody body = node.body;
     if (body is ExpressionFunctionBody) {
       if (isNonObjectNoSuchMethodInvocation(body.expression2)) {
-        _diagnosticReporter.report(diag.unnecessaryNoSuchMethod.at(node.name));
+        _diagnosticReporter.report(
+          diag.unnecessaryNoSuchMethod.at(node.nameToken),
+        );
         return true;
       }
     } else if (body is BlockFunctionBody) {
@@ -1506,7 +1440,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         if (returnStatement is ReturnStatement &&
             isNonObjectNoSuchMethodInvocation(returnStatement.expression2)) {
           _diagnosticReporter.report(
-            diag.unnecessaryNoSuchMethod.at(node.name),
+            diag.unnecessaryNoSuchMethod.at(node.nameToken),
           );
           return true;
         }
@@ -1630,7 +1564,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
 
     switch (reportNode) {
-      case MethodDeclaration(:var name) ||
+      case MethodDeclarationV1OriginImpl(nameToken: var name) ||
           TopLevelFunctionDeclaration(:var name) ||
           TopLevelGetterDeclaration(:var name):
         _diagnosticReporter.report(
@@ -1729,6 +1663,103 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     return _workspacePackage.contains(library.firstFragment.source);
   }
 
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    bool wasInDoNotStoreMember = _inDoNotStoreMember;
+    var nameToken = node.nameToken;
+    var element = node.declaredFragment!.element;
+    var enclosingElement = element.enclosingElement;
+
+    _elementUsageFrontierDetector.pushElement(element);
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
+    }
+    try {
+      _mustCallSuperVerifier.checkMethodDeclaration(node);
+      _checkForUnnecessaryNoSuchMethod(node);
+      _checkForNullableEqualsParameterType(node);
+
+      var name = Name.forElement(element);
+      if (name == null) {
+        return;
+      }
+
+      var elementIsOverride = false;
+      if (enclosingElement is InterfaceElement) {
+        if (element is MethodElement || element is PropertyAccessorElement) {
+          elementIsOverride = enclosingElement.getOverridden(name) != null;
+        }
+      }
+
+      if (node is! SetterDeclarationImpl && !elementIsOverride) {
+        _checkStrictInferenceReturnType(
+          node.returnType,
+          node,
+          nameToken.lexeme,
+        );
+      }
+      if (!elementIsOverride) {
+        _checkStrictInferenceInParameters(
+          node.writtenFormalParameters,
+          body: node.body,
+        );
+      }
+
+      var overriddenElement = enclosingElement is InterfaceElement
+          ? enclosingElement.getInheritedConcreteMember(name)
+          : null;
+
+      if (overriddenElement != null &&
+          _hasNonVirtualAnnotation(overriddenElement)) {
+        // Overridden members are always inside classes or mixins, which are
+        // always named, so we can safely assume
+        // `overriddenElement.enclosingElement3.name` is non-`null`.
+        _diagnosticReporter.report(
+          diag.invalidOverrideOfNonVirtualMember
+              .withArguments(
+                memberName: nameToken.lexeme,
+                definingClass: overriddenElement.enclosingElement!.displayName,
+              )
+              .at(nameToken),
+        );
+      }
+
+      // Returns `true` if the first tokens of the method are any of:
+      // - factory
+      // - external factory
+      // - augment factory
+      // - augment external factory
+      bool isAmbiguousFactoryMethod() {
+        if (nameToken.lexeme != Keyword.FACTORY.lexeme) return false;
+        var firstToken = node.firstTokenAfterCommentAndMetadata;
+        if (firstToken == nameToken) return true;
+        var secondToken = firstToken.next!;
+        if (firstToken.lexeme == Keyword.EXTERNAL.lexeme) {
+          return secondToken == nameToken;
+        }
+        if (_currentLibrary.featureSet.isEnabled(Feature.augmentations) &&
+            firstToken.lexeme == Keyword.AUGMENT.lexeme) {
+          return secondToken == nameToken ||
+              (secondToken.lexeme == Keyword.EXTERNAL.lexeme &&
+                  secondToken.next == nameToken);
+        }
+        return false;
+      }
+
+      if (!_currentLibrary.featureSet.isEnabled(Feature.primary_constructors) &&
+          isAmbiguousFactoryMethod()) {
+        _diagnosticReporter.report(diag.deprecatedFactoryMethod.at(nameToken));
+      }
+
+      visitSuper();
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+      _inDoNotStoreMember = wasInDoNotStoreMember;
+    }
+  }
+
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is PropertyAccessorElement && element.isOriginVariable) {
       if (element.variable.metadata.hasNonVirtual) {
@@ -1807,8 +1838,9 @@ class _InvalidAccessVerifier {
       var operator = node.operator;
 
       if (node.leftOperand is SuperReference) {
-        var methodDeclaration = node.thisOrAncestorOfType2<MethodDeclaration>();
-        if (methodDeclaration?.name.lexeme == operator.lexeme) {
+        var methodDeclaration = node
+            .thisOrAncestorOfType2<MethodDeclarationV1OriginImpl>();
+        if (methodDeclaration?.nameToken.lexeme == operator.lexeme) {
           return;
         }
       }
@@ -2058,8 +2090,8 @@ class _InvalidAccessVerifier {
               parent.receiver is SuperReference) {
         var grandparent = parent?.parent2;
         var methodDeclaration = grandparent
-            ?.thisOrAncestorOfType2<MethodDeclaration>();
-        if (methodDeclaration?.name.lexeme == name) {
+            ?.thisOrAncestorOfType2<MethodDeclarationV1OriginImpl>();
+        if (methodDeclaration?.nameToken.lexeme == name) {
           return;
         }
       }

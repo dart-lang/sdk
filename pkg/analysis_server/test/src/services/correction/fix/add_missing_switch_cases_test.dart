@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart' show DiagnosticCode;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -20,7 +21,7 @@ void main() {
 
 @reflectiveTest
 class AddMissingSwitchCasesTest_SwitchExpression
-    extends FixProcessorForBuiltInDiagnosticTest {
+    extends _AddMissingSwitchCasesTest {
   @override
   FixKind get kind => DartFixKind.addMissingSwitchCases;
 
@@ -32,7 +33,8 @@ int f(bool x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 int f(bool x) {
   return switch (x) {
     false => 0,
@@ -40,7 +42,8 @@ int f(bool x) {
     true => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_bool_hasTrue() async {
@@ -51,7 +54,8 @@ int f(bool x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 int f(bool x) {
   return switch (x) {
     true => 0,
@@ -59,7 +63,8 @@ int f(bool x) {
     false => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_hasFirst() async {
@@ -74,7 +79,8 @@ int f(E x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {
   first, second, third
 }
@@ -88,7 +94,8 @@ int f(E x) {
     E.third => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_importedWithPrefix() async {
@@ -106,7 +113,8 @@ int f(prefix.E x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'a.dart' as prefix;
 
 int f(prefix.E x) {
@@ -119,7 +127,8 @@ int f(prefix.E x) {
     prefix.E.third => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_notImported() async {
@@ -145,7 +154,8 @@ int f() {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'a.dart';
 import 'b.dart';
 
@@ -159,7 +169,8 @@ int f() {
     E.third => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_privateEnum() async {
@@ -179,7 +190,8 @@ int f() {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'a.dart';
 
 int f() {
@@ -188,7 +200,8 @@ int f() {
     _ => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_privateMemberInOtherLibrary() async {
@@ -207,7 +220,8 @@ int f(E x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'a.dart';
 
 int f(E x) {
@@ -219,7 +233,8 @@ int f(E x) {
     _ => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_privateMemberInSameLibrary() async {
@@ -234,7 +249,8 @@ int f(E x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {
   first, second, _unknown
 }
@@ -248,7 +264,8 @@ int f(E x) {
     E._unknown => throw UnimplementedError(),
   };
 }
-''', filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchExpression);
+''',
+    ], filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchExpression);
   }
 
   Future<void> test_incomplete_switchExpression() async {
@@ -270,7 +287,8 @@ int f(E? e) => switch (e) {
   E.b => 1,
 };
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {a, b, c}
 int f(E? e) => switch (e) {
   E.a => 0,
@@ -280,7 +298,8 @@ int f(E? e) => switch (e) {
   // TODO: Handle this case.
   null => throw UnimplementedError(),
 };
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_anyDouble_intProperty() async {
@@ -292,7 +311,8 @@ int f(num x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 int f(num x) {
   return switch (x) {
     double() => 0,
@@ -301,7 +321,8 @@ int f(num x) {
     int() => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_doubleAny() async {
@@ -312,7 +333,8 @@ int f(num x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 int f(num x) {
   return switch (x) {
     double() => 0,
@@ -320,7 +342,8 @@ int f(num x) {
     int() => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_doubleAny_coreWithPrefix() async {
@@ -333,7 +356,8 @@ core.int f(core.num x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'dart:core' as core;
 
 core.int f(core.num x) {
@@ -343,7 +367,8 @@ core.int f(core.num x) {
     core.int() => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_doubleAny_intWhen() async {
@@ -355,7 +380,8 @@ int f(num x) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 int f(num x) {
   return switch (x) {
     double() => 0,
@@ -364,7 +390,8 @@ int f(num x) {
     int() => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_empty() async {
@@ -373,7 +400,8 @@ int f(num x) {
   return switch (x) {};
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 int f(num x) {
   return switch (x) {
     // TODO: Handle this case.
@@ -382,7 +410,8 @@ int f(num x) {
     int() => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_privateEnum() async {
@@ -399,7 +428,8 @@ int g() {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'enum.dart';
 
 int g() {
@@ -408,7 +438,8 @@ int g() {
     _ => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_privateEnumConstant() async {
@@ -423,7 +454,8 @@ int g(E e) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'enum.dart';
 
 int g(E e) {
@@ -436,7 +468,8 @@ int g(E e) {
     _ => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_privateEnumConstant_privateMissing() async {
@@ -453,7 +486,8 @@ int g(E e) {
   };
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'enum.dart';
 
 int g(E e) {
@@ -464,16 +498,126 @@ int g(E e) {
     _ => throw UnimplementedError(),
   };
 }
-''');
+''',
+    ]);
   }
 
-  Future<void> test_sealed_impl() async {
+  Future<void> test_privateEnumConstant_recordMultipleMissing() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E1 { a, b }
+enum E2 { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g((E1, E2) e) {
+  return switch (e) {
+    (E1.a, E2.first) => 0,
+    (E1.b, E2.second) => 1,
+  };
+}
+''');
+    await assertHasFixes([
+      '''
+import 'enum.dart';
+
+int g((E1, E2) e) {
+  return switch (e) {
+    (E1.a, E2.first) => 0,
+    (E1.b, E2.second) => 1,
+    // TODO: Handle this case.
+    (E1.a, E2.second) => throw UnimplementedError(),
+  };
+}
+''',
+      '''
+import 'enum.dart';
+
+int g((E1, E2) e) {
+  return switch (e) {
+    (E1.a, E2.first) => 0,
+    (E1.b, E2.second) => 1,
+    // TODO: Handle this case.
+    (E1.a, E2.second) => throw UnimplementedError(),
+    // TODO: Handle this case.
+    (E1.a, _) => throw UnimplementedError(),
+  };
+}
+''',
+      '''
+import 'enum.dart';
+
+int g((E1, E2) e) {
+  return switch (e) {
+    (E1.a, E2.first) => 0,
+    (E1.b, E2.second) => 1,
+    // TODO: Handle this case.
+    (E1.a, E2.second) => throw UnimplementedError(),
+    // TODO: Handle this case.
+    (E1.a, _) => throw UnimplementedError(),
+    // TODO: Handle this case.
+    (E1.b, E2.first) => throw UnimplementedError(),
+  };
+}
+''',
+      '''
+import 'enum.dart';
+
+int g((E1, E2) e) {
+  return switch (e) {
+    (E1.a, E2.first) => 0,
+    (E1.b, E2.second) => 1,
+    // TODO: Handle this case.
+    (E1.a, E2.second) => throw UnimplementedError(),
+    // TODO: Handle this case.
+    (E1.a, _) => throw UnimplementedError(),
+    // TODO: Handle this case.
+    (E1.b, E2.first) => throw UnimplementedError(),
+    // TODO: Handle this case.
+    (E1.b, _) => throw UnimplementedError(),
+  };
+}
+''',
+    ]);
+  }
+
+  Future<void> test_privateEnumConstant_recordPrivateMissing() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g((E, E) e) {
+  return switch (e) {
+    (E.first, _) => 0,
+    (E.second, _) => 1,
+  };
+}
+''');
+    await assertHasFixes([
+      '''
+import 'enum.dart';
+
+int g((E, E) e) {
+  return switch (e) {
+    (E.first, _) => 0,
+    (E.second, _) => 1,
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''',
+    ]);
+  }
+
+  Future<void> test_sealed_impl_needed() async {
     var otherRoot = getFolder('$packagesRootPath/other');
     newFile('$otherRoot/lib/src/private.dart', '''
 sealed class A {}
 sealed class B implements A {}
 abstract final class C implements B {}
-final class CImpl extends B implements C {}
+final class BImpl extends B {}
 ''');
     newFile('$otherRoot/lib/exposed.dart', '''
 export 'src/private.dart' show A, B, C;
@@ -493,7 +637,8 @@ import 'package:other/exposed.dart';
 int f(A a) => switch (a) {
 };
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'package:other/exposed.dart';
 
 int f(A a) => switch (a) {
@@ -502,7 +647,178 @@ int f(A a) => switch (a) {
   // TODO: Handle this case.
   _ => throw UnimplementedError(),
 };
+''',
+    ]);
+  }
+
+  Future<void> test_sealed_impl_neededPartial() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class A {}
+sealed class B implements A {}
+abstract final class C implements B {}
+final class BImpl extends B {}
 ''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show A, B, C;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootFolder: otherRoot),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
+  C() => 0,
+};
+''');
+    await assertHasFixes([
+      '''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
+  C() => 0,
+  // TODO: Handle this case.
+  _ => throw UnimplementedError(),
+};
+''',
+    ]);
+  }
+
+  Future<void> test_sealed_impl_nonTransitive() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class A {}
+sealed class B implements A {}
+final class _CImpl extends B implements C {}
+final class _BImpl extends B {}
+abstract final class C implements B {}
+''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show A, B, C;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootFolder: otherRoot),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
+};
+''');
+    await assertHasFixes([
+      '''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
+  // TODO: Handle this case.
+  C() => throw UnimplementedError(),
+  // TODO: Handle this case.
+  _ => throw UnimplementedError(),
+};
+''',
+    ]);
+  }
+
+  Future<void> test_sealed_impl_recordEmpty() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class A {}
+sealed class B implements A {}
+abstract final class C implements B {}
+final class BImpl extends B {}
+''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show A, B, C;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootFolder: otherRoot),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+int f((A, A) a) => switch (a) {
+};
+''');
+    await assertHasFixes([
+      '''
+import 'package:other/exposed.dart';
+
+int f((A, A) a) => switch (a) {
+  // TODO: Handle this case.
+  (_, _) => throw UnimplementedError(),
+};
+''',
+    ]);
+  }
+
+  Future<void> test_sealed_impl_recordPartial() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class A {}
+sealed class B implements A {}
+abstract final class C implements B {}
+final class BImpl extends B {}
+''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show A, B, C;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootFolder: otherRoot),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+int f((A, A) a) => switch (a) {
+  (C(), C()) => 0,
+};
+''');
+    await assertHasFixes([
+      '''
+import 'package:other/exposed.dart';
+
+int f((A, A) a) => switch (a) {
+  (C(), C()) => 0,
+  // TODO: Handle this case.
+  (C(), B()) => throw UnimplementedError(),
+};
+''',
+      '''
+import 'package:other/exposed.dart';
+
+int f((A, A) a) => switch (a) {
+  (C(), C()) => 0,
+  // TODO: Handle this case.
+  (C(), B()) => throw UnimplementedError(),
+  // TODO: Handle this case.
+  (B(), _) => throw UnimplementedError(),
+};
+''',
+    ]);
   }
 
   Future<void> test_sealed_impl_requestedTwice() async {
@@ -531,20 +847,96 @@ int f(A a) => switch (a) {
 };
 ''');
     await assertHasFixWithoutApplying();
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'package:other/exposed.dart';
 
 int f(A a) => switch (a) {
   // TODO: Handle this case.
-  _ => throw UnimplementedError(),
+  B() => throw UnimplementedError(),
+};
+''',
+    ]);
+  }
+
+  Future<void> test_sealed_impl_shadow_final() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class S {}
+abstract final class A extends S {}
+abstract final class B extends S {}
+
+sealed class SImpl implements S {}
+final class AImpl extends SImpl implements A {}
+final class BImpl extends SImpl implements B {}
+''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show S, A, B;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootFolder: otherRoot),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+int f(S s) => switch (s) {
 };
 ''');
+    await assertHasFixes([
+      '''
+import 'package:other/exposed.dart';
+
+int f(S s) => switch (s) {
+  // TODO: Handle this case.
+  A() => throw UnimplementedError(),
+  // TODO: Handle this case.
+  B() => throw UnimplementedError(),
+};
+''',
+    ]);
+  }
+
+  Future<void> test_sealed_private() async {
+    newFile('$testPackageLibPath/a.dart', '''
+sealed class S {}
+sealed class A implements S {}
+sealed class B implements S {}
+sealed class _SImpl extends S {}
+class _AImpl extends _SImpl implements A {}
+class _BImpl extends _SImpl implements B {}
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+int f(S x) {
+  return switch (x) {};
+}
+''');
+    await assertHasFixes([
+      '''
+import 'a.dart';
+int f(S x) {
+  return switch (x) {
+    // TODO: Handle this case.
+    A() => throw UnimplementedError(),
+    // TODO: Handle this case.
+    B() => throw UnimplementedError(),
+  };
+}
+''',
+    ]);
   }
 }
 
 @reflectiveTest
 class AddMissingSwitchCasesTest_SwitchStatement
-    extends FixProcessorForBuiltInDiagnosticTest {
+    extends _AddMissingSwitchCasesTest {
   @override
   FixKind get kind => DartFixKind.addMissingSwitchCases;
 
@@ -560,8 +952,8 @@ class AddMissingSwitchCasesTest_SwitchStatement
     };
   }
 
-  Future<void> assertHasFixWithFilter(String expected) async {
-    await assertHasFix(expected, filter: _filter);
+  Future<void> assertHasFixesWithFilter(List<String> expected) async {
+    await assertHasFixes(expected, filter: _filter);
   }
 
   Future<void> test_empty() async {
@@ -572,7 +964,8 @@ void f(E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {a, b, c}
 void f(E e) {
   switch (e) {
@@ -587,7 +980,8 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_empty_singleLine() async {
@@ -597,7 +991,8 @@ void f(E e) {
   switch (e) {}
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {a, b, c}
 void f(E e) {
   switch (e) {
@@ -612,7 +1007,8 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_privateEnum() async {
@@ -632,7 +1028,8 @@ void f() {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'a.dart';
 
 void f() {
@@ -642,7 +1039,8 @@ void f() {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_privateMemberInOtherLibrary() async {
@@ -658,7 +1056,8 @@ void f(E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'a.dart';
 
 void f(E e) {
@@ -674,7 +1073,8 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_enum_privateMemberInSameLibrary() async {
@@ -685,7 +1085,8 @@ void f(E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {a, b, _c}
 void f(E e) {
   switch (e) {
@@ -700,7 +1101,8 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''', filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchStatement);
+''',
+    ], filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchStatement);
   }
 
   Future<void> test_final() async {
@@ -718,7 +1120,8 @@ void f(E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {
   a(0),
   b(1);
@@ -737,7 +1140,8 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_import_prefix() async {
@@ -752,7 +1156,8 @@ void f(my.E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'a.dart' as my;
 
 void f(my.E e) {
@@ -765,7 +1170,8 @@ void f(my.E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_import_prefix_hideDefault() async {
@@ -781,7 +1187,8 @@ void f(my.E e) {
   }
 }
 ''');
-    await assertHasFixWithFilter('''
+    await assertHasFixesWithFilter([
+      '''
 import 'a.dart' hide E;
 import 'a.dart' as my;
 
@@ -795,7 +1202,8 @@ void f(my.E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   @FailingTest(
@@ -816,7 +1224,8 @@ void f(my.E e) {
   }
 }
 ''');
-    await assertHasFixWithFilter('''
+    await assertHasFixesWithFilter([
+      '''
 import 'a.dart' as dream;
 import 'a.dart' as big;
 import 'a.dart' as my;
@@ -831,7 +1240,8 @@ void f(my.E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_import_prefix_twice() async {
@@ -847,7 +1257,8 @@ void f(my.E e) {
   }
 }
 ''');
-    await assertHasFixWithFilter('''
+    await assertHasFixesWithFilter([
+      '''
 import 'a.dart';
 import 'a.dart' as my;
 
@@ -861,7 +1272,8 @@ void f(my.E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_incomplete_switchStatement() async {
@@ -881,7 +1293,8 @@ void f(E e) {
   switch (e)
 }
 ''');
-    await assertHasFixWithFilter('''
+    await assertHasFixesWithFilter([
+      '''
 enum E {a, b, c}
 void f(E e) {
   switch (e) {
@@ -896,7 +1309,8 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_nullable_handledNull() async {
@@ -909,7 +1323,8 @@ void f(E? e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {a, b, c}
 void f(E? e) {
   switch (e) {
@@ -923,7 +1338,8 @@ void f(E? e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_nullable_unhandledNull() async {
@@ -936,7 +1352,8 @@ void f(E? e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {a, b, c}
 void f(E? e) {
   switch (e) {
@@ -950,7 +1367,8 @@ void f(E? e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_doubleAny() async {
@@ -961,7 +1379,8 @@ void f(num x) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 void f(num x) {
   switch (x) {
     case double():
@@ -970,7 +1389,8 @@ void f(num x) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_doubleAny_intProperty() async {
@@ -982,7 +1402,8 @@ void f(num x) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 void f(num x) {
   switch (x) {
     case double():
@@ -992,7 +1413,8 @@ void f(num x) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_num_empty() async {
@@ -1001,7 +1423,8 @@ void f(num x) {
   switch (x) {}
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 void f(num x) {
   switch (x) {
     case double():
@@ -1012,7 +1435,8 @@ void f(num x) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_privateEnum() async {
@@ -1029,7 +1453,8 @@ int g() {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'enum.dart';
 
 int g() {
@@ -1039,7 +1464,8 @@ int g() {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_privateEnumConstant() async {
@@ -1054,7 +1480,8 @@ int g(E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'enum.dart';
 
 int g(E e) {
@@ -1070,7 +1497,8 @@ int g(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_privateEnumConstant_privateMissing() async {
@@ -1088,7 +1516,8 @@ int g(E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'enum.dart';
 
 int g(E e) {
@@ -1101,7 +1530,8 @@ int g(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_sealed_impl() async {
@@ -1132,7 +1562,8 @@ void f(A a) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 import 'package:other/exposed.dart';
 
 void f(A a) {
@@ -1140,12 +1571,10 @@ void f(A a) {
     case C():
       // TODO: Handle this case.
       throw UnimplementedError();
-    default:
-      // TODO: Handle this case.
-      throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
 
   Future<void> test_static() async {
@@ -1162,7 +1591,8 @@ void f(E e) {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFixes([
+      '''
 enum E {
   a,
   b;
@@ -1180,6 +1610,50 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''');
+''',
+    ]);
   }
+}
+
+/// Common superclass for [AddMissingSwitchCasesTest_SwitchExpression] and
+/// [AddMissingSwitchCasesTest_SwitchStatement] that adds extra checking to
+/// the applied fix.
+abstract class _AddMissingSwitchCasesTest
+    extends FixProcessorForBuiltInDiagnosticTest {
+  static final List<DiagnosticCode> _ignored = [
+    diag.todo,
+    diag.undefinedUnqualifiedNameReadNotFound,
+  ];
+
+  /// Expands [FixProcessorTest.assertHasFix] to check that a sequence of
+  /// applied fixes don't have any unexpected diagnostics.
+  ///
+  /// This is done to ensure that the added missing cases actual make the
+  /// switch exhaustive.
+  Future<void> assertHasFixes(
+    List<String> expectedContents, {
+    DiagnosticFilter? filter,
+  }) async {
+    for (int index = 0; index < expectedContents.length; index++) {
+      String expectedContent = expectedContents[index];
+      await assertHasFix(expectedContent, filter: index > 0 ? _filter : filter);
+
+      // Update the test source to the expected content. This should either
+      // trigger another fix or be exhaustive.
+      newFile(testFile.path, expectedContent);
+
+      bool expectExhaustive = index == expectedContents.length - 1;
+      if (expectExhaustive) {
+        var oldVerifyNoTestUnitErrors = verifyNoTestUnitErrors;
+        verifyNoTestUnitErrors = true;
+        await resolveTestFile(ignore: _ignored);
+        verifyNoTestUnitErrors = oldVerifyNoTestUnitErrors;
+      } else {
+        await resolveTestFile();
+      }
+    }
+  }
+
+  static bool _filter(Diagnostic diagnostic) =>
+      !_ignored.contains(diagnostic.diagnosticCode);
 }

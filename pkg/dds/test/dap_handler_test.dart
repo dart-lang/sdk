@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dap_adapters/dap_adapters.dart';
-import 'package:dds/dds.dart';
+import 'package:dds/dds_launcher.dart';
 import 'package:dds_service_extensions/dap.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -29,7 +29,7 @@ Future<Isolate> waitForFirstPausedRunnableIsolate(VmService service) async {
 
 void main() {
   Process? process;
-  DartDevelopmentService? dds;
+  DartDevelopmentServiceLauncher? dds;
   late VmService service;
 
   Future<void> createProcess({bool pauseOnStart = true}) async {
@@ -93,11 +93,10 @@ void main() {
 
   test('DDS responds to DAP message', () async {
     await createProcess();
-    dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
+    dds = await DartDevelopmentServiceLauncher.start(
+      remoteVmServiceUri: remoteVmServiceUri,
     );
-    expect(dds!.isRunning, true);
-    final serviceUri = dds!.wsUri!;
+    final serviceUri = dds!.wsUri;
     service = await vmServiceConnectUri(serviceUri.toString());
 
     final breakpointArguments = SetBreakpointsArguments(
@@ -116,10 +115,10 @@ void main() {
 
   test('DAP can map between variableReferences and InstanceRefs', () async {
     await createProcess(pauseOnStart: false);
-    dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
+    dds = await DartDevelopmentServiceLauncher.start(
+      remoteVmServiceUri: remoteVmServiceUri,
     );
-    service = await vmServiceConnectUri(dds!.wsUri!.toString());
+    service = await vmServiceConnectUri(dds!.wsUri.toString());
 
     // Wait for the isolate to become runnable as `evaluateInFrame` requires
     // the isolate to be runnable.
@@ -162,10 +161,10 @@ void main() {
 
   test('DAP includes Isolate IDs in Threads', () async {
     await createProcess(pauseOnStart: false);
-    dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
+    dds = await DartDevelopmentServiceLauncher.start(
+      remoteVmServiceUri: remoteVmServiceUri,
     );
-    service = await vmServiceConnectUri(dds!.wsUri!.toString());
+    service = await vmServiceConnectUri(dds!.wsUri.toString());
 
     // Get the expected isolateId.
     final isolate = await waitForFirstPausedRunnableIsolate(service);

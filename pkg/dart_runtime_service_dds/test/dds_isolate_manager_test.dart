@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_dds/src/dds_isolate_manager.dart';
@@ -16,6 +17,12 @@ import 'package:vm_service/vm_service.dart' as vm;
 final class FakeVmService extends Fake implements vm.VmService {
   final isolates = <String, vm.Isolate>{};
   final resumedIsolates = <String>[];
+  final cpuSamplesByIsolate = <String, String>{};
+  final failingCpuSampleIsolates = <String, Exception>{};
+  String timelineTrace = '';
+  int? lastTimeOriginMicros;
+  int? lastTimeExtentMicros;
+  Completer<void>? resumeCompleter;
 
   @override
   Future<vm.VM> getVM() async => vm.VM(
@@ -41,6 +48,9 @@ final class FakeVmService extends Fake implements vm.VmService {
     String? step,
   }) async {
     resumedIsolates.add(isolateId);
+    if (resumeCompleter case final completer?) {
+      await completer.future;
+    }
     if (isolates[isolateId] case final isolate?) {
       isolate.pauseEvent = vm.Event(
         kind: vm.EventKind.kResume,
@@ -48,6 +58,40 @@ final class FakeVmService extends Fake implements vm.VmService {
       );
     }
     return vm.Success();
+  }
+
+  @override
+  Future<vm.PerfettoTimeline> getPerfettoVMTimeline({
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+  }) async {
+    lastTimeOriginMicros = timeOriginMicros;
+    lastTimeExtentMicros = timeExtentMicros;
+    return vm.PerfettoTimeline(
+      trace: timelineTrace,
+      timeOriginMicros: timeOriginMicros,
+      timeExtentMicros: timeExtentMicros,
+    );
+  }
+
+  @override
+  Future<vm.PerfettoCpuSamples> getPerfettoCpuSamples(
+    String isolateId, {
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+  }) async {
+    if (failingCpuSampleIsolates[isolateId] case final Exception error) {
+      throw error;
+    }
+    return vm.PerfettoCpuSamples(
+      samplePeriod: 1000,
+      maxStackDepth: 10,
+      sampleCount: 1,
+      timeOriginMicros: timeOriginMicros ?? -1,
+      timeExtentMicros: timeExtentMicros ?? -1,
+      pid: 123,
+      samples: cpuSamplesByIsolate[isolateId] ?? '',
+    );
   }
 }
 
@@ -251,6 +295,7 @@ void main() {
 
         // Client1 disconnects
         manager.handleClientDisconnected(client1);
+        await pumpEventQueue();
 
         // Now isolate should resume automatically since blocking client is gone
         expect(fakeVmService.resumedIsolates, contains('isolates/2'));
@@ -467,9 +512,219 @@ void main() {
         oldName: 'client1',
         newName: 'client1_renamed',
       );
+      await pumpEventQueue();
 
       // Now isolate should resume since client1's permissions are cleared
       expect(fakeVmService.resumedIsolates, contains('isolates/name_change'));
+    });
+
+    test('serializes concurrent resume requests via mutex', () async {
+      final client = createTestClient(name: 'client');
+      final isolate = vm.Isolate(
+        id: 'isolates/concurrent',
+        name: 'main',
+        number: '12',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseBreakpoint,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates['isolates/concurrent'] = isolate;
+      await manager.initializeIsolates();
+
+      final completer = Completer<void>();
+      fakeVmService.resumeCompleter = completer;
+
+      final firstResume = manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': 'isolates/concurrent',
+          'step': 'Into',
+        }),
+        client,
+      );
+      final secondResume = manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': 'isolates/concurrent',
+        }),
+        client,
+      );
+
+      await pumpEventQueue();
+      // Only the first resume should have reached the VM service while blocked.
+      expect(fakeVmService.resumedIsolates, ['isolates/concurrent']);
+
+      fakeVmService.resumeCompleter = null;
+      completer.complete();
+
+      await Future.wait([firstResume, secondResume]);
+      expect(fakeVmService.resumedIsolates, [
+        'isolates/concurrent',
+        'isolates/concurrent',
+      ]);
+    });
+
+    test(
+      'serializes readyToResume with handleIsolateEvent via mutex',
+      () async {
+        final client = createTestClient(name: 'client');
+        final isolate = vm.Isolate(
+          id: 'isolates/race',
+          name: 'main',
+          number: '13',
+          pauseEvent: vm.Event(
+            kind: vm.EventKind.kPauseStart,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        fakeVmService.isolates['isolates/race'] = isolate;
+        await manager.initializeIsolates();
+        await pumpEventQueue();
+
+        final completer = Completer<void>();
+        fakeVmService.resumeCompleter = completer;
+
+        final readyFuture = manager.readyToResume(
+          json_rpc.Parameters('readyToResume', const <String, Object?>{
+            'isolateId': 'isolates/race',
+          }),
+          client,
+        );
+
+        await pumpEventQueue();
+        expect(fakeVmService.resumedIsolates, ['isolates/race']);
+
+        // Dispatch a kResume followed by kPauseExit event while readyToResume
+        // is still in-flight awaiting the VM response.
+        manager.handleIsolateEvent(
+          vm.Event(
+            kind: vm.EventKind.kResume,
+            isolate: vm.IsolateRef(
+              id: 'isolates/race',
+              name: 'main',
+              number: '13',
+            ),
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        manager.handleIsolateEvent(
+          vm.Event(
+            kind: vm.EventKind.kPauseExit,
+            isolate: vm.IsolateRef(
+              id: 'isolates/race',
+              name: 'main',
+              number: '13',
+            ),
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        await pumpEventQueue();
+        // State transition events must remain queued behind the in-flight
+        // readyToResume operation.
+        expect(
+          manager.ddsIsolates['isolates/race']?.state,
+          IsolateState.pauseStart,
+        );
+
+        fakeVmService.resumeCompleter = null;
+        completer.complete();
+        await readyFuture;
+        await pumpEventQueue();
+
+        expect(
+          manager.ddsIsolates['isolates/race']?.state,
+          IsolateState.pauseExit,
+        );
+      },
+    );
+
+    test(
+      'getPerfettoVMTimelineWithCpuSamples combines timeline and isolate '
+      'CPU sample traces and ignores non-runnable or exited isolates',
+      () async {
+        for (final id in [
+          'isolates/1',
+          'isolates/2',
+          'isolates/3',
+          'isolates/4',
+        ]) {
+          fakeVmService.isolates[id] = vm.Isolate(
+            id: id,
+            name: id,
+            number: id.split('/').last,
+          );
+        }
+        await manager.initializeIsolates();
+        await pumpEventQueue();
+
+        final timelineBytes = utf8.encode('timeline-packet;');
+        final sample1Bytes = utf8.encode('isolate1-samples;');
+        final sample4Bytes = utf8.encode('isolate4-samples;');
+        fakeVmService.timelineTrace = base64Encode(timelineBytes);
+        fakeVmService.cpuSamplesByIsolate['isolates/1'] = base64Encode(
+          sample1Bytes,
+        );
+        fakeVmService.failingCpuSampleIsolates['isolates/2'] = vm.RPCError(
+          'getPerfettoCpuSamples',
+          vm.RPCErrorKind.kIsolateMustBeRunnable.code,
+          'Isolate not runnable',
+        );
+        fakeVmService.failingCpuSampleIsolates['isolates/3'] =
+            vm.SentinelException.parse('Sentinel', const <String, Object?>{});
+        fakeVmService.cpuSamplesByIsolate['isolates/4'] = base64Encode(
+          sample4Bytes,
+        );
+
+        final response = await manager.getPerfettoVMTimelineWithCpuSamples(
+          json_rpc.Parameters(
+            'getPerfettoVMTimelineWithCpuSamples',
+            const <String, Object?>{
+              'timeOriginMicros': 10,
+              'timeExtentMicros': 500,
+            },
+          ),
+        );
+
+        expect(fakeVmService.lastTimeOriginMicros, 10);
+        expect(fakeVmService.lastTimeExtentMicros, 500);
+        expect(response['type'], 'PerfettoTimeline');
+        expect(response['timeOriginMicros'], 10);
+        expect(response['timeExtentMicros'], 500);
+
+        final decodedTrace = utf8.decode(
+          base64Decode(response['trace'] as String),
+        );
+        expect(
+          decodedTrace,
+          'timeline-packet;isolate1-samples;isolate4-samples;',
+        );
+      },
+    );
+
+    test('getPerfettoVMTimelineWithCpuSamples defaults time range parameters '
+        'to -1 when omitted or null', () async {
+      fakeVmService.timelineTrace = base64Encode(utf8.encode('trace'));
+
+      for (final params in <Object?>[
+        const <String, Object?>{
+          'timeOriginMicros': null,
+          'timeExtentMicros': null,
+        },
+        const <String, Object?>{},
+        null,
+      ]) {
+        fakeVmService.lastTimeOriginMicros = null;
+        fakeVmService.lastTimeExtentMicros = null;
+
+        final response = await manager.getPerfettoVMTimelineWithCpuSamples(
+          json_rpc.Parameters('getPerfettoVMTimelineWithCpuSamples', params),
+        );
+
+        expect(fakeVmService.lastTimeOriginMicros, -1);
+        expect(fakeVmService.lastTimeExtentMicros, -1);
+        expect(response['timeOriginMicros'], -1);
+        expect(response['timeExtentMicros'], -1);
+      }
     });
   });
 }

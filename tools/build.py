@@ -19,7 +19,6 @@ HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 
 usage = """\
 usage: %%prog [options] [targets]
@@ -41,17 +40,8 @@ def BuildOptions():
     other_group = parser.add_argument_group('Other Arguments')
     gn_py.AddOtherArgs(other_group)
 
-    other_group.add_argument("-j",
-                             type=int,
-                             help='Ninja -j option for RBE builds.',
-                             default=200 if sys.platform == 'win32' else 400)
-    other_group.add_argument("-l",
-                             type=int,
-                             help='Ninja -l option for RBE builds.')
-    other_group.add_argument("--no-start-rbe",
-                             help="Don't try to start rbe",
-                             default=False,
-                             action='store_true')
+    other_group.add_argument("-j", type=int, help='Ninja -j option.')
+    other_group.add_argument("-l", type=int, help='Ninja -l option.')
     other_group.add_argument(
         "--check-clean",
         help="Check that a second invocation of Ninja has nothing to do",
@@ -124,44 +114,23 @@ def UseRBE(out_dir):
     return 'use_rbe = true' in open(args_gn, 'r').read()
 
 
-# Try to start RBE, but don't bail out if we can't. Instead print an error
-# message, and let the build fail with its own error messages as well.
-rbe_started = False
-bootstrap_path = None
+def UseSiso(out_dir):
+    args_gn = os.path.join(out_dir, 'args.gn')
+    return 'use_siso = true' in open(args_gn, 'r').read()
 
 
-def StartRBE(out_dir, env):
-    global rbe_started, bootstrap_path
-    if not rbe_started:
-        if HOST_OS == 'win32':
-            rbe_dir = 'buildtools/reclient-win'
-        elif HOST_OS == 'linux':
-            rbe_dir = 'buildtools/reclient-linux'
-        else:
-            rbe_dir = 'buildtools/reclient'
-        with open(os.path.join(out_dir, 'args.gn'), 'r') as fp:
+def LoadSisoEnv(env):
+    sisoenv_path = os.path.join(DART_ROOT, 'build', 'config', 'siso',
+                                '.sisoenv')
+    if os.path.exists(sisoenv_path):
+        with open(sisoenv_path, 'r') as fp:
             for line in fp:
-                if 'rbe_dir' in line:
-                    words = line.split()
-                    rbe_dir = words[2][1:-1]  # rbe_dir = "/path/to/rbe"
-        bootstrap_path = os.path.join(rbe_dir, 'bootstrap')
-        bootstrap_command = [bootstrap_path]
-        process = subprocess.Popen(bootstrap_command, env=env)
-        process.wait()
-        if process.returncode != 0:
-            print('Failed to start RBE')
-            return False
-        rbe_started = True
-    return True
-
-
-def StopRBE(env):
-    global rbe_started, bootstrap_path
-    if rbe_started:
-        bootstrap_command = [bootstrap_path, '--shutdown']
-        process = subprocess.Popen(bootstrap_command, env=env)
-        process.wait()
-        rbe_started = False
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                if '=' in line:
+                    k, v = line.split('=', 1)
+                    env.setdefault(k.strip(), v.strip())
 
 
 # Returns a tuple (build_config, command to run, whether rbe is used)
@@ -169,17 +138,43 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer, env):
     build_config = utils.GetBuildConf(mode, arch, target_os, sanitizer)
     out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os, sanitizer)
     using_rbe = False
+    if UseSiso(out_dir):
+        LoadSisoEnv(env)
+        ninja_deps = os.path.join(out_dir, '.ninja_deps')
+        siso_deps = os.path.join(out_dir, '.siso_deps')
+        if os.path.exists(ninja_deps) and not os.path.exists(siso_deps):
+            print('Warning: %s was previously built with Ninja (.ninja_deps '
+                  'exists); Siso will perform a full rebuild.' % out_dir)
+        if options.j or options.l:
+            print('Warning: -j and -l ignored for Siso builds. Use SISO_LIMITS '
+                  'instead to limit local and remote concurrencies.')
+        exe = gn_py.ExecutableName('siso')
+        siso_path = os.path.join('third_party', 'siso', exe)
+        command = [siso_path, 'ninja', '-C', out_dir]
+        if options.verbose:
+            command += ['-v']
+        if UseRBE(out_dir):
+            using_rbe = True
+        else:
+            command += ['-offline']
+        command += targets
+        return (build_config, command, using_rbe)
+
+    siso_deps = os.path.join(out_dir, '.siso_deps')
+    if os.path.exists(siso_deps):
+        print('Warning: %s was previously built with Siso (.siso_deps '
+              'exists); consider running gn clean %s.' % (out_dir, out_dir))
+    if UseRBE(out_dir):
+        print('Warning: rbe not supported with ninja build. Falling back '
+              'to local build.')
+
     command = ['buildtools/ninja/ninja', '-C', out_dir]
+    if options.j:
+        command += ['-j%s' % str(options.j)]
+    if options.l:
+        command += ['-l%s' % str(options.l)]
     if options.verbose:
         command += ['-v']
-    if UseRBE(out_dir):
-        if options.no_start_rbe or StartRBE(out_dir, env):
-            using_rbe = True
-            command += [('-j%s' % str(options.j))]
-            if options.l:
-                command += [('-l%s' % str(options.l))]
-        else:
-            exit(1)
     command += targets
     return (build_config, command, using_rbe)
 
@@ -199,7 +194,14 @@ def RunOneBuildCommand(build_config, args, env):
 
 
 def CheckCleanBuild(build_config, args, rbe, targets, env):
-    explain_args = args[0:3] + ['-n', '-d', 'explain'] + targets
+    is_siso = len(args) > 1 and args[1] == 'ninja'
+    if is_siso:
+        explain_args = args[0:4]
+        if not rbe:
+            explain_args += ['-offline']
+        explain_args += ['-n', '-d', 'explain'] + targets
+    else:
+        explain_args = args[0:3] + ['-n', '-d', 'explain'] + targets
     print(' '.join(explain_args))
     process = subprocess.Popen(explain_args,
                                env=env,
@@ -218,7 +220,10 @@ def CheckCleanBuild(build_config, args, rbe, targets, env):
         return 1
 
     if rbe:
-        list_args = args[0:3] + ['-t', 'commands'] + targets
+        if is_siso:
+            list_args = [args[0], 'query', 'commands', '-C', args[3]] + targets
+        else:
+            list_args = args[0:3] + ['-t', 'commands'] + targets
         print(' '.join(list_args))
         process = subprocess.Popen(list_args,
                                    env=env,
@@ -339,11 +344,6 @@ def Main():
         env.pop('LIBRARY_PATH', None)
         env.pop('SDKROOT', None)
 
-    # Help QEMU binfmt work for executables that include dynamic links, such as
-    # reclient's scandeps_server.
-    if sys.platform == 'linux':
-        env['QEMU_LD_PREFIX'] = "/usr/x86_64-linux-gnu/"
-
     # Always run GN before building.
     gn_py.RunGnOnConfiguredConfigurations(options, env)
 
@@ -360,8 +360,6 @@ def Main():
     exit_code = Build(configs, env, options)
 
     endtime = time.time()
-
-    StopRBE(env)
 
     if exit_code == 0:
         print("The build took %.3f seconds" % (endtime - starttime))

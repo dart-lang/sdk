@@ -88,11 +88,16 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _handlePossibleTopLevelDeclaration(
       node,
-      () => super.visitConstructorDeclaration(node),
+      () => super.visitConstructorDeclaration2(node),
     );
+  }
+
+  @override
+  void visitField2(Field2 node) {
+    _handlePossibleTopLevelDeclaration(node, () => super.visitField2(node));
   }
 
   @override
@@ -108,14 +113,6 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
     _handlePossibleTopLevelDeclaration(
       node,
       () => super.visitTopLevelVariable2(node),
-    );
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _handlePossibleTopLevelDeclaration(
-      node,
-      () => super.visitVariableDeclaration(node),
     );
   }
 

@@ -90,7 +90,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
@@ -100,7 +100,7 @@ CompilationUnit
             TypeParameter
               name: E
           rightBracket: >
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
     TopLevelFunctionDeclaration

@@ -43,10 +43,24 @@ void writeLibrary({
     elementPrinter: elementPrinter,
     configuration: configuration,
   );
+  if (configuration.combinedFragmentData case (:var element, :var data)) {
+    writer2.writeCombinedFragmentData(element, data);
+  }
   writer2.writeLibraryElement(library);
 }
 
+/// The data that an element combines from its fragments.
+enum CombinedFragmentData {
+  /// The constant initializer of a variable, or the default value of a
+  /// formal parameter.
+  constantInitializer,
+  metadata,
+}
+
 class ElementTextConfiguration {
+  /// See [withCombinedFragmentData].
+  ({ElementImpl element, CombinedFragmentData data})? combinedFragmentData;
+
   ElementPrinterConfiguration elementPrinterConfiguration =
       ElementPrinterConfiguration();
   bool Function(Object) filter;
@@ -116,6 +130,16 @@ class ElementTextConfiguration {
       }
       return true;
     };
+  }
+
+  /// Writes [data] of [element] before the library, first as [element]
+  /// combines it from its fragments, then for each fragment.
+  ///
+  /// It is written before anything else, so it is the first access, and the
+  /// text shows whether the fragments are read on demand. Only one kind of
+  /// data is written, because accessing other data could read the fragments.
+  void withCombinedFragmentData(Element element, CombinedFragmentData data) {
+    combinedFragmentData = (element: element as ElementImpl, data: data);
   }
 
   static bool _filterTrue(Object element) => true;
@@ -235,6 +259,71 @@ class _Element2Writer extends _AbstractElementWriter {
     required super.configuration,
   });
 
+  /// See [ElementTextConfiguration.withCombinedFragmentData].
+  void writeCombinedFragmentData(ElementImpl e, CombinedFragmentData data) {
+    // Number the fragments in their order, without reading them.
+    for (var fragment in e.fragments) {
+      _idMap[fragment];
+    }
+
+    // The element combines the annotations of its fragments, so each
+    // annotation is written once, and then referenced by its id.
+    var annotationIds = Map<ElementAnnotation, String>.identity();
+    void writeMetadata(Metadata metadata) {
+      var annotations = metadata.annotations;
+      if (annotations.isEmpty) {
+        return;
+      }
+      _sink.writelnWithIndent('metadata');
+      _sink.withIndent(() {
+        for (var annotation in annotations) {
+          if (annotationIds[annotation] case var id?) {
+            _sink.writelnWithIndent(id);
+          } else {
+            var id = annotationIds[annotation] =
+                'annotation_${annotationIds.length}';
+            _sink.writelnWithIndent(id);
+            _sink.withIndent(() {
+              annotation as ElementAnnotationImpl;
+              _writeAnnotationAst(annotation.annotationAst);
+            });
+          }
+        }
+      });
+    }
+
+    _sink.writelnWithIndent('combinedFragmentData');
+    _sink.withIndent(() {
+      _elementPrinter.writeNamedElement2('element', e);
+      _sink.writelnWithIndent('combined');
+      _sink.withIndent(() {
+        switch (data) {
+          case CombinedFragmentData.constantInitializer:
+            _writeVariableElementConstantInitializer(e as VariableElementImpl);
+          case CombinedFragmentData.metadata:
+            writeMetadata(e.metadata);
+        }
+      });
+
+      _sink.writelnWithIndent('fragments');
+      _sink.withIndent(() {
+        for (var fragment in e.fragments) {
+          _sink.writelnWithIndent(_idMap[fragment]);
+          _sink.withIndent(() {
+            switch (data) {
+              case CombinedFragmentData.constantInitializer:
+                _writeVariableFragmentInitializer(
+                  fragment as VariableFragmentImpl,
+                );
+              case CombinedFragmentData.metadata:
+                writeMetadata(fragment.metadata);
+            }
+          });
+        }
+      });
+    });
+  }
+
   void writeLibraryElement(LibraryElementImpl e) {
     expect(e.enclosingElement, isNull);
 
@@ -327,6 +416,16 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _assertHasExactlyOneTrue(List<bool> flags) {
     expect(flags.where((flag) => flag).length, 1);
+  }
+
+  void _writeAnnotationAst(Annotation node) {
+    expect(
+      node.parent2,
+      isNull,
+      reason: 'Element annotations must be detached.',
+    );
+
+    _writeNode(node);
   }
 
   void _writeConstantInitializerExpression(String name, Expression expression) {
@@ -1217,7 +1316,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.withIndent(() {
           for (var annotation in annotations) {
             annotation as ElementAnnotationImpl;
-            _writeNode(annotation.annotationAst);
+            _writeAnnotationAst(annotation.annotationAst);
           }
         });
       }

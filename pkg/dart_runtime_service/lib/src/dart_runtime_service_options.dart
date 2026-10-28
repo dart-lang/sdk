@@ -43,7 +43,7 @@ class DartRuntimeServiceOptions {
   /// Defaults to null.
   final String? sseHandlerPath;
 
-  /// If true, the HTTP server will be started on initialization.
+  /// If true, the service's server will be started on initialization.
   final bool autoStart;
 
   /// If true, Dart DevTools should be made available via the HTTP server.

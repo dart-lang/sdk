@@ -470,7 +470,6 @@ class ExtensionMemberResolver {
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled:
             _typeAnalyzer.inferenceUsingBoundsIsEnabled,
-        strictInference: _typeAnalyzer.analysisOptions.strictInference,
         typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
       );

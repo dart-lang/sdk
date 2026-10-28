@@ -116,6 +116,8 @@ See also [Building Dart SDK for ARM or RISC-V](Building-Dart-SDK-for-ARM-or-RISC
 
 By default the build and test scripts select the debug binaries. You can build and test the release version of the VM by specifying `--mode=release` or both debug and release by specifying `--mode=all` on the respective `build.py` and `test.py` command lines.  This can be shortened to `-mrelease` or `-m release`, and the architecture can be specified with `--arch=x64` or `-a x64`, the default.  Other architectures, like `arm`, `arm64` and `riscv64` are also supported.
 
+To build with [Siso](https://chromium.googlesource.com/build/+/refs/heads/main/siso/README.md) instead of Ninja, pass `--siso` to `./tools/gn.py` or `./tools/build.py` (or set `DART_SISO=1` in your environment). When combined with `--rbe` (or `RBE=1`), Siso uses `gcloud auth application-default login` by default (configured via `SISO_CREDENTIAL_HELPER=google-application-default` in `build/config/siso/.sisoenv`), or `third_party/siso/siso login` if `SISO_CREDENTIAL_HELPER` is unset.
+
 We recommend that you use a local file system at least for the output of the builds. The output directory is `out` on linux, `xcodebuild` on macOS, and `build` on Windows.  If your code is in some NFS partition, you can link the `out` directory to a local directory:
 ```bash
 

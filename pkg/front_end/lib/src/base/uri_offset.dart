@@ -40,7 +40,6 @@ extension ProblemReportingExtension on ProblemReporting {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     addProblem(
       message,
@@ -50,7 +49,6 @@ extension ProblemReportingExtension on ProblemReporting {
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: problemOnLibrary,
     );
   }
 }

@@ -427,7 +427,6 @@ library
                       name: v @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::E::@getter::v
-                        invokeType: E Function()
                         type: E
                       staticType: E
                   elements(v1)

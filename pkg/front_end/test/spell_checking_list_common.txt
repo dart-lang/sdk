@@ -236,6 +236,7 @@ asymmetric
 async
 asynchronous
 at
+atomic
 attach
 attached
 attempt
@@ -502,6 +503,7 @@ clones
 cloning
 close
 closed
+closely
 closer
 closers
 closes
@@ -762,6 +764,7 @@ cyclicity
 dart
 dart2js
 dart2wasm
+dart2wasm_dev
 dart2wasm_js_compatibility
 dart2wasm_standalone
 dartdevc
@@ -2380,6 +2383,7 @@ postponed
 potential
 potentially
 practical
+practically
 practice
 practices
 preamble
@@ -3109,6 +3113,7 @@ summarizes
 summary
 super
 superclass
+superset
 supertype
 supertype's
 supertypes

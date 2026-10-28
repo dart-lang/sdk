@@ -1,0 +1,62 @@
+library;
+import self as self;
+import "super_call_lib.dart" as sup;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///super_call_lib.dart";
+
+abstract class InvalidClass extends self::_InvalidClass&Super&Mixin {
+  synthetic constructor •() → self::InvalidClass
+    ;
+}
+abstract class CompleteSuper extends sup::Super {
+  field core::int field;
+  synthetic constructor •() → self::CompleteSuper
+    ;
+  method method() → void
+    ;
+  get getter() → core::int
+    ;
+  set setter(core::int value) → void
+    ;
+}
+class ValidClass extends self::_ValidClass&CompleteSuper&Mixin {
+  synthetic constructor •() → self::ValidClass
+    ;
+}
+abstract class _InvalidClass&Super&Mixin = sup::Super with sup::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_InvalidClass&Super&Mixin
+    : super sup::Super::•()
+    ;
+  synthetic mixin-super-stub method test() → void
+    return super.{sup::Mixin::test}();
+}
+abstract class _ValidClass&CompleteSuper&Mixin = self::CompleteSuper with sup::Mixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_ValidClass&CompleteSuper&Mixin
+    : super self::CompleteSuper::•()
+    ;
+  synthetic mixin-super-stub method test() → void
+    return super.{sup::Mixin::test}();
+}
+
+library;
+import self as sup;
+import "dart:core" as core;
+
+abstract class Super extends core::Object {
+  synthetic constructor •() → sup::Super
+    ;
+  abstract get field() → core::int;
+  abstract set field(synthesized core::int #externalFieldValue) → void;
+  abstract method method() → void;
+  abstract get getter() → core::int;
+  abstract set setter(core::int value) → void;
+}
+abstract class Mixin extends sup::Super /*isMixinDeclaration*/  {
+  method test() → void {
+    super.{sup::Super::field} = super.{sup::Super::field};
+    super.{sup::Super::method};
+    super.{sup::Super::method}();
+    super.{sup::Super::setter} = super.{sup::Super::getter};
+  }
+}

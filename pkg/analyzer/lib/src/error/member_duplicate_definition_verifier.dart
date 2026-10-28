@@ -37,7 +37,7 @@ class MemberDuplicateDefinitionVerifier {
     this.context,
   );
 
-  void _checkClass(ClassDeclarationImpl node) {
+  void _checkClass(ClassDeclaration2Impl node) {
     _checkClassMembers(
       node.declaredFragment!,
       node.body.members,
@@ -48,7 +48,7 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkClassMembers(
     InstanceFragmentImpl fragment,
-    List<ClassMemberImpl> members, {
+    List<MemberDeclarationImpl> members, {
     PrimaryConstructorDeclaration? primaryConstructor,
   }) {
     var firstFragment = fragment.element.firstFragment;
@@ -95,14 +95,14 @@ class MemberDuplicateDefinitionVerifier {
 
     for (var member in members) {
       switch (member) {
-        case ConstructorDeclarationImpl():
+        case ConstructorDeclaration2Impl():
           // Augmentations are not declarations, can have multiple.
           if (member.augmentKeyword != null) {
             continue;
           }
 
           // Skip if the typeName is wrong.
-          if (member.typeName2 case var typeName?) {
+          if (member.typeName case var typeName?) {
             if (typeName.lexeme != firstFragment.name) {
               continue;
             }
@@ -124,23 +124,23 @@ class MemberDuplicateDefinitionVerifier {
               );
             }
           }
-        case FieldDeclarationImpl():
-          for (var field in member.fields.variables) {
+        case FieldsDeclarationImpl():
+          var isStatic = member.staticKeyword != null;
+          for (var field in member.fields) {
             var fieldFragment = field.declaredFragment!;
-            fieldFragment as FieldFragmentImpl;
             if (fieldFragment.isAugmentation) {
               continue;
             }
             var fieldElement = fieldFragment.element;
             _checkDuplicateIdentifier(
-              member.isStatic ? staticScope : instanceScope,
+              isStatic ? staticScope : instanceScope,
               field.name,
               fragment: fieldElement.getter!.firstFragment,
               originFragment: fieldFragment,
             );
             if (fieldElement.setter case var setter?) {
               _checkDuplicateIdentifier(
-                member.isStatic ? staticScope : instanceScope,
+                isStatic ? staticScope : instanceScope,
                 field.name,
                 fragment: setter.firstFragment,
                 originFragment: fieldFragment,
@@ -150,18 +150,19 @@ class MemberDuplicateDefinitionVerifier {
               _checkValuesDeclarationInEnum(field.name);
             }
           }
-        case MethodDeclarationImpl():
+        case MethodDeclarationV1OriginImpl():
+          var isStatic = member.staticKeyword != null;
           _checkDuplicateIdentifier(
-            member.isStatic ? staticScope : instanceScope,
-            member.name,
+            isStatic ? staticScope : instanceScope,
+            member.nameToken,
             fragment: member.declaredFragment!,
           );
           if (fragment is EnumFragmentImpl) {
-            if (!(member.isStatic && member.isSetter)) {
-              _checkValuesDeclarationInEnum(member.name);
+            if (!(isStatic && member is SetterDeclarationImpl)) {
+              _checkValuesDeclarationInEnum(member.nameToken);
             }
           }
-        case PrimaryConstructorBodyImpl():
+        case PrimaryConstructorBody2Impl():
           // Not an actual declaration.
           break;
       }
@@ -177,7 +178,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkClassStatic(
     InstanceFragmentImpl fragment,
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
   ) {
     var firstFragment = fragment.element.firstFragment;
 
@@ -187,10 +188,10 @@ class MemberDuplicateDefinitionVerifier {
     // Check for local static members conflicting with local instance members.
     // TODO(scheglov): This code is duplicated for enums. But for classes it is
     // separated also into ErrorVerifier - where we check inherited.
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration) {
-        if (member.isStatic) {
-          for (VariableDeclaration field in member.fields.variables) {
+    for (var member in members) {
+      if (member is FieldsDeclaration) {
+        if (member.staticKeyword != null) {
+          for (var field in member.fields) {
             var identifier = field.name;
             String name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {
@@ -209,9 +210,9 @@ class MemberDuplicateDefinitionVerifier {
             }
           }
         }
-      } else if (member is MethodDeclaration) {
-        if (member.isStatic) {
-          var identifier = member.name;
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        if (member.staticKeyword != null) {
+          var identifier = member.nameToken;
           String name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
             if (firstFragment is InterfaceFragmentImpl) {
@@ -345,7 +346,7 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   /// Check that there are no members with the same name.
-  void _checkEnum(EnumDeclarationImpl node) {
+  void _checkEnum(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
 
@@ -419,7 +420,7 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  void _checkEnumStatic(EnumDeclarationImpl node) {
+  void _checkEnumStatic(EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
     var declarationName = firstFragment.name;
@@ -478,21 +479,21 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   /// Check that there are no members with the same name.
-  void _checkExtension(covariant ExtensionDeclarationImpl node) {
+  void _checkExtension(covariant ExtensionDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     _checkClassMembers(fragment, node.body.members);
   }
 
-  void _checkExtensionStatic(covariant ExtensionDeclarationImpl node) {
+  void _checkExtensionStatic(covariant ExtensionDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var firstFragment = fragment.element.firstFragment;
 
     var elementContext = _getElementContext(firstFragment);
     var instanceScope = elementContext.instanceScope;
     for (var member in node.body.members) {
-      if (member is FieldDeclarationImpl) {
-        if (member.isStatic) {
-          for (var field in member.fields.variables) {
+      if (member is FieldsDeclarationImpl) {
+        if (member.staticKeyword != null) {
+          for (var field in member.fields) {
             var identifier = field.name;
             var name = identifier.lexeme;
             if (instanceScope.containsKey(name)) {
@@ -504,9 +505,9 @@ class MemberDuplicateDefinitionVerifier {
             }
           }
         }
-      } else if (member is MethodDeclarationImpl) {
-        if (member.isStatic) {
-          var identifier = member.name;
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        if (member.staticKeyword != null) {
+          var identifier = member.nameToken;
           var name = identifier.lexeme;
           if (instanceScope.containsKey(name)) {
             _diagnosticReporter.report(
@@ -520,7 +521,7 @@ class MemberDuplicateDefinitionVerifier {
     }
   }
 
-  void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
+  void _checkExtensionType(ExtensionTypeDeclaration2Impl node) {
     _checkClassMembers(
       node.declaredFragment!,
       node.body.members,
@@ -528,24 +529,24 @@ class MemberDuplicateDefinitionVerifier {
     );
   }
 
-  void _checkMixin(MixinDeclarationImpl node) {
+  void _checkMixin(MixinDeclaration2Impl node) {
     _checkClassMembers(node.declaredFragment!, node.body.members);
   }
 
   void _checkUnit(CompilationUnitImpl node) {
     for (var node in node.declarations2) {
       switch (node) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           _checkClass(node);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _checkExtension(node);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _checkEnum(node);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           _checkExtensionType(node);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           _checkMixin(node);
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
         case TopLevelFunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
         case TopLevelSetterDeclarationImpl():
@@ -561,20 +562,20 @@ class MemberDuplicateDefinitionVerifier {
   void _checkUnitStatic(CompilationUnitImpl node) {
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.body.members);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           _checkEnumStatic(declaration);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           _checkExtensionStatic(declaration);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.body.members);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.body.members);
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
         case TopLevelFunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
         case TopLevelSetterDeclarationImpl():

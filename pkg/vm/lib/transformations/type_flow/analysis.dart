@@ -49,28 +49,23 @@ import 'utils.dart';
 
 /// Maintains set of dependent invocations.
 class _DependencyTracker {
-  Set<_Invocation>? _dependentInvocations;
+  SmallSet<_Invocation> _dependentInvocations = const SmallSet.empty();
 
   void addDependentInvocation(_Invocation invocation) {
     if (!identical(invocation, this)) {
-      var dependentInvocations = _dependentInvocations;
-      if (dependentInvocations == null) {
-        _dependentInvocations = dependentInvocations = Set<_Invocation>();
-      }
-      dependentInvocations.add(invocation);
+      _dependentInvocations = _dependentInvocations.add(invocation);
     }
   }
 
   void invalidateDependentInvocations(_WorkList workList) {
-    final dependentInvocations = _dependentInvocations;
-    if (dependentInvocations != null) {
+    if (!_dependentInvocations.isEmpty) {
       if (kPrintTrace) {
         tracePrint('   - CHANGED: $this');
-        for (var di in dependentInvocations) {
+        _dependentInvocations.forEach((di) {
           tracePrint('     - invalidating $di');
-        }
+        });
       }
-      dependentInvocations.forEach(workList.invalidateInvocation);
+      _dependentInvocations.forEach(workList.invalidateInvocation);
     }
   }
 }
@@ -171,13 +166,13 @@ abstract base class _Invocation extends _DependencyTracker
       callKind: CallKind.Method,
     );
 
-    final nsmArgs = new Args<Type>([
+    final nsmArgs = Args.two(
       receiver,
       typeFlowAnalysis.hierarchyCache.fromStaticType(
         typeFlowAnalysis.coreTypes.invocationNonNullableRawType,
         false,
       ),
-    ]);
+    );
 
     final nsmInvocation = typeFlowAnalysis._invocationsCache.getInvocation(
       nsmSelector,
@@ -417,16 +412,19 @@ final class _DirectInvocation extends _Invocation {
           assert(numTypeParams(member) == 0);
           args = Args.withReceiver(args, receiver);
         } else {
-          // Drop closure receiver.
-          List<Type> argValues = args.values.sublist(1);
-          // Prepend type parameters if target member needs them.
+          // Drop closure receiver and prepend type parameters if target member
+          // needs them.
           final numTypeParameters = numTypeParams(member);
-          if (numTypeParameters != 0) {
-            argValues = [
-              for (int i = 0; i < numTypeParameters; ++i) unknownType,
-              ...argValues,
-            ];
-          }
+          final argValues = List<Type>.filled(
+            numTypeParameters + (args.values.length - 1),
+            unknownType,
+          );
+          argValues.setRange(
+            numTypeParameters,
+            argValues.length,
+            args.values,
+            1,
+          );
           args = Args(argValues, names: args.names);
         }
         final result = typeFlowAnalysis.applyCall(
@@ -499,7 +497,7 @@ final class _DirectInvocation extends _Invocation {
         final receiver = typeFlowAnalysis.applyCall(
           /* callSite = */ null,
           DirectSelector(member, callKind: CallKind.PropertyGet),
-          Args([args.receiver]),
+          Args.one(args.receiver),
         );
         return _processCallWithSubstitutedReceiver(receiver, typeFlowAnalysis);
       }
@@ -509,7 +507,8 @@ final class _DirectInvocation extends _Invocation {
 
 final class _DispatchableInvocation extends _Invocation {
   bool _isPolymorphic = false;
-  Set<Call>? _callSites; // Populated only if not polymorphic.
+  // Populated only if not polymorphic.
+  SmallSet<Call> _callSites = const SmallSet.empty();
   Member? _monomorphicTarget;
   _DirectInvocation? _monomorphicDirectInvocation;
 
@@ -935,7 +934,7 @@ final class _DispatchableInvocation extends _Invocation {
       typeChecksNeeded = true;
 
       _notifyCallSites();
-      _callSites = null;
+      _callSites = const SmallSet.empty();
     }
   }
 
@@ -950,7 +949,7 @@ final class _DispatchableInvocation extends _Invocation {
   void addCallSite(Call callSite) {
     _notifyCallSite(callSite);
     if (!callSite.isPolymorphic || !callSite.useCheckedEntry) {
-      (_callSites ??= new Set<Call>()).add(callSite);
+      _callSites = _callSites.add(callSite);
     }
   }
 
@@ -974,10 +973,7 @@ final class _DispatchableInvocation extends _Invocation {
   /// Notify call sites monitoring this invocation about changes in
   /// polymorphism of this invocation.
   void _notifyCallSites() {
-    final callSites = _callSites;
-    if (callSites != null) {
-      callSites.forEach(_notifyCallSite);
-    }
+    _callSites.forEach(_notifyCallSite);
   }
 
   @override
@@ -1045,7 +1041,7 @@ class _ReceiverTypeBuilder {
       if (list == null) {
         t = emptyType;
       } else {
-        t = SetType(list);
+        t = SetType(List.of(list, growable: false));
       }
     } else {
       assert(_list == null);
@@ -1127,7 +1123,7 @@ class _SelectorApproximation {
   }
 
   Args<Type> approximateArgs() {
-    final approxValues = List<Type>.from(_rawSelectorArgs.values);
+    final approxValues = List.of(_rawSelectorArgs.values, growable: false);
     for (int i = 0; i < _values.length; i++) {
       if (_values[i] case final canonical?) {
         approxValues[i] = canonical;
@@ -1301,11 +1297,10 @@ class _FieldValue extends _DependencyTracker {
   ) {
     if (field.initializer != null) {
       assert(field.isStatic == (receiverType == null));
-      final args = !field.isStatic ? <Type>[receiverType!] : const <Type>[];
       final initializerInvocation = typeFlowAnalysis._invocationsCache
           .getInvocation(
             new DirectSelector(field, callKind: CallKind.FieldInitializer),
-            new Args<Type>(args),
+            !field.isStatic ? Args.one(receiverType!) : Args.empty,
           );
 
       // It may update the field value.
@@ -1314,12 +1309,15 @@ class _FieldValue extends _DependencyTracker {
   }
 
   Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type? receiverType) {
+    if (receiverType is RecordConcreteType && !receiverType.isRaw) {
+      return receiverType.getFieldType(field.name);
+    }
     ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
     final typeGuardSummary = this.typeGuardSummary;
     return (typeGuardSummary != null)
         ? typeGuardSummary.apply(
-            Args([receiverType!, value]),
+            Args.two(receiverType!, value),
             typeFlowAnalysis.hierarchyCache,
             typeFlowAnalysis,
           )
@@ -1361,7 +1359,7 @@ class _FieldValue extends _DependencyTracker {
     final narrowedNewValue = typeGuardSummary != null
         ? typeGuardSummary
               .apply(
-                new Args([receiverType!, newValue]),
+                Args.two(receiverType!, newValue),
                 hierarchy,
                 typeFlowAnalysis,
               )
@@ -1524,10 +1522,9 @@ class _TFClassImpl extends TFClass {
     } else if (numSubTypes == 1) {
       return _allocatedSubtypes.single.concreteType;
     } else {
-      List<ConcreteType> types = <ConcreteType>[];
-      for (var sub in _allocatedSubtypes) {
-        types.add(sub.concreteType);
-      }
+      final types = _allocatedSubtypes
+          .map((sub) => sub.concreteType)
+          .toList(growable: false);
       // SetType constructor expects a list of ConcreteTypes sorted by classId
       // (for faster intersections and unions).
       types.sort();
@@ -1758,11 +1755,6 @@ class _ClassHierarchyCache extends TypeHierarchy {
   }
 
   @override
-  Type getRecordType(RecordShape shape, bool allocated) {
-    final cls = getRecordClass(shape);
-    return allocated ? addAllocatedClass(cls) : cls.coneType;
-  }
-
   _TFClassImpl getRecordClass(RecordShape shape) =>
       recordClasses[shape] ??= _createRecordClass(shape);
 
@@ -1958,7 +1950,7 @@ class _WorkList {
       final initializerInvocation = _typeFlowAnalysis._invocationsCache
           .getInvocation(
             DirectSelector(field, callKind: CallKind.FieldInitializer),
-            Args<Type>(const <Type>[]),
+            Args.empty,
           );
       invalidateInvocation(initializerInvocation);
     }
@@ -2389,6 +2381,17 @@ class TypeFlowAnalysis
       debugPrint("ADD ALLOCATED CLASS: $c");
     }
     return hierarchyCache.addAllocatedClass(hierarchyCache.getTFClass(c));
+  }
+
+  @override
+  RecordConcreteType addAllocatedRecord(RecordShape shape) {
+    if (kPrintDebug) {
+      debugPrint("ADD ALLOCATED RECORD: $shape");
+    }
+    return hierarchyCache.addAllocatedClass(
+          hierarchyCache.getRecordClass(shape),
+        )
+        as RecordConcreteType;
   }
 
   @override

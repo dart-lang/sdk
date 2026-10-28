@@ -27,7 +27,7 @@ augment extension type A(int it) {}
 
     var node = result.findNode.extensionTypeDeclaration('augment');
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   augmentKeyword: augment
   extensionKeyword: extension
   typeKeyword: type
@@ -47,7 +47,20 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@52
+V1: ExtensionTypeDeclaration
+  augmentKeyword: augment
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -79,10 +92,10 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -103,7 +116,19 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@37
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -135,11 +160,11 @@ extension type const A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -152,7 +177,23 @@ ConstructorDeclaration
           element: isPublic
             type: int
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  separator: =
+  factoryRedirectionTarget: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      element: <testLibrary>::@extensionType::A
+      type: A
+    element: <testLibrary>::@extensionType::A::@constructor::new
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@49
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function(int)
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -165,20 +206,14 @@ ConstructorDeclaration
           type: int
     rightParenthesis: )
   separator: =
-  factoryRedirectionTarget: ConstructorReference2
-    typeReference: ConstructorTypeReference
-      name: A
-      element: <testLibrary>::@extensionType::A
-      type: A
-    element: <testLibrary>::@extensionType::A::@constructor::new
-  body: EmptyFunctionBody
-    semicolon: ;
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
       element: <testLibrary>::@extensionType::A
       type: A
     element: <testLibrary>::@extensionType::A::@constructor::new
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> named@49
     element: <testLibrary>::@extensionType::A::@constructor::named
       type: A Function(int)
@@ -194,9 +229,9 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -220,7 +255,18 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -257,15 +303,11 @@ extension type const A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   constKeyword: const
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-    element: <testLibrary>::@extensionType::A
-    staticType: null
-  parameters: FormalParameterList
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -277,18 +319,6 @@ ConstructorDeclaration
         declaredFragment: <testLibraryFragment> it@61
           element: isPublic
             type: int
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
-    parameter: RegularFormalParameter
-      type: NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-      name: it
-      declaredFragment: <testLibraryFragment> it@61
-        element: isPublic
-          type: int
     rightParenthesis: )
   separator: =
   factoryRedirectionTarget: ConstructorReference2
@@ -302,6 +332,29 @@ ConstructorDeclaration
     element: <testLibrary>::@extensionType::A::@constructor::named
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function(int)
+V1: ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      name: it
+      declaredFragment: <testLibraryFragment> it@61
+        element: isPublic
+          type: int
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -313,6 +366,8 @@ ConstructorDeclaration
       element: <testLibrary>::@extensionType::A::@constructor::named
       staticType: null
     element: <testLibrary>::@extensionType::A::@constructor::named
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@extensionType::A::@constructor::new
       type: A Function(int)
@@ -328,7 +383,29 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@33
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
   newKeyword: new
   name: named
   parameters: FormalParameterList
@@ -339,13 +416,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -366,7 +442,30 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@39
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   name: named
@@ -378,13 +477,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -405,7 +503,28 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
   newKeyword: new
   parameters: FormalParameterList
     leftParenthesis: (
@@ -415,13 +534,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -442,7 +560,29 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
+  constKeyword: const
+  newKeyword: new
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
   constKeyword: const
   newKeyword: new
   parameters: FormalParameterList
@@ -453,13 +593,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -480,16 +619,12 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-    element: <testLibrary>::@extensionType::A
-    staticType: null
+  typeName: A
   period: .
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -510,7 +645,24 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@39
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -542,14 +694,10 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-    element: <testLibrary>::@extensionType::A
-    staticType: null
-  parameters: FormalParameterList
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -573,7 +721,22 @@ ConstructorDeclaration
             staticType: int
         rightParenthesis: )
       staticType: A
-    expression(v1): InstanceCreationExpression
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@extensionType::A
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: InstanceCreationExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
@@ -610,9 +773,31 @@ extension type A(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: A
+  period: .
+  name: named
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> named@31
+    element: <testLibrary>::@extensionType::A::@constructor::named
+      type: A Function()
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -626,13 +811,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -653,9 +837,29 @@ extension type A.named(int it) {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName2: it
+      equals: =
+      expression2: IntegerLiteral
+        literal: 0
+        staticType: int
+      fieldElement: <testLibrary>::@extensionType::A::@field::it
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@extensionType::A::@constructor::new
+      type: A Function()
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
@@ -667,13 +871,12 @@ ConstructorDeclaration
     ConstructorFieldInitializer
       thisKeyword: this
       period: .
-      fieldName2: it
-      fieldName(v1): SimpleIdentifier
+      fieldName: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@field::it
         staticType: null
       equals: =
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       fieldElement: <testLibrary>::@extensionType::A::@field::it
@@ -695,7 +898,7 @@ extension type A(String it) {
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -714,7 +917,52 @@ ExtensionTypeDeclaration
               type: String
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(String)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> foo@49
+        semicolon: ;
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        fields
+          Field
+            name: bar
+            equals: =
+            initializer: IntegerLiteral
+              literal: 1
+              staticType: int
+            declaredFragment: <testLibraryFragment> bar@77
+        semicolon: ;
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -745,7 +993,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: foo
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
                 staticType: int
               declaredFragment: <testLibraryFragment> foo@49
@@ -763,7 +1011,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: bar
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 1
                 staticType: int
               declaredFragment: <testLibraryFragment> bar@77
@@ -781,7 +1029,7 @@ extension type A(int it) implements num {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -800,7 +1048,26 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: num
+        element: dart:core::@class::num
+        type: num
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -842,7 +1109,7 @@ extension type A<T>(int it) {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
     element: <null>
@@ -856,7 +1123,7 @@ MethodDeclaration
         declaredFragment: <testLibraryFragment> U@41
           defaultType: dynamic
     rightBracket: >
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -877,27 +1144,6 @@ MethodDeclaration
         declaredFragment: <testLibraryFragment> u@51
           element: isPublic
             type: U
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
-    parameter: RegularFormalParameter
-      type: NamedType
-        name: T
-        element: #E0 T
-        type: T
-      name: t
-      declaredFragment: <testLibraryFragment> t@46
-        element: isPublic
-          type: T
-    parameter: RegularFormalParameter
-      type: NamedType
-        name: U
-        element: #E1 U
-        type: U
-      name: u
-      declaredFragment: <testLibraryFragment> u@51
-        element: isPublic
-          type: U
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
@@ -923,6 +1169,65 @@ MethodDeclaration
   declaredFragment: <testLibraryFragment> foo@37
     element: <testLibrary>::@extensionType::A::@method::foo
       type: void Function<U>(T, U)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@41
+          defaultType: dynamic
+    rightBracket: >
+  parameters: FormalParameterList
+    leftParenthesis: (
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: T
+        element: #E0 T
+        type: T
+      name: t
+      declaredFragment: <testLibraryFragment> t@46
+        element: isPublic
+          type: T
+    parameter: RegularFormalParameter
+      type: NamedType
+        name: U
+        element: #E1 U
+        type: U
+      name: u
+      declaredFragment: <testLibraryFragment> u@51
+        element: isPublic
+          type: U
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: TypeLiteral
+            type: NamedType
+              name: T
+              element: #E0 T
+              type: T
+            staticType: Type
+          semicolon: ;
+        ExpressionStatement
+          expression: TypeLiteral
+            type: NamedType
+              name: U
+              element: #E1 U
+              type: U
+            staticType: Type
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@37
+    element: <testLibrary>::@extensionType::A::@method::foo
+      type: void Function<U>(T, U)
 ''');
   }
 
@@ -933,7 +1238,7 @@ extension type A({int a = 0}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -960,7 +1265,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::a
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({int a})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -997,7 +1314,7 @@ extension type A([int a = 0]) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1024,7 +1341,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::a
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function([int])
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -1063,7 +1392,7 @@ extension type A(this.it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1080,7 +1409,19 @@ ExtensionTypeDeclaration
               type: dynamic
               field: <null>
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(dynamic)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         thisKeyword: this
@@ -1111,7 +1452,7 @@ extension type A(this.it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1128,7 +1469,19 @@ ExtensionTypeDeclaration
               type: dynamic
               field: <null>
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(dynamic)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: FieldFormalParameter
         thisKeyword: this
@@ -1156,7 +1509,7 @@ extension type A(int it()) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1179,7 +1532,19 @@ ExtensionTypeDeclaration
               type: int Function()
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int Function())
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1216,7 +1581,7 @@ extension type A(int it()) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1239,7 +1604,19 @@ ExtensionTypeDeclaration
               type: int Function()
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int Function())
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1275,7 +1652,7 @@ extension type A(const int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1295,7 +1672,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
@@ -1329,7 +1718,7 @@ extension type A(const int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1349,7 +1738,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: const
@@ -1382,7 +1783,7 @@ extension type A(covariant int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1402,7 +1803,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -1436,7 +1849,7 @@ extension type A(covariant int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1456,7 +1869,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         covariantKeyword: covariant
@@ -1487,7 +1912,7 @@ extension type A(final int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1507,7 +1932,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1541,7 +1978,7 @@ extension type A(final int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1561,7 +1998,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1592,7 +2041,7 @@ extension type A(final it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1608,7 +2057,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1640,7 +2101,7 @@ extension type A(final it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1656,7 +2117,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: final
@@ -1685,7 +2158,7 @@ extension type A(required int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1705,7 +2178,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         requiredKeyword: required
@@ -1738,7 +2223,7 @@ extension type A(static int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1757,7 +2242,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -1789,7 +2286,7 @@ extension type A(var it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1805,7 +2302,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -1837,7 +2346,7 @@ extension type A(var it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1853,7 +2362,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         constFinalOrVarKeyword: var
@@ -1880,7 +2401,7 @@ extension type A({int? it}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1903,7 +2424,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::it
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({int? it})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1939,7 +2472,7 @@ extension type A({int? it}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -1962,7 +2495,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::it
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({int? it})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -1997,7 +2542,7 @@ extension type A({int? a, int? b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2030,7 +2575,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({int? a, int? b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2076,7 +2633,7 @@ extension type A({int? a, int? b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2109,7 +2666,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({int? a, int? b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2154,7 +2723,7 @@ extension type A({int? a, required int b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2187,7 +2756,19 @@ ExtensionTypeDeclaration
                 type: int
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({int? a, required int b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2230,7 +2811,7 @@ extension type A([int? it]) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2253,7 +2834,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::it
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function([int?])
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2289,7 +2882,7 @@ extension type A([int? it]) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2312,7 +2905,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::it
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function([int?])
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2347,7 +2952,7 @@ extension type A([int? a, int? b]) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2380,7 +2985,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function([int?, int?])
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2426,7 +3043,7 @@ extension type A([int? a, int? b]) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2459,7 +3076,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: ]
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function([int?, int?])
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: [
       parameter: RegularFormalParameter
@@ -2502,7 +3131,7 @@ extension type A({required int it}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2525,7 +3154,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::it
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({required int it})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2561,7 +3202,7 @@ extension type A({required int it}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2584,7 +3225,19 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::it
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({required int it})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2619,7 +3272,7 @@ extension type A({required int a, int? b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2652,7 +3305,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({required int a, int? b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2697,7 +3362,7 @@ extension type A({required int a, required int b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2730,7 +3395,19 @@ ExtensionTypeDeclaration
                 type: int
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({required int a, required int b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -2773,7 +3450,7 @@ extension type A(int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2792,7 +3469,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2823,7 +3512,7 @@ extension type A(int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2842,7 +3531,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2874,7 +3575,7 @@ extension type A(int a, {int? b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2907,7 +3608,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int, {int? b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -2952,7 +3665,7 @@ extension type A(int a, {int? b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -2985,7 +3698,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int, {int? b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3029,7 +3754,7 @@ extension type A(int a, {int? b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3062,7 +3787,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int, {int? b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3107,7 +3844,7 @@ extension type A(int a, {int? b}) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3140,7 +3877,19 @@ ExtensionTypeDeclaration
                 type: int?
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int, {int? b})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3184,7 +3933,7 @@ extension type A(int a, int b) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3212,7 +3961,19 @@ ExtensionTypeDeclaration
             element: isPublic
               type: int
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int, int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3254,7 +4015,7 @@ extension type A(int a, int b) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3282,7 +4043,19 @@ ExtensionTypeDeclaration
             element: isPublic
               type: int
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int, int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3323,7 +4096,7 @@ extension type A(int A) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3342,7 +4115,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::A
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3375,7 +4160,7 @@ extension type A(int A) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3394,7 +4179,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::A
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3424,7 +4221,7 @@ extension type A(@deprecated int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3440,13 +4237,8 @@ ExtensionTypeDeclaration
                 name: deprecated
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
-              name: SimpleIdentifier
-                token: deprecated
-                element: dart:core::@getter::deprecated
-                staticType: null
               element: dart:core::@getter::deprecated
           type: NamedType
             name: int
@@ -3458,7 +4250,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -3498,7 +4302,22 @@ extension type A() {}
 
     var node = result.findNode.extensionTypeDeclaration('A');
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function()
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3526,7 +4345,22 @@ extension type A() {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function()
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3551,7 +4385,7 @@ extension type A(it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3566,7 +4400,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
@@ -3595,7 +4441,7 @@ extension type A(it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3610,7 +4456,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: it
@@ -3636,7 +4494,7 @@ extension type A(@deprecated it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3652,13 +4510,8 @@ ExtensionTypeDeclaration
                 name: deprecated
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
-              name: SimpleIdentifier
-                token: deprecated
-                element: dart:core::@getter::deprecated
-                staticType: null
               element: dart:core::@getter::deprecated
           name: it
           declaredFragment: <testLibraryFragment> it@29
@@ -3666,7 +4519,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -3703,7 +4568,7 @@ extension type A(@deprecated it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3719,13 +4584,8 @@ ExtensionTypeDeclaration
                 name: deprecated
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
-              name: SimpleIdentifier
-                token: deprecated
-                element: dart:core::@getter::deprecated
-                staticType: null
               element: dart:core::@getter::deprecated
           name: it
           declaredFragment: <testLibraryFragment> it@45
@@ -3733,7 +4593,19 @@ ExtensionTypeDeclaration
               type: Object?
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(Object?)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         metadata
@@ -3771,7 +4643,7 @@ extension type A(int it) {
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3790,7 +4662,35 @@ ExtensionTypeDeclaration
               type: InvalidType
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(InvalidType)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        fields
+          Field
+            name: int
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: 'not a type'
+            declaredFragment: <testLibraryFragment> int@49
+        semicolon: ;
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3821,7 +4721,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@49
         semicolon: ;
@@ -3841,7 +4741,7 @@ extension type A(int it) {
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3860,7 +4760,35 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: const
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        fields
+          Field
+            name: int
+            equals: =
+            initializer: SimpleStringLiteral
+              literal: 'not a type'
+            declaredFragment: <testLibraryFragment> int@65
+        semicolon: ;
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -3891,7 +4819,7 @@ ExtensionTypeDeclaration
             VariableDeclaration
               name: int
               equals: =
-              initializer2: SimpleStringLiteral
+              initializer: SimpleStringLiteral
                 literal: 'not a type'
               declaredFragment: <testLibraryFragment> int@65
         semicolon: ;
@@ -3910,7 +4838,7 @@ extension type A(super.it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3926,7 +4854,19 @@ ExtensionTypeDeclaration
             element: hasImplicitType isFinal isPublic
               type: dynamic
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(dynamic)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
@@ -3956,7 +4896,7 @@ extension type A(super.it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -3972,7 +4912,19 @@ ExtensionTypeDeclaration
             element: hasImplicitType isFinal isPublic
               type: dynamic
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(dynamic)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: SuperFormalParameter
         superKeyword: super
@@ -3999,7 +4951,7 @@ extension type A(int it,) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4018,7 +4970,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4051,7 +5015,7 @@ extension type A(int it,) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4070,7 +5034,19 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@31
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4104,7 +5080,22 @@ extension type E {}
 
     var node = result.findNode.extensionTypeDeclaration('extension type E');
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: E
+    formalParameters: FormalParameterList
+      leftParenthesis: ( <synthetic>
+      rightParenthesis: ) <synthetic>
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::E::@constructor::new
+        type: E Function()
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> E@15
+V1: ExtensionTypeDeclaration
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4129,7 +5120,7 @@ extension type A.named(int it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4151,7 +5142,22 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> named@17
+      element: <testLibrary>::@extensionType::A::@constructor::named
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    constructorName: PrimaryConstructorName
+      period: .
+      name: named
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4197,7 +5203,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             name: SimpleIdentifier
@@ -4222,7 +5227,6 @@ PrimaryConstructorDeclaration
                 name: foo
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@extensionType::E::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -4241,7 +5245,6 @@ PrimaryConstructorDeclaration
               name: foo
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@extensionType::E::@getter::foo
-                invokeType: int Function()
                 type: int
               staticType: int
             value(v1): SimpleIdentifier
@@ -4369,7 +5372,7 @@ extension type A({bool it = false}) {
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4396,7 +5399,77 @@ ExtensionTypeDeclaration
                 field: <testLibrary>::@extensionType::A::@field::it
         rightDelimiter: }
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function({bool it})
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody2
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition2: UnqualifiedNameExpression
+              name: it
+              resolution: VariableReadResolution
+                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                type: bool
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ExpressionStatement
+                expression2: UnqualifiedNameExpression
+                  name: it
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@extensionType::A::@getter::it
+                    type: bool
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+      PrimaryConstructorBody2
+        thisKeyword: this
+        colon: :
+        initializers
+          AssertInitializer
+            assertKeyword: assert
+            leftParenthesis: (
+            condition2: LogicalNot
+              operator: !
+              operand: UnqualifiedNameExpression
+                name: it
+                resolution: VariableReadResolution
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  type: bool
+                staticType: bool
+              staticType: bool
+            rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements2
+              ExpressionStatement
+                expression2: UnqualifiedNameExpression
+                  name: it
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@extensionType::A::@getter::it
+                    type: bool
+                  staticType: bool
+                semicolon: ;
+            rightBracket: }
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       leftDelimiter: {
       parameter: RegularFormalParameter
@@ -4429,13 +5502,7 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: UnqualifiedNameExpression
-              name: it
-              resolution: VariableReadResolution
-                element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-                type: bool
-              staticType: bool
-            condition(v1): SimpleIdentifier
+            condition: SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
               staticType: bool
@@ -4443,16 +5510,9 @@ ExtensionTypeDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements2
+            statements
               ExpressionStatement
-                expression2: UnqualifiedNameExpression
-                  name: it
-                  resolution: GetterInvocationResolution
-                    element: <testLibrary>::@extensionType::A::@getter::it
-                    invokeType: bool Function()
-                    type: bool
-                  staticType: bool
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4465,16 +5525,7 @@ ExtensionTypeDeclaration
           AssertInitializer
             assertKeyword: assert
             leftParenthesis: (
-            condition2: LogicalNot
-              operator: !
-              operand: UnqualifiedNameExpression
-                name: it
-                resolution: VariableReadResolution
-                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-                  type: bool
-                staticType: bool
-              staticType: bool
-            condition(v1): PrefixExpression
+            condition: PrefixExpression
               operator: !
               operand: SimpleIdentifier
                 token: it
@@ -4486,16 +5537,9 @@ ExtensionTypeDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements2
+            statements
               ExpressionStatement
-                expression2: UnqualifiedNameExpression
-                  name: it
-                  resolution: GetterInvocationResolution
-                    element: <testLibrary>::@extensionType::A::@getter::it
-                    invokeType: bool Function()
-                    type: bool
-                  staticType: bool
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: it
                   element: <testLibrary>::@extensionType::A::@getter::it
                   staticType: bool
@@ -4516,7 +5560,7 @@ extension type A(int it) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   metadata
     Annotation
       atSign: @
@@ -4524,9 +5568,16 @@ PrimaryConstructorBody
         name: deprecated
         resolution: GetterInvocationResolution
           element: dart:core::@getter::deprecated
-          invokeType: Deprecated Function()
           type: Deprecated
         staticType: Deprecated
+      element: dart:core::@getter::deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -4547,7 +5598,7 @@ extension type A({bool it = false}) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -4560,7 +5611,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4579,7 +5640,7 @@ extension type A(bool it) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   colon: :
   initializers
@@ -4592,7 +5653,17 @@ PrimaryConstructorBody
           element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           type: bool
         staticType: bool
-      condition(v1): SimpleIdentifier
+      rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    AssertInitializer
+      assertKeyword: assert
+      leftParenthesis: (
+      condition: SimpleIdentifier
         token: it
         element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
         staticType: bool
@@ -4615,7 +5686,7 @@ extension type A(int it) {
 
     var node = result.findNode.singlePrimaryConstructorBody;
     assertResolvedNodeText(node, r'''
-PrimaryConstructorBody
+PrimaryConstructorBody2
   thisKeyword: this
   body: BlockFunctionBody
     block: Block
@@ -4626,12 +5697,7 @@ PrimaryConstructorBody
             name: it
             resolution: GetterInvocationResolution
               element: <testLibrary>::@extensionType::A::@getter::it
-              invokeType: int Function()
               type: int
-            staticType: int
-          expression(v1): SimpleIdentifier
-            token: it
-            element: <testLibrary>::@extensionType::A::@getter::it
             staticType: int
           semicolon: ;
         ExpressionStatement
@@ -4641,7 +5707,22 @@ PrimaryConstructorBody
               element: <testLibrary>::@extensionType::A::@method::foo
               type: void Function()
             staticType: void Function()
-          expression(v1): SimpleIdentifier
+          semicolon: ;
+      rightBracket: }
+V1: PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: it
+            element: <testLibrary>::@extensionType::A::@getter::it
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
             token: foo
             element: <testLibrary>::@extensionType::A::@method::foo
             staticType: void Function()
@@ -4659,7 +5740,7 @@ extension type A(int it) {
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4678,7 +5759,41 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      ConstructorDeclaration2
+        typeName: A
+        period: .
+        name: named
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            FieldFormalParameter
+              thisKeyword: this
+              period: .
+              name: it
+              declaredFragment: <testLibraryFragment> it@42
+                element: hasImplicitType isFinal isPublic
+                  type: int
+                  field: <testLibrary>::@extensionType::A::@field::it
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> named@31
+          element: <testLibrary>::@extensionType::A::@constructor::named
+            type: A Function(int)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4698,26 +5813,13 @@ ExtensionTypeDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        typeName2: A
-        typeName(v1): SimpleIdentifier
+        typeName: SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
         period: .
         name: named
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            FieldFormalParameter
-              thisKeyword: this
-              period: .
-              name: it
-              declaredFragment: <testLibraryFragment> it@42
-                element: hasImplicitType isFinal isPublic
-                  type: int
-                  field: <testLibrary>::@extensionType::A::@field::it
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: FieldFormalParameter
             thisKeyword: this
@@ -4747,7 +5849,7 @@ extension type A(num it) {
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4766,7 +5868,55 @@ ExtensionTypeDeclaration
               type: num
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(num)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      ConstructorDeclaration2
+        constKeyword: const
+        typeName: A
+        period: .
+        name: named
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+                element: dart:core::@class::int
+                type: int
+              name: a
+              declaredFragment: <testLibraryFragment> a@47
+                element: isPublic
+                  type: int
+          rightParenthesis: )
+        separator: :
+        initializers
+          ConstructorFieldInitializer
+            fieldName2: it
+            equals: =
+            expression2: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
+                type: int
+              staticType: int
+            fieldElement: <testLibrary>::@extensionType::A::@field::it
+        body: EmptyFunctionBody
+          semicolon: ;
+        declaredFragment: <testLibraryFragment> named@37
+          element: <testLibrary>::@extensionType::A::@constructor::named
+            type: A Function(int)
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4787,27 +5937,13 @@ ExtensionTypeDeclaration
     members
       ConstructorDeclaration
         constKeyword: const
-        typeName2: A
-        typeName(v1): SimpleIdentifier
+        typeName: SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
         period: .
         name: named
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-                element: dart:core::@class::int
-                type: int
-              name: a
-              declaredFragment: <testLibraryFragment> a@47
-                element: isPublic
-                  type: int
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4822,19 +5958,12 @@ ExtensionTypeDeclaration
         separator: :
         initializers
           ConstructorFieldInitializer
-            fieldName2: it
-            fieldName(v1): SimpleIdentifier
+            fieldName: SimpleIdentifier
               token: it
               element: <testLibrary>::@extensionType::A::@field::it
               staticType: null
             equals: =
-            expression2: UnqualifiedNameExpression
-              name: a
-              resolution: VariableReadResolution
-                element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
-                type: int
-              staticType: int
-            expression(v1): SimpleIdentifier
+            expression: SimpleIdentifier
               token: a
               element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
               staticType: int
@@ -4872,7 +6001,7 @@ extension type A<T, U>(Map<T, U> it) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4915,7 +6044,31 @@ ExtensionTypeDeclaration
               type: Map<T, U>
               field: <testLibrary>::@extensionType::A::@field::it
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A<T, U> Function(Map<T, U>)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@17
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@20
+            defaultType: dynamic
+      rightBracket: >
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -4957,7 +6110,7 @@ extension type ET<_, _, _ extends num>(int _) {}
 
     var node = result.findNode.singleExtensionTypeDeclaration;
     assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
+ExtensionTypeDeclaration2
   extensionKeyword: extension
   typeKeyword: type
   namePart: PrimaryConstructorDeclaration
@@ -4997,7 +6150,40 @@ ExtensionTypeDeclaration
               type: int
               field: <testLibrary>::@extensionType::ET::@field::_
       rightParenthesis: )
-    formalParameters(v1): FormalParameterList
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::ET::@constructor::new
+        type: ET<_, _, _> Function(int)
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> ET@15
+V1: ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: ET
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: _
+          declaredFragment: <testLibraryFragment> _@18
+            defaultType: dynamic
+        TypeParameter
+          name: _
+          declaredFragment: <testLibraryFragment> _@21
+            defaultType: dynamic
+        TypeParameter
+          name: _
+          extendsKeyword: extends
+          bound: NamedType
+            name: num
+            element: dart:core::@class::num
+            type: num
+          declaredFragment: <testLibraryFragment> _@24
+            defaultType: num
+      rightBracket: >
+    formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

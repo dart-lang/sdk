@@ -14,17 +14,10 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
-import 'package:language_server_protocol/protocol_generated.dart';
-import 'package:meta/meta.dart';
 
 /// A mixin with functionality common to handlers for refactor commands,
 /// such as [RefactorCommandResolver] and [RefactorCommandExecutor].
 mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
-  /// A [Future] used by tests to allow inserting a delay between resolving
-  /// the initial library and the refactor running.
-  @visibleForTesting
-  static Future<void>? delayAfterResolveForTests;
-
   Future<ErrorOr<T>> execute(
     ProgressReporter progress,
     ResolvedLibraryResult library,
@@ -33,7 +26,7 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
-    int? docVersion,
+    ErrorOr<T>? Function() checkAbort,
   );
 
   Future<ErrorOr<T>> handle(
@@ -71,29 +64,18 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
       );
     }
 
-    var docVersion = server.getDocumentVersion(filePath);
-    var library = await requireResolvedLibrary(filePath);
-    if (delayAfterResolveForTests != null) {
-      await delayAfterResolveForTests;
-    }
-    if (cancellationToken.isCancellationRequested) {
-      return cancelled(cancellationToken);
-    }
-    if (fileHasBeenModified(filePath, docVersion)) {
-      return fileModifiedError;
-    }
-    return library.mapResult((library) async {
-      var unit = library.unitWithPath(filePath);
-      if (unit == null) {
-        return error(
-          ErrorCodes.InternalError,
-          'The library containing a path did not contain the path.',
-        );
-      }
+    return withResolvedLibrary(cancellationToken, path: filePath, (
+      library,
+      unit,
+      docIdentifier,
+      checkAbort,
+    ) async {
+      var startSessions = await server.currentSessions;
+      if (checkAbort() case var reason?) return reason;
 
       var context = RefactoringContext(
         server: server,
-        startSessions: await server.currentSessions,
+        startSessions: startSessions,
         resolvedLibraryResult: library,
         resolvedUnitResult: unit,
         clientCapabilities: clientCapabilities,
@@ -111,7 +93,7 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
         context,
         arguments,
         cancellationToken,
-        docVersion,
+        checkAbort,
       );
     });
   }

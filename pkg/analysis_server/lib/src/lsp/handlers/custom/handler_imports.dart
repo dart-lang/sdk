@@ -39,62 +39,54 @@ class ImportsHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var library = await path.mapResult(requireResolvedLibrary);
-    var unit = (path, library).mapResultsSync<ResolvedUnitResult>((
-      path,
+
+    return withResolvedLibrary(token, textDocument: params.textDocument, (
       library,
-    ) {
-      var unit = library.unitWithPath(path);
-      return unit != null
-          ? success(unit)
-          : error(
-              ErrorCodes.InternalError,
-              'The library containing a path did not contain the path.',
-            );
-    });
-    var offset = unit.mapResultSync(
-      (unit) => toOffset(unit.unit.lineInfo, pos),
-    );
-
-    return (library, unit, offset).mapResults((library, unit, offset) async {
-      var node = unit.unit.nodeCovering(offset: offset);
-      if (node == null) {
-        return success(null);
-      }
-
-      var element = ElementLocator.locate(node);
-      if (element == null) {
-        return success(null);
-      }
-
-      String? prefixName;
-      if (node is NamedType) {
-        prefixName = node.importPrefix?.name.lexeme;
-      } else if (node.thisOrAncestorOfType<PrefixedIdentifier>()
-          case PrefixedIdentifier(:var prefix)
-          when prefix != node && prefix.element is PrefixElement) {
-        prefixName = prefix.name;
-      } else if (node is SimpleIdentifier) {
-        if (node.parent case MethodInvocation(target: SimpleIdentifier target?)
-            when target.element is PrefixElement) {
-          prefixName = target.name;
+      unit,
+      _,
+      _,
+    ) async {
+      var offset = toOffset(unit.unit.lineInfo, pos);
+      return offset.mapResultSync((offset) {
+        var node = unit.unit.nodeCovering(offset: offset);
+        if (node == null) {
+          return success(null);
         }
-      }
 
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ExtensionElement) {
-        element = enclosingElement;
-      } else if (enclosingElement is InterfaceElement &&
-          node.parent is Annotation) {
-        // For annotations we need to reference the class element, not the
-        // constructor element.
-        element = enclosingElement;
-      }
+        var element = ElementLocator.locate(node);
+        if (element == null) {
+          return success(null);
+        }
 
-      var locations = _getImportLocations(library, unit, element, prefixName);
+        String? prefixName;
+        if (node is NamedType) {
+          prefixName = node.importPrefix?.name.lexeme;
+        } else if (node.thisOrAncestorOfType<PrefixedIdentifier>()
+            case PrefixedIdentifier(:var prefix)
+            when prefix != node && prefix.element is PrefixElement) {
+          prefixName = prefix.name;
+        } else if (node is SimpleIdentifier) {
+          if (node.parent
+              case MethodInvocation(target: SimpleIdentifier target?)
+              when target.element is PrefixElement) {
+            prefixName = target.name;
+          }
+        }
 
-      return success(nullIfEmpty(locations));
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ExtensionElement) {
+          element = enclosingElement;
+        } else if (enclosingElement is InterfaceElement &&
+            node.parent is Annotation) {
+          // For annotations we need to reference the class element, not the
+          // constructor element.
+          element = enclosingElement;
+        }
+
+        var locations = _getImportLocations(library, unit, element, prefixName);
+
+        return success(nullIfEmpty(locations));
+      });
     });
   }
 

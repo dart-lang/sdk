@@ -31,6 +31,7 @@ import '../fragment/setter/declaration.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'nominal_parameter_name_space.dart';
+import 'parameters.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
@@ -537,6 +538,9 @@ class BuilderFactory {
       declarationBuilder: _declarationBuilder,
     );
 
+    Parameters parameters = new Parameters(
+      hasAugmentations: augmentations.isNotEmpty,
+    );
     SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
       name: name,
       libraryBuilder: _enclosingLibraryBuilder,
@@ -547,6 +551,7 @@ class BuilderFactory {
       nameScheme: nameScheme,
       declarations: declarations,
       implementation: implementation,
+      parameters: parameters,
       isConst: isConst,
     );
     constructorReferences.registerReference(
@@ -560,8 +565,10 @@ class BuilderFactory {
         loader: _loader,
         declarationBuilder: _declarationBuilder,
         constructorBuilder: constructorBuilder,
+        parameters: parameters,
         typeParameterFactory: _typeParameterFactory,
         encodingStrategy: encodingStrategy,
+        isImplementation: declaration == implementation,
       );
     }
     _builderRegistry.registerBuilder(
@@ -1122,6 +1129,9 @@ class BuilderFactory {
       }
     }
 
+    Parameters parameters = new Parameters(
+      hasAugmentations: augmentations != null,
+    );
     SourceMethodBuilder methodBuilder = new SourceMethodBuilder(
       fileUri: fragment.fileUri,
       fileOffset: fragment.nameOffset,
@@ -1132,6 +1142,7 @@ class BuilderFactory {
       modifiers: modifiers,
       declarations: declarations,
       implementation: implementation,
+      parameters: parameters,
       nameScheme: nameScheme,
       references: methodReferences,
     );
@@ -1149,8 +1160,10 @@ class BuilderFactory {
       declaration.createEncoding(
         problemReporting: _problemReporting,
         builder: methodBuilder,
+        parameters: parameters,
         encodingStrategy: encodingStrategy,
         typeParameterFactory: _typeParameterFactory,
+        isImplementation: declaration == implementation,
       );
     }
 

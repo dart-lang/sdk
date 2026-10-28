@@ -844,7 +844,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     if (allowDynamicCallsInDynamicModules) {
       if (!_warningEmitted) {
         _warningEmitted = true;
-        loader.addProblem(
+        loader.addComponentProblem(
           diag.dynamicCallsAreDiscouragedInDynamicModules,
           TreeNode.noOffset,
           noLength,
@@ -853,7 +853,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
       }
 
       if (!_dynamicCallValidator.isAllowed(selector)) {
-        loader.addProblem(
+        loader.addComponentProblem(
           diag.dynamicCallsAreNotAllowedInDynamicModule.withArguments(
             name: selector.diagnosticName,
           ),
@@ -864,7 +864,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
-      loader.addProblem(
+      loader.addComponentProblem(
         diag.dynamicCallsAreDisallowedByDefault,
         node.fileOffset,
         noLength,
@@ -881,7 +881,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         !languageImplPragmas.isCallable(target)) {
       switch (target) {
         case Class():
-          loader.addProblem(
+          loader.addComponentProblem(
             diag.classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface
                 .withArguments(name: target.name),
             node.fileOffset,
@@ -889,7 +889,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             node.location!.file,
           );
         case ExtensionTypeDeclaration():
-          loader.addProblem(
+          loader.addComponentProblem(
             diag.extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface
                 .withArguments(name: target.name),
             node.fileOffset,
@@ -917,7 +917,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             // Coverage-ignore-block(suite): Not run.
             name += '.' + target.name.text;
           }
-          loader.addProblem(
+          loader.addComponentProblem(
             diag.constructorShouldBeListedAsCallableInDynamicInterface
                 .withArguments(name: name),
             node.fileOffset,
@@ -935,7 +935,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
               name = extractQualifiedNameFromExtensionMethodName(name)!;
             }
           }
-          loader.addProblem(
+          loader.addComponentProblem(
             diag.memberShouldBeListedAsCallableInDynamicInterface.withArguments(
               name: name,
             ),
@@ -944,7 +944,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             node.location!.file,
           );
         case Class():
-          loader.addProblem(
+          loader.addComponentProblem(
             diag.classShouldBeListedAsCallableInDynamicInterface.withArguments(
               name: target.name,
             ),
@@ -964,7 +964,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     if (!_isFromDynamicModule(baseClass) &&
         !_isSpecified(baseClass, spec.extendable) &&
         !languageImplPragmas.isExtendable(baseClass)) {
-      loader.addProblem(
+      loader.addComponentProblem(
         diag.classShouldBeListedAsExtendableInDynamicInterface.withArguments(
           name: baseClass.name,
         ),
@@ -981,7 +981,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     if (!_dynamicCallValidator._hasUserNoSuchMethod(node)) return;
     Class? result = _dynamicCallValidator.getDynamicallyCallableSupertype(node);
     if (result == null) return;
-    loader.addProblem(
+    loader.addComponentProblem(
       diag.dynamicallyCallableWithNoSuchMethodDynamicSubtype.withArguments(
         name: result.name,
         subtype: node.name,
@@ -1057,7 +1057,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     if (!_isFromDynamicModule(superMember) &&
         !_isSpecified(superMember, spec.canBeOverridden) &&
         !languageImplPragmas.canBeOverridden(superMember)) {
-      loader.addProblem(
+      loader.addComponentProblem(
         diag.memberShouldBeListedAsCanBeOverriddenInDynamicInterface
             .withArguments(
               className: superMember.enclosingClass!.name,
@@ -1225,7 +1225,7 @@ class _DynamicCallValidator {
     if (!classesExposedDynamically.add(cls)) return;
     bool result = _hasUserNoSuchMethod(cls);
     if (result) {
-      validator.loader.addProblem(
+      validator.loader.addComponentProblem(
         diag.dynamicallyCallableWithNoSuchMethod.withArguments(name: cls.name),
         // TODO(sigmund): consider reporting an offset in the
         // dynamic_interface.yaml file instead.

@@ -64,7 +64,7 @@ class C {
   C(int x);
 }
 ''',
-      ['ConstructorDeclarationImpl'],
+      ['ConstructorDeclaration2Impl'],
     );
   }
 
@@ -75,7 +75,18 @@ class C {
   C([int x = 0]);
 }
 ''',
-      ['ConstructorDeclarationImpl'],
+      ['ConstructorDeclaration2Impl'],
+    );
+  }
+
+  test_getter() async {
+    await assertRoots(
+      r'''
+class C {
+  int get f => 0;
+}
+''',
+      ['GetterDeclarationImpl'],
     );
   }
 
@@ -88,7 +99,7 @@ class C {
   void f(int x) {}
 }
 ''',
-      ['MethodDeclarationImpl'],
+      ['MethodDeclaration2Impl'],
     );
   }
 
@@ -99,7 +110,18 @@ class C {
   void f([int x = 0]) {}
 }
 ''',
-      ['MethodDeclarationImpl'],
+      ['MethodDeclaration2Impl'],
+    );
+  }
+
+  test_operator() async {
+    await assertRoots(
+      r'''
+class C {
+  int operator +(int other) => 0;
+}
+''',
+      ['OperatorDeclarationImpl'],
     );
   }
 
@@ -113,7 +135,18 @@ class C([int x = 0]) {
   this {}
 }
 ''',
-      ['FormalParameterListImpl', 'PrimaryConstructorBodyImpl'],
+      ['FormalParameterListImpl', 'PrimaryConstructorBody2Impl'],
+    );
+  }
+
+  test_setter() async {
+    await assertRoots(
+      r'''
+class C {
+  set f(int x) {}
+}
+''',
+      ['SetterDeclarationImpl'],
     );
   }
 

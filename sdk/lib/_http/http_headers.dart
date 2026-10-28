@@ -10,6 +10,10 @@ class _HttpHeaders implements HttpHeaders {
   Map<String, String>? _originalHeaderNames;
   final String protocolVersion;
 
+  // Whether the associated request is one that doesn't normally have a body,
+  // i.e. GET or HEAD.
+  final bool _bodylessRequest;
+
   bool _mutable = true; // Are the headers currently mutable?
   List<String>? _noFoldingHeaders;
 
@@ -25,6 +29,7 @@ class _HttpHeaders implements HttpHeaders {
     this.protocolVersion, {
     int defaultPortForScheme = HttpClient.defaultHttpPort,
     _HttpHeaders? initialHeaders,
+    this._bodylessRequest = false,
   }) : _headers = HashMap<String, List<String>>(),
        _defaultPortForScheme = defaultPortForScheme {
     if (initialHeaders != null) {
@@ -176,7 +181,7 @@ class _HttpHeaders implements HttpHeaders {
       _set(HttpHeaders.contentLengthHeader, contentLength.toString());
     } else {
       _headers.remove(HttpHeaders.contentLengthHeader);
-      if (protocolVersion == "1.1") {
+      if (protocolVersion == "1.1" && !_bodylessRequest) {
         chunkedTransferEncoding = true;
       }
     }

@@ -823,13 +823,11 @@ extension on TypeParameterElement {
 extension on DartType {
   List<TypeParameterElement> recursiveTypeParameters(List<DartType?> visited) {
     visited.add(this);
-    if (this is TypeParameterType) {
-      return element.referencedTypeParameters(visited);
-    } else if (this is InterfaceType) {
-      return typeArguments.typeParameters(visited);
-    } else {
-      return [];
-    }
+    return switch (this) {
+      TypeParameterType() => element.referencedTypeParameters(visited),
+      InterfaceType() => typeArguments.typeParameters(visited),
+      _ => [],
+    };
   }
 }
 

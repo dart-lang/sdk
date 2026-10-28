@@ -69,6 +69,10 @@ class MethodFragment implements Fragment, FunctionFragment {
   late final List<SourceNominalParameterBuilder>?
   declaredTypeParameterBuilders = declaredTypeParameters?.computeBuilderList;
 
+  Token? _bodyToken;
+
+  bool _hasBuiltBody = false;
+
   new({
     required this.name,
     required this.fileUri,
@@ -90,6 +94,7 @@ class MethodFragment implements Fragment, FunctionFragment {
     required this.nativeMethodName,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
+    required this._bodyToken,
   });
 
   @override
@@ -120,8 +125,31 @@ class MethodFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
+  FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
+    if (_hasBuiltBody) return null;
+    _hasBuiltBody = true;
     return new _MethodBodyBuildingContext(this);
+  }
+
+  void buildBodyForOutline(
+    SourceLibraryBuilder libraryBuilder, {
+    required bool includeBody,
+  }) {
+    Token? bodyToken = _bodyToken;
+    if (includeBody && bodyToken != null) {
+      FunctionBodyBuildingContext? functionBodyBuildingContext =
+          createFunctionBodyBuildingContext();
+      if (functionBodyBuildingContext != null) {
+        libraryBuilder.loader.createResolver().buildFunctionBody(
+          libraryBuilder: libraryBuilder,
+          functionBodyBuildingContext: functionBodyBuildingContext,
+          fileUri: fileUri,
+          startToken: bodyToken,
+          metadata: null,
+        );
+      }
+    }
+    _bodyToken = null;
   }
 
   @override

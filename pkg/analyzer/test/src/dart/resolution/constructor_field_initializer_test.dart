@@ -325,7 +325,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -360,7 +359,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -395,7 +393,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -432,7 +429,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -467,7 +463,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -502,7 +497,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -537,7 +531,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -572,7 +565,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -606,7 +598,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier
@@ -640,7 +631,6 @@ ConstructorFieldInitializer
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: int Function()
       type: int
     staticType: int
   expression(v1): SimpleIdentifier

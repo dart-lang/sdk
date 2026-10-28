@@ -208,7 +208,8 @@ Never _throwNoSuchMethodErrorWithInvocation(
   throw NoSuchMethodError.withInvocation(receiver, invocation);
 }
 
-Never _throwReachabilityError([String? _message]) {
+@pragma("wasm:never-inline")
+Never throwReachabilityError([String? _message]) {
   if (omitErrorDetails) throw _reachabilityError;
   throw ReachabilityError(_message);
 }

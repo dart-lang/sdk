@@ -1,10 +1,10 @@
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
@@ -84,10 +84,10 @@ extension on ReturnStatement {
 
 extension on FunctionBody {
   DartType? get returnType => switch (parent2) {
-    MethodDeclaration(:var declaredFragment) ||
-    FunctionExpression(
-      :var declaredFragment,
-    ) => declaredFragment?.element.returnType,
+    MethodDeclarationV1OriginImpl(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
+    FunctionExpression(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
     LocalFunctionDeclaration(:var declaredFragment) =>
       declaredFragment?.element.returnType,
     TopLevelFunctionDeclaration(:var declaredFragment) =>

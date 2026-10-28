@@ -121,9 +121,8 @@ class FunctionExpressionResolver {
     for (var typeParameter in typeParameterList.typeParameters) {
       map[typeParameter.declaredFragment!] = typeParameter;
     }
-    DefaultTypesBuilder(
-      getTypeParameterNode: (fragment) => map[fragment],
-    ).build([node]);
+    DefaultTypesBuilder(getTypeParameterNode: (fragment) => map[fragment])
+        .build([node]);
   }
 
   /// Infer types of implicitly typed formal parameters.

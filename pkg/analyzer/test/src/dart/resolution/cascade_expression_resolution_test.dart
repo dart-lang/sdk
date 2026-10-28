@@ -34,7 +34,6 @@ ReceiverPropertyExtraction
       name: callback
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::callback
-        invokeType: T Function<T>(T) Function()
         type: T Function<T>(T)
       staticType: T Function<T>(T)
     argumentList: ArgumentList
@@ -57,7 +56,6 @@ ReceiverPropertyExtraction
   name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: PropertyAccess
@@ -303,7 +301,6 @@ ReceiverMethodInvocation
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: int}
-      invokeType: int Function(int)
       type: int
     staticType: int
   operator: .
@@ -390,7 +387,6 @@ CascadeExpression
         rightBracket: ]
         resolution: MethodIndexReadResolution
           element: <testLibrary>::@class::A::@method::[]
-          invokeType: dynamic Function(int)
           type: dynamic
         staticType: dynamic
     CascadeSection
@@ -406,7 +402,6 @@ CascadeExpression
           read: <null>
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, dynamic)
             acceptedType: dynamic
         operator: =
         value: IntegerLiteral
@@ -426,11 +421,9 @@ CascadeExpression
           rightBracket: ]
           read: MethodIndexReadResolution
             element: <testLibrary>::@class::A::@method::[]
-            invokeType: dynamic Function(int)
             type: dynamic
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, dynamic)
             acceptedType: dynamic
         operator: +=
         value: IntegerLiteral
@@ -453,11 +446,9 @@ CascadeExpression
           rightBracket: ]
           read: MethodIndexReadResolution
             element: <testLibrary>::@class::A::@method::[]
-            invokeType: dynamic Function(int)
             type: dynamic
           write: MethodIndexWriteResolution
             element: <testLibrary>::@class::A::@method::[]=
-            invokeType: void Function(int, dynamic)
             acceptedType: dynamic
         operator: ??=
         value: IntegerLiteral
@@ -629,7 +620,6 @@ CascadePropertyExtraction
   name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
-    invokeType: D? Function()
     type: D?
   staticType: D?
 V1: PropertyAccess
@@ -736,7 +726,6 @@ CascadePropertyExtraction
   name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
-    invokeType: D? Function()
     type: D?
   staticType: D?
 V1: PropertyAccess
@@ -849,7 +838,6 @@ CascadePropertyExtraction
   name: _d
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::_d
-    invokeType: D? Function()
     type: D?
   staticType: D?
 V1: PropertyAccess
@@ -967,6 +955,178 @@ V1: FunctionExpressionInvocation
   element: <null>
   staticInvokeType: int Function(String)
   staticType: int
+''');
+  }
+
+  test_typeLiteral_functionTypeAlias_compoundAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f() {
+  F..foo += 1;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: F
+      element: <testLibrary>::@typeAlias::F
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CompoundAssignment
+        target: CascadePropertyAssignmentTarget
+          name: foo
+          read: GetterInvocationResolution
+            element: <testLibrary>::@extension::#0::@getter::foo
+            type: int
+          write: SetterInvocationResolution
+            element: <testLibrary>::@extension::#0::@setter::foo
+            acceptedType: int
+        operator: +=
+        value: IntegerLiteral
+          literal: 1
+          correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+          staticType: int
+        binaryOperator: add
+        element: dart:core::@class::num::@method::+
+        operatorResultType: int
+        staticType: int
+  cascadeSections
+    AssignmentExpression
+      leftHandSide: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: null
+        staticType: null
+      operator: +=
+      rightHandSide: IntegerLiteral
+        literal: 1
+        correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+        staticType: int
+      readElement: <testLibrary>::@extension::#0::@getter::foo
+      readType: int
+      writeElement: <testLibrary>::@extension::#0::@setter::foo
+      writeType: int
+      element: dart:core::@class::num::@method::+
+      staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_functionTypeAlias_propertyGet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F..hashCode;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: F
+      element: <testLibrary>::@typeAlias::F
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: hashCode
+        resolution: GetterInvocationResolution
+          element: dart:core::@class::Object::@getter::hashCode
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: hashCode
+        element: dart:core::@class::Object::@getter::hashCode
+        staticType: int
+      staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_functionTypeAlias_propertySet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  set foo(int _) {}
+}
+
+void f() {
+  F..foo = 0;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: F
+      element: <testLibrary>::@typeAlias::F
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: DirectAssignment
+        target: CascadePropertyAssignmentTarget
+          name: foo
+          read: <null>
+          write: SetterInvocationResolution
+            element: <testLibrary>::@extension::#0::@setter::foo
+            acceptedType: int
+        operator: =
+        value: IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@extension::#0::@setter::foo::@formalParameter::_
+          staticType: int
+        staticType: int
+  cascadeSections
+    AssignmentExpression
+      leftHandSide: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: foo
+          element: <null>
+          staticType: null
+        staticType: null
+      operator: =
+      rightHandSide: IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@extension::#0::@setter::foo::@formalParameter::_
+        staticType: int
+      readElement: <null>
+      readType: null
+      writeElement: <testLibrary>::@extension::#0::@setter::foo
+      writeType: int
+      element: <null>
+      staticType: int
+  staticType: Type
 ''');
   }
 }

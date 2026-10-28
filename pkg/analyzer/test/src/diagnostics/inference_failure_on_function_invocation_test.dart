@@ -44,6 +44,85 @@ void f() {
 ''');
   }
 
+  test_functionType_call_cascade_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void Function<T>() m) {
+  m..call();
+//   ^^^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'call' can't be inferred.
+}
+''');
+  }
+
+  test_functionType_call_downwardsInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int f(T Function<T>() m) => m.call();
+''');
+  }
+
+  test_functionType_call_explicitTypeArgs() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void Function<T>() m) {
+  m.call<int>();
+}
+''');
+  }
+
+  test_functionType_call_immediatelyCast() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(T Function<T>() m) {
+  m.call() as int;
+}
+''');
+  }
+
+  test_functionType_call_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void Function<T>() m) {
+  m.call();
+//  ^^^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'call' can't be inferred.
+}
+''');
+  }
+
+  test_functionType_call_nullAware_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(void Function<T>()? m) {
+  m?.call();
+//   ^^^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'call' can't be inferred.
+}
+''');
+  }
+
+  test_functionType_call_property_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final void Function<T>() m;
+  A(this.m);
+}
+
+void f(A a) {
+  a.m.call();
+//    ^^^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'call' can't be inferred.
+}
+''');
+  }
+
+  test_functionType_call_tearOff_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void use(void Function(int) callback) {}
+
+void f(void Function<T, R>(T) m) {
+  use(m.call);
+//    ^^^^^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'call' can't be inferred.
+}
+''');
+  }
+
   test_functionType_noInference() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(void Function<T>() m) {
@@ -186,6 +265,57 @@ void f() {
 ''');
   }
 
+  test_genericTypedef_call_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+typedef Fn = void Function<T>();
+void g(Fn fn) {
+  fn.call();
+//   ^^^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'call' can't be inferred.
+}
+''');
+  }
+
+  test_genericTypedef_call_optionalTypeArgs() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+typedef Fn = void Function<T>();
+void g(Fn fn) {
+  fn.call();
+}
+''');
+  }
+
+  test_genericTypedef_call_tearOff_noInference() async {
+    await resolveTestCodeWithDiagnostics(r'''
+typedef Fn = void Function<T, R>(T);
+
+void use(void Function(int) callback) {}
+
+void f(Fn fn) {
+  use(fn.call);
+//    ^^^^^^^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'call' can't be inferred.
+}
+''');
+  }
+
+  test_genericTypedef_call_tearOff_optionalTypeArgs() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@optionalTypeArgs
+typedef Fn = void Function<T, R>(T);
+
+void use(void Function(int) callback) {}
+
+void f(Fn fn) {
+  use(fn.call);
+}
+''');
+  }
+
   test_genericTypedef_noInference() async {
     await resolveTestCodeWithDiagnostics(r'''
 typedef Fn = void Function<T>();
@@ -242,9 +372,60 @@ void f(C c) {
 ''');
   }
 
+  test_topLevelFunction_ambiguousImport_noInference() async {
+    newFile('$testPackageLibPath/a1.dart', '''
+void f<T>() {}
+''');
+    newFile('$testPackageLibPath/a2.dart', '''
+void f<T>() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a1.dart';
+import 'a2.dart';
+void g() {
+  f();
+//^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'f' can't be inferred.
+// [diag.ambiguousImport] The name 'f' is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+}
+''');
+  }
+
+  test_topLevelFunction_ambiguousImport_optionalTypeArgs() async {
+    newFile('$testPackageLibPath/a1.dart', '''
+import 'package:meta/meta.dart';
+@optionalTypeArgs
+void f<T>() {}
+''');
+    newFile('$testPackageLibPath/a2.dart', '''
+void f<T>() {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a1.dart';
+import 'a2.dart';
+void g() {
+  f();
+//^
+// [diag.ambiguousImport] The name 'f' is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+}
+''');
+  }
+
   test_topLevelFunction_noInference() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f<T>() {}
+
+void g() {
+  f();
+//^
+// [diag.inferenceFailureOnFunctionInvocation] The type argument(s) of the function 'f' can't be inferred.
+}
+''');
+  }
+
+  test_topLevelFunction_noInference_twoTypeParameters() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T, U>() {}
 
 void g() {
   f();

@@ -1,0 +1,31 @@
+String topLevelField = 'topLevelField';
+
+class Class {
+  String instanceField = 'instanceField';
+  static String staticField = 'staticField';
+}
+
+enum Enum {
+  a;
+
+  final String instanceField = 'instanceField';
+  static String staticField = 'staticField';
+}
+
+extension Extension on int {
+  static String staticField = 'staticField';
+}
+
+extension type ExtensionType(int it) {
+  static String staticField = 'staticField';
+}
+
+mixin Mixin {
+  String instanceField = 'instanceField';
+  static String staticField = 'staticField';
+}
+
+mixin class MixinClass {
+  String instanceField = 'instanceField';
+  static String staticField = 'staticField';
+}

@@ -2,7 +2,7 @@
   (type $#Top (struct
     (field $#classId i32)))
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param externref) (result externref))
-  (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param i32) (result externref))
+  (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param i32) (result (ref extern)))
   (func $"dart2wasm.R (import)" (import "dart2wasm" "R") (param externref) (result externref))
   (global $"boolValueNullable initialized" (mut i32) <...>)
   (global $boolValueNullable (mut (ref null $#Top)) <...>)

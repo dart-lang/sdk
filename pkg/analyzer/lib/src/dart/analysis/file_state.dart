@@ -575,6 +575,14 @@ class FileState {
     return _fsState.resourceProvider.getFile(path);
   }
 
+  /// The [featureSet] restricted to the [packageLanguageVersion].
+  ///
+  /// This is the feature set of the file, unless it has a `@dart` language
+  /// override token in the file header.
+  FeatureSet get restrictedFeatureSet {
+    return featureSet.restrictToVersion(packageLanguageVersion);
+  }
+
   @visibleForTesting
   FileStateTestView get test => FileStateTestView(this);
 
@@ -624,7 +632,9 @@ class FileState {
           Scanner(inputText: code, reportError: diagnosticReporter.report)
             ..configureFeatures(
               featureSetForOverriding: featureSet,
-              featureSet: featureSet.restrictToVersion(packageLanguageVersion),
+              featureSet: restrictedFeatureSet,
+              latestLanguageVersion:
+                  _fsState.featureSetProvider.sdkLanguageVersion,
             );
       scanner.preserveComments = scanComments;
       Token token = scanner.tokenize();
@@ -1028,18 +1038,18 @@ class FileState {
     var topLevelDeclarations = <String>{};
     for (var declaration in unit.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           var name = declaration.name;
           if (name != null) {
             topLevelDeclarations.add(name.lexeme);
           }
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           topLevelDeclarations.add(declaration.name.lexeme);
         case TopLevelFunctionDeclarationImpl():
           topLevelDeclarations.add(declaration.name.lexeme);
@@ -1051,7 +1061,7 @@ class FileState {
           for (var variable in declaration.variables) {
             topLevelDeclarations.add(variable.name.lexeme);
           }
-        case ClassTypeAliasImpl() ||
+        case ClassTypeAlias2Impl() ||
             FunctionTypeAlias2Impl() ||
             GenericTypeAlias2Impl():
           break;
@@ -1446,8 +1456,6 @@ class FileSystemState {
           path,
           uri,
           contextFeatures: analysisOptions.contextFeatures,
-          nonPackageFeatureSet: analysisOptions.nonPackageFeatureSet,
-          nonPackageLanguageVersion: analysisOptions.nonPackageLanguageVersion,
         );
     featureSet ??= packageFeatureSet;
     languageVersion ??= packageLanguageVersion;

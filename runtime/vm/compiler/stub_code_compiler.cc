@@ -3332,14 +3332,10 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
 
   // Fill in all the STC input registers.
   Label initialized, not_closure;
-  if (n >= 3) {
-    __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
-  } else {
-    // If the type is fully instantiated, then it can be determined at compile
-    // time whether Smi is a subtype of the type or not. Thus, this code should
-    // never be called with a Smi instance.
-    __ LoadClassId(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
-  }
+  // Even for instantiated types (n < 3) we can't assume that the caller
+  // handles Smi inline because this code can be reached via the slow type
+  // test stub (e.g. for FutureOr<T> types).
+  __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
   __ CompareImmediate(instance_cid_or_sig_reg, kClosureCid);
   __ BranchIf(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 

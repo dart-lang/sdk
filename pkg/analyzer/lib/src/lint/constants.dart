@@ -25,11 +25,11 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 /// A const constructor requires these initializers to be constant, but they
 /// are not in the constructor, so [AstNodeExtension.hasConstantVerifierError]
 /// of the constructor does not check them for invalid named reads.
-bool _hasInvalidNamedReadInFieldInitializers(List<ClassMember> members) {
+bool _hasInvalidNamedReadInFieldInitializers(List<AnnotatedNode> members) {
   for (var member in members) {
-    if (member is FieldDeclaration && !member.isStatic) {
-      for (var variable in member.fields.variables) {
-        if (variable.initializer2?._hasInvalidNamedRead ?? false) {
+    if (member is FieldsDeclaration && member.staticKeyword == null) {
+      for (var variable in member.fields) {
+        if (variable.initializer?._hasInvalidNamedRead ?? false) {
           return true;
         }
       }
@@ -144,7 +144,7 @@ extension AstNodeExtension on AstNode {
   }
 }
 
-extension ConstructorDeclarationExtension on ConstructorDeclaration {
+extension ConstructorDeclaration2Extension on ConstructorDeclaration2 {
   bool get canBeConst {
     var element = declaredFragment!.element;
 
@@ -153,8 +153,8 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
       return false;
     }
 
-    var self = this as ConstructorDeclarationImpl;
-    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers)) {
+    var self = this as ConstructorDeclaration2Impl;
+    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers2)) {
       return false;
     }
 
@@ -170,6 +170,14 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   }
 }
 
+@V1Ast('The V2 counterpart is ConstructorDeclaration2Extension.')
+extension ConstructorDeclarationExtension on ConstructorDeclaration {
+  bool get canBeConst {
+    var self = this as ConstructorDeclarationImpl;
+    return self.v1ProjectionOrigin.canBeConst;
+  }
+}
+
 extension PrimaryConstructorDeclarationExtension
     on PrimaryConstructorDeclaration {
   bool get canBeConst {
@@ -181,7 +189,7 @@ extension PrimaryConstructorDeclarationExtension
     }
 
     var self = this as PrimaryConstructorDeclarationImpl;
-    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers)) {
+    if (_hasInvalidNamedReadInFieldInitializers(self.parent2.classMembers2)) {
       return false;
     }
 

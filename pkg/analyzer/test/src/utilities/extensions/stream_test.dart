@@ -15,11 +15,9 @@ main() {
 @reflectiveTest
 class StreamExtensionTest {
   test_whereType() async {
-    var result = await Stream<Object?>.fromIterable([
-      0,
-      '1',
-      2,
-    ]).whereType<int>().toList();
+    var result = await Stream<Object?>.fromIterable([0, '1', 2])
+        .whereType<int>()
+        .toList();
     expect(result, [0, 2]);
   }
 }

@@ -4,7 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:test/test.dart';
 
 import 'env.dart';
@@ -183,9 +183,9 @@ void main() {
 ///
 /// Means that the union of D|E should be exhaustive over B, D, and E and not
 /// exhaustive over the other types in [allTypes].
-Function(List<StaticType>, String) _makeTestFunction(
-  ObjectPropertyLookup fieldLookup,
-  List<StaticType> allTypes,
+Function(List<Shape>, String) _makeTestFunction(
+  ObjectPropertyLookup propertyLookup,
+  List<Shape> allTypes,
 ) {
   assert(allTypes.length <= 6, 'Only supports up to six types.');
   var letters = 'ABCDEF';
@@ -196,9 +196,9 @@ Function(List<StaticType>, String) _makeTestFunction(
     for (var i = 0; i < allTypes.length; i++) {
       var value = Space(const Path.root(), allTypes[i]);
       if (covered.contains(letters[i])) {
-        expectExhaustive(fieldLookup, value, spaces);
+        expectExhaustive(propertyLookup, value, spaces);
       } else {
-        expectNotExhaustive(fieldLookup, value, spaces);
+        expectNotExhaustive(propertyLookup, value, spaces);
       }
     }
   };

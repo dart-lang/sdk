@@ -12,7 +12,7 @@ import 'dart:convert' show Encoding, utf8;
 class Uri {
   @patch
   static Uri get base {
-    final currentUri = JSStringImpl.fromRefUnchecked(
+    final currentUri = JSStringImpl.box(
       JS<WasmExternRef?>("""() => {
       // On browsers return `globalThis.location.href`
       if (globalThis.location != null) {

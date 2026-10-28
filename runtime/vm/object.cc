@@ -3044,14 +3044,13 @@ typedef UnorderedHashSet<ClassFunctionsTraits> ClassFunctionsSet;
 
 void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
-  const intptr_t len = value.Length();
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
   if (is_finalized()) {
     Function& function = Function::Handle();
     FunctionType& signature = FunctionType::Handle();
-    for (intptr_t i = 0; i < len; ++i) {
+    for (intptr_t i = 0, n = value.Length(); i < n; ++i) {
       function ^= value.At(i);
       signature = function.signature();
       ASSERT(signature.IsFinalized());
@@ -3059,11 +3058,20 @@ void Class::SetFunctions(const Array& value) const {
   }
 #endif
   set_functions(value);
+  BuildFunctionsHashTable(value);
+}
+
+void Class::BuildFunctionsHashTable(const Array& functions_array) const {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+#endif
+  const intptr_t len = functions_array.Length();
   if (len >= kFunctionLookupHashThreshold) {
     ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
     Function& func = Function::Handle();
     for (intptr_t i = 0; i < len; ++i) {
-      func ^= value.At(i);
+      func ^= functions_array.At(i);
       // Verify that all the functions in the array have this class as owner.
       ASSERT(func.Owner() == ptr());
       set.Insert(func);
@@ -3820,7 +3828,9 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool attach_bytecode = true;
 #else
-  const bool attach_bytecode = is_declared_in_bytecode();
+  // TODO(alexmarkov): generate stubs in modular AOT.
+  const bool attach_bytecode =
+      is_declared_in_bytecode() || thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
     // Bytecode method extractor may be used to create a closure instance
@@ -4254,6 +4264,11 @@ void Function::ReadParameterCovariance(
     return;
   }
 #endif
+  // TODO(alexmarkov): add covariant flags into signature,
+  // avoid reading them from kernel.
+  if (IsolateGroup::Current()->modular_aot_mode()) {
+    return;
+  }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   kernel::ReadParameterCovariance(*this, is_covariant,
                                   is_generic_covariant_impl);
@@ -5439,7 +5454,6 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     // 'is_allocate_finalized' and finalization of member types will not occur.
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
-    cls.set_is_synthesized_class();
     cls.set_is_isolate_unsendable(true);
     cls.set_is_deeply_immutable(true);
     NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
@@ -5877,15 +5891,6 @@ void Class::set_is_type_finalized() const {
   ASSERT(!is_type_finalized());
   set_state_bits(
       ClassLoadingBits::update(UntaggedClass::kTypeFinalized, state_bits()));
-}
-
-void Class::set_is_synthesized_class() const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_is_synthesized_class_unsafe();
-}
-
-void Class::set_is_synthesized_class_unsafe() const {
-  set_state_bits(SynthesizedClassBit::update(true, state_bits()));
 }
 
 void Class::set_is_enum_class() const {
@@ -10813,7 +10818,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool attach_bytecode = true;
 #else
-  const bool attach_bytecode = is_declared_in_bytecode();
+  // TODO(alexmarkov): generate stubs in modular AOT.
+  const bool attach_bytecode =
+      is_declared_in_bytecode() || thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
     if (is_static()) {

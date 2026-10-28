@@ -1624,9 +1624,6 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
     token_pos = func.token_pos();
   } else if (decl.IsClass()) {
     const Class& cls = Class::Cast(decl);
-    if (cls.is_synthesized_class() && !cls.is_enum_class()) {
-      return Instance::null();  // Synthetic.
-    }
     script = cls.script();
     token_pos = cls.token_pos();
   } else if (decl.IsField()) {

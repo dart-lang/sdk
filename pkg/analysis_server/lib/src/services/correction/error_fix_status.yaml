@@ -1641,6 +1641,8 @@ type_test_with_non_type:
     right operand to the static type of the left.
 type_test_with_undefined_name:
   status: hasFix
+unchecked_instantiation_of_nullable_value:
+  status: hasFix
 unchecked_invocation_of_nullable_value:
   status: hasFix
 unchecked_method_invocation_of_nullable_value:
@@ -2414,6 +2416,8 @@ invalid_runtime_check_with_js_interop_types_dart_as_js:
     In other cases, JS interop helpers may be used to do the type test instead.
 invalid_runtime_check_with_js_interop_types_dart_is_js:
   status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_and_dart_js:
+    status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_js_as_dart:
   status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:
@@ -4198,9 +4202,7 @@ unused_result_with_message:
 unused_shown_name:
   status: hasFix
 uri_does_not_exist_in_doc_import:
-  status: needsFix
-  notes: |-
-    The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
+  status: hasFix
 var_with_no_type_annotation:
   status: hasFix
 deprecated_factory_method:

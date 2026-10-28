@@ -75,7 +75,7 @@ class String {
 
   static String _fromOneByteCharCode(int charCode) =>
       JSStringImpl.fromRefUnchecked(
-        js.JS<WasmExternRef?>(
+        js.JS<WasmExternRef>(
           'c => String.fromCharCode(c)',
           WasmI32.fromInt(charCode),
         ),
@@ -83,7 +83,7 @@ class String {
 
   static String _fromTwoByteCharCode(int low, int high) =>
       JSStringImpl.fromRefUnchecked(
-        js.JS<WasmExternRef?>(
+        js.JS<WasmExternRef>(
           '(l, h) => String.fromCharCode(h, l)',
           WasmI32.fromInt(low),
           WasmI32.fromInt(high),
@@ -111,7 +111,7 @@ class String {
     int end,
   ) {
     return JSStringImpl.fromRefUnchecked(
-      js.JS<WasmExternRef?>(
+      js.JS<WasmExternRef>(
         '(c, i, e) => String.fromCharCode.apply(null, new Uint32Array(c.buffer, c.byteOffset + i, e))',
         charCodes.wrappedExternRef,
         WasmI32.fromInt(index * 4),

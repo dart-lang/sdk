@@ -19,6 +19,7 @@ abs
 absorb
 absorbed
 accepting
+accessibility
 accompany
 accounting
 accounts
@@ -557,6 +558,7 @@ disposed
 disposes
 distinguished
 distribute
+distributing
 diverged
 divided
 divides
@@ -673,6 +675,7 @@ exhaust
 exhausted
 exhaustively
 exhaustiveness
+exhausts
 existence
 existentially
 exp
@@ -691,6 +694,7 @@ exportees
 expose
 exposing
 expr
+expressible
 expression's
 ext
 extenders
@@ -904,6 +908,7 @@ importantly
 imprecise
 improperly
 improves
+inaccessible
 inactivity
 inapplicable
 inc
@@ -1109,6 +1114,7 @@ logically
 logs
 lookahead
 loopback
+losing
 lots
 lp
 lparen
@@ -1574,6 +1580,10 @@ redirectee
 redirections
 redirector
 redo
+reducing
+reduction
+reductions
+redundancies
 reevaluation
 reexport
 reexports
@@ -1906,6 +1916,8 @@ subscription
 subsection
 subsections
 subsequently
+subshape
+subshapes
 subspace
 subspaces
 subst
@@ -1933,6 +1945,8 @@ superinterface
 superinterfaces
 supernode
 supers
+supershape
+supershapes
 supplies
 suppose
 suppresses
@@ -2093,6 +2107,7 @@ unaccounted
 unaffected
 unaligned
 unaltered
+unaugmented
 unavailable
 unawaited
 unbound
@@ -2254,6 +2269,7 @@ weird
 weren't
 werror
 whatnot
+whatwg
 whichever
 who
 widget

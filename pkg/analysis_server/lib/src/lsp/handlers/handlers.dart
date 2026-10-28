@@ -116,11 +116,12 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
   }
 
   bool fileHasBeenModified(String path, int? clientVersion) {
+    // We allow nulls on either side, because if a client doesn't support
+    // versions somewhere we can't just reject everything.
+    if (clientVersion == null) return false;
+
     var serverDocumentVersion = server.getDocumentVersion(path);
-    // Allow nulls on either side, because if a client doesn't support versions
-    // somewhere we can't just reject everything.
-    return clientVersion != null &&
-        serverDocumentVersion != null &&
+    return serverDocumentVersion != null &&
         clientVersion != serverDocumentVersion;
   }
 
@@ -335,6 +336,199 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
           : fileNotAnalyzedError(path);
     }
     return success(result);
+  }
+
+  /// Gets the parsed (unresolved) unit for either the file at [path] or the
+  /// document [textDocument] (exactly one must be supplied) and calls [handler]
+  /// with it and the document version captured at the start of the request,
+  /// providing a `checkAbort` function that can be used to detect whether the
+  /// request was cancelled, or if the file was modified since the handler was
+  /// invoked.
+  ///
+  /// The version of [textDocument] is used if it has one, otherwise (and for
+  /// [path]) the version currently held by the server is used.
+  ///
+  /// If [performance] is supplied, the time taken to get the unit is recorded
+  /// in it.
+  Future<ErrorOr<R>> withParsedUnit<R>(
+    CancellationToken token,
+    Future<ErrorOr<R>> Function(
+      ParsedUnitResult result,
+      OptionalVersionedTextDocumentIdentifier docIdentifier,
+      ErrorOr<R>? Function() checkAbort,
+    )
+    handler, {
+    String? path,
+    TextDocumentIdentifier? textDocument,
+    OperationPerformanceImpl? performance,
+  }) {
+    return withPath<R>(path: path, textDocument: textDocument, token, (
+      path,
+      docIdentifier,
+      checkAbort,
+    ) async {
+      var result = performance != null
+          ? await performance.runAsync(
+              'requireUnresolvedUnit',
+              (_) => requireUnresolvedUnit(path),
+            )
+          : await requireUnresolvedUnit(path);
+      return result.mapResult((result) async {
+        // Do an initial check since we just called requireUnresolvedUnit.
+        if (checkAbort() case var reason?) return reason;
+
+        // Finally, call the handler.
+        return await handler(result, docIdentifier, checkAbort);
+      });
+    });
+  }
+
+  /// Calls [handler] with the path and document version of either the file at
+  /// [path] or the document [textDocument] (exactly one must be supplied),
+  /// providing a `checkAbort` function that can be used to detect whether the
+  /// request was cancelled, or if the file was modified since the handler was
+  /// invoked.
+  ///
+  /// The version of [textDocument] is used if it has one, otherwise (and for
+  /// [path]) the version currently held by the server is used.
+  Future<ErrorOr<R>> withPath<R>(
+    CancellationToken token,
+    Future<ErrorOr<R>> Function(
+      String path,
+      OptionalVersionedTextDocumentIdentifier docIdentifier,
+      ErrorOr<R>? Function() checkAbort,
+    )
+    handler, {
+    String? path,
+    TextDocumentIdentifier? textDocument,
+  }) {
+    assert((path == null) != (textDocument == null));
+
+    var pathOrError = path != null ? success(path) : pathOfDoc(textDocument!);
+    return pathOrError.mapResult((path) {
+      // Capture the version now so changes made during the handler are detected.
+      var docIdentifier = textDocument != null
+          ? extractDocumentVersion(textDocument, path)
+          : server.getVersionedDocumentIdentifier(path);
+
+      ErrorOr<R>? checkAbort() {
+        if (token.isCancellationRequested) {
+          return cancelled<R>(token);
+        }
+        if (fileHasBeenModified(path, docIdentifier.version)) {
+          return error<R>(
+            ErrorCodes.ContentModified,
+            'Document was modified before operation completed',
+          );
+        }
+        return null;
+      }
+
+      return handler(path, docIdentifier, checkAbort);
+    });
+  }
+
+  /// Gets the resolved library and unit for either the file at [path] or the
+  /// document [textDocument] (exactly one must be supplied) and calls [handler]
+  /// with it and the document version captured at the start of the request,
+  /// providing a `checkAbort` function that can be used to detect whether the
+  /// request was cancelled, or if the file was modified since the handler was
+  /// invoked.
+  ///
+  /// The version of [textDocument] is used if it has one, otherwise (and for
+  /// [path]) the version currently held by the server is used.
+  ///
+  /// If [performance] is supplied, the time taken to get the library is
+  /// recorded in it.
+  Future<ErrorOr<R>> withResolvedLibrary<R>(
+    CancellationToken token,
+    Future<ErrorOr<R>> Function(
+      ResolvedLibraryResult library,
+      ResolvedUnitResult unit,
+      OptionalVersionedTextDocumentIdentifier docIdentifier,
+      ErrorOr<R>? Function() checkAbort,
+    )
+    handler, {
+    String? path,
+    TextDocumentIdentifier? textDocument,
+    OperationPerformanceImpl? performance,
+  }) {
+    return withPath<R>(path: path, textDocument: textDocument, token, (
+      path,
+      docIdentifier,
+      checkAbort,
+    ) async {
+      var library = performance != null
+          ? await performance.runAsync(
+              'requireResolvedLibrary',
+              (_) => requireResolvedLibrary(path),
+            )
+          : await requireResolvedLibrary(path);
+      if (LspAnalysisServer.delayAfterResolveForTests case var delay?) {
+        await delay;
+      }
+      if (checkAbort() case var reason?) return reason;
+
+      return library.mapResult((library) async {
+        var unit = library.unitWithPath(path);
+        if (unit == null) {
+          return error(
+            ErrorCodes.InternalError,
+            'The library containing a path did not contain the path.',
+          );
+        }
+
+        // Finally, call the handler.
+        return await handler(library, unit, docIdentifier, checkAbort);
+      });
+    });
+  }
+
+  /// Gets the resolved unit for either the file at [path] or the document
+  /// [textDocument] (exactly one must be supplied) and calls [handler] with it
+  /// and the document version captured at the start of the request, providing a
+  /// `checkAbort` function that can be used to detect whether the request was
+  /// cancelled, or if the file was modified since the handler was invoked.
+  ///
+  /// The version of [textDocument] is used if it has one, otherwise (and for
+  /// [path]) the version currently held by the server is used.
+  ///
+  /// If [performance] is supplied, the time taken to get the unit is recorded
+  /// in it.
+  Future<ErrorOr<R>> withResolvedUnit<R>(
+    CancellationToken token,
+    Future<ErrorOr<R>> Function(
+      ResolvedUnitResult result,
+      OptionalVersionedTextDocumentIdentifier docIdentifier,
+      ErrorOr<R>? Function() checkAbort,
+    )
+    handler, {
+    String? path,
+    TextDocumentIdentifier? textDocument,
+    OperationPerformanceImpl? performance,
+  }) {
+    return withPath<R>(path: path, textDocument: textDocument, token, (
+      path,
+      docIdentifier,
+      checkAbort,
+    ) async {
+      var result = performance != null
+          ? await performance.runAsync(
+              'requireResolvedUnit',
+              (_) => requireResolvedUnit(path),
+            )
+          : await requireResolvedUnit(path);
+
+      if (LspAnalysisServer.delayAfterResolveForTests case var delay?) {
+        await delay;
+      }
+      if (checkAbort() case var reason?) return reason;
+
+      return result.mapResult((result) async {
+        // Finally, call the handler.
+        return await handler(result, docIdentifier, checkAbort);
+      });
+    });
   }
 }
 

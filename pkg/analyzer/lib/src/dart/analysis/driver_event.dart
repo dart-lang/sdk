@@ -46,6 +46,16 @@ final class CheckLinkedBundleRequirements extends AnalysisDriverEvent {
   new({required this.cycle, required this.failure});
 }
 
+/// The event that [driver] discarded its memory-expensive data.
+final class DiscardMemoryExpensiveData extends AnalysisDriverEvent {
+  final AnalysisDriver driver;
+
+  /// The URIs of the libraries whose manifest IDs stay decoded.
+  final List<Uri> keptIds;
+
+  new({required this.driver, required this.keptIds});
+}
+
 final class GetErrorsFromBytes extends AnalysisDriverEvent {
   final FileState file;
   final LibraryFileKind library;

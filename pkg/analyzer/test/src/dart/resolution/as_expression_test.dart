@@ -31,7 +31,6 @@ AsExpression
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: num Function()
       type: num
     staticType: num
   expression(v1): SimpleIdentifier

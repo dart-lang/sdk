@@ -13,6 +13,7 @@ import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/src/expected_diagnostics.dart'
     as expected_diagnostics;
 import 'package:analyzer_testing/utilities/utilities.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -367,6 +368,81 @@ void f() {
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
+  }
+
+  /// The latest language version for `// @dart` comments is the language
+  /// version of the SDK, so the test file has a diagnostic only with the older
+  /// SDK, and cached diagnostics for one SDK are not reused for another.
+  test_sdkLanguageVersion_diagnostics() async {
+    useEmptyByteStore();
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '3.13');
+
+    var code = r'''
+// @dart = 3.14
+class A {}
+''';
+    addTestFile(code);
+
+    // The SDK has the language version of the analyzer, so the override is
+    // accepted.
+    sdkLanguageVersion = null;
+    await _assertTestFileDiagnostics(code: code, expected: code);
+
+    // The SDK is older than the override, so the override is reported.
+    await disposeAnalysisContextCollection();
+    sdkLanguageVersion = Version.parse('3.13.0');
+    await _assertTestFileDiagnostics(
+      code: code,
+      expected: r'''
+// @dart = 3.14
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 15] The language version override can't specify a version greater than the latest known language version: 3.13.
+class A {}
+''',
+    );
+
+    // The SDK has the language version of the analyzer again, so the
+    // override is accepted again.
+    await disposeAnalysisContextCollection();
+    sdkLanguageVersion = null;
+    await _assertTestFileDiagnostics(code: code, expected: code);
+  }
+
+  /// The latest language version for `// @dart` comments is the language
+  /// version of the SDK, so the library has the override only with the newer
+  /// SDK, and cached elements for one SDK are not reused for another.
+  test_sdkLanguageVersion_libraryElement() async {
+    useEmptyByteStore();
+    writeTestPackageConfig(PackageConfigFileBuilder(), languageVersion: '3.13');
+
+    addTestFile(r'''
+// @dart = 3.14
+class A {}
+''');
+
+    Future<void> assertOverride(Version? expected) async {
+      var analysisSession = contextFor(testFile).currentSession;
+      var result = await analysisSession.getLibraryByUri(
+        'package:test/test.dart',
+      );
+      result as LibraryElementResult;
+      expect(result.element.languageVersion.override, expected);
+    }
+
+    // The SDK has the language version of the analyzer, so the override is
+    // accepted.
+    sdkLanguageVersion = null;
+    await assertOverride(Version.parse('3.14.0'));
+
+    // The SDK is older than the override, so the override is rejected.
+    await disposeAnalysisContextCollection();
+    sdkLanguageVersion = Version.parse('3.13.0');
+    await assertOverride(null);
+
+    // The SDK has the language version of the analyzer again, so the
+    // override is accepted again.
+    await disposeAnalysisContextCollection();
+    sdkLanguageVersion = null;
+    await assertOverride(Version.parse('3.14.0'));
   }
 
   void _assertContainsLinkedCycle(

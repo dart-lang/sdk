@@ -446,11 +446,13 @@ abstract class AstVisitor2<R> {
 
   R? visitBlock(Block node);
 
-  R? visitBlockClassBody(BlockClassBody node);
-
-  R? visitBlockEnumBody(BlockEnumBody node);
+  @experimental
+  R? visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node);
 
   R? visitBlockFunctionBody(BlockFunctionBody node);
+
+  @experimental
+  R? visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node);
 
   R? visitBooleanLiteral(BooleanLiteral node);
 
@@ -487,9 +489,11 @@ abstract class AstVisitor2<R> {
 
   R? visitCatchClauseParameter(CatchClauseParameter node);
 
-  R? visitClassDeclaration(ClassDeclaration node);
+  @experimental
+  R? visitClassDeclaration2(ClassDeclaration2 node);
 
-  R? visitClassTypeAlias(ClassTypeAlias node);
+  @experimental
+  R? visitClassTypeAlias2(ClassTypeAlias2 node);
 
   @experimental
   R? visitCombinatorName(CombinatorName node);
@@ -512,7 +516,8 @@ abstract class AstVisitor2<R> {
 
   R? visitConstantPattern(ConstantPattern node);
 
-  R? visitConstructorDeclaration(ConstructorDeclaration node);
+  @experimental
+  R? visitConstructorDeclaration2(ConstructorDeclaration2 node);
 
   R? visitConstructorFieldInitializer(ConstructorFieldInitializer node);
 
@@ -559,19 +564,17 @@ abstract class AstVisitor2<R> {
 
   R? visitDoubleLiteral(DoubleLiteral node);
 
-  R? visitEmptyClassBody(EmptyClassBody node);
-
-  R? visitEmptyEnumBody(EmptyEnumBody node);
-
   R? visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R? visitEmptyStatement(EmptyStatement node);
 
   R? visitEnumConstantArguments(EnumConstantArguments node);
 
-  R? visitEnumConstantDeclaration(EnumConstantDeclaration node);
+  @experimental
+  R? visitEnumConstantDeclaration2(EnumConstantDeclaration2 node);
 
-  R? visitEnumDeclaration(EnumDeclaration node);
+  @experimental
+  R? visitEnumDeclaration2(EnumDeclaration2 node);
 
   R? visitExportDirective(ExportDirective node);
 
@@ -581,18 +584,24 @@ abstract class AstVisitor2<R> {
 
   R? visitExtendsClause(ExtendsClause node);
 
-  R? visitExtensionDeclaration(ExtensionDeclaration node);
+  @experimental
+  R? visitExtensionDeclaration2(ExtensionDeclaration2 node);
 
   R? visitExtensionOnClause(ExtensionOnClause node);
 
   @experimental
   R? visitExtensionOverride2(ExtensionOverride2 node);
 
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
+  @experimental
+  R? visitExtensionTypeDeclaration2(ExtensionTypeDeclaration2 node);
 
-  R? visitFieldDeclaration(FieldDeclaration node);
+  @experimental
+  R? visitField2(Field2 node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
+
+  @experimental
+  R? visitFieldsDeclaration(FieldsDeclaration node);
 
   R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node);
 
@@ -748,12 +757,11 @@ abstract class AstVisitor2<R> {
 
   R? visitMapPatternEntry(MapPatternEntry node);
 
-  R? visitMethodDeclaration(MethodDeclaration node);
-
   @experimental
   R? visitMethodDeclaration2(MethodDeclaration2 node);
 
-  R? visitMixinDeclaration(MixinDeclaration node);
+  @experimental
+  R? visitMixinDeclaration2(MixinDeclaration2 node);
 
   R? visitMixinOnClause(MixinOnClause node);
 
@@ -829,7 +837,8 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
+  @experimental
+  R? visitPrimaryConstructorBody2(PrimaryConstructorBody2 node);
 
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node);
 
@@ -883,6 +892,14 @@ abstract class AstVisitor2<R> {
   R? visitReturnStatement(ReturnStatement node);
 
   R? visitScriptTag(ScriptTag node);
+
+  @experimental
+  R? visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node);
+
+  @experimental
+  R? visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  );
 
   R? visitSetOrMapLiteral(SetOrMapLiteral node);
 
@@ -961,10 +978,6 @@ abstract class AstVisitor2<R> {
 
   @experimental
   R? visitUnqualifiedNameExpression(UnqualifiedNameExpression node);
-
-  R? visitVariableDeclaration(VariableDeclaration node);
-
-  R? visitVariableDeclarationList(VariableDeclarationList node);
 
   R? visitWhenClause(WhenClause node);
 

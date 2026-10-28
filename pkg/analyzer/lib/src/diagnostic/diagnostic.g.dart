@@ -16320,6 +16320,20 @@ const DiagnosticWithoutArguments unawaitedReturnInTryBlock =
 
 /// No parameters.
 const DiagnosticWithoutArguments
+uncheckedInstantiationOfNullableValue = DiagnosticWithoutArgumentsImpl(
+  name: 'unchecked_use_of_nullable_value',
+  problemMessage:
+      "The function can't be unconditionally instantiated because it can be "
+      "'null'.",
+  correctionMessage: "Try adding a null check ('!').",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'unchecked_instantiation_of_nullable_value',
+  expectedTypes: [],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
 uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
   name: 'unchecked_use_of_nullable_value',
   problemMessage:
@@ -16575,6 +16589,7 @@ undefinedExtensionMemberReadNotFound = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing member, or "
       "defining a method or getter named '{0}' in the extension.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_member_read_not_found',
   withArguments: _withArgumentsUndefinedExtensionMemberReadNotFound,
@@ -16593,6 +16608,7 @@ undefinedExtensionMemberReadPrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_member_read_private',
   withArguments: _withArgumentsUndefinedExtensionMemberReadPrivate,
@@ -16613,6 +16629,7 @@ undefinedExtensionMemberReadSetterOnly = DiagnosticWithArguments(
   problemMessage:
       "There's a setter '{0}' in the extension '{1}', but no getter.",
   correctionMessage: "Try defining a getter named '{0}' in the extension.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_member_read_setter_only',
   withArguments: _withArgumentsUndefinedExtensionMemberReadSetterOnly,
@@ -16633,6 +16650,7 @@ undefinedExtensionMemberWriteGetterOnly = DiagnosticWithArguments(
   problemMessage:
       "There's a getter '{0}' in the extension '{1}', but no setter.",
   correctionMessage: "Try defining a setter named '{0}' in the extension.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_member_write_getter_only',
   withArguments: _withArgumentsUndefinedExtensionMemberWriteGetterOnly,
@@ -16655,6 +16673,7 @@ undefinedExtensionMemberWriteNotFound = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing setter, or "
       "defining a setter named '{0}' in the extension.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_member_write_not_found',
   withArguments: _withArgumentsUndefinedExtensionMemberWriteNotFound,
@@ -16673,6 +16692,7 @@ undefinedExtensionMemberWritePrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_member_write_private',
   withArguments: _withArgumentsUndefinedExtensionMemberWritePrivate,
@@ -16694,6 +16714,7 @@ undefinedExtensionMemberWriteWrongKind = DiagnosticWithArguments(
   name: 'undefined_extension_member_write',
   problemMessage: "The {0} '{1}' in the extension '{2}' can't be assigned to.",
   correctionMessage: "Try assigning to a setter instead.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_member_write_wrong_kind',
   withArguments: _withArgumentsUndefinedExtensionMemberWriteWrongKind,
@@ -16771,6 +16792,7 @@ undefinedInstanceMemberReadNotFound = DiagnosticWithArguments(
       "Try importing the library that defines '{0}', correcting the name to "
       "the name of an existing member, or defining a method, getter, or "
       "field named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_read_not_found',
   withArguments: _withArgumentsUndefinedInstanceMemberReadNotFound,
@@ -16789,6 +16811,7 @@ undefinedInstanceMemberReadPrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_read_private',
   withArguments: _withArgumentsUndefinedInstanceMemberReadPrivate,
@@ -16805,6 +16828,7 @@ undefinedInstanceMemberReadSetterOnly = DiagnosticWithArguments(
   name: 'undefined_instance_member_read',
   problemMessage: "There's a setter '{0}' for the type '{1}', but no getter.",
   correctionMessage: "Try defining a getter or field named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_read_setter_only',
   withArguments: _withArgumentsUndefinedInstanceMemberReadSetterOnly,
@@ -16823,6 +16847,7 @@ undefinedInstanceMemberWriteFinal = DiagnosticWithArguments(
       "The field '{0}' of the type '{1}' is final, so it can't be assigned to.",
   correctionMessage:
       "Try making the field non-final, or removing the assignment.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_write_final',
   withArguments: _withArgumentsUndefinedInstanceMemberWriteFinal,
@@ -16839,6 +16864,7 @@ undefinedInstanceMemberWriteGetterOnly = DiagnosticWithArguments(
   name: 'undefined_instance_member_write',
   problemMessage: "There's a getter '{0}' for the type '{1}', but no setter.",
   correctionMessage: "Try defining a setter named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_write_getter_only',
   withArguments: _withArgumentsUndefinedInstanceMemberWriteGetterOnly,
@@ -16858,6 +16884,7 @@ undefinedInstanceMemberWriteNotFound = DiagnosticWithArguments(
       "Try importing the library that defines '{0}', correcting the name to "
       "the name of an existing setter, or defining a setter or field named "
       "'{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_write_not_found',
   withArguments: _withArgumentsUndefinedInstanceMemberWriteNotFound,
@@ -16876,6 +16903,7 @@ undefinedInstanceMemberWritePrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_write_private',
   withArguments: _withArgumentsUndefinedInstanceMemberWritePrivate,
@@ -16897,6 +16925,7 @@ undefinedInstanceMemberWriteWrongKind = DiagnosticWithArguments(
   name: 'undefined_instance_member_write',
   problemMessage: "The {0} '{1}' of the type '{2}' can't be assigned to.",
   correctionMessage: "Try assigning to a setter or a non-final field instead.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_instance_member_write_wrong_kind',
   withArguments: _withArgumentsUndefinedInstanceMemberWriteWrongKind,
@@ -17238,6 +17267,7 @@ undefinedStaticMemberReadNoStaticMembers = DiagnosticWithArguments(
   correctionMessage:
       "Try wrapping the function type alias in parentheses to access '{0}' "
       "on the 'Type' object.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_no_static_members',
   withArguments: _withArgumentsUndefinedStaticMemberReadNoStaticMembers,
@@ -17259,6 +17289,7 @@ undefinedStaticMemberReadNoStaticMembersDotShorthand = DiagnosticWithArguments(
       "The context type '{1}' doesn't have static members or constructors.",
   correctionMessage:
       "Try qualifying '{0}' with the name of the declaration that has it.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_no_static_members_dot_shorthand',
   withArguments:
@@ -17287,6 +17318,7 @@ undefinedStaticMemberReadNotFound = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing {3}, or defining a "
       "static member named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_not_found',
   withArguments: _withArgumentsUndefinedStaticMemberReadNotFound,
@@ -17319,6 +17351,7 @@ undefinedStaticMemberReadNotFoundAnnotation = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing static constant, "
       "or defining a static constant named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_not_found_annotation',
   withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundAnnotation,
@@ -17351,6 +17384,7 @@ undefinedStaticMemberReadNotFoundConstant = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing static constant or "
       "static method, or defining a static constant named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_not_found_constant',
   withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundConstant,
@@ -17381,6 +17415,7 @@ undefinedStaticMemberReadNotFoundDotShorthand = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing {2}, or defining a "
       "static member named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_not_found_dot_shorthand',
   withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundDotShorthand,
@@ -17410,6 +17445,7 @@ undefinedStaticMemberReadNotFoundDotShorthandConstant = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing static constant or "
       "static method, or defining a static constant named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_not_found_dot_shorthand_constant',
   withArguments:
@@ -17433,6 +17469,7 @@ undefinedStaticMemberReadPrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_private',
   withArguments: _withArgumentsUndefinedStaticMemberReadPrivate,
@@ -17460,6 +17497,7 @@ undefinedStaticMemberReadPrivateDotShorthand = DiagnosticWithArguments(
   correctionMessage:
       "Try qualifying '{0}' with a public name for the declaration, or "
       "making the declaration public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_private_dot_shorthand',
   withArguments: _withArgumentsUndefinedStaticMemberReadPrivateDotShorthand,
@@ -17483,6 +17521,7 @@ undefinedStaticMemberReadSetterOnly = DiagnosticWithArguments(
   problemMessage:
       "There's a static setter '{0}' in the {1} '{2}', but no getter.",
   correctionMessage: "Try defining a static getter named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_setter_only',
   withArguments: _withArgumentsUndefinedStaticMemberReadSetterOnly,
@@ -17510,6 +17549,7 @@ undefinedStaticMemberWriteConst = DiagnosticWithArguments(
   problemMessage: "The constant '{0}' in the {1} '{2}' can't be assigned to.",
   correctionMessage:
       "Try making it a non-constant field, or removing the assignment.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_const',
   withArguments: _withArgumentsUndefinedStaticMemberWriteConst,
@@ -17539,6 +17579,7 @@ undefinedStaticMemberWriteFinal = DiagnosticWithArguments(
       "to.",
   correctionMessage:
       "Try making the field non-final, or removing the assignment.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_final',
   withArguments: _withArgumentsUndefinedStaticMemberWriteFinal,
@@ -17566,6 +17607,7 @@ undefinedStaticMemberWriteGetterOnly = DiagnosticWithArguments(
   problemMessage:
       "There's a static getter '{0}' in the {1} '{2}', but no setter.",
   correctionMessage: "Try defining a static setter named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_getter_only',
   withArguments: _withArgumentsUndefinedStaticMemberWriteGetterOnly,
@@ -17593,6 +17635,7 @@ undefinedStaticMemberWriteNoStaticMembers = DiagnosticWithArguments(
   correctionMessage:
       "Try wrapping the function type alias in parentheses to access '{0}' "
       "on the 'Type' object.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_no_static_members',
   withArguments: _withArgumentsUndefinedStaticMemberWriteNoStaticMembers,
@@ -17617,6 +17660,7 @@ undefinedStaticMemberWriteNotFound = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing static setter, or "
       "defining a static setter or field named '{0}'.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_not_found',
   withArguments: _withArgumentsUndefinedStaticMemberWriteNotFound,
@@ -17639,6 +17683,7 @@ undefinedStaticMemberWritePrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_private',
   withArguments: _withArgumentsUndefinedStaticMemberWritePrivate,
@@ -17663,6 +17708,7 @@ undefinedStaticMemberWriteWrongKind = DiagnosticWithArguments(
   name: 'undefined_static_member_write',
   problemMessage: "The {0} '{1}' in the {2} '{3}' can't be assigned to.",
   correctionMessage: "Try assigning to a static setter or field instead.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_wrong_kind',
   withArguments: _withArgumentsUndefinedStaticMemberWriteWrongKind,
@@ -17686,6 +17732,7 @@ undefinedSuperMemberReadNotFound = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing member, or "
       "defining a method, getter, or field named '{0}' in a superclass.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_read_not_found',
   withArguments: _withArgumentsUndefinedSuperMemberReadNotFound,
@@ -17704,6 +17751,7 @@ undefinedSuperMemberReadPrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_read_private',
   withArguments: _withArgumentsUndefinedSuperMemberReadPrivate,
@@ -17722,6 +17770,7 @@ undefinedSuperMemberReadSetterOnly = DiagnosticWithArguments(
       "There's a setter '{0}' in a superclass of '{1}', but no getter.",
   correctionMessage:
       "Try defining a getter or field named '{0}' in a superclass.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_read_setter_only',
   withArguments: _withArgumentsUndefinedSuperMemberReadSetterOnly,
@@ -17741,6 +17790,7 @@ undefinedSuperMemberWriteFinal = DiagnosticWithArguments(
       "assigned to.",
   correctionMessage:
       "Try making the field non-final, or removing the assignment.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_write_final',
   withArguments: _withArgumentsUndefinedSuperMemberWriteFinal,
@@ -17758,6 +17808,7 @@ undefinedSuperMemberWriteGetterOnly = DiagnosticWithArguments(
   problemMessage:
       "There's a getter '{0}' in a superclass of '{1}', but no setter.",
   correctionMessage: "Try defining a setter named '{0}' in a superclass.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_write_getter_only',
   withArguments: _withArgumentsUndefinedSuperMemberWriteGetterOnly,
@@ -17776,6 +17827,7 @@ undefinedSuperMemberWriteNotFound = DiagnosticWithArguments(
   correctionMessage:
       "Try correcting the name to the name of an existing setter, or "
       "defining a setter or field named '{0}' in a superclass.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_write_not_found',
   withArguments: _withArgumentsUndefinedSuperMemberWriteNotFound,
@@ -17794,6 +17846,7 @@ undefinedSuperMemberWritePrivate = DiagnosticWithArguments(
       "The member '{0}' is declared in '{1}', but private names are visible only "
       "in their own library.",
   correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_write_private',
   withArguments: _withArgumentsUndefinedSuperMemberWritePrivate,
@@ -17816,6 +17869,7 @@ undefinedSuperMemberWriteWrongKind = DiagnosticWithArguments(
   problemMessage:
       "The {0} '{1}' in a superclass of '{2}' can't be assigned to.",
   correctionMessage: "Try assigning to a setter or a non-final field instead.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_member_write_wrong_kind',
   withArguments: _withArgumentsUndefinedSuperMemberWriteWrongKind,
@@ -17835,6 +17889,7 @@ undefinedSuperOperator = DiagnosticWithArguments(
   name: 'undefined_super_operator',
   problemMessage: "The operator '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage: "Try defining the operator '{0}' in a superclass.",
+  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_operator',
   withArguments: _withArgumentsUndefinedSuperOperator,

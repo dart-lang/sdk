@@ -39,6 +39,7 @@ template("win_toolchains") {
       is_clang = false
     }
   }
+
   msvc_toolchain_suite("clang_" + target_name) {
     environment = "environment." + toolchain_arch
     prefix = rebase_path("$clang_base_path/bin", root_build_dir)
@@ -49,6 +50,9 @@ template("win_toolchains") {
       cl = "${cl} --target=x86_64-pc-windows-msvc"
     } else if (toolchain_arch == "arm64") {
       cl = "${cl} --target=aarch64-pc-windows-msvc"
+    }
+    if (use_siso) {
+      sys_include_flags = "${win_toolchain_data.include_flags_imsvc}"
     }
     toolchain_args = {
       if (defined(invoker.toolchain_args)) {

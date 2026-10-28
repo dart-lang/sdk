@@ -6,11 +6,11 @@ import 'exhaustive.dart';
 import 'key.dart';
 import 'path.dart';
 import 'space.dart';
-import 'static_type.dart';
+import 'shape.dart';
 import 'types.dart';
 
 /// Interface implemented by analyze/CFE to support type operations need for the
-/// shared [StaticType]s.
+/// shared [Shape]s.
 abstract class TypeOperations<Type extends Object> {
   /// Returns the type for `Object?`.
   Type get nullableObjectType;
@@ -69,10 +69,10 @@ abstract class TypeOperations<Type extends Object> {
   /// Returns the non-nullable type `Future<T>` for [type] `T`.
   Type instantiateFuture(Type type);
 
-  /// Returns a map of the field names and corresponding types available on
+  /// Returns a map of the property names and corresponding types available on
   /// [type]. For an interface type, these are the fields and getters, and for
   /// record types these are the record fields.
-  Map<Key, Type> getFieldTypes(Type type);
+  Map<Key, Type> getPropertyTypes(Type type);
 
   /// Returns the value type `V` if [type] implements `Map<K, V>` or `null`
   /// otherwise.
@@ -110,18 +110,18 @@ abstract class TypeOperations<Type extends Object> {
   Uri? libraryUri(Type type);
 }
 
-/// Interface for looking up fields and their corresponding [StaticType]s of
+/// Interface for looking up properties and their corresponding [Shape]s of
 /// a given type.
-abstract class FieldLookup<Type extends Object> {
-  /// Returns a map of the field names and corresponding [StaticType]s available
+abstract class PropertyLookup<Type extends Object> {
+  /// Returns a map of the property names and corresponding [Shape]s available
   /// on [type]. For an interface type, these are the fields and getters, and
   /// for record types these are the record fields.
-  Map<Key, StaticType> getFieldTypes(Type type);
+  Map<Key, Shape> getPropertyShapes(Type type);
 
-  StaticType? getAdditionalFieldType(Type type, Key key);
+  Shape? getAdditionalPropertyShape(Type type, Key key);
 }
 
-/// Cache used for computing [StaticType]s used for exhaustiveness checking.
+/// Cache used for computing [Shape]s used for exhaustiveness checking.
 ///
 /// This implementation is shared between analyzer and CFE, and implemented
 /// using the analyzer/CFE implementations of [TypeOperations],
@@ -133,7 +133,7 @@ class ExhaustivenessCache<
   EnumElement extends Object,
   EnumElementValue extends Object
 >
-    implements FieldLookup<Type>, ObjectPropertyLookup {
+    implements PropertyLookup<Type>, ObjectPropertyLookup {
   final TypeOperations<Type> typeOperations;
   final EnumOperations<Type, EnumClass, EnumElement, EnumElementValue>
   enumOperations;
@@ -146,18 +146,18 @@ class ExhaustivenessCache<
   /// Cache for [SealedClassInfo] for sealed classes.
   Map<Class, SealedClassInfo<Type, Class>> _sealedClassInfo = {};
 
-  /// Cache for unique [StaticType]s.
-  Map<Object, StaticType> _uniqueTypeMap = {};
+  /// Cache for unique [Shape]s.
+  Map<Object, Shape> _uniqueShapeMap = {};
 
-  /// Cache for the [StaticType] for `bool`.
-  late BoolStaticType _boolStaticType = new BoolStaticType(
+  /// Cache for the [Shape] for `bool`.
+  late BoolShape _boolShape = new BoolShape(
     typeOperations,
     this,
     typeOperations.boolType,
   );
 
-  /// Cache for [StaticType]s for fields available on a [Type].
-  Map<Type, Map<Key, StaticType>> _fieldCache = {};
+  /// Cache for [Shape]s for properties available on a [Type].
+  Map<Type, Map<Key, Shape>> _propertyCache = {};
 
   new(this.typeOperations, this.enumOperations, this._sealedClassOperations);
 
@@ -181,26 +181,26 @@ class ExhaustivenessCache<
     );
   }
 
-  /// Returns the [StaticType] for the boolean [value].
-  StaticType getBoolValueStaticType(bool value) {
-    return value ? _boolStaticType.trueType : _boolStaticType.falseType;
+  /// Returns the [Shape] for the boolean [value].
+  Shape getBoolValueShape(bool value) {
+    return value ? _boolShape.trueShape : _boolShape.falseShape;
   }
 
-  /// Returns the [StaticType] for [type].
-  StaticType getStaticType(Type type) {
+  /// Returns the [Shape] for [type].
+  Shape getShapeForType(Type type) {
     type = typeOperations.getExtensionTypeErasure(type);
     if (typeOperations.isNeverType(type)) {
-      return StaticType.neverType;
+      return Shape.neverShape;
     } else if (typeOperations.isNullType(type)) {
-      return StaticType.nullType;
+      return Shape.nullShape;
     } else if (typeOperations.isNonNullableObject(type)) {
-      return StaticType.nonNullableObject;
+      return Shape.nonNullableObject;
     } else if (typeOperations.isNullableObject(type) ||
         typeOperations.isDynamic(type)) {
-      return StaticType.nullableObject;
+      return Shape.nullableObject;
     }
 
-    StaticType staticType;
+    Shape shape;
     bool extractNull = typeOperations.isNullable(type);
     Type typeWithoutNull = type;
     if (extractNull) {
@@ -211,22 +211,22 @@ class ExhaustivenessCache<
       typeWithoutNull = typeOperations.getNonNullable(type);
     }
     if (typeOperations.isBoolType(typeWithoutNull)) {
-      staticType = _boolStaticType;
+      shape = _boolShape;
     } else if (typeOperations.isRecordType(typeWithoutNull)) {
-      staticType = new RecordStaticType(typeOperations, this, typeWithoutNull);
+      shape = new RecordShape(typeOperations, this, typeWithoutNull);
     } else {
       Type? futureOrTypeArgument = typeOperations.getFutureOrTypeArgument(
         typeWithoutNull,
       );
       if (futureOrTypeArgument != null) {
-        StaticType typeArgument = getStaticType(futureOrTypeArgument);
-        StaticType futureType = getStaticType(
+        Shape typeArgument = getShapeForType(futureOrTypeArgument);
+        Shape futureType = getShapeForType(
           typeOperations.instantiateFuture(futureOrTypeArgument),
         );
         bool isImplicitlyNullable = typeOperations.isNullable(
           futureOrTypeArgument,
         );
-        staticType = new FutureOrStaticType(
+        shape = new FutureOrShape(
           typeOperations,
           this,
           typeWithoutNull,
@@ -237,7 +237,7 @@ class ExhaustivenessCache<
       } else {
         EnumClass? enumClass = enumOperations.getEnumClass(typeWithoutNull);
         if (enumClass != null) {
-          staticType = new EnumStaticType(
+          shape = new EnumShape(
             typeOperations,
             this,
             typeWithoutNull,
@@ -248,7 +248,7 @@ class ExhaustivenessCache<
             typeWithoutNull,
           );
           if (sealedClass != null) {
-            staticType = new SealedClassStaticType(
+            shape = new SealedClassShape(
               typeOperations,
               this,
               typeWithoutNull,
@@ -259,16 +259,12 @@ class ExhaustivenessCache<
           } else {
             Type? listType = typeOperations.getListType(typeWithoutNull);
             if (listType != null) {
-              staticType = new ListTypeStaticType(
-                typeOperations,
-                this,
-                typeWithoutNull,
-              );
+              shape = new ListShape(typeOperations, this, typeWithoutNull);
             } else {
               bool isImplicitlyNullable = typeOperations.isNullable(
                 typeWithoutNull,
               );
-              staticType = new TypeBasedStaticType(
+              shape = new TypeBasedShape(
                 typeOperations,
                 this,
                 typeWithoutNull,
@@ -276,10 +272,7 @@ class ExhaustivenessCache<
               );
               Type? bound = typeOperations.getTypeVariableBound(type);
               if (bound != null) {
-                staticType = new WrappedStaticType(
-                  getStaticType(bound),
-                  staticType,
-                );
+                shape = new WrappedShape(getShapeForType(bound), shape);
               }
             }
           }
@@ -287,46 +280,47 @@ class ExhaustivenessCache<
       }
     }
     if (extractNull) {
-      // Include the `Null` which extracted from [type] into [typeWithoutNull`.
-      staticType = staticType.nullable;
+      // Include the `Null` which was extracted from [type] into
+      // [typeWithoutNull].
+      shape = shape.nullable;
     }
-    return staticType;
+    return shape;
   }
 
-  /// Returns the [StaticType] for the [enumElementValue] declared by
+  /// Returns the [Shape] for the [enumElementValue] declared by
   /// [enumClass].
-  StaticType getEnumElementStaticType(
+  Shape getEnumElementShape(
     EnumClass enumClass,
     EnumElementValue enumElementValue,
   ) {
     return _getEnumInfo(enumClass).getEnumElement(enumElementValue);
   }
 
-  /// Creates a new unique [StaticType].
-  StaticType getUnknownStaticType() {
-    // The unknown static type should be based on the nullable `Object`, since
+  /// Creates a new unique [Shape].
+  Shape getUnknownShape() {
+    // The unknown shape should not be based on the nullable `Object`, since
     // even though it _might_ be `null`, using the nullable `Object` here would
-    // mean that it _does_ include `null`, and we need this type to only cover
+    // mean that it _does_ include `null`, and we need this shape to only cover
     // itself.
-    return getUniqueStaticType<Object>(
+    return getUniqueShape<Object>(
       typeOperations.nonNullableObjectType,
       new Object(),
       '?',
     );
   }
 
-  /// Returns a [StaticType] of the given [type] with the given
+  /// Returns a [Shape] of the given [type] with the given
   /// [textualRepresentation] that unique identifies the [uniqueValue].
   ///
   /// This is used for constants that are neither bool nor enum values.
-  StaticType getUniqueStaticType<Identity extends Object>(
+  Shape getUniqueShape<Identity extends Object>(
     Type type,
     Identity uniqueValue,
     String textualRepresentation,
   ) {
     Type nonNullable = typeOperations.getNonNullable(type);
-    StaticType staticType = _uniqueTypeMap[uniqueValue] ??=
-        new GeneralValueStaticType<Type, Identity>(
+    Shape shape = _uniqueShapeMap[uniqueValue] ??=
+        new GeneralValueShape<Type, Identity>(
           typeOperations,
           this,
           nonNullable,
@@ -335,18 +329,15 @@ class ExhaustivenessCache<
           uniqueValue,
         );
     if (typeOperations.isNullable(type)) {
-      staticType = staticType.nullable;
+      shape = shape.nullable;
     }
-    return staticType;
+    return shape;
   }
 
-  /// Returns a [StaticType] of the list [type] with the given [restriction] .
-  StaticType getListStaticType(
-    Type type,
-    ListTypeRestriction<Type> restriction,
-  ) {
+  /// Returns a [Shape] of the list [type] with the given [restriction] .
+  Shape getListShape(Type type, ListShapeRestriction<Type> restriction) {
     Type nonNullable = typeOperations.getNonNullable(type);
-    StaticType staticType = new ListPatternStaticType(
+    Shape shape = new ListPatternShape(
       typeOperations,
       this,
       nonNullable,
@@ -354,15 +345,15 @@ class ExhaustivenessCache<
       restriction.toString(),
     );
     if (typeOperations.isNullable(type)) {
-      staticType = staticType.nullable;
+      shape = shape.nullable;
     }
-    return staticType;
+    return shape;
   }
 
-  /// Returns a [StaticType] of the map [type] with the given [restriction] .
-  StaticType getMapStaticType(Type type, MapTypeRestriction<Type> restriction) {
+  /// Returns a [Shape] of the map [type] with the given [restriction] .
+  Shape getMapShape(Type type, MapShapeRestriction<Type> restriction) {
     Type nonNullable = typeOperations.getNonNullable(type);
-    StaticType staticType = new MapPatternStaticType(
+    Shape shape = new MapPatternShape(
       typeOperations,
       this,
       nonNullable,
@@ -370,50 +361,50 @@ class ExhaustivenessCache<
       restriction.toString(),
     );
     if (typeOperations.isNullable(type)) {
-      staticType = staticType.nullable;
+      shape = shape.nullable;
     }
-    return staticType;
+    return shape;
   }
 
   @override
-  Map<Key, StaticType> getFieldTypes(Type type) {
-    Map<Key, StaticType>? fields = _fieldCache[type];
-    if (fields == null) {
-      _fieldCache[type] = fields = {};
+  Map<Key, Shape> getPropertyShapes(Type type) {
+    Map<Key, Shape>? properties = _propertyCache[type];
+    if (properties == null) {
+      _propertyCache[type] = properties = {};
       for (MapEntry<Key, Type> entry
-          in typeOperations.getFieldTypes(type).entries) {
-        fields[entry.key] = getStaticType(entry.value);
+          in typeOperations.getPropertyTypes(type).entries) {
+        properties[entry.key] = getShapeForType(entry.value);
       }
     }
-    return fields;
+    return properties;
   }
 
   @override
-  StaticType? getAdditionalFieldType(Type type, Key key) {
+  Shape? getAdditionalPropertyShape(Type type, Key key) {
     if (key is MapKey) {
       Type? valueType = typeOperations.getMapValueType(type);
       if (valueType != null) {
-        return getStaticType(valueType);
+        return getShapeForType(valueType);
       }
     } else if (key is HeadKey || key is TailKey) {
       Type? elementType = typeOperations.getListElementType(type);
       if (elementType != null) {
-        return getStaticType(elementType);
+        return getShapeForType(elementType);
       }
     } else if (key is RestKey) {
       Type? listType = typeOperations.getListType(type);
       if (listType != null) {
-        return getStaticType(listType);
+        return getShapeForType(listType);
       }
     } else {
-      return getObjectFieldType(key);
+      return getObjectPropertyShape(key);
     }
     return null;
   }
 
   @override
-  StaticType? getObjectFieldType(Key key) {
-    return getFieldTypes(typeOperations.nonNullableObjectType)[key];
+  Shape? getObjectPropertyShape(Key key) {
+    return getPropertyShapes(typeOperations.nonNullableObjectType)[key];
   }
 }
 
@@ -421,68 +412,68 @@ class ExhaustivenessCache<
 mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   TypeOperations<Type> get typeOperations;
 
-  ObjectPropertyLookup get objectFieldLookup;
+  ObjectPropertyLookup get objectPropertyLookup;
 
   /// Returns `true` if the current library has version greater than or equal
   /// to `$major.$minor`.
   bool hasLanguageVersion(int major, int minor);
 
-  /// Creates a [StaticType] for an unknown type.
+  /// Creates a [Shape] for an unknown type.
   ///
   /// This is used when the type of the pattern is unknown or can't be
-  /// represented as a [StaticType]. This type is unique and ensures that it
-  /// is neither matches anything nor is matched by anything.
-  StaticType createUnknownStaticType();
+  /// represented as a [Shape]. This shape is unique and ensures that it
+  /// neither matches anything nor is matched by anything.
+  Shape createUnknownShape();
 
-  /// Creates the [StaticType] for [type].
-  StaticType createStaticType(Type type);
+  /// Creates the [Shape] for [type].
+  Shape createShapeForType(Type type);
 
-  /// Creates the [StaticType] for [type] restricted by the [contextType].
-  /// If [nonNull] is `true`, the created type is non-nullable.
-  StaticType _createStaticTypeWithContext(
-    StaticType contextType,
+  /// Creates the [Shape] for [type] restricted by the [contextShape].
+  /// If [nonNull] is `true`, the created shape is non-nullable.
+  Shape _createShapeForTypeWithContext(
+    Shape contextShape,
     Type type, {
     required bool nonNull,
   }) {
-    StaticType staticType = createStaticType(type);
-    if (contextType.isSubtypeOf(staticType)) {
-      staticType = contextType;
+    Shape shape = createShapeForType(type);
+    if (contextShape.isSubshapeOf(shape)) {
+      shape = contextShape;
     }
     if (nonNull) {
-      staticType = staticType.nonNullable;
+      shape = shape.nonNullable;
     }
-    return staticType;
+    return shape;
   }
 
-  /// Creates the [StaticType] for the list [type] with the given [restriction].
-  StaticType createListType(Type type, ListTypeRestriction<Type> restriction);
+  /// Creates the [Shape] for the list [type] with the given [restriction].
+  Shape createListShape(Type type, ListShapeRestriction<Type> restriction);
 
-  /// Creates the [StaticType] for the map [type] with the given [restriction].
-  StaticType createMapType(Type type, MapTypeRestriction<Type> restriction);
+  /// Creates the [Shape] for the map [type] with the given [restriction].
+  Shape createMapShape(Type type, MapShapeRestriction<Type> restriction);
 
   /// Creates the [Space] for [pattern] at the given [path].
   ///
-  /// The [contextType] is the [StaticType] in which the pattern match is
-  /// performed. This is used to the restrict type of the created [Space] to
-  /// the types allowed by the context. For instance `Object(:var hashCode)` is
-  /// in itself unrestricted and would yield the top space for matching
-  /// `var hashCode`. Using the [contextType] `int`, as given by the type of
+  /// The [contextShape] is the [Shape] in which the pattern match is
+  /// performed. This is used to restrict the shape of the created [Space] to
+  /// the shapes allowed by the context. For instance `Object(:var hashCode)`
+  /// is in itself unrestricted and would yield the top space for matching
+  /// `var hashCode`. Using the [contextShape] `int`, as given by the type of
   /// the `Object.hashCode`, the created space is all `int` values rather than
   /// all values.
   ///
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space dispatchPattern(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Pattern pattern, {
     required bool nonNull,
   });
 
   /// Creates the root space for [pattern].
-  Space createRootSpace(StaticType contextType, Pattern pattern) {
+  Space createRootSpace(Shape contextShape, Pattern pattern) {
     return dispatchPattern(
       const Path.root(),
-      contextType,
+      contextShape,
       pattern,
       nonNull: false,
     );
@@ -494,16 +485,16 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space createVariableSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Type type, {
     required bool nonNull,
   }) {
-    StaticType staticType = _createStaticTypeWithContext(
-      contextType,
+    Shape shape = _createShapeForTypeWithContext(
+      contextShape,
       type,
       nonNull: nonNull,
     );
-    return new Space(path, staticType);
+    return new Space(path, shape);
   }
 
   /// Creates the [Space] at [path] for an object pattern of the required [type]
@@ -512,82 +503,82 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space createObjectSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Type type,
     Map<String, Pattern> fieldPatterns,
     Map<String, Type> extensionPropertyTypes, {
     required bool nonNull,
   }) {
-    StaticType staticType = _createStaticTypeWithContext(
-      contextType,
+    Shape shape = _createShapeForTypeWithContext(
+      contextShape,
       type,
       nonNull: nonNull,
     );
     Map<Key, Space> properties = <Key, Space>{};
     for (MapEntry<String, Pattern> entry in fieldPatterns.entries) {
       String name = entry.key;
-      StaticType propertyType;
+      Shape propertyShape;
       Type? extensionPropertyType = extensionPropertyTypes[name];
       Key key;
       if (extensionPropertyType != null) {
-        propertyType = createStaticType(extensionPropertyType);
-        key = new ExtensionKey(createStaticType(type), name, propertyType);
+        propertyShape = createShapeForType(extensionPropertyType);
+        key = new ExtensionKey(createShapeForType(type), name, propertyShape);
       } else {
         key = new NameKey(name);
-        propertyType =
-            staticType.getPropertyType(objectFieldLookup, key) ??
-            StaticType.nullableObject;
+        propertyShape =
+            shape.getPropertyShape(objectPropertyLookup, key) ??
+            Shape.nullableObject;
       }
       properties[key] = dispatchPattern(
         path.add(key),
-        propertyType,
+        propertyShape,
         entry.value,
         nonNull: false,
       );
     }
-    return new Space(path, staticType, properties: properties);
+    return new Space(path, shape, properties: properties);
   }
 
   /// Creates the [Space] at [path] for a record pattern of the required
   /// [recordType], [positionalFields], and [namedFields].
   Space createRecordSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Type recordType,
     List<Pattern> positionalFields,
     Map<String, Pattern> namedFields,
   ) {
-    StaticType staticType = _createStaticTypeWithContext(
-      contextType,
+    Shape shape = _createShapeForTypeWithContext(
+      contextShape,
       recordType,
       nonNull: true,
     );
     Map<Key, Space> properties = <Key, Space>{};
     for (int index = 0; index < positionalFields.length; index++) {
       Key key = new RecordIndexKey(index);
-      StaticType propertyType =
-          staticType.getPropertyType(objectFieldLookup, key) ??
-          StaticType.nullableObject;
+      Shape propertyShape =
+          shape.getPropertyShape(objectPropertyLookup, key) ??
+          Shape.nullableObject;
       properties[key] = dispatchPattern(
         path.add(key),
-        propertyType,
+        propertyShape,
         positionalFields[index],
         nonNull: false,
       );
     }
     for (MapEntry<String, Pattern> entry in namedFields.entries) {
       Key key = new RecordNameKey(entry.key);
-      StaticType propertyType =
-          staticType.getPropertyType(objectFieldLookup, key) ??
-          StaticType.nullableObject;
+      Shape propertyShape =
+          shape.getPropertyShape(objectPropertyLookup, key) ??
+          Shape.nullableObject;
       properties[key] = dispatchPattern(
         path.add(key),
-        propertyType,
+        propertyShape,
         entry.value,
         nonNull: false,
       );
     }
-    return new Space(path, staticType, properties: properties);
+    return new Space(path, shape, properties: properties);
   }
 
   /// Creates the [Space] at [path] for a wildcard pattern with the declared
@@ -596,23 +587,23 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space createWildcardSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Type? type, {
     required bool nonNull,
   }) {
     if (type == null) {
-      StaticType staticType = contextType;
+      Shape shape = contextShape;
       if (nonNull) {
-        staticType = staticType.nonNullable;
+        shape = shape.nonNullable;
       }
-      return new Space(path, staticType);
+      return new Space(path, shape);
     } else {
-      StaticType staticType = _createStaticTypeWithContext(
-        contextType,
+      Shape shape = _createShapeForTypeWithContext(
+        contextShape,
         type,
         nonNull: nonNull,
       );
-      return new Space(path, staticType);
+      return new Space(path, shape);
     }
   }
 
@@ -627,11 +618,11 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// unrestricted but the pattern `Object(hashCode: 5)` is restricted.
   bool _isUnrestricted(SingleSpace singleSpace) {
     if (singleSpace.properties.isNotEmpty) {
-      Map<Key, StaticType> fieldTypes = singleSpace.type.fields;
+      Map<Key, Shape> propertyShapes = singleSpace.shape.properties;
       for (MapEntry<Key, Space> entry in singleSpace.properties.entries) {
         Key key = entry.key;
-        StaticType fieldType = fieldTypes[key] ?? StaticType.neverType;
-        if (!_isContainedIn(fieldType, entry.value)) {
+        Shape propertyShape = propertyShapes[key] ?? Shape.neverShape;
+        if (!_isContainedIn(propertyShape, entry.value)) {
           return false;
         }
       }
@@ -640,10 +631,10 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       for (MapEntry<Key, Space> entry
           in singleSpace.additionalProperties.entries) {
         Key key = entry.key;
-        StaticType fieldType =
-            singleSpace.type.getAdditionalPropertyType(key) ??
-            StaticType.neverType;
-        if (!_isContainedIn(fieldType, entry.value)) {
+        Shape propertyShape =
+            singleSpace.shape.getAdditionalPropertyShape(key) ??
+            Shape.neverShape;
+        if (!_isContainedIn(propertyShape, entry.value)) {
           return false;
         }
       }
@@ -651,17 +642,17 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     return true;
   }
 
-  /// Returns `true` if the space implied by [type], i.e. all values of [type]
-  /// regardless of properties, is contained in [space].
-  bool _isContainedIn(StaticType type, Space space) {
+  /// Returns `true` if the space implied by [shape], i.e. all values of
+  /// [shape] regardless of properties, is contained in [space].
+  bool _isContainedIn(Shape shape, Space space) {
     Map<SingleSpace, bool> unrestrictedCache = {};
     if (space.singleSpaces.length == 1) {
-      // Optimize for simple spaces to avoid unnecessary expansion of subtypes.
+      // Optimize for simple spaces to avoid unnecessary expansion of subshapes.
       SingleSpace singleSpace = space.singleSpaces.single;
       bool isUnrestricted = unrestrictedCache[singleSpace] ??= _isUnrestricted(
         singleSpace,
       );
-      if (isUnrestricted && type.isSubtypeOf(singleSpace.type)) {
+      if (isUnrestricted && shape.isSubshapeOf(singleSpace.shape)) {
         return true;
       }
     }
@@ -674,14 +665,14 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     //        (A() || B()) as M => 0,
     //      };
     //
-    // we expand [type] into subtypes before determining for containment.
-    List<StaticType> subtypes = expandSealedSubtypes(type, const {});
-    for (StaticType subtype in subtypes) {
+    // we expand [shape] into subshapes before determining for containment.
+    List<Shape> subshapes = expandSealedSubshapes(shape, const {});
+    for (Shape subshape in subshapes) {
       bool found = false;
       for (SingleSpace singleSpace in space.singleSpaces) {
         bool isUnrestricted = unrestrictedCache[singleSpace] ??=
             _isUnrestricted(singleSpace);
-        if (isUnrestricted && subtype.isSubtypeOf(singleSpace.type)) {
+        if (isUnrestricted && subshape.isSubshapeOf(singleSpace.shape)) {
           found = true;
           break;
         }
@@ -699,22 +690,22 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space createCastSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Type type,
     Pattern subPattern, {
     required bool nonNull,
   }) {
     Space space = dispatchPattern(
       path,
-      contextType,
+      contextShape,
       subPattern,
       nonNull: nonNull,
     );
-    StaticType castType = createStaticType(type);
+    Shape castShape = createShapeForType(type);
     if (hasLanguageVersion(3, 3)) {
-      if (_isContainedIn(castType, space)) {
-        // If all values in [castType] are also in [space] then the complete
-        // [contextType] is matched. For instance
+      if (_isContainedIn(castShape, space)) {
+        // If all values in [castShape] are also in [space] then the complete
+        // [contextShape] is matched. For instance
         //
         //    method(var d) => switch (d) {
         //        final String value => value,
@@ -722,22 +713,19 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
         //        // throwing.
         //        final value as int => value,
         //      };
-        space = new Space(path, contextType);
+        space = new Space(path, contextShape);
       }
       if (!typeOperations.isPotentiallyNullable(type)) {
-        // If `null` is _not_ included in [castType], we can include in the
+        // If `null` is _not_ included in [castShape], we can include in the
         // generated [space].
-        space = space.union(new Space(path, StaticType.nullType));
+        space = space.union(new Space(path, Shape.nullShape));
       }
     } else {
       // The following check assumes that the subpattern space is
       // unrestrictive.
-      if (castType.isSubtypeOf(contextType) && contextType.isSealed) {
-        for (StaticType subtype in expandSealedSubtypes(
-          contextType,
-          const {},
-        )) {
-          // If [subtype] is a subtype of [castType] it will not throw and
+      if (castShape.isSubshapeOf(contextShape) && contextShape.isSealed) {
+        for (Shape subshape in expandSealedSubshapes(contextShape, const {})) {
+          // If [subshape] is a subshape of [castShape] it will not throw and
           // must be handled by [subPattern]. For instance
           //
           //    sealed class S {}
@@ -747,8 +735,8 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
           //      A() as X => 0,
           //    }
           //
-          // If [castType] is a subtype of [subtype] it might not throw but
-          // still not handle all values of the [subtype].
+          // If [castShape] is a subshape of [subshape] it might not throw but
+          // still not handle all values of the [subshape].
           //
           //    sealed class S {}
           //    class A extends S {}
@@ -760,10 +748,10 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
           //      X(field: 42) as X => 0,
           //    }
           //
-          if (!castType.isSubtypeOf(subtype) &&
-              !subtype.isSubtypeOf(castType)) {
-            // Otherwise the cast implicitly handles [subtype].
-            space = space.union(new Space(path, subtype));
+          if (!castShape.isSubshapeOf(subshape) &&
+              !subshape.isSubshapeOf(castShape)) {
+            // Otherwise the cast implicitly handles [subshape].
+            space = space.union(new Space(path, subshape));
           }
         }
       }
@@ -775,21 +763,26 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// [subPattern].
   Space createNullCheckSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Pattern subPattern,
   ) {
-    return dispatchPattern(path, contextType, subPattern, nonNull: true);
+    return dispatchPattern(path, contextShape, subPattern, nonNull: true);
   }
 
   /// Creates the [Space] at [path] for a null assert pattern with the given
   /// [subPattern].
   Space createNullAssertSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Pattern subPattern,
   ) {
-    Space space = dispatchPattern(path, contextType, subPattern, nonNull: true);
-    return space.union(new Space(path, StaticType.nullType));
+    Space space = dispatchPattern(
+      path,
+      contextShape,
+      subPattern,
+      nonNull: true,
+    );
+    return space.union(new Space(path, Shape.nullShape));
   }
 
   /// Creates the [Space] at [path] for a logical or pattern with the given
@@ -798,13 +791,13 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space createLogicalOrSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Pattern left,
     Pattern right, {
     required bool nonNull,
   }) {
-    Space aSpace = dispatchPattern(path, contextType, left, nonNull: nonNull);
-    Space bSpace = dispatchPattern(path, contextType, right, nonNull: nonNull);
+    Space aSpace = dispatchPattern(path, contextShape, left, nonNull: nonNull);
+    Space bSpace = dispatchPattern(path, contextShape, right, nonNull: nonNull);
     return aSpace.union(bSpace);
   }
 
@@ -814,13 +807,13 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
   /// If [nonNull] is `true`, the space is implicitly non-nullable.
   Space createLogicalAndSpace(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Pattern left,
     Pattern right, {
     required bool nonNull,
   }) {
-    Space aSpace = dispatchPattern(path, contextType, left, nonNull: nonNull);
-    Space bSpace = dispatchPattern(path, contextType, right, nonNull: nonNull);
+    Space aSpace = dispatchPattern(path, contextShape, left, nonNull: nonNull);
+    Space bSpace = dispatchPattern(path, contextShape, right, nonNull: nonNull);
     return _createSpaceIntersection(path, aSpace, bSpace);
   }
 
@@ -849,61 +842,54 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       typeArgumentText = '';
     }
 
-    ListTypeRestriction<Type> identity = new ListTypeRestriction(
+    ListShapeRestriction<Type> identity = new ListShapeRestriction(
       elementType,
       typeArgumentText,
       size: headSize + tailSize,
       hasRest: hasRest,
     );
 
-    StaticType staticType = createListType(type, identity);
+    Shape shape = createListShape(type, identity);
 
     Map<Key, Space> additionalProperties = {};
     for (int index = 0; index < headSize; index++) {
       Key key = new HeadKey(index);
-      StaticType propertyType =
-          staticType.getAdditionalPropertyType(key) ??
-          StaticType.nullableObject;
+      Shape propertyShape =
+          shape.getAdditionalPropertyShape(key) ?? Shape.nullableObject;
       additionalProperties[key] = dispatchPattern(
         path.add(key),
-        propertyType,
+        propertyShape,
         headElements[index],
         nonNull: false,
       );
     }
     if (hasRest) {
       Key key = new RestKey(headSize, tailSize);
-      StaticType propertyType =
-          staticType.getAdditionalPropertyType(key) ??
-          StaticType.nullableObject;
+      Shape propertyShape =
+          shape.getAdditionalPropertyShape(key) ?? Shape.nullableObject;
       if (restElement != null) {
         additionalProperties[key] = dispatchPattern(
           path.add(key),
-          propertyType,
+          propertyShape,
           restElement,
           nonNull: false,
         );
       } else {
-        additionalProperties[key] = new Space(path.add(key), propertyType);
+        additionalProperties[key] = new Space(path.add(key), propertyShape);
       }
     }
     for (int index = 0; index < tailSize; index++) {
       Key key = new TailKey(index);
-      StaticType propertyType =
-          staticType.getAdditionalPropertyType(key) ??
-          StaticType.nullableObject;
+      Shape propertyShape =
+          shape.getAdditionalPropertyShape(key) ?? Shape.nullableObject;
       additionalProperties[key] = dispatchPattern(
         path.add(key),
-        propertyType,
+        propertyShape,
         tailElements[tailElements.length - index - 1],
         nonNull: false,
       );
     }
-    return new Space(
-      path,
-      staticType,
-      additionalProperties: additionalProperties,
-    );
+    return new Space(path, shape, additionalProperties: additionalProperties);
   }
 
   /// Creates the [Space] at [path] for a map pattern.
@@ -928,42 +914,36 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       typeArgumentsText = '';
     }
 
-    MapTypeRestriction<Type> identity = new MapTypeRestriction(
+    MapShapeRestriction<Type> identity = new MapShapeRestriction(
       keyType,
       valueType,
       entries.keys.toSet(),
       typeArgumentsText,
     );
-    StaticType staticType = createMapType(type, identity);
+    Shape shape = createMapShape(type, identity);
 
     Map<Key, Space> additionalProperties = {};
     for (MapEntry<Key, Pattern> entry in entries.entries) {
       Key key = entry.key;
-      StaticType propertyType =
-          staticType.getAdditionalPropertyType(key) ??
-          StaticType.nullableObject;
+      Shape propertyShape =
+          shape.getAdditionalPropertyShape(key) ?? Shape.nullableObject;
       additionalProperties[key] = dispatchPattern(
         path.add(key),
-        propertyType,
+        propertyShape,
         entry.value,
         nonNull: false,
       );
     }
-    return new Space(
-      path,
-      staticType,
-      additionalProperties: additionalProperties,
-    );
+    return new Space(path, shape, additionalProperties: additionalProperties);
   }
 
   /// Creates the [Space] at [path] for a pattern with unknown space.
   ///
   /// This is used when the space of the pattern is unknown or can't be
   /// represented precisely as a union of [SingleSpace]s. This space is unique
-  /// and ensures that it is neither matches anything nor is matched by
-  /// anything.
+  /// and ensures that it neither matches anything nor is matched by anything.
   Space createUnknownSpace(Path path) {
-    return new Space(path, createUnknownStaticType());
+    return new Space(path, createUnknownShape());
   }
 
   /// Creates an approximation of the intersection of the single spaces [a] and
@@ -973,13 +953,13 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     SingleSpace a,
     SingleSpace b,
   ) {
-    StaticType? type;
-    if (a.type.isSubtypeOf(b.type)) {
-      type = a.type;
-    } else if (b.type.isSubtypeOf(a.type)) {
-      type = b.type;
+    Shape? shape;
+    if (a.shape.isSubshapeOf(b.shape)) {
+      shape = a.shape;
+    } else if (b.shape.isSubshapeOf(a.shape)) {
+      shape = b.shape;
     }
-    if (type == null) {
+    if (shape == null) {
       return null;
     }
     Map<Key, Space> properties = {};
@@ -1001,7 +981,7 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       Key key = entry.key;
       properties[key] ??= entry.value;
     }
-    return new SingleSpace(type, properties: properties);
+    return new SingleSpace(shape, properties: properties);
   }
 
   /// Creates an approximation of the intersection of spaces [a] and [b].
@@ -1031,7 +1011,7 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
       }
     }
     if (hasUnknownSpace) {
-      singleSpaces.add(new SingleSpace(createUnknownStaticType()));
+      singleSpaces.add(new SingleSpace(createUnknownShape()));
     }
     return new Space.fromSingleSpaces(path, singleSpaces);
   }

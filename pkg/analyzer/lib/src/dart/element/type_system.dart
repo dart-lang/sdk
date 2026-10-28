@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/ast.dart' show Expression;
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/inference_failure_reporter.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -669,13 +670,15 @@ class TypeSystemImpl implements TypeSystem {
   /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
   /// infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
   ///
+  /// The [expression] is the expression whose value is instantiated.
+  ///
   /// This is similar to [setupGenericTypeInference], but the return type is
   /// also considered as part of the solution.
   List<TypeImpl> inferFunctionTypeInstantiation(
     FunctionTypeImpl contextType,
     FunctionTypeImpl fnType, {
     DiagnosticReporter? diagnosticReporter,
-    AstNode? errorNode,
+    required Expression expression,
     required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
     required bool inferenceUsingBoundsIsEnabled,
@@ -698,10 +701,9 @@ class TypeSystemImpl implements TypeSystem {
       this,
       fnType.typeParameters,
       diagnosticReporter: diagnosticReporter,
-      errorEntity: errorNode,
+      errorEntity: expression,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-      strictInference: strictInference,
       typeSystemOperations: typeSystemOperations,
       dataForTesting: dataForTesting,
     );
@@ -712,7 +714,13 @@ class TypeSystemImpl implements TypeSystem {
     );
 
     // Infer and instantiate the resulting type.
-    return inferrer.chooseFinalTypes();
+    var typeArguments = inferrer.chooseFinalTypes();
+    if (strictInference &&
+        diagnosticReporter != null &&
+        inferrer.hasUnknownTypeArguments) {
+      reportExpressionInferenceFailure(diagnosticReporter, expression);
+    }
+    return typeArguments;
   }
 
   @override
@@ -799,9 +807,8 @@ class TypeSystemImpl implements TypeSystem {
           hasProgress = true;
           break;
         } else if (freeParameters.every(defaults.containsKey)) {
-          defaults[parameter] = Substitution.fromMap(
-            defaults,
-          ).substituteType(value);
+          defaults[parameter] = Substitution.fromMap(defaults)
+              .substituteType(value);
           partials.remove(parameter);
           hasProgress = true;
           break;
@@ -1334,9 +1341,8 @@ class TypeSystemImpl implements TypeSystem {
     TypeImpl type, {
     required bool allowSuperBounded,
   }) {
-    return TypeBoundedHelper(
-      this,
-    ).isWellBounded(type, allowSuperBounded: allowSuperBounded);
+    return TypeBoundedHelper(this)
+        .isWellBounded(type, allowSuperBounded: allowSuperBounded);
   }
 
   /// Returns the least closure of [type] with respect to [typeParameters].
@@ -1402,7 +1408,6 @@ class TypeSystemImpl implements TypeSystem {
     required TypeSystemOperations typeSystemOperations,
     required bool genericMetadataIsEnabled,
     required bool inferenceUsingBoundsIsEnabled,
-    required bool strictInference,
     required bool strictCasts,
   }) {
     var inferrer = GenericInferrer(
@@ -1410,7 +1415,6 @@ class TypeSystemImpl implements TypeSystem {
       typeParameters,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-      strictInference: strictInference,
       typeSystemOperations: typeSystemOperations,
       dataForTesting: null,
     );
@@ -1680,7 +1684,6 @@ class TypeSystemImpl implements TypeSystem {
     required bool genericMetadataIsEnabled,
     required bool inferenceUsingBoundsIsEnabled,
     bool isConst = false,
-    required bool strictInference,
     required bool strictCasts,
     required TypeSystemOperations typeSystemOperations,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
@@ -1697,7 +1700,6 @@ class TypeSystemImpl implements TypeSystem {
       errorEntity: errorEntity,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-      strictInference: strictInference,
       typeSystemOperations: typeSystemOperations,
       dataForTesting: dataForTesting,
     );

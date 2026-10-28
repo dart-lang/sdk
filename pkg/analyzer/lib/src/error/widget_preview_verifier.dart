@@ -48,26 +48,26 @@ class WidgetPreviewVerifier {
       return;
     }
 
-    var parent = node.parent2;
+    var parent = node.parent2!;
     bool isValidApplication = switch (parent) {
       // First, check that the preview application is happening in a supported
       // context.
       _ when !_isSupportedParent(node: parent) => false,
-      ConstructorDeclaration() => _isValidConstructorPreviewApplication(
+      ConstructorDeclaration2() => _isValidConstructorPreviewApplication(
         declaration: parent,
         name: parent.name?.lexeme,
         parentDeclaration: parent.parent2?.parent2,
         isExternal: parent.externalKeyword != null,
         isFactory: parent.factoryKeyword != null,
-        parameters: parent.parameters,
+        parameters: parent.formalParameters,
       ),
       TopLevelFunctionDeclaration() => _isValidFunctionPreviewApplication(
         declaration: parent,
       ),
-      MethodDeclaration() => _isValidMethodPreviewApplication(
+      MethodDeclaration2() => _isValidMethodPreviewApplication(
         declaration: parent,
       ),
-      PrimaryConstructorBody(:var declaration?) =>
+      PrimaryConstructorBody2(:var declaration?) =>
         _isValidConstructorPreviewApplication(
           declaration: parent,
           name: parent.declaration?.constructorName?.name.lexeme,
@@ -95,7 +95,7 @@ class WidgetPreviewVerifier {
     return parameters.any((e) => e.isRequired);
   }
 
-  /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration]
+  /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration2]
   /// that has a private name.
   bool _isPrivateContext({required String? name, required AstNode node}) {
     if (name != null && name.isPrivateName) return true;
@@ -104,11 +104,11 @@ class WidgetPreviewVerifier {
     if (parent == null) return false;
 
     var nameToken = switch (parent) {
-      ClassDeclaration declaration => declaration.namePart.typeName,
-      EnumDeclaration declaration => declaration.namePart.typeName,
-      ExtensionDeclaration declaration => declaration.name,
-      ExtensionTypeDeclaration declaration => declaration.namePart.typeName,
-      MixinDeclaration declaration => declaration.name,
+      ClassDeclaration2 declaration => declaration.namePart.typeName,
+      EnumDeclaration2 declaration => declaration.namePart.typeName,
+      ExtensionDeclaration2 declaration => declaration.name,
+      ExtensionTypeDeclaration2 declaration => declaration.namePart.typeName,
+      MixinDeclaration2 declaration => declaration.name,
       _ => null,
     };
     if (nameToken == null) return false;
@@ -126,8 +126,8 @@ class WidgetPreviewVerifier {
       return true;
     }
 
-    if (node.parent2 case BlockClassBody body) {
-      if (body.parent2 is ClassDeclaration) {
+    if (node.parent2 case BlockInstanceDeclarationBody body) {
+      if (body.parent2 is ClassDeclaration2) {
         return true;
       }
     }
@@ -153,7 +153,7 @@ class WidgetPreviewVerifier {
     required FormalParameterList parameters,
   }) {
     if (isExternal) return false;
-    if (parentDeclaration is! ClassDeclaration) return false;
+    if (parentDeclaration is! ClassDeclaration2) return false;
 
     var element = parentDeclaration.declaredFragment?.element;
     if (element is! ClassElement) return false;
@@ -199,19 +199,16 @@ class WidgetPreviewVerifier {
   ///   - The function returns a subtype of `Widget` or `WidgetBuilder`
   ///   - The function does not have any required arguments
   bool _isValidMethodPreviewApplication({
-    required MethodDeclaration declaration,
+    required MethodDeclaration2 declaration,
   }) {
-    if (declaration case MethodDeclaration(
-      :var isStatic,
+    if (declaration case MethodDeclaration2(
+      staticKeyword: _?,
       :var externalKeyword,
       :var name,
       :NamedType returnType,
-      parameters: FormalParameterList(:var allFormalParameters),
+      formalParameters: FormalParameterList(:var allFormalParameters),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
-          isStatic &&
-          // Check for nested function.
-          declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
           !_hasRequiredParameters(allFormalParameters);

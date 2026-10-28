@@ -5,11 +5,13 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -20,7 +22,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
-import 'package:analyzer/src/dart/resolver/ast_rewrite.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
@@ -34,14 +35,40 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Builds scopes, and resolves everything found by scope lookup: local and
 /// top-level names, import prefixes, type annotations, labels, and pattern
-/// variables. Also rewrites parsed nodes whose meaning follows from what their
-/// names resolve to.
+/// variables.
+///
+/// It also replaces the `Parsed*` nodes built by the parser. The parser cannot
+/// see declarations, so where the node kind depends on what a name refers to,
+/// it builds a `Parsed*` node instead. For example:
+/// - `x` is a type literal if `x` is a type, and a read of `x` otherwise;
+/// - `a.b` reads a static member if `a` is a class, a declaration of an
+///   imported library if `a` is an import prefix, and a property of the value
+///   `a` otherwise; `C.named` is a constructor tear-off;
+/// - `X<T>` is a type literal if `X` is a type, and a function instantiation
+///   otherwise; `C<T>.named` is a constructor tear-off;
+/// - `f()` is a constructor invocation if `f` is a class, an extension
+///   override if `f` is an extension, and a function invocation otherwise;
+/// - `a.b = v` writes a declaration of an imported library if `a` is an
+///   import prefix, and a member of `a` otherwise.
+///
+/// Each `visitParsed*` method lowers its node, puts the result into the tree,
+/// and visits the result, which lowers the `Parsed*` nodes inside it. Nodes
+/// are lowered only by these methods and the helpers they call. A selector
+/// chain such as `a.b.c` is lowered as a whole, from its outermost node,
+/// because what `a` is decides what `.b` and `.c` become. A call or type
+/// arguments end the chain: in `a.b().c`, the call `a.b()` is the receiver of
+/// `.c`, and is lowered when visited.
+///
+/// A call `a.b()` keeps its parsed form, unless it is a constructor invocation
+/// `C.named()`: whether `b` is a method or a getter whose value is called is
+/// decided by member lookup during type analysis. The same holds for `..b()`
+/// and `.b()`. For these calls, this class only resolves the names in the
+/// receiver and visits the arguments.
 class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;
   final LibraryFragmentImpl _libraryFragment;
   final DiagnosticReporter _diagnosticReporter;
-  final AstRewriter _astRewriter;
   final NamedTypeResolver _namedTypeResolver;
   final RecordTypeAnnotationResolver _recordTypeResolver;
 
@@ -75,7 +102,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
     required DocImportScope? docImportScope,
-    required bool strictInference,
     required bool strictCasts,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
@@ -100,7 +126,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       libraryFragment,
       scopeContext,
       diagnosticReporter,
-      strictInference: strictInference,
       strictCasts: strictCasts,
       typeSystemOperations: typeSystemOperations,
     );
@@ -116,7 +141,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       typeProvider,
       libraryFragment,
       diagnosticReporter,
-      AstRewriter(diagnosticReporter, scopeContext, libraryElement),
       namedTypeResolver,
       recordTypeResolver,
       scopeContext,
@@ -130,7 +154,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     this._typeProvider,
     this._libraryFragment,
     this._diagnosticReporter,
-    this._astRewriter,
     this._namedTypeResolver,
     this._recordTypeResolver,
     this._scopeContext,
@@ -265,21 +288,21 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    _scopeContext.visitClassDeclaration(node, visitor: this);
+    _scopeContext.visitClassDeclaration2(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
   @override
-  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
+  void visitClassTypeAlias2(covariant ClassTypeAlias2Impl node) {
     var fragment = node.declaredFragment!;
     _namedTypeResolver.enclosingClass = fragment.element;
 
-    _scopeContext.visitClassTypeAlias(
+    _scopeContext.visitClassTypeAlias2(
       node,
       visitor: this,
       visitSuperclass: (superclass) {
@@ -308,8 +331,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    _scopeContext.visitConstructorDeclaration(node, visitor: this);
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
+    _scopeContext.visitConstructorDeclaration2(node, visitor: this);
   }
 
   @override
@@ -394,24 +419,18 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
-
-  @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
   void visitEmptyFunctionBody(covariant EmptyFunctionBodyImpl node) {
     node.localVariableInfo = _localVariableInfo;
     super.visitEmptyFunctionBody(node);
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    _scopeContext.visitEnumDeclaration(node, visitor: this);
+    _scopeContext.visitEnumDeclaration2(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
   }
 
@@ -430,38 +449,38 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitExtendsClause(covariant ExtendsClauseImpl node) {
     _resolveType(
-      declaration: node.parent2 as Declaration?,
+      declaration: node.parent2 as AnnotatedNode?,
       clause: node,
       namedType: node.superclass,
     );
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
-    _scopeContext.visitExtensionDeclaration(node, visitor: this);
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
+    _scopeContext.visitExtensionDeclaration2(node, visitor: this);
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
 
     _namedTypeResolver.enclosingClass = element;
-    _scopeContext.visitExtensionTypeDeclaration(node, visitor: this);
+    _scopeContext.visitExtensionTypeDeclaration2(node, visitor: this);
     _namedTypeResolver.enclosingClass = null;
-  }
-
-  @override
-  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    _scopeContext.visitFieldDeclaration(node, visitor: this);
   }
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _scopeContext.visitFormalParameter(node, visitor: this);
     _setExplicitFormalParameterType(node);
+  }
+
+  @override
+  void visitFieldsDeclaration(covariant FieldsDeclarationImpl node) {
+    _scopeContext.visitFieldsDeclaration(node, visitor: this);
   }
 
   @override
@@ -549,6 +568,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+  }
+
+  @override
   void visitHideCombinator(HideCombinator node) {
     var scope = nameScope.tryCast<LibraryFragmentScope>();
     scope?.importsTrackingActive(false);
@@ -598,7 +622,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitImplementsClause(covariant ImplementsClauseImpl node) {
     _resolveImplementsClause(
-      declaration: node.parent2 as Declaration,
+      declaration: node.parent2 as AnnotatedNode,
       clause: node,
     );
   }
@@ -648,8 +672,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitLocalVariable(covariant LocalVariableImpl node) {
     var element = node.declaredFragment!.element;
-    var declaration = node.parent2 as LocalVariablesDeclarationImpl;
-    if (declaration.type case var typeNode?) {
+    if (node.parent2.type case var typeNode?) {
       element.type = typeNode.typeOrThrow;
     } else {
       // TODO(scheglov): review and improve resolution to not rely on dynamic.
@@ -669,19 +692,19 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
     _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
-    _scopeContext.visitMixinDeclaration(node, visitor: this);
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
+    _scopeContext.visitMixinDeclaration2(node, visitor: this);
   }
 
   @override
   void visitMixinOnClause(covariant MixinOnClauseImpl node) {
     _resolveMixinOnClause(
-      declaration: node.parent2 as Declaration,
+      declaration: node.parent2 as AnnotatedNode,
       clause: node,
     );
   }
@@ -705,27 +728,99 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitParsedNameAccess(covariant ParsedNameAccessImpl node) =>
-      _visitParsedExpression(node);
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
+  }
+
+  @override
+  void visitParsedNameAccess(covariant ParsedNameAccessImpl node) {
+    var expression = _lowerNameAccessAsValue(node);
+    node.replaceWith(expression);
+    expression.accept2(this);
+  }
 
   @override
   void visitParsedNameAccessAssignmentTarget(
     covariant ParsedNameAccessAssignmentTargetImpl node,
   ) {
-    _astRewriter.parsedAssignmentTarget(nameScope, node).accept2(this);
+    var target = _lowerNameAccessAssignmentTarget(node);
+    node.replaceWith(target);
+    target.accept2(this);
   }
 
   @override
-  void visitParsedTypeArguments(covariant ParsedTypeArgumentsImpl node) =>
-      _visitParsedExpression(node);
+  void visitParsedTypeArguments(covariant ParsedTypeArgumentsImpl node) {
+    var expression = _lowerTypeArguments(node);
+    node.replaceWith(expression);
+    expression.accept2(this);
+  }
 
   @override
-  void visitParsedUnqualifiedName(covariant ParsedUnqualifiedNameImpl node) =>
-      _visitParsedExpression(node);
+  void visitParsedUnqualifiedName(covariant ParsedUnqualifiedNameImpl node) {
+    var expression = _buildNameExpression(
+      importPrefix: null,
+      name: node.name,
+      lookup: _lookupParsedName(node),
+    );
+    node.replaceWith(expression);
+    expression.accept2(this);
+  }
 
   @override
-  void visitParsedValueArguments(covariant ParsedValueArgumentsImpl node) =>
-      _visitParsedExpression(node);
+  void visitParsedValueArguments(covariant ParsedValueArgumentsImpl node) {
+    // `..m()` stays parsed: it awaits member lookup on the once-evaluated
+    // cascade receiver.
+    if (node.cascadeInvocationParts case (:var typeArguments, head: _)) {
+      typeArguments?.accept2(this);
+      node.argumentList.accept2(this);
+      return;
+    }
+
+    // `.m()` stays parsed: it needs the context established by its enclosing
+    // expression before lookup can distinguish a constructor, method, or
+    // callable property.
+    if (node.dotShorthandInvocationParts case (:var typeArguments, head: _)) {
+      typeArguments?.accept2(this);
+      node.argumentList.accept2(this);
+      return;
+    }
+
+    // `C<T>.n()` is a constructor invocation, unless `C` names a function,
+    // method, or variable, as `f` in `f<int>.call()`. An unknown `C` is taken
+    // for a misspelled class, see [_buildCalledConstructorTypeReference].
+    if (node.operand case ParsedNameAccessImpl(
+      operand: ParsedTypeArgumentsImpl instantiation,
+      :var operator,
+      :var name,
+    )) {
+      if (_buildCalledConstructorTypeReference(instantiation, node)
+          case var typeReference?) {
+        var expression = ConstructorInvocationImpl(
+          keyword: null,
+          constructorReference: ConstructorReference2Impl(
+            typeReference: typeReference,
+            selector: ConstructorSelectorImpl.v2(period: operator, name2: name),
+          ),
+          argumentList: node.argumentList,
+          typeArguments: null,
+        );
+        node.replaceWith(expression);
+        expression.accept2(this);
+        return;
+      }
+    }
+
+    // `R.n()` calls `n` of the receiver `R`, unless `R` is an import prefix:
+    // `p.f()` calls the imported `f`.
+    if (node.namedInvocationParts case (:var selector, :var typeArguments)
+        when !_isImportPrefixName(selector.operand)) {
+      _visitReceiverInvocation(node, selector, typeArguments);
+      return;
+    }
+
+    // Otherwise a call of a name: `f()`, `C<T>()`, or `p.f()`.
+    _visitScopeInvocation(node);
+  }
 
   @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
@@ -754,8 +849,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
-    _scopeContext.visitPrimaryConstructorBody(node, visitor: this);
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
+    _scopeContext.visitPrimaryConstructorBody2(node, visitor: this);
   }
 
   @override
@@ -794,6 +891,19 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         element.type = _typeProvider.dynamicType;
       }
     }
+  }
+
+  @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _scopeContext.visitMethodDeclaration(node, visitor: this);
   }
 
   @override
@@ -967,30 +1077,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-
-    if (element is LocalVariableElementImpl) {
-      var varList = node.parent2 as VariableDeclarationListImpl;
-      if (varList.type case var typeNode?) {
-        element.type = typeNode.typeOrThrow;
-      } else {
-        // TODO(scheglov): review and improve resolution to not rely on dynamic.
-        element.type = _typeProvider.dynamicType;
-      }
-    }
-
-    node.initializer2?.accept2(this);
-  }
-
-  @override
-  void visitVariableDeclarationList(
-    covariant VariableDeclarationListImpl node,
-  ) {
-    _scopeContext.visitVariableDeclarationList(node, visitor: this);
-  }
-
-  @override
   void visitWhileStatement(covariant WhileStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
       node.condition2.accept2(this);
@@ -1000,7 +1086,117 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   @override
   void visitWithClause(covariant WithClauseImpl node) {
-    _resolveWithClause(declaration: node.parent2 as Declaration?, clause: node);
+    _resolveWithClause(
+      declaration: node.parent2 as AnnotatedNode?,
+      clause: node,
+    );
+  }
+
+  /// Returns the reference to the type `C<T>` or `p.C<T>` in the call
+  /// `C<T>.name()` or `p.C<T>.name()`, or `null` if it calls a member of a
+  /// value.
+  ///
+  /// Unlike [_buildConstructorTypeReference], an unknown name is taken for a
+  /// misspelled class, so that the call is reported as a constructor call.
+  /// Language versions without constructor tear-offs have their own rules.
+  ConstructorTypeReferenceImpl? _buildCalledConstructorTypeReference(
+    ParsedTypeArgumentsImpl instantiation,
+    ParsedValueArgumentsImpl invocation,
+  ) {
+    var constructorTearoffsEnabled = _libraryElement.featureSet.isEnabled(
+      Feature.constructor_tearoffs,
+    );
+    var typeName = _lookupInstantiatedName(instantiation);
+
+    // If `C<T>` is neither `C` nor `p.C`, as in `x.C<T>.m()` where `x` is not
+    // an import prefix, it is not a constructor's type, and the call is a
+    // member call on a value, lowered by [_visitReceiverInvocation].
+    if (typeName == null) {
+      // `x.C<T>` explicitly instantiates a generic member of `x`, which
+      // requires the constructor tear-offs feature.
+      if (instantiation.operand
+          case ParsedNameAccessImpl(
+            operand: ParsedUnqualifiedNameImpl(),
+            :var operator,
+          )
+          when operator.type == TokenType.PERIOD) {
+        if (!constructorTearoffsEnabled) {
+          _diagnosticReporter.report(
+            diag.sdkVersionConstructorTearoffs.at(invocation),
+          );
+        }
+      }
+      return null;
+    }
+
+    var element = typeName.element;
+
+    // An instance member found through an implicit `this`, as in
+    // `foo<int>.m()`, must not be taken for a misspelled class.
+    if (element == null && typeName.importPrefix == null) {
+      element = _lookupInstanceMember(typeName.name.lexeme);
+    }
+
+    // `f<T>.m()`, where `f` is a function, method, or variable, calls `m` of
+    // the instantiated `f<T>`.
+    if (element is ExecutableElement || element is VariableElement) {
+      if (constructorTearoffsEnabled) return null;
+
+      // Before constructor tear-offs, explicit instantiation is an error.
+      // With a function, method, or getter, `f<T>.m()` is reported here, and
+      // stays a member call. With a variable, or a getter through an import
+      // prefix, it is taken for a constructor invocation, and reported as
+      // one: "The name 'f' isn't a class".
+      if (element is ExecutableElement &&
+          (typeName.importPrefix == null ||
+              element is TopLevelFunctionElement)) {
+        _diagnosticReporter.report(
+          diag.sdkVersionConstructorTearoffs.at(invocation),
+        );
+        return null;
+      }
+    }
+
+    // Otherwise `C<T>` is a constructor's type: a type, an unknown name taken
+    // for a misspelled class, or another name reported later as not a class.
+    return ConstructorTypeReferenceImpl(
+      importPrefix: typeName.importPrefix,
+      name: typeName.name,
+      typeArguments: instantiation.typeArguments,
+    );
+  }
+
+  /// Returns the reference to the type `C<T>` or `p.C<T>` in `C<T>.name` or
+  /// `p.C<T>.name`, if `C` names a class, enum, mixin, or extension type,
+  /// possibly through a type alias, or a function-type alias. Written type
+  /// arguments make this constructor syntax even if `C` has no constructor
+  /// `name`, or cannot have constructors at all.
+  ///
+  /// Otherwise returns `null`, and `C<T>` is a value, such as the generic
+  /// function instantiation `f<int>`.
+  ///
+  /// [instantiation] is always followed by `.name`; `C<T>` alone is lowered
+  /// by [_lowerTypeArguments].
+  ConstructorTypeReferenceImpl? _buildConstructorTypeReference(
+    ParsedTypeArgumentsImpl instantiation,
+  ) {
+    if (_lookupInstantiatedName(instantiation) case var typeName?) {
+      var element = typeName.element;
+      // TODO(scheglov): `X<T>.name` is constructor syntax for any type `X`,
+      // not only for a class or a function-type alias. So any name that is
+      // not a value, such as a record or type parameter alias, should be a
+      // type reference, instead of `X<T>` being a type literal whose `.name`
+      // reads a member of `Type`.
+      if (element.unaliasedInterface != null ||
+          element is TypeAliasElement && element.aliasedType is FunctionType) {
+        return ConstructorTypeReferenceImpl(
+          importPrefix: typeName.importPrefix,
+          name: typeName.name,
+          typeArguments: instantiation.typeArguments,
+        );
+      }
+    }
+    return null;
   }
 
   List<BindPatternVariableElementImpl> _computeDeclaredPatternVariables(
@@ -1057,6 +1253,12 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     }
   }
 
+  /// Whether [node] is a name that resolves to an import prefix.
+  bool _isImportPrefixName(InstanceReceiverImpl node) {
+    return node is ParsedUnqualifiedNameImpl &&
+        _lookupParsedName(node).getter is PrefixElement;
+  }
+
   AstNode? _lookupBreakOrContinueTarget(
     AstNode parentNode,
     LabelReferenceImpl? labelNode, {
@@ -1095,6 +1297,270 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       }
       return node;
     }
+  }
+
+  /// Looks up [name] among the instance members of the enclosing class, mixin,
+  /// enum, or extension type, which are not in the lexical scope.
+  Element? _lookupInstanceMember(String name) {
+    if (_scopeContext.enclosingInstanceElement
+        case InterfaceElementImpl enclosingElement) {
+      return enclosingElement.inheritanceManager.getMember(
+        enclosingElement,
+        Name(_libraryElement.uri, name),
+      );
+    }
+    return null;
+  }
+
+  /// Looks up in the lexical scope the name `X` or `p.X` that [node]
+  /// instantiates in `X<T>` or `p.X<T>`. Returns `null` for any other shape,
+  /// including `x.X<T>` where `x` is not an import prefix.
+  ({ImportPrefixReferenceImpl? importPrefix, Token name, Element? element})?
+  _lookupInstantiatedName(ParsedTypeArgumentsImpl node) {
+    switch (node.operand) {
+      case ParsedUnqualifiedNameImpl operand:
+        return (
+          importPrefix: null,
+          name: operand.name,
+          element: _lookupParsedName(operand).getter,
+        );
+      case ParsedNameAccessImpl operand:
+        if (_lookupPrefixedName(operand) case (
+          :var importPrefix,
+          :var lookup,
+        )) {
+          return (
+            importPrefix: importPrefix,
+            name: operand.name,
+            element: lookup.getter,
+          );
+        }
+      default:
+    }
+    return null;
+  }
+
+  /// Returns the scope lookup of [node], stored on it to be done only once.
+  ///
+  /// The same name is often looked up by more than one step, for example
+  /// `a` in `a.m()` to check for an import prefix, and then to lower `a`.
+  ScopeLookupResult _lookupParsedName(ParsedUnqualifiedNameImpl node) {
+    return node.scopeLookupResult ??= nameScope.lookup(node.name.lexeme);
+  }
+
+  /// Returns the import prefix `p` and the lookup of `a` in it, if [node] is
+  /// the prefixed name `p.a`, otherwise `null`.
+  ///
+  /// `p?.a` is not a prefixed name: `p` is read as a value, and reported
+  /// later.
+  ({ImportPrefixReferenceImpl importPrefix, ScopeLookupResult lookup})?
+  _lookupPrefixedName(ParsedNameAccessImpl node) {
+    if (node.operand case ParsedUnqualifiedNameImpl prefixName) {
+      // TODO(scheglov): Treat `p?.a` as the prefixed name `p.a` too, with an
+      // error, as the CFE does, instead of reading `p` as a value. Then all
+      // slots can use this method, see [_visitScopeInvocation].
+      if (node.operator.type == TokenType.PERIOD) {
+        if (_lookupParsedName(prefixName).getter case PrefixElement prefix) {
+          return (
+            importPrefix: ImportPrefixReferenceImpl(
+              name: prefixName.name,
+              period: node.operator,
+            )..element = prefix,
+            lookup: prefix.scope.lookup(node.name.lexeme),
+          );
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Lowers the target `H.n` of an assignment, such as `H.n = v`, `H.n += v`,
+  /// or `H.n++`, to an import-prefixed name, or a write of `n` to `H`.
+  ///
+  /// The read `H.n` is lowered by [_lowerReceiver] and [_lowerSelector].
+  AssignmentTargetImpl _lowerNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTargetImpl node,
+  ) {
+    var ParsedNameAccessAssignmentTargetImpl(:operand, :operator, :name) = node;
+
+    // `C<T>.n` is a constructor tear-off, which cannot be assigned.
+    if (operand is ParsedTypeArgumentsImpl) {
+      if (_buildConstructorTypeReference(operand) case var typeReference?) {
+        return InvalidExpressionAssignmentTargetImpl(
+          expression: ConstructorTearOffImpl(
+            typeReference: typeReference,
+            selector: ConstructorSelectorImpl.v2(period: operator, name2: name),
+          ),
+        );
+      }
+    }
+
+    // `p.n` is one prefixed name, as in reads, see [_lookupPrefixedName].
+    // Unlike there, `n` is not looked up for `p.n`: type analysis looks it up
+    // anyway, to find the setter, and a lookup has a cost.
+    // TODO(scheglov): Treat `p?.n` as `p.n` too, see [_lookupPrefixedName].
+    if (operand is ParsedUnqualifiedNameImpl &&
+        operator.type == TokenType.PERIOD) {
+      if (_lookupParsedName(operand).getter case PrefixElement prefix) {
+        return ImportPrefixedAssignmentTargetImpl(
+          importPrefix: ImportPrefixReferenceImpl(
+            name: operand.name,
+            period: operator,
+          )..element = prefix,
+          name: name,
+        );
+      }
+    }
+
+    // Otherwise a write: to a static member in `C.n`, or to a property of a
+    // value in `a.n`.
+    return ReceiverPropertyAssignmentTargetImpl(
+      receiver: _lowerReceiver(operand, hasSelector: true),
+      operator: operator,
+      name: name,
+    );
+  }
+
+  /// Lowers the selector chain that ends with [node], read as a value.
+  ///
+  /// For example, `a.b` reads a property of the value `a`, `C.b` reads a
+  /// static member, `p.b` reads a declaration imported with the prefix `p`,
+  /// and `C.named` or `C<int>.named` is a constructor tear-off.
+  ExpressionImpl _lowerNameAccessAsValue(ParsedNameAccessImpl node) {
+    // No selector or call follows [node]: if one did, [node] would be lowered
+    // as part of that longer chain, such as `p.C.x` or `p.C.x()`. So [node]
+    // is a value: `p.C` here is a type literal, not a static qualifier.
+    return _lowerReceiver(node, hasSelector: false) as ExpressionImpl;
+  }
+
+  /// Lowers the chain [node] to a receiver: a name `a`, a prefixed name `p.a`,
+  /// or a selector `H.n` over a lowered operand `H`.
+  ///
+  /// A chain is lowered from its root, instead of each node being visited on
+  /// its own, because what each node becomes depends on the rest of the
+  /// chain: `p.C.named` is a constructor tear-off, `p.C.x` reads from a
+  /// static qualifier, and `a.b.x` reads from a value.
+  ///
+  /// [hasSelector] is whether a selector or a call follows [node]; every
+  /// operand inside the chain has one. The caller puts the result in place of
+  /// [node].
+  NamedReceiverImpl _lowerReceiver(
+    InstanceReceiverImpl node, {
+    required bool hasSelector,
+  }) {
+    switch (node) {
+      case ParsedUnqualifiedNameImpl():
+        return _buildNameReceiver(
+          importPrefix: null,
+          name: node.name,
+          lookup: _lookupParsedName(node),
+          hasSelector: hasSelector,
+        );
+      case ParsedNameAccessImpl():
+        if (_lookupPrefixedName(node) case (:var importPrefix, :var lookup)) {
+          return _buildNameReceiver(
+            importPrefix: importPrefix,
+            name: node.name,
+            lookup: lookup,
+            hasSelector: hasSelector,
+          );
+        }
+        return _lowerSelector(node);
+      default:
+        // Nested call syntax and ordinary expressions use their own visitors,
+        // including constructor and extension-override selection.
+        return node;
+    }
+  }
+
+  /// Lowers the selector `H.n`, where `H` is not an import prefix, to a
+  /// constructor tear-off, or a read of `n` from `H`.
+  ExpressionImpl _lowerSelector(ParsedNameAccessImpl node) {
+    var ParsedNameAccessImpl(:operand, :operator, :name) = node;
+
+    // `C<T>.n` is a constructor tear-off.
+    if (operand is ParsedTypeArgumentsImpl) {
+      if (_buildConstructorTypeReference(operand) case var typeReference?) {
+        return ConstructorTearOffImpl(
+          typeReference: typeReference,
+          selector: ConstructorSelectorImpl.v2(period: operator, name2: name),
+        );
+      }
+    }
+
+    // `C.n` is a constructor tear-off, if `C` has the constructor `n`.
+    var receiver = _lowerReceiver(operand, hasSelector: true);
+    if (receiver is StaticQualifierImpl) {
+      var interface = receiver.element.unaliasedInterface;
+      if (interface?.getNamedConstructor(name.lexeme) != null) {
+        return ConstructorTearOffImpl(
+          typeReference: ConstructorTypeReferenceImpl(
+            importPrefix: receiver.importPrefix,
+            name: receiver.name,
+            typeArguments: null,
+          ),
+          selector: ConstructorSelectorImpl.v2(period: operator, name2: name),
+        );
+      }
+    }
+
+    // Otherwise a read: a static member in `C.x`, or a property of a value in
+    // `a.x`, including members of `Type` on a type literal, as in `T.x`.
+    return ReceiverPropertyExtractionImpl(
+      receiver: receiver,
+      operator: operator,
+      name: name,
+    );
+  }
+
+  /// Lowers `X<T>` that is not followed by `.name`, such as `C<int>`,
+  /// `p.C<int>`, `f<int>`, or `a.m<int>`.
+  ///
+  /// If `X` names a type, the result is a type literal. Otherwise `X` is a
+  /// value, and the result is its instantiation, such as the generic function
+  /// instantiation `f<int>`.
+  ///
+  /// `X<T>.name` is lowered with its selector, see
+  /// [_buildConstructorTypeReference].
+  ExpressionImpl _lowerTypeArguments(ParsedTypeArgumentsImpl node) {
+    if (_lookupInstantiatedName(node)
+        case (:var importPrefix, :var name, :var element)
+        when element.isTypeDefining) {
+      return TypeLiteralImpl(
+        type: NamedTypeImpl(
+          importPrefix: importPrefix,
+          name: name,
+          typeArguments: node.typeArguments,
+          question: null,
+        ),
+      );
+    }
+
+    // Otherwise `X<T>` instantiates the value `X`. Usually `X` is lowered
+    // later: the caller visits the returned `FunctionInstantiation`, which
+    // visits `X`.
+    //
+    // But `F.m<int>`, with `F` a function-type alias, must read `m` from the
+    // type literal `F`, while `F.m` lowered alone keeps `F` as a static
+    // qualifier. So a name access is lowered here, where the type arguments
+    // are known, and its receiver is replaced, see [_functionTypeAliasValue].
+    // TODO(scheglov): Lower `X` later in all cases, once a function-type alias
+    // is a type literal, see the TODO in [_buildNameReceiver].
+    var operand = node.operand;
+    if (operand is ParsedNameAccessImpl) {
+      var expression = _lowerNameAccessAsValue(operand);
+      operand.replaceWith(expression);
+      operand = expression;
+      if (operand case ReceiverPropertyExtractionImpl(:var receiver)) {
+        if (_functionTypeAliasValue(receiver) case var value?) {
+          operand.receiver = value;
+        }
+      }
+    }
+    return FunctionInstantiationImpl(
+      operand: operand,
+      typeArguments: node.typeArguments,
+    );
   }
 
   LabelScope? _nestLabelScopes(
@@ -1160,7 +1626,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   void _resolveImplementsClause({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required ImplementsClauseImpl? clause,
   }) {
     if (clause == null) return;
@@ -1173,7 +1639,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   void _resolveMixinOnClause({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required MixinOnClauseImpl clause,
   }) {
     _resolveTypes(
@@ -1186,7 +1652,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   /// Resolves the given [namedType], reports errors if the resulting type
   /// is not valid in the context of the [declaration] and [clause].
   void _resolveType({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required AstNode? clause,
     required NamedTypeImpl namedType,
   }) {
@@ -1228,11 +1694,11 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     LocatableDiagnostic? diagnosticCode;
     switch (clause) {
       case null:
-        if (declaration is ClassTypeAlias) {
+        if (declaration is ClassTypeAlias2) {
           diagnosticCode = diag.mixinWithNonClassSuperclass;
         }
       case ExtendsClause():
-        if (declaration is ClassDeclaration) {
+        if (declaration is ClassDeclaration2) {
           diagnosticCode = declaration.withClause == null
               ? diag.extendsNonClass
               : diag.mixinWithNonClassSuperclass;
@@ -1269,7 +1735,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   /// @param dynamicTypeError the error to produce if the type name is "dynamic"
   /// @return an array containing all of the types that were resolved.
   void _resolveTypes({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required AstNode clause,
     required NodeList<NamedTypeImpl> namedTypes,
   }) {
@@ -1283,7 +1749,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   void _resolveWithClause({
-    required Declaration? declaration,
+    required AnnotatedNode? declaration,
     required WithClauseImpl? clause,
   }) {
     if (clause == null) return;
@@ -1412,29 +1878,187 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _visitParsedExpression(ParsedExpressionImpl node) {
-    switch (_astRewriter.parsedExpression(nameScope, node)) {
-      case PreparedCascadeInvocation(:var valueArguments):
-        valueArguments.cascadeInvocationParts!.typeArguments?.accept2(this);
-        valueArguments.argumentList.accept2(this);
-      case PreparedDotShorthandInvocation(:var valueArguments):
-        valueArguments.dotShorthandInvocationParts!.typeArguments?.accept2(
-          this,
-        );
-        valueArguments.argumentList.accept2(this);
-      case PreparedReceiverInvocation(
-        :var receiver,
-        :var typeArguments,
-        :var valueArguments,
-      ):
-        if (receiver is ExpressionImpl) {
-          receiver.accept2(this);
+  /// Lowers the call `R.n()` or `R.n<T>()`, where `R` is not an import prefix,
+  /// to a constructor invocation `C.n()`, or lowers only `R`.
+  ///
+  /// Other calls keep their parsed selector and arguments until type-based
+  /// lookup distinguishes a method from a property whose value is invoked.
+  /// Their lowered receiver replaces the selector operand, except a static
+  /// qualifier, which the operand cannot hold, so it is stored in
+  /// [ParsedValueArgumentsImpl.staticQualifier].
+  void _visitReceiverInvocation(
+    ParsedValueArgumentsImpl node,
+    ParsedNameAccessImpl selector,
+    TypeArgumentListImpl? typeArguments,
+  ) {
+    var receiver = _lowerReceiver(selector.operand, hasSelector: true);
+    // `F.m()` calls a member of `Type` on the type literal `F`.
+    receiver = _functionTypeAliasValue(receiver) ?? receiver;
+
+    // `C.n()` and `C.new()` are constructor invocations, if `C` has the
+    // constructor `n`, or `new` is written.
+    if (receiver is StaticQualifierImpl) {
+      var interface = receiver.element.unaliasedInterface;
+      var constructor = interface?.getNamedConstructor(selector.name.lexeme);
+      if (interface != null &&
+          (constructor != null || selector.name.lexeme == 'new')) {
+        // Type arguments after the constructor name are an error. For
+        // recovery, `p.C.n<T>()` applies them to `C`, as `p.C<T>.n()` would,
+        // while `C.n<T>()` keeps them on the invocation, where they are not
+        // used.
+        if (typeArguments != null) {
+          _diagnosticReporter.report(
+            diag.wrongNumberOfTypeArgumentsConstructor
+                .withArguments(
+                  className: receiver.toSource(),
+                  constructorName: selector.name.lexeme,
+                )
+                .at(typeArguments),
+          );
         }
-        typeArguments?.accept2(this);
-        valueArguments.argumentList.accept2(this);
-      case RewrittenParsedExpression(:var expression):
+        var expression = ConstructorInvocationImpl(
+          keyword: null,
+          constructorReference: ConstructorReference2Impl(
+            typeReference: ConstructorTypeReferenceImpl(
+              importPrefix: receiver.importPrefix,
+              name: receiver.name,
+              typeArguments: receiver.importPrefix != null
+                  ? typeArguments
+                  : null,
+            ),
+            selector: ConstructorSelectorImpl.v2(
+              period: selector.operator,
+              name2: selector.name,
+            ),
+          ),
+          typeArguments: receiver.importPrefix == null ? typeArguments : null,
+          argumentList: node.argumentList,
+        );
+        node.replaceWith(expression);
         expression.accept2(this);
+        return;
+      }
     }
+
+    // Otherwise the call stays parsed, with its lowered receiver.
+    switch (receiver) {
+      case StaticQualifierImpl():
+        node.staticQualifier = receiver;
+      case ExpressionImpl():
+        selector.operand = receiver;
+        receiver.accept2(this);
+      case SuperReferenceImpl():
+      case ExtensionOverride2Impl():
+        break;
+    }
+    typeArguments?.accept2(this);
+    node.argumentList.accept2(this);
+  }
+
+  /// Lowers the call of a name found by scope lookup, unlike
+  /// [_visitReceiverInvocation], where it is a member of the receiver: `f()`
+  /// or `f<T>()`, optionally import-prefixed, as in `p.f()`, to a constructor
+  /// invocation `C()`, an extension override `E(x)`, or a function invocation
+  /// `f()`.
+  void _visitScopeInvocation(ParsedValueArgumentsImpl node) {
+    // `f<T>()` and `p.f<T>()` pass type arguments to the callee.
+    ExpressionImpl callee = node.operand;
+    TypeArgumentListImpl? typeArguments;
+    if (callee case ParsedTypeArgumentsImpl(
+      :var operand,
+      typeArguments: var writtenTypeArguments,
+    )) {
+      callee = operand;
+      typeArguments = writtenTypeArguments;
+    }
+
+    // Look up the called name: `f` in the lexical scope, or `f` in the import
+    // prefix `p` for `p.f()`.
+    Token name;
+    ScopeLookupResult lookup;
+    ImportPrefixReferenceImpl? importPrefix;
+    switch (callee) {
+      case ParsedUnqualifiedNameImpl():
+        name = callee.name;
+        lookup = _lookupParsedName(callee);
+      case ParsedNameAccessImpl(operand: ParsedUnqualifiedNameImpl prefixName):
+        // `p` is an import prefix: other receivers went to
+        // [_visitReceiverInvocation].
+        var prefix = _lookupParsedName(prefixName).getter as PrefixElement;
+        // `p?.f()` is reported, but still calls the imported `f`, so that `f`
+        // and the arguments are resolved. Unlike the read `p?.x`, which reads
+        // `p` as a value, see [_lookupPrefixedName].
+        // TODO(scheglov): Use [_lookupPrefixedName] here, once it treats `p?.f`
+        // as `p.f` too, and report the error in one place for all slots.
+        if (callee.operator.type != TokenType.PERIOD) {
+          _diagnosticReporter.report(
+            diag.prefixIdentifierNotFollowedByDot
+                .withArguments(name: prefixName.name.lexeme)
+                .at(prefixName.name),
+          );
+        }
+        importPrefix = ImportPrefixReferenceImpl(
+          name: prefixName.name,
+          period: callee.operator,
+        )..element = prefix;
+        name = callee.name;
+        lookup = prefix.scope.lookup(name.lexeme);
+      default:
+        // Cascade, shorthand, and receiver calls were handled by the caller,
+        // and the parser creates value arguments for no other operands.
+        throw StateError('Unexpected operand: ${callee.runtimeType}');
+    }
+
+    var argumentList = node.argumentList;
+    var element = lookup.getter;
+    ExpressionImpl expression;
+    if (element.unaliasedInterface != null) {
+      // `C()` and `C<T>()` invoke the unnamed constructor.
+      expression = ConstructorInvocationImpl(
+        keyword: null,
+        constructorReference: ConstructorReference2Impl(
+          typeReference: ConstructorTypeReferenceImpl(
+            importPrefix: importPrefix,
+            name: name,
+            typeArguments: typeArguments,
+          ),
+          selector: null,
+        ),
+        argumentList: argumentList,
+        typeArguments: null,
+      );
+    } else if (element is ExtensionElementImpl) {
+      // `E(x)` is an explicit extension override, not an expression: it is
+      // valid only as the receiver of a member access, as in `E(x).m()`.
+      // [_replaceWithExtensionOverride] puts it into the receiver slot of the
+      // parent, or wraps it as invalid, as in `var v = E(x);`.
+      var receiver = ExtensionOverride2Impl(
+        importPrefix: importPrefix,
+        name: name,
+        element: element,
+        typeArguments: typeArguments,
+        argumentList: argumentList,
+      );
+      _replaceWithExtensionOverride(node, receiver).accept2(this);
+      return;
+    } else if (importPrefix != null) {
+      // Otherwise a function invocation; an undefined `f` is reported by type
+      // analysis.
+      expression = ImportPrefixedFunctionInvocationImpl(
+        importPrefix: importPrefix,
+        name: name,
+        typeArguments: typeArguments,
+        argumentList: argumentList,
+      );
+    } else {
+      expression = UnqualifiedFunctionInvocationImpl(
+        name: name,
+        typeArguments: typeArguments,
+        argumentList: argumentList,
+      )..scopeLookupResult = lookup;
+    }
+    node.replaceWith(expression);
+    expression.accept2(this);
   }
 
   /// Visits [statement], ensuring that if it is a block it is visited as such,
@@ -1500,6 +2124,151 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _unlabeledBreakContinueContext.nest(statement),
       callback,
     );
+  }
+
+  /// Returns the value expression for [name], optionally prefixed with
+  /// [importPrefix], whose scope lookup gave [lookup].
+  ///
+  /// A name of a type is a type literal, and any other name is a read of
+  /// what it names. Undefined names are also reads, reported later by type
+  /// analysis.
+  static ExpressionImpl _buildNameExpression({
+    required ImportPrefixReferenceImpl? importPrefix,
+    required Token name,
+    required ScopeLookupResult lookup,
+  }) {
+    if (lookup.getter.isTypeDefining) {
+      return TypeLiteralImpl(
+        type: NamedTypeImpl(
+          importPrefix: importPrefix,
+          name: name,
+          typeArguments: null,
+          question: null,
+        ),
+      );
+    }
+    if (importPrefix != null) {
+      return ImportPrefixedNameExpressionImpl(
+        importPrefix: importPrefix,
+        name: name,
+      );
+    }
+    return UnqualifiedNameExpressionImpl(name: name)
+      ..scopeLookupResult = lookup;
+  }
+
+  /// Returns the receiver for [name], optionally prefixed with
+  /// [importPrefix], whose scope lookup gave [lookup].
+  ///
+  /// If [hasSelector], a name of a class, enum, mixin, extension type, or
+  /// extension, possibly through a type alias, is a static qualifier, as `C`
+  /// in `C.x`. So is a function-type alias, see the body. Otherwise the name
+  /// is a value, see [_buildNameExpression]: `C` alone is a type literal.
+  static NamedReceiverImpl _buildNameReceiver({
+    required ImportPrefixReferenceImpl? importPrefix,
+    required Token name,
+    required ScopeLookupResult lookup,
+    required bool hasSelector,
+  }) {
+    if (hasSelector) {
+      var element = lookup.getter;
+      // Static members are accessed through a class, enum, mixin, extension
+      // type, or extension, or a type alias of one of these. Any other name
+      // of a type is a type literal, and a selector reads a member of `Type`.
+      if (element.unaliasedInterface != null || element is ExtensionElement) {
+        return StaticQualifierImpl(importPrefix: importPrefix, name: name)
+          ..element = element
+          ..scopeLookupResult = lookup;
+      }
+      // TODO(scheglov): A function-type alias should be a type literal, as
+      // other type aliases that do not denote a class are, and as in the CFE.
+      // It is a qualifier only to report invalid static access for `F.x`;
+      // but `F.m()` and `F.m<T>` use members of `Type`, see
+      // [_functionTypeAliasValue].
+      if (element is TypeAliasElement && element.aliasedType is FunctionType) {
+        return StaticQualifierImpl(importPrefix: importPrefix, name: name)
+          ..element = element
+          ..scopeLookupResult = lookup;
+      }
+    }
+    // A value: either no selector follows, or the name is not a qualifier.
+    return _buildNameExpression(
+      importPrefix: importPrefix,
+      name: name,
+      lookup: lookup,
+    );
+  }
+
+  /// Returns `F` as a value if [receiver] is a static qualifier `F` naming a
+  /// function-type alias, otherwise `null`.
+  ///
+  /// `F.m()` and `F.m<T>` use the members of `Type`, while the read `F.m`
+  /// keeps the qualifier, to report the invalid static access.
+  static ExpressionImpl? _functionTypeAliasValue(NamedReceiverImpl receiver) {
+    if (receiver case StaticQualifierImpl(
+      element: TypeAliasElement(aliasedType: FunctionType()),
+    )) {
+      return _buildNameExpression(
+        importPrefix: receiver.importPrefix,
+        name: receiver.name,
+        lookup: receiver.scopeLookupResult!,
+      );
+    }
+    return null;
+  }
+
+  /// Puts the [extensionOverride] built for [node], the call `E(x)` of an
+  /// extension, into the tree, and returns the node to visit.
+  ///
+  /// An extension override is not an expression, so it replaces [node] only
+  /// where [node] is the receiver of a member access, as in `E(x).m()` or
+  /// `E(x) + 1`. In an assignment target, as in `E(x) = v`, it replaces the
+  /// invalid target. Anywhere else, as in `var v = E(x);`, it is wrapped in an
+  /// invalid expression.
+  static InstanceReceiverImpl _replaceWithExtensionOverride(
+    ExpressionImpl node,
+    ExtensionOverride2Impl extensionOverride,
+  ) {
+    var parent = node.parent2;
+    if (parent is InvalidExpressionAssignmentTargetImpl) {
+      parent.replaceWith(
+        InvalidExtensionOverrideAssignmentTargetImpl(
+          extensionOverride: extensionOverride,
+        ),
+      );
+      return extensionOverride;
+    }
+    var isReceiver = switch (parent) {
+      ParsedNameAccessImpl(:var operand) => identical(operand, node),
+      ReceiverPropertyExtractionImpl(:var receiver) => identical(
+        receiver,
+        node,
+      ),
+      ReceiverPropertyAssignmentTargetImpl(:var receiver) => identical(
+        receiver,
+        node,
+      ),
+      ReceiverMethodInvocationImpl(:var receiver) => identical(receiver, node),
+      ReceiverIndexExpressionImpl(:var receiver) => identical(receiver, node),
+      ReceiverIndexAssignmentTargetImpl(:var receiver) => identical(
+        receiver,
+        node,
+      ),
+      CallInvocationImpl(:var receiver) => identical(receiver, node),
+      BinaryOperatorInvocationImpl(:var leftOperand) => identical(
+        leftOperand,
+        node,
+      ),
+      UnaryOperatorInvocationImpl(:var operand) => identical(operand, node),
+      _ => false,
+    };
+    InstanceReceiverImpl replacement = isReceiver
+        ? extensionOverride
+        : InvalidExtensionOverrideExpressionImpl(
+            extensionOverride: extensionOverride,
+          );
+    node.replaceWith(replacement);
+    return replacement;
   }
 
   /// We always build local elements for [LocalVariablesDeclaration]s and
@@ -1709,6 +2478,31 @@ class _VariableBinderErrors
           .withArguments(name: name)
           .at(hasInLeft ? node.rightOperand : node.leftOperand),
     );
+  }
+}
+
+extension on Element? {
+  /// Whether a name resolved to this element denotes a type, so that the
+  /// name alone is a type literal.
+  bool get isTypeDefining {
+    return switch (this) {
+      DynamicElementImpl() ||
+      InterfaceElementImpl() ||
+      NeverElementImpl() ||
+      TypeAliasElementImpl() ||
+      TypeParameterElementImpl() => true,
+      _ => false,
+    };
+  }
+
+  /// This element if it is an interface (a class, enum, mixin, or extension
+  /// type), or the interface aliased by this type alias; otherwise `null`.
+  InterfaceElement? get unaliasedInterface {
+    return switch (this) {
+      InterfaceElement element => element,
+      TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+      _ => null,
+    };
   }
 }
 

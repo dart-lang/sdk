@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// An indication of the kind of context in which a super reference was found.
 class SuperContext {
@@ -50,33 +50,33 @@ class SuperContext {
           node is FunctionExpression ||
           node is LocalFunctionDeclaration) {
         inDefaultValue = false;
-      } else if (node is ClassDeclaration ||
-          node is EnumDeclaration ||
-          node is MixinDeclaration) {
+      } else if (node is ClassDeclaration2 ||
+          node is EnumDeclaration2 ||
+          node is MixinDeclaration2) {
         return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;
-      } else if (node is ConstructorDeclaration) {
+      } else if (node is ConstructorDeclaration2) {
         if (node.factoryKeyword != null) {
           return SuperContext.static;
         }
       } else if (node is ConstructorInitializer) {
         return SuperContext.static;
-      } else if (node is ExtensionDeclaration) {
+      } else if (node is ExtensionDeclaration2) {
         return SuperContext.extension;
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         return SuperContext.extensionType;
-      } else if (node is FieldDeclaration) {
+      } else if (node is FieldsDeclaration) {
         if (node.staticKeyword != null) {
           return SuperContext.static;
         }
-        if (node.fields.lateKeyword == null) {
+        if (node.lateKeyword == null) {
           return SuperContext.static;
         }
       } else if (node is FormalParameterDefaultClause) {
         inDefaultValue = true;
-      } else if (node is MethodDeclaration) {
-        if (node.isStatic) {
+      } else if (node is MethodDeclarationV1OriginImpl) {
+        if (node.staticKeyword != null) {
           return SuperContext.static;
         }
       }

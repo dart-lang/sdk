@@ -36,34 +36,16 @@ class InlayHintHandler
       return success([]);
     }
 
-    var path = pathOfDoc(textDocument);
-    return path.mapResult((path) async {
-      // Capture the document version so we can verify it hasn't changed after
-      // we've got a resolved unit (which is async and may wait for context
-      // rebuilds).
-      var docIdentifier = extractDocumentVersion(textDocument, path);
+    return withResolvedUnit(textDocument: textDocument, token, (
+      result,
+      _,
+      _,
+    ) async {
+      var config = server.lspClientConfiguration.global.inlayHints;
+      var computer = DartInlayHintComputer(pathContext, result, config);
+      var hints = computer.compute();
 
-      var result = await requireResolvedUnit(path);
-
-      if (fileHasBeenModified(path, docIdentifier.version)) {
-        return fileModifiedError;
-      }
-
-      if (token.isCancellationRequested) {
-        return cancelled(token);
-      }
-
-      return result.mapResult((result) async {
-        if (!result.exists) {
-          return success([]);
-        }
-
-        var config = server.lspClientConfiguration.global.inlayHints;
-        var computer = DartInlayHintComputer(pathContext, result, config);
-        var hints = computer.compute();
-
-        return success(hints);
-      });
+      return success(hints);
     });
   }
 }

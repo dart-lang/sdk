@@ -31,6 +31,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.allowCommands,
     required super.analysisOptions,
     required super.allowSnippets,
+    required super.token,
   }) : _driver = server.getAnalysisDriver(file.path);
 
   @override
@@ -50,6 +51,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var requestParams = plugin.EditGetAssistsParams(path, offset, length);
     var responses = await _sendPluginRequest(requestParams);
+    if (token.isCancellationRequested) return [];
 
     return responses
         .map((response) => plugin.EditGetAssistsResult.fromResponse(response))
@@ -73,6 +75,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var requestParams = plugin.EditGetFixesParams(path, offset);
     var responses = await _sendPluginRequest(requestParams);
+    if (token.isCancellationRequested) return [];
 
     return responses
         .map((response) => plugin.EditGetFixesResult.fromResponse(response))
@@ -151,7 +154,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<plugin.Response>> _sendPluginRequest(
     plugin.RequestParams requestParams,
   ) async {
-    if (_driver == null) {
+    if (_driver == null || token.isCancellationRequested) {
       return const [];
     }
 

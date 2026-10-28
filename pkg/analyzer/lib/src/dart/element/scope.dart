@@ -24,10 +24,6 @@ class ConstructorInitializerScope extends EnclosedScope {
     );
 
     for (var formalParameter in formalParameterFragments) {
-      if (formalParameter.isOriginOtherFragmentOfEnclosing) {
-        continue;
-      }
-
       var name = formalParameter.name;
       if (name == null || name == '_' && hasWildcardVariables) {
         continue;
@@ -173,8 +169,7 @@ class FormalParameterScope extends EnclosedScope {
     required FeatureSet featureSet,
   }) {
     for (var fragment in fragments) {
-      if (fragment.isOriginOtherFragmentOfEnclosing ||
-          fragment is FieldFormalParameterFragmentImpl ||
+      if (fragment is FieldFormalParameterFragmentImpl ||
           fragment is SuperFormalParameterFragmentImpl) {
         continue;
       }
@@ -979,8 +974,7 @@ class PrimaryParameterScope extends EnclosedScope {
     );
 
     for (var fragment in formalParameterFragments) {
-      if (fragment.isOriginOtherFragmentOfEnclosing ||
-          fragment is FieldFormalParameterFragmentImpl ||
+      if (fragment is FieldFormalParameterFragmentImpl ||
           fragment is SuperFormalParameterFragmentImpl) {
         continue;
       }

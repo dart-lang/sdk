@@ -1,4 +1,32 @@
-## 14.6.0-dev
+## 14.7.0-dev
+
+* Experiments are enabled for the language version of the host SDK,
+  whether they come from `analyzer: enable-experiment:` in analysis
+  options files, or from `enabledExperiments` of
+  `AnalysisContextCollection`. Files outside of any package also use
+  the language version of the host SDK, so they get the experiments.
+  Libraries in packages get them when their language version is the
+  language version of the host SDK.
+  Previously, experiments from analysis options files were enabled for
+  the analyzer's own latest language version, so when it differed from
+  the host SDK, they were silently ignored, for files outside of any
+  package (a regression in 14.2.0 through 14.6.0), and for libraries in
+  packages.
+  See https://github.com/dart-lang/sdk/issues/64693.
+* The latest language version that a `// @dart = X.Y` comment can
+  specify is the language version of the host SDK, as for the compiler
+  of this SDK. Previously, it was the analyzer's own latest language
+  version, so when the analyzer was newer than the SDK, overrides that
+  the compiler rejects were accepted, and when it was older, overrides
+  that the compiler accepts were reported as
+  `invalid_language_version_override_greater`.
+* `InstanceElement.children` and `TypeAliasElement.children` include the
+  type parameters, as `ExecutableElement.children` already did. So element
+  visitors, such as `GeneralizingElementVisitor2` and
+  `RecursiveElementVisitor2`, visit the type parameters of classes, enums,
+  extensions, extension types, mixins, and type aliases.
+
+## 14.6.0
 
 * Added the `enabledExperiments` parameter to `AnalysisContextCollection`
   to override experiments from analysis options files.

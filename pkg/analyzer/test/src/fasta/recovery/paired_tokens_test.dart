@@ -1814,11 +1814,11 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         rightBracket: }
   declarations(v1)

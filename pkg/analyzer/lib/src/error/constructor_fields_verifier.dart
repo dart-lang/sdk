@@ -19,7 +19,7 @@ class ConstructorFieldsVerifier {
   void addConstructors(
     DiagnosticReporter diagnosticReporter,
     InterfaceElement element,
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     ClassNamePartImpl primaryConstructor,
   ) {
     var interfaceFields = _forInterface(element);
@@ -30,7 +30,7 @@ class ConstructorFieldsVerifier {
         primaryConstructor: primaryConstructor,
       );
     }
-    var constructors = members.whereType<ConstructorDeclarationImpl>();
+    var constructors = members.whereType<ConstructorDeclaration2Impl>();
     for (var constructor in constructors) {
       _addConstructor(
         diagnosticReporter: diagnosticReporter,
@@ -51,7 +51,7 @@ class ConstructorFieldsVerifier {
   void _addConstructor({
     required DiagnosticReporter diagnosticReporter,
     required _Interface interfaceFields,
-    required ConstructorDeclarationImpl node,
+    required ConstructorDeclaration2Impl node,
   }) {
     var fragment = node.declaredFragment!;
     if (node.factoryKeyword != null ||
@@ -70,7 +70,7 @@ class ConstructorFieldsVerifier {
 
     if (!fragment.isAugmentation) {
       constructorState.updateWithParameters(
-        node.parameters.allFormalParameters,
+        node.formalParameters.allFormalParameters,
       );
     }
 
@@ -98,7 +98,7 @@ class ConstructorFieldsVerifier {
       primaryConstructor.formalParameters.allFormalParameters,
     );
 
-    var body = primaryConstructor.body;
+    var body = primaryConstructor.body2;
     if (body != null) {
       constructorState.updateWithInitializers(
         diagnosticReporter,
@@ -150,7 +150,7 @@ class _Constructor {
   final Set<String> duplicateFieldNames;
   final bool isPrimary;
   final List<PrimaryConstructorDeclarationImpl> primaryConstructors = [];
-  final List<ConstructorDeclarationImpl> secondaryConstructors = [];
+  final List<ConstructorDeclaration2Impl> secondaryConstructors = [];
 
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;

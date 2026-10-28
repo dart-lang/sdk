@@ -147,18 +147,4 @@ class _ModularTransformer extends Transformer {
     _asyncLowering?.visitForInStatement(statement);
     return statement;
   }
-
-  @override
-  TreeNode visitTryFinally(TryFinally statement) {
-    statement.transformChildren(this);
-    _asyncLowering?.visitTry();
-    return statement;
-  }
-
-  @override
-  TreeNode visitTryCatch(TryCatch statement) {
-    statement.transformChildren(this);
-    _asyncLowering?.visitTry();
-    return statement;
-  }
 }

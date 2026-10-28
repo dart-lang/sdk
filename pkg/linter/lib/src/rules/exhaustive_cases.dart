@@ -37,68 +37,63 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement statement) {
     var expressionType = statement.expression.staticType;
-    if (expressionType is InterfaceType) {
-      var interfaceElement = expressionType.element;
-      // Enums are handled in analyzer.
-      var enumDescription = interfaceElement.asEnumLikeType();
-      if (enumDescription == null) {
+    if (expressionType is! InterfaceType) return;
+
+    var interfaceElement = expressionType.element;
+    // Enums are handled in analyzer.
+    var enumDescription = interfaceElement.asEnumLikeType();
+    if (enumDescription == null) {
+      return;
+    }
+
+    var enumConstants = enumDescription.enumConstants;
+    for (var member in statement.members) {
+      Expression? expression;
+      if (member is SwitchPatternCase) {
+        var pattern = member.guardedPattern.pattern.unParenthesized;
+        if (pattern is ConstantPattern) {
+          expression = pattern.expression.unParenthesized;
+        }
+      } else if (member is SwitchCase) {
+        expression = member.expression.unParenthesized;
+      }
+      if (expression is Identifier) {
+        var variable = expression.element.variableElement;
+        if (variable is VariableElement) {
+          enumConstants.remove(variable.computeConstantValue());
+        }
+      } else if (expression is PropertyAccess) {
+        var variable = expression.propertyName.element.variableElement;
+        if (variable is VariableElement) {
+          enumConstants.remove(variable.computeConstantValue());
+        }
+      } else if (expression is DotShorthandPropertyAccess) {
+        var variable = expression.propertyName.element.variableElement;
+        if (variable is VariableElement) {
+          enumConstants.remove(variable.computeConstantValue());
+        }
+      }
+      if (member is SwitchDefault) {
         return;
       }
+    }
 
-      var enumConstants = enumDescription.enumConstants;
-      for (var member in statement.members) {
-        Expression? expression;
-        if (member is SwitchPatternCase) {
-          var pattern = member.guardedPattern.pattern.unParenthesized;
-          if (pattern is ConstantPattern) {
-            expression = pattern.expression.unParenthesized;
-          }
-        } else if (member is SwitchCase) {
-          expression = member.expression.unParenthesized;
-        }
-        if (expression is Identifier) {
-          var variable = expression.element.variableElement;
-          if (variable is VariableElement) {
-            enumConstants.remove(variable.computeConstantValue());
-          }
-        } else if (expression is PropertyAccess) {
-          var variable = expression.propertyName.element.variableElement;
-          if (variable is VariableElement) {
-            enumConstants.remove(variable.computeConstantValue());
-          }
-        } else if (expression is DotShorthandPropertyAccess) {
-          var variable = expression.propertyName.element.variableElement;
-          if (variable is VariableElement) {
-            enumConstants.remove(variable.computeConstantValue());
-          }
-        }
-        if (member is SwitchDefault) {
-          return;
-        }
-      }
-
-      for (var constant in enumConstants.keys) {
-        // Use the same offset as MISSING_ENUM_CONSTANT_IN_SWITCH.
-        var offset = statement.offset;
-        var end = statement.rightParenthesis.end;
-        var elements = enumConstants[constant]!;
-        var preferredElement = elements.firstWhere(
-          (element) => !element.metadata.hasDeprecated,
-          orElse: () => elements.first,
-        );
-        if (preferredElement.name case var name?) {
-          rule.reportAtOffset(offset, end - offset, arguments: [name]);
-        }
+    for (var constant in enumConstants.keys) {
+      // Use the same offset as MISSING_ENUM_CONSTANT_IN_SWITCH.
+      var offset = statement.offset;
+      var end = statement.rightParenthesis.end;
+      var elements = enumConstants[constant]!;
+      var preferredElement = elements.firstWhere(
+        (element) => !element.metadata.hasDeprecated,
+        orElse: () => elements.first,
+      );
+      if (preferredElement.name case var name?) {
+        rule.reportAtOffset(offset, end - offset, arguments: [name]);
       }
     }
   }
 }
 
 extension on Element? {
-  Element? get variableElement {
-    if (this is GetterElement) {
-      return variable;
-    }
-    return this;
-  }
+  Element? get variableElement => this is GetterElement ? variable : this;
 }

@@ -5,10 +5,10 @@
 import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 MemberId computeMemberId(Element element) {
   var enclosingElement = element.enclosingElement;
@@ -55,7 +55,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
 
   T? computeElementValue(Id id, Element element) => null;
 
-  void computeForClass(Declaration node, Id? id) {
+  void computeForClass(ClassDeclaration2 node, Id? id) {
     if (id == null) return;
     FutureOr<T?> value = computeNodeValue(id, node);
     asyncRegisterValue(uri, _nodeOffset(node), id, value, node);
@@ -111,7 +111,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   /// Computes the data corresponding to [token], if any.
   FutureOr<T?> computeTokenValue(Id id, Token token) => null;
 
-  Id createClassId(Declaration node) {
+  Id createClassId(ClassDeclaration2 node) {
     var element = node.declaredFragment!.element;
     return ClassId(element.name!);
   }
@@ -155,9 +155,9 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration2(ClassDeclaration2 node) {
     computeForClass(node, createClassId(node));
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
   }
 
   @override
@@ -168,9 +168,15 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     computeForMember(node, createMemberId(node));
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
+  }
+
+  @override
+  void visitField2(Field2 node) {
+    computeForMember(node, createMemberId(node));
+    super.visitField2(node);
   }
 
   @override
@@ -186,6 +192,11 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   void visitForElement(ForElement node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitForElement(node);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -207,9 +218,8 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    computeForMember(node, createMemberId(node));
-    super.visitMethodDeclaration(node);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -236,6 +246,11 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
+  }
+
+  @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     var name = node.name;
     computeForToken(name, NodeId(name.offset, IdKind.node));
@@ -249,6 +264,11 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
     var propertyName = node.name;
     computeForToken(propertyName, NodeId(propertyName.offset, IdKind.node));
     super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -287,12 +307,6 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
     super.visitTopLevelVariable2(node);
   }
 
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    computeForMember(node, createMemberId(node));
-    super.visitVariableDeclaration(node);
-  }
-
   int _nodeOffset(AstNode node) {
     int offset;
     if (node is ConditionalExpression) {
@@ -320,6 +334,14 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
     }
     assert(offset >= 0, "No fileOffset on $node (${node.runtimeType})");
     return offset;
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    computeForMember(node, createMemberId(node));
+    visitSuper();
   }
 }
 

@@ -13,10 +13,11 @@ group("dynamic_module_runner") {
 aot_snapshot("dynamic_module_runner_snapshot") {
   main_dart = "../../pkg/dynamic_modules/bin/dynamic_module_runner.dart"
   name = "dynamic_module_runner"
-  gen_kernel_args =
-      [ "--dynamic-interface=" + rebase_path(
-            "$_dart_root/utils/dynamic_module_runner/dynamic_interface.yaml",
-            root_build_dir) ]
+  dynamic_interface =
+      "$_dart_root/utils/dynamic_module_runner/dynamic_interface.yaml"
+  inputs = [ dynamic_interface ]
+  gen_kernel_args = [ "--dynamic-interface=" +
+                      rebase_path(dynamic_interface, root_build_dir) ]
 }
 
 aot_snapshot("dynamic_modules_test_suite_snapshot") {

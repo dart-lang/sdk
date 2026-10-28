@@ -411,7 +411,6 @@ ForElement
     name: v
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::v
-      invokeType: int Function()
       type: int
     staticType: int
   body(v1): SimpleIdentifier
@@ -936,7 +935,6 @@ ForElement
       name: x
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::x
-        invokeType: List<int> Function()
         type: List<int>
       staticType: List<int>
     iterable(v1): SimpleIdentifier
@@ -984,7 +982,6 @@ ForElement
       name: x
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::x
-        invokeType: List<int> Function()
         type: List<int>
       staticType: List<int>
     iterable(v1): SimpleIdentifier

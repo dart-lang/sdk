@@ -299,9 +299,9 @@ class C<E> {
 ''');
     var offset = result.content.indexOf('<int>');
     var node = result.unit.nodeCovering(offset: offset, length: 5);
-    var invocation =
-        result.findNode.constructorInvocation('C.named<int>')
-            as ConstructorInvocationImpl;
+    var invocation = result.findNode.constructorInvocation(
+      'C.named<int>',
+    ) as ConstructorInvocationImpl;
 
     expect(node, isA<TypeArgumentListImpl>());
     expect(invocation.constructorReference.typeReference.typeArguments, null);
@@ -317,9 +317,9 @@ class C<T> {
   C.named(T value);
 }
 ''');
-    var v2 =
-        result.findNode.constructorInvocation('C<int>')
-            as ConstructorInvocationImpl;
+    var v2 = result.findNode.constructorInvocation(
+      'C<int>',
+    ) as ConstructorInvocationImpl;
     var reference = v2.constructorReference;
     var v1 = v2.instanceCreationExpression;
 
@@ -883,6 +883,30 @@ class C {
 ''');
     assertInContext("C() :", true);
     assertInContext("C()}", true);
+  }
+
+  test_inConstantContext_constructorInvocation_staticConstField_true() {
+    parse('''
+class C {
+  static const d = D();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", true);
+  }
+
+  test_inConstantContext_constructorInvocation_staticFinalField_false() {
+    parse('''
+class C {
+  static final d = D();
+}
+class D {
+  const D();
+}
+''');
+    assertInContext("D()", false);
   }
 
   test_inConstantContext_constructorInvocation_switch_true() {
@@ -1651,7 +1675,7 @@ library myLib;
     var node = await coveringNode('''
 ^class A {}
 ''');
-    node as ClassDeclaration;
+    node as ClassDeclaration2;
   }
 
   Future<void> test_atBOF_atComment() async {
@@ -1708,7 +1732,7 @@ class C {
   void b() {}
 }
 ''');
-    node as ClassBody;
+    node as BlockInstanceDeclarationBody;
   }
 
   Future<void> test_between_colonAndIdentifier_namedExpression() async {
@@ -1904,7 +1928,7 @@ class C {
   void m^() {}
 }
 ''');
-    node as MethodDeclaration;
+    node as MethodDeclaration2;
   }
 
   Future<void> test_between_periodAndIdentifier() async {
@@ -1977,7 +2001,7 @@ class C {
   void m^m() {}
 }
 ''');
-    node as MethodDeclaration;
+    node as MethodDeclaration2;
   }
 
   Future<void> test_inOperator_assignment() async {

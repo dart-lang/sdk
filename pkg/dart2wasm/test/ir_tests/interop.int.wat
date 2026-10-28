@@ -10,7 +10,7 @@
   (global $intValueNullable (mut (ref null $BoxedInt)) <...>)
   (func $intValue implicit getter (result i64) <...>)
   (func $ktrue implicit getter (result i32) <...>)
-  (func $jsifyInt (param $var0 i64) (result externref) <...>)
+  (func $jsifyInt (param $var0 i64) (result (ref extern)) <...>)
   (func $sinkInt (param $var0 i64) <...>)
   (func $sinkIntNullable (param $var0 (ref null $BoxedInt)) <...>)
   (@binaryen.inline 0)
@@ -45,7 +45,7 @@
     else
       call $"ktrue implicit getter"
       if (result (ref null $BoxedInt))
-        i32.const 60
+        i32.const 94
         call $"intValue implicit getter"
         struct.new $BoxedInt
       else

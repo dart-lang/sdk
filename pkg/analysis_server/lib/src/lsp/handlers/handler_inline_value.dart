@@ -46,12 +46,11 @@ class InlineValueHandler
       return success(null);
     }
 
-    var filePath = pathOfDoc(params.textDocument);
-    return filePath.mapResult((filePath) async {
-      var unitResult = await server.getResolvedUnit(filePath);
-      if (unitResult == null) {
-        return success(null);
-      }
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unitResult,
+      _,
+      _,
+    ) async {
       var lineInfo = unitResult.lineInfo;
 
       // Compute the ranges for which we will provide values. We produce two
@@ -72,7 +71,7 @@ class InlineValueHandler
       );
 
       var stoppedOffset = toOffset(lineInfo, stoppedLocation.end);
-      return stoppedOffset.mapResult((stoppedOffset) async {
+      return stoppedOffset.mapResultSync((stoppedOffset) {
         // Find the function that is executing. We will only show values for
         // this single function expression.
         var node = unitResult.unit.nodeCovering(offset: stoppedOffset);

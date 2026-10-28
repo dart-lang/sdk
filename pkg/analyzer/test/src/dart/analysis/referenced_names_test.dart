@@ -328,6 +328,26 @@ f(A a) {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_operator_binary() {
+    var names = _computeReferencedNames('''
+f(A a, A b) {
+  a + b;
+  a < b;
+  a >>> b;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '<', '>>>']));
+  }
+
+  test_operator_binary_equality() {
+    var names = _computeReferencedNames('''
+f(A a, A b) {
+  a != b;
+}
+''');
+    expect(names, unorderedEquals(['A', '==']));
+  }
+
   test_operator_compoundAssignment_property() {
     var names = _computeReferencedNames('''
 f(A a) {
@@ -360,6 +380,71 @@ f(A a) {
 }
 ''');
     expect(names, unorderedEquals(['A', '+', '-', 'foo']));
+  }
+
+  test_operator_index_assignmentTarget() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a[0] = 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '[]=']));
+  }
+
+  test_operator_index_assignmentTarget_cascade() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..[0] = 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '[]=']));
+  }
+
+  test_operator_index_assignmentTarget_cascade_hasRead() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..[0] ??= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '[]', '[]=']));
+  }
+
+  test_operator_index_assignmentTarget_hasRead() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a[0] += 1;
+  a[1]++;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '[]', '[]=']));
+  }
+
+  test_operator_index_read() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a[0];
+}
+''');
+    expect(names, unorderedEquals(['A', '[]']));
+  }
+
+  test_operator_index_read_cascade() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..[0];
+}
+''');
+    expect(names, unorderedEquals(['A', '[]']));
+  }
+
+  test_operator_unary() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  -a;
+  ~a;
+}
+''');
+    expect(names, unorderedEquals(['A', '-', '~']));
   }
 
   test_patternField_objectPattern_explicitName() {

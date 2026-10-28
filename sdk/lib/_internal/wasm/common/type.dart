@@ -147,7 +147,7 @@ class _TopType extends _Type {
       case _voidKind:
         return 'void';
       default:
-        throw 'Invalid top type kind';
+        throwReachabilityError('Invalid top type kind');
     }
   }
 }
@@ -167,12 +167,14 @@ class _InterfaceTypeParameterType extends _Type {
   );
 
   @override
-  _Type get _asNullable =>
-      throw 'Type parameter should have been substituted already.';
+  _Type get _asNullable => throwReachabilityError(
+    'Type parameter should have been substituted already.',
+  );
 
   @override
-  bool _checkInstance(Object o) =>
-      throw 'Type parameter should have been substituted already.';
+  bool _checkInstance(Object o) => throwReachabilityError(
+    'Type parameter should have been substituted already.',
+  );
 
   @override
   String toString() => 'T$environmentIndex';
@@ -192,8 +194,9 @@ class _FunctionTypeParameterType extends _Type {
   _Type get _asNullable => _FunctionTypeParameterType(true, index);
 
   @override
-  bool _checkInstance(Object o) =>
-      throw 'Instance check should not reach function type parameter.';
+  bool _checkInstance(Object o) => throwReachabilityError(
+    'Instance check should not reach function type parameter.',
+  );
 
   @override
   bool operator ==(Object o) {
@@ -944,7 +947,7 @@ abstract class _TypeUniverse {
         rootFunction,
       );
     } else {
-      throw 'Type argument substitution not supported for $type';
+      throwReachabilityError('Type argument substitution not supported');
     }
   }
 

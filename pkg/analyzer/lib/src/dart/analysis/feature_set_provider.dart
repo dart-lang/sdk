@@ -12,7 +12,7 @@ import 'package:analyzer/src/util/uri.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSetProvider {
-  final Version _sdkLanguageVersion;
+  final Version sdkLanguageVersion;
   final AllowedExperiments _allowedExperiments;
   final ResourceProvider _resourceProvider;
   final Packages _packages;
@@ -20,7 +20,7 @@ class FeatureSetProvider {
   final Map<String, FeatureSet> _cachedFeatureSets = {};
 
   new _({
-    required this._sdkLanguageVersion,
+    required this.sdkLanguageVersion,
     required this._allowedExperiments,
     required this._resourceProvider,
     required this._packages,
@@ -29,13 +29,18 @@ class FeatureSetProvider {
   FeatureSet featureSetForExperiments(List<String> experiments) {
     String key = experiments.join("|");
     return _cachedFeatureSets[key] ??= FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: _sdkLanguageVersion,
+      sdkLanguageVersion: sdkLanguageVersion,
       flags: experiments,
     );
   }
 
-  /// Return the [FeatureSet] and language [Version] for the package that
-  /// contains the file.
+  /// Returns the [FeatureSet] and the default language [Version] of the file.
+  ///
+  /// SDK libraries use the experiments allowed for them. Files in a package
+  /// use the experiments allowed for the package, or [contextFeatures]. Their
+  /// language version is the language version of the package, or of the SDK
+  /// if the package does not specify one. Files outside of any package use
+  /// [contextFeatures] with the language version of the SDK.
   ///
   /// Note, that [Version] returns the default language version
   /// for libraries in the package, but that does not restrict the
@@ -49,31 +54,29 @@ class FeatureSetProvider {
     String path,
     Uri uri, {
     required FeatureSet contextFeatures,
-    required FeatureSet nonPackageFeatureSet,
-    required Version nonPackageLanguageVersion,
   }) {
     if (uri.isScheme('dart')) {
       var pathSegments = uri.pathSegments;
       if (pathSegments.isNotEmpty) {
         var libraryName = pathSegments.first;
         var experiments = _allowedExperiments.forSdkLibrary(libraryName);
-        return (featureSetForExperiments(experiments), _sdkLanguageVersion);
+        return (featureSetForExperiments(experiments), sdkLanguageVersion);
       } else {
-        return (featureSetForExperiments([]), _sdkLanguageVersion);
+        return (featureSetForExperiments([]), sdkLanguageVersion);
       }
     }
 
     var package = _findPackage(uri, path);
     if (package != null) {
       var experiments = _allowedExperiments.forPackage(package.name);
-      var languageVersion = package.languageVersion ?? _sdkLanguageVersion;
+      var languageVersion = package.languageVersion ?? sdkLanguageVersion;
       if (experiments != null) {
         return (featureSetForExperiments(experiments), languageVersion);
       }
       return (contextFeatures, languageVersion);
     }
 
-    return (nonPackageFeatureSet, _sdkLanguageVersion);
+    return (contextFeatures, sdkLanguageVersion);
   }
 
   /// Return the package corresponding to the [uri] or [path], `null` if none.

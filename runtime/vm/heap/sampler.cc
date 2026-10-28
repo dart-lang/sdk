@@ -119,12 +119,12 @@ void HeapProfileSampler::UpdateThreadEnable() {
 
 void HeapProfileSampler::UpdateThreadEnableLocked() {
   thread_enabled_ = enabled_;
+  // Reset the TLAB boundaries to the true end to avoid unnecessary slow
+  // path invocations when sampling is disabled, or to clear any stale
+  // interval state before computing a new sampling interval.
+  ResetState();
   if (thread_enabled_) {
     SetNextSamplingIntervalLocked(GetNextSamplingIntervalLocked());
-  } else {
-    // Reset the TLAB boundaries to the true end to avoid unnecessary slow
-    // path invocations when sampling is disabled.
-    ResetState();
   }
 }
 
@@ -163,37 +163,22 @@ void HeapProfileSampler::HandleNewTLAB(intptr_t old_tlab_remaining_space,
                                        bool is_first_tlab) {
   ASSERT_THREAD_STATE(thread_);
   ReadRwLocker locker(thread_, lock_);
-  if (!enabled_ || (next_tlab_offset_ == kUninitialized && !is_first_tlab)) {
-    return;
-  } else if (is_first_tlab) {
-    ASSERT(next_tlab_offset_ == kUninitialized);
-    if (interval_to_next_sample_ != kUninitialized) {
-      intptr_t top = thread_->top();
-      intptr_t tlab_size = thread_->true_end() - top;
-      if (tlab_size >= interval_to_next_sample_) {
-        thread_->set_end(top + interval_to_next_sample_);
-        ASSERT_TLAB_BOUNDARIES_VALID(thread_);
-      } else {
-        next_tlab_offset_ = interval_to_next_sample_ - tlab_size;
-        ASSERT_TLAB_BOUNDARIES_VALID(thread_);
-      }
-    } else {
-      SetThreadSamplingIntervalLocked();
-    }
+  if (!enabled_ || thread_->true_end() == 0) {
     return;
   }
-  intptr_t updated_offset = next_tlab_offset_ + old_tlab_remaining_space;
-  if (updated_offset + thread_->top() > thread_->true_end()) {
-    // The next sampling point isn't in this TLAB.
-    next_tlab_offset_ = updated_offset - (thread_->true_end() - thread_->top());
-    thread_->set_end(thread_->true_end());
-    ASSERT_TLAB_BOUNDARIES_VALID(thread_);
+  ASSERT(next_tlab_offset_ == kUninitialized);
+  if (interval_to_next_sample_ != kUninitialized) {
+    intptr_t top = thread_->top();
+    intptr_t tlab_size = thread_->true_end() - top;
+    if (tlab_size >= interval_to_next_sample_) {
+      thread_->set_end(top + interval_to_next_sample_);
+      ASSERT_TLAB_BOUNDARIES_VALID(thread_);
+    } else {
+      next_tlab_offset_ = interval_to_next_sample_ - tlab_size;
+      ASSERT_TLAB_BOUNDARIES_VALID(thread_);
+    }
   } else {
-    ASSERT(updated_offset <= static_cast<intptr_t>(thread_->true_end()) -
-                                 static_cast<intptr_t>(thread_->top()));
-    thread_->set_end(updated_offset + thread_->top());
-    next_tlab_offset_ = kUninitialized;
-    ASSERT_TLAB_BOUNDARIES_VALID(thread_);
+    SetThreadSamplingIntervalLocked();
   }
 }
 
@@ -270,7 +255,9 @@ void HeapProfileSampler::SampleOldSpaceAllocation(intptr_t allocation_size) {
         next_tlab_offset_ = kUninitialized;
       }
 
-      end += allocation_size;
+      // TLAB allocations grow upward from top toward end, so pull end back
+      // to reduce the remaining bytes before the next sample.
+      end -= allocation_size;
       if (end > true_end) {
         thread_->set_end(true_end);
         next_tlab_offset_ = end - true_end;
@@ -289,7 +276,11 @@ void HeapProfileSampler::SampleOldSpaceAllocation(intptr_t allocation_size) {
 
   // Find a new sampling point and reset TLAB boundaries.
   SetThreadSamplingIntervalLocked();
-  last_sample_size_ = allocation_size;
+  if (allocation_size >= sampling_interval_) [[unlikely]] {
+    last_sample_size_ = allocation_size;
+  } else {
+    last_sample_size_ = sampling_interval_;
+  }
 }
 
 // Determines the next sampling interval by sampling from a poisson
@@ -336,7 +327,8 @@ intptr_t HeapProfileSampler::NumberOfSamplesLocked(intptr_t allocation_size) {
 }
 
 intptr_t HeapProfileSampler::remaining_TLAB_interval() const {
-  if (thread_->end() == 0) {
+  if (thread_->end() == 0 || (thread_->end() == thread_->true_end() &&
+                              next_tlab_offset_ == kUninitialized)) {
     return kUninitialized;
   }
   intptr_t remaining = thread_->end() - thread_->top();

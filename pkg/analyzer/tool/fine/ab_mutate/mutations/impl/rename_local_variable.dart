@@ -109,7 +109,7 @@ class RenameLocalVariableMutation extends Mutation {
         FunctionAstVisitor(
           localVariable: (node) {
             // Only locals declared by statements, not by `for` loops.
-            if (node.parent2?.parent2 is! ForPartsWithDeclarations) {
+            if (node.parent2.parent2 is! ForPartsWithDeclarations) {
               locals.add(node);
             }
           },

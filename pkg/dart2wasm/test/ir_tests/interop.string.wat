@@ -3,7 +3,7 @@
     (field $#classId i32)))
   (type $JSExternWrapper (sub $#Top (struct
     (field $#classId i32)
-    (field $_externRef externref))))
+    (field $_externRef (ref extern)))))
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param externref) (result externref))
   (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param externref) (result externref))
   (global $.a (import "" "a") (ref extern))

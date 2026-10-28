@@ -21,6 +21,44 @@ main() {
 
 @reflectiveTest
 class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
+  @V1Ast('Tests the V1 projection.')
+  test_classDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A extends Object {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'class A extends Object {void foo() {}}',
+      result.findNodeV1.singleClassDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_classTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin M {}
+class A = Object with M;
+''');
+    _assertSource(
+      'class A = Object with M;',
+      result.findNodeV1.singleClassTypeAlias,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_constructorDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named(int a) : assert(a > 0);
+}
+''');
+    _assertSource(
+      'A.named(int a) : assert (a > 0);',
+      result.findNodeV1.singleConstructorDeclaration,
+    );
+  }
+
   test_dotShorthandMethodInvocation() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -67,6 +105,64 @@ class A {
 A x = .foo.bar;
 ''');
     _assertSource('.foo', result.findNode.singleDotShorthandNameExpression);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_enumConstantDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum E {
+  v(0);
+  const E(int a);
+}
+''');
+    _assertSource('v(0)', result.findNodeV1.singleEnumConstantDeclaration);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_enumDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+enum E { v }
+''');
+    _assertSource('enum E {v}', result.findNodeV1.singleEnumDeclaration);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_extensionDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension E on int {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'extension E on int {void foo() {}}',
+      result.findNodeV1.singleExtensionDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_extensionTypeDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'extension type A(int it) {void foo() {}}',
+      result.findNodeV1.singleExtensionTypeDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_fieldDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  int a = 0, b = 1;
+}
+''');
+    _assertSource(
+      'int a = 0, b = 1;',
+      result.findNodeV1.singleFieldDeclaration,
+    );
   }
 
   test_functionInstantiation() async {
@@ -180,6 +276,19 @@ var x = math.pi;
   }
 
   @V1Ast('Tests the V1 projection.')
+  test_mixinDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+mixin M on Object {
+  void foo() {}
+}
+''');
+    _assertSource(
+      'mixin M on Object {void foo() {}}',
+      result.findNodeV1.singleMixinDeclaration,
+    );
+  }
+
+  @V1Ast('Tests the V1 projection.')
   test_prefixedIdentifier() async {
     var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:math' as math;
@@ -230,6 +339,29 @@ var x = foo;
 
 @reflectiveTest
 class ToSourceVisitorTest extends ParserDiagnosticsTest {
+  @V1Ast('Tests the V1 projection.')
+  void test_blockClassBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  void foo() {}
+}
+''');
+    var node = parseResult.findNodeV1.singleBlockClassBody;
+    expect(node.toSource(), ' {void foo() {}}');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_blockEnumBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+enum E {
+  v;
+  void foo() {}
+}
+''');
+    var node = parseResult.findNodeV1.singleBlockEnumBody;
+    expect(node.toSource(), ' {v; void foo() {}}');
+  }
+
   test_class_emptyBody() {
     var code = 'class A;';
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -284,6 +416,24 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleClassDeclaration;
     _assertSource(code, node);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_emptyClassBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A;
+''');
+    var node = parseResult.findNodeV1.singleEmptyClassBody;
+    expect(node.toSource(), ';');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_emptyEnumBody_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+enum E;
+''');
+    var node = parseResult.findNodeV1.singleEmptyEnumBody;
+    expect(node.toSource(), ';');
   }
 
   test_enum_emptyBody() {
@@ -1900,103 +2050,25 @@ $code
     _assertSource(code, node);
   }
 
-  void test_visitFieldDeclaration_abstract() {
-    var code = 'abstract var a;';
+  void test_visitField_initialized() {
+    var code = 'foo = bar';
     var parseResult = parseTestCodeWithDiagnostics('''
 class A {
-  $code
+  var $code;
 }
 ''');
-    var node = parseResult.findNode.singleFieldDeclaration;
+    var node = parseResult.findNode.singleField;
     _assertSource(code, node);
   }
 
-  void test_visitFieldDeclaration_abstract_external() {
+  void test_visitField_uninitialized() {
+    var code = 'foo';
     var parseResult = parseTestCodeWithDiagnostics('''
 class A {
-  abstract external var a;
-//^^^^^^^^
-// [diag.abstractExternalField] Fields can't be declared both 'abstract' and 'external'.
+  var $code;
 }
 ''');
-    var node = parseResult.findNode.singleFieldDeclaration;
-    _assertSource('external abstract var a;', node);
-  }
-
-  void test_visitFieldDeclaration_abstract_static() {
-    var code = 'static abstract var a;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFieldDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFieldDeclaration_augment() {
-    var code = 'augment var a = 0;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-augment class A {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFieldDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFieldDeclaration_covariant() {
-    var code = 'covariant var a;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFieldDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFieldDeclaration_external() {
-    var code = 'external var a;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFieldDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFieldDeclaration_instance() {
-    var code = 'var a;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFieldDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFieldDeclaration_static() {
-    var code = 'static var a;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFieldDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFieldDeclaration_withMetadata() {
-    var code = '@deprecated var a;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFieldDeclaration;
+    var node = parseResult.findNode.singleField;
     _assertSource(code, node);
   }
 
@@ -2077,6 +2149,150 @@ class A {
 }
 ''');
     var node = parseResult.findNode.singleFieldFormalParameter;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_abstract() {
+    var code = 'abstract var a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_abstract_external() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  abstract external var a;
+//^^^^^^^^
+// [diag.abstractExternalField] Fields can't be declared both 'abstract' and 'external'.
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource('external abstract var a;', node);
+  }
+
+  void test_visitFieldsDeclaration_abstract_static() {
+    var code = 'static abstract var a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_augment() {
+    var code = 'augment var a = 0;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+augment class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_const_type() {
+    var code = 'const int a = 0, b = 0;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_covariant() {
+    var code = 'covariant var a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_external() {
+    var code = 'external var a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_final_noType() {
+    var code = 'final a = 0, b = 0;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_instance() {
+    var code = 'var a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_static() {
+    var code = 'static var a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_type() {
+    var code = 'int a, b;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_var() {
+    var code = 'var a, b;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitFieldsDeclaration_withMetadata() {
+    var code = '@deprecated var a;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  $code
+}
+''');
+    var node = parseResult.findNode.singleFieldsDeclaration;
     _assertSource(code, node);
   }
 
@@ -3291,7 +3507,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -3302,7 +3518,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -3335,7 +3551,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleOperatorDeclaration;
     _assertSource(code, node);
   }
 
@@ -3346,7 +3562,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleOperatorDeclaration;
     _assertSource(code, node);
   }
 
@@ -3368,7 +3584,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -3379,7 +3595,7 @@ class A {
   $code
 }
 ''');
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleSetterDeclaration;
     _assertSource(code, node);
   }
 
@@ -4843,72 +5059,6 @@ int f() {
 }
 ''');
     var node = parseResult.findNode.singleUnaryOperatorInvocation;
-    _assertSource(code, node);
-  }
-
-  void test_visitVariableDeclaration_initialized() {
-    var code = 'foo = bar';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  var $code;
-}
-''');
-    var node = parseResult.findNode.singleVariableDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitVariableDeclaration_uninitialized() {
-    var code = 'foo';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  var $code;
-}
-''');
-    var node = parseResult.findNode.singleVariableDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitVariableDeclarationList_const_type() {
-    var code = 'const int a = 0, b = 0';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleVariableDeclarationList;
-    _assertSource(code, node);
-  }
-
-  void test_visitVariableDeclarationList_final_noType() {
-    var code = 'final a = 0, b = 0';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleVariableDeclarationList;
-    _assertSource(code, node);
-  }
-
-  void test_visitVariableDeclarationList_type() {
-    var code = 'int a, b';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleVariableDeclarationList;
-    _assertSource(code, node);
-  }
-
-  void test_visitVariableDeclarationList_var() {
-    var code = 'var a, b';
-    var parseResult = parseTestCodeWithDiagnostics('''
-class A {
-  $code;
-}
-''');
-    var node = parseResult.findNode.singleVariableDeclarationList;
     _assertSource(code, node);
   }
 

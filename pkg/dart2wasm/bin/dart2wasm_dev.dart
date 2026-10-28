@@ -6,10 +6,39 @@ import 'dart:io';
 
 import 'package:dart2wasm/dev/compile.dart';
 
-void main(List<String> args) {
-  if (args.length != 1) {
-    stderr.writeln('Usage: dart2wasm_dev.dart <output.wasm>');
+Future<void> main(List<String> args) async {
+  Uri? platformPath;
+  Uri? librariesSpecPath;
+  final rest = <String>[];
+
+  for (final arg in args) {
+    if (arg.startsWith('--platform=')) {
+      platformPath = Uri.base.resolveUri(
+        Uri.file(arg.substring('--platform='.length)),
+      );
+    } else if (arg.startsWith('--libraries-spec=')) {
+      librariesSpecPath = Uri.base.resolveUri(
+        Uri.file(arg.substring('--libraries-spec='.length)),
+      );
+    } else {
+      rest.add(arg);
+    }
+  }
+
+  if (rest.length != 2) {
+    stderr.writeln(
+      'Usage: dart2wasm_dev.dart [options] <input.dart> <output.wasm>',
+    );
     exit(64);
   }
-  File(args.single).writeAsBytesSync(compile());
+
+  final mainUri = Uri.base.resolveUri(Uri.file(rest[0]));
+  final outputPath = rest[1];
+  File(outputPath).writeAsBytesSync(
+    await compile(
+      mainUri,
+      platformPath: platformPath,
+      librariesSpecPath: librariesSpecPath,
+    ),
+  );
 }

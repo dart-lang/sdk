@@ -13,7 +13,11 @@ void main() {
         'epoch': 1710000000000,
         'pid': 1234,
         'dartVersion': '3.4.0',
-        'workspaceRoot': '/users/foo/workspace',
+        'workingDirectory': '/users/foo/ide_install',
+        'workspaceRoots': <Object?>[
+          '/users/foo/project_a',
+          '/users/foo/project_b',
+        ],
         'ideName': 'Test IDE',
       };
 
@@ -23,7 +27,11 @@ void main() {
       expect(info.epoch, 1710000000000);
       expect(info.pid, 1234);
       expect(info.dartVersion, '3.4.0');
-      expect(info.workspaceRoot, '/users/foo/workspace');
+      expect(info.workingDirectory, '/users/foo/ide_install');
+      expect(info.workspaceRoots, <String>[
+        '/users/foo/project_a',
+        '/users/foo/project_b',
+      ]);
       expect(info.ideName, 'Test IDE');
     });
 
@@ -34,9 +42,23 @@ void main() {
       expect(info.epoch, 0);
       expect(info.pid, 0);
       expect(info.dartVersion, '');
-      expect(info.workspaceRoot, '');
+      expect(info.workingDirectory, '');
+      expect(info.workspaceRoots, isEmpty);
       expect(info.ideName, null);
     });
+
+    test(
+      'fromJson falls back to workspaceRoot and filters non-string roots',
+      () {
+        final info = DTDConnectionInfo.fromJson(<String, Object?>{
+          'workspaceRoot': '/legacy/workspace',
+          'workspaceRoots': <Object?>['/valid/root', 123, null],
+        });
+
+        expect(info.workingDirectory, '/legacy/workspace');
+        expect(info.workspaceRoots, <String>['/valid/root']);
+      },
+    );
 
     test('toJson serializes correctly', () {
       final info = DTDConnectionInfo(
@@ -44,7 +66,11 @@ void main() {
         epoch: 1710000000000,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/ide_install',
+        workspaceRoots: const <String>[
+          '/users/foo/project_a',
+          '/users/foo/project_b',
+        ],
         ideName: 'Test IDE',
       );
 
@@ -54,7 +80,12 @@ void main() {
       expect(json['epoch'], 1710000000000);
       expect(json['pid'], 1234);
       expect(json['dartVersion'], '3.4.0');
-      expect(json['workspaceRoot'], '/users/foo/workspace');
+      expect(json['workingDirectory'], '/users/foo/ide_install');
+      expect(json['workspaceRoot'], '/users/foo/project_a');
+      expect(json['workspaceRoots'], <String>[
+        '/users/foo/project_a',
+        '/users/foo/project_b',
+      ]);
       expect(json['ideName'], 'Test IDE');
     });
 
@@ -64,11 +95,13 @@ void main() {
         epoch: 1710000000000,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/ide_install',
       );
 
       final json = info.toJson();
       expect(json, isNot(contains('ideName')));
+      expect(json['workspaceRoots'], isEmpty);
+      expect(json['workspaceRoot'], '/users/foo/ide_install');
     });
 
     test('toString includes all fields', () {
@@ -77,30 +110,47 @@ void main() {
         epoch: 1710000000000,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/ide_install',
+        workspaceRoots: const <String>[
+          '/users/foo/project_a',
+          '/users/foo/project_b',
+        ],
         ideName: 'Test IDE',
       );
 
       final string = info.toString();
-      expect(string, contains(info.wsUri));
-      expect(string, contains(info.pid.toString()));
-      expect(string, contains(info.dartVersion));
-      expect(string, contains(info.workspaceRoot));
-      expect(string, contains(info.ideName));
+      expect(string, contains('  WS URI:            ${info.wsUri}'));
+      expect(string, contains('  Working Directory: ${info.workingDirectory}'));
+      expect(
+        string,
+        contains(
+          '  Workspace Roots:   /users/foo/project_a, /users/foo/project_b',
+        ),
+      );
+      expect(string, contains('  Dart Version:      ${info.dartVersion}'));
+      expect(string, contains('  PID:               ${info.pid}'));
+      expect(string, contains('  IDE:               ${info.ideName}'));
       // epoch is tested separately as it uses "time ago" logic
     });
 
-    test('toString omits ideName if null', () {
+    test('toString omits ideName if null and workspaceRoots if empty', () {
       final info = DTDConnectionInfo(
         wsUri: 'ws://127.0.0.1:12345/abc',
         epoch: 1710000000000,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/ide_install',
       );
 
       final string = info.toString();
-      expect(string, allOf(isNot(contains('IDE')), isNot(contains('null'))));
+      expect(
+        string,
+        allOf(
+          isNot(contains('IDE')),
+          isNot(contains('Workspace Roots:')),
+          isNot(contains('null')),
+        ),
+      );
     });
 
     test('toString formatting includes ago extension logic', () {
@@ -112,7 +162,7 @@ void main() {
         epoch: now - const Duration(minutes: 5).inMilliseconds,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/workspace',
       );
       expect(info5m.toString(), contains('5 minutes ago'));
 
@@ -122,7 +172,7 @@ void main() {
         epoch: now - const Duration(minutes: 1).inMilliseconds,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/workspace',
       );
       expect(info1m.toString(), contains('1 minute ago'));
 
@@ -132,7 +182,7 @@ void main() {
         epoch: now,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/workspace',
       );
       expect(infoNow.toString(), contains('less than a minute ago'));
 
@@ -142,7 +192,7 @@ void main() {
         epoch: now - const Duration(hours: 2).inMilliseconds,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/workspace',
       );
       expect(info2h.toString(), contains('2 hours ago'));
 
@@ -152,7 +202,7 @@ void main() {
         epoch: now - const Duration(days: 2).inMilliseconds,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/workspace',
       );
       expect(info2d.toString(), contains('2 days ago'));
 
@@ -162,7 +212,7 @@ void main() {
         epoch: now - const Duration(days: 64).inMilliseconds,
         pid: 1234,
         dartVersion: '3.4.0',
-        workspaceRoot: '/users/foo/workspace',
+        workingDirectory: '/users/foo/workspace',
       );
       expect(info2mo.toString(), contains('2 months ago'));
     });

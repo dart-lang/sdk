@@ -36,20 +36,20 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
   }
 
   for (var declaration in unit.declarations2) {
-    if (declaration is ClassDeclaration) {
+    if (declaration is ClassDeclaration2) {
       addSubtypedName(declaration.extendsClause?.superclass);
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is ClassTypeAlias) {
+    } else if (declaration is ClassTypeAlias2) {
       addSubtypedName(declaration.superclass);
       addSubtypedNames(declaration.withClause.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is EnumDeclaration) {
+    } else if (declaration is EnumDeclaration2) {
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is ExtensionTypeDeclaration) {
+    } else if (declaration is ExtensionTypeDeclaration2) {
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is MixinDeclaration) {
+    } else if (declaration is MixinDeclaration2) {
       addSubtypedNames(declaration.onClause?.superclassConstraints);
       addSubtypedNames(declaration.implementsClause?.interfaces);
     }
@@ -79,20 +79,22 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory forClass(_LocalNameScope enclosing, ClassDeclarationImpl node) {
+  factory forClass(_LocalNameScope enclosing, ClassDeclaration2Impl node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    for (var member in node.body.members) {
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        scope.add(member.nameToken);
       }
     }
     return scope;
   }
 
-  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias node) {
+  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias2 node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
@@ -100,24 +102,26 @@ class _LocalNameScope {
 
   factory forConstructor(
     _LocalNameScope enclosing,
-    ConstructorDeclaration node,
+    ConstructorDeclaration2 node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addFormalParameters(node.parameters);
+    scope.addFormalParameters(node.formalParameters);
     return scope;
   }
 
   factory forExtensionType(
     _LocalNameScope enclosing,
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
   ) {
     var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    for (var member in node.body.members) {
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        scope.add(member.nameToken);
       }
     }
     return scope;
@@ -142,10 +146,13 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory forMethod(_LocalNameScope enclosing, MethodDeclaration node) {
+  factory forMethod(
+    _LocalNameScope enclosing,
+    MethodDeclarationV1OriginImpl node,
+  ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.typeParameters);
-    scope.addFormalParameters(node.parameters);
+    scope.addTypeParameters(node.writtenTypeParameters);
+    scope.addFormalParameters(node.writtenFormalParameters);
     return scope;
   }
 
@@ -181,15 +188,15 @@ class _LocalNameScope {
     _LocalNameScope scope = _LocalNameScope(null);
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           scope.add(declaration.name);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case MixinDeclarationImpl():
+        case MixinDeclaration2Impl():
           scope.add(declaration.name);
         case TopLevelFunctionDeclarationImpl():
           scope.add(declaration.name);
@@ -201,7 +208,7 @@ class _LocalNameScope {
           scope.add(declaration.name);
         case TopLevelSetterDeclarationImpl():
           scope.add(declaration.name);
-        case ClassTypeAliasImpl():
+        case ClassTypeAlias2Impl():
           scope.add(declaration.name);
         case FunctionTypeAlias2Impl():
           scope.add(declaration.name);
@@ -232,12 +239,6 @@ class _LocalNameScope {
     }
   }
 
-  void addVariableNames(VariableDeclarationList variableList) {
-    for (VariableDeclaration variable in variableList.variables) {
-      add(variable.name);
-    }
-  }
-
   bool contains(String name) {
     if (names != null && names!.contains(name)) {
       return true;
@@ -259,6 +260,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   new({required this.includeAnalyzerDiagnosticExpectations});
 
   @override
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    names.add(switch (node.binaryOperator) {
+      BinaryOperator.notEqual => '==',
+      _ => node.operator.lexeme,
+    });
+    super.visitBinaryOperatorInvocation(node);
+  }
+
+  @override
   void visitBlock(Block node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -267,6 +277,19 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    if (node.hasRead) names.add('[]');
+    names.add('[]=');
+    super.visitCascadeIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    names.add('[]');
+    super.visitCascadeIndexExpression(node);
   }
 
   @override
@@ -282,22 +305,22 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClass(localScope, node);
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       localScope = outerScope;
     }
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClassTypeAlias(localScope, node);
-      super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias2(node);
     } finally {
       localScope = outerScope;
     }
@@ -330,11 +353,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forConstructor(localScope, node);
-      super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration2(node);
     } finally {
       localScope = outerScope;
     }
@@ -368,13 +391,13 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var outerScope = localScope;
     try {
       localScope = _LocalNameScope.forExtensionType(localScope, node);
-      super.visitExtensionTypeDeclaration(node);
+      super.visitExtensionTypeDeclaration2(node);
     } finally {
       localScope = outerScope;
     }
@@ -389,6 +412,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -437,14 +465,8 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _LocalNameScope outerScope = localScope;
-    try {
-      localScope = _LocalNameScope.forMethod(localScope, node);
-      super.visitMethodDeclaration(node);
-    } finally {
-      localScope = outerScope;
-    }
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -463,6 +485,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
     _addIfNotShadowed(node.name, hasImportPrefix: node.importPrefix != null);
     super.visitNamedType(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -504,6 +531,19 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    if (node.hasRead) names.add('[]');
+    names.add('[]=');
+    super.visitReceiverIndexAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    names.add('[]');
+    super.visitReceiverIndexExpression(node);
+  }
+
+  @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
@@ -515,6 +555,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     names.add(node.name.lexeme);
     super.visitReceiverPropertyExtraction(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -574,6 +619,13 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    // The name of `operator unary-` is `-`.
+    names.add(node.operator.lexeme);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
@@ -609,5 +661,18 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
 
     names.add(name);
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forMethod(localScope, node);
+      visitSuper();
+    } finally {
+      localScope = outerScope;
+    }
   }
 }

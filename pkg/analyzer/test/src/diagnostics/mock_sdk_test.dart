@@ -60,8 +60,7 @@ class MockSdkTest extends PubPackageResolutionTest {
     var coreElementResult =
         await analysisSession.getLibraryByUri(uriStr) as LibraryElementResult;
     return await analysisSession.getResolvedLibraryByElement(
-          coreElementResult.element,
-        )
-        as ResolvedLibraryResult;
+      coreElementResult.element,
+    ) as ResolvedLibraryResult;
   }
 }

@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -31,34 +30,35 @@ class ForResolver {
       _typeAnalyzer.dispatchCollectionElement(node.body2, context);
     }
 
-    if (forLoopParts is ForPartsImpl) {
-      _forParts(
-        node,
-        forLoopParts,
-        visitBody,
-        rightParenOffset: node.rightParenthesis.offset,
-        endOffset: node.end,
-      );
-    } else if (forLoopParts is ForEachPartsWithPatternImpl) {
-      _analyzePatternForIn(
-        node: node,
-        awaitKeyword: node.awaitKeyword,
-        forLoopParts: forLoopParts,
-        dispatchBody: () {
-          _typeAnalyzer.dispatchCollectionElement(node.body2, context);
-        },
-        rightParenthesisOffset: node.rightParenthesis.offset,
-        endOffset: node.end,
-      );
-    } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(
-        node,
-        node.awaitKeyword != null,
-        forLoopParts,
-        visitBody,
-        rightParenthesisOffset: node.rightParenthesis.offset,
-        bodyEndOffset: node.body2.end,
-      );
+    switch (forLoopParts) {
+      case ForPartsImpl():
+        _forParts(
+          node,
+          forLoopParts,
+          visitBody,
+          rightParenOffset: node.rightParenthesis.offset,
+          endOffset: node.end,
+        );
+      case ForEachPartsWithPatternImpl():
+        _analyzePatternForIn(
+          node: node,
+          awaitKeyword: node.awaitKeyword,
+          forLoopParts: forLoopParts,
+          dispatchBody: () {
+            _typeAnalyzer.dispatchCollectionElement(node.body2, context);
+          },
+          rightParenthesisOffset: node.rightParenthesis.offset,
+          endOffset: node.end,
+        );
+      case ForEachPartsImpl():
+        _forEachParts(
+          node,
+          node.awaitKeyword != null,
+          forLoopParts,
+          visitBody,
+          rightParenthesisOffset: node.rightParenthesis.offset,
+          bodyEndOffset: node.body2.end,
+        );
     }
   }
 
@@ -68,34 +68,35 @@ class ForResolver {
       node.body2.accept2(_typeAnalyzer);
     }
 
-    if (forLoopParts is ForPartsImpl) {
-      _forParts(
-        node,
-        forLoopParts,
-        visitBody,
-        rightParenOffset: node.rightParenthesis.offset,
-        endOffset: node.endToken.offset,
-      );
-    } else if (forLoopParts is ForEachPartsWithPatternImpl) {
-      _analyzePatternForIn(
-        node: node,
-        awaitKeyword: node.awaitKeyword,
-        forLoopParts: forLoopParts,
-        dispatchBody: () {
-          _typeAnalyzer.dispatchStatement(node.body2);
-        },
-        rightParenthesisOffset: node.rightParenthesis.offset,
-        endOffset: node.endToken.offset,
-      );
-    } else if (forLoopParts is ForEachPartsImpl) {
-      _forEachParts(
-        node,
-        node.awaitKeyword != null,
-        forLoopParts,
-        visitBody,
-        rightParenthesisOffset: node.rightParenthesis.offset,
-        bodyEndOffset: node.endToken.offset,
-      );
+    switch (forLoopParts) {
+      case ForPartsImpl():
+        _forParts(
+          node,
+          forLoopParts,
+          visitBody,
+          rightParenOffset: node.rightParenthesis.offset,
+          endOffset: node.endToken.offset,
+        );
+      case ForEachPartsWithPatternImpl():
+        _analyzePatternForIn(
+          node: node,
+          awaitKeyword: node.awaitKeyword,
+          forLoopParts: forLoopParts,
+          dispatchBody: () {
+            _typeAnalyzer.dispatchStatement(node.body2);
+          },
+          rightParenthesisOffset: node.rightParenthesis.offset,
+          endOffset: node.endToken.offset,
+        );
+      case ForEachPartsImpl():
+        _forEachParts(
+          node,
+          node.awaitKeyword != null,
+          forLoopParts,
+          visitBody,
+          rightParenthesisOffset: node.rightParenthesis.offset,
+          bodyEndOffset: node.endToken.offset,
+        );
     }
   }
 
@@ -171,11 +172,13 @@ class ForResolver {
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
       target = forEachParts.target;
-      var write = _typeAnalyzer.resolveUnqualifiedNameAssignmentTarget(target);
+      var write = _typeAnalyzer.propertyElementResolver
+          .resolveUnqualifiedNameAssignmentTarget(target);
       target.write = write;
-      AssignmentExpressionShared(
-        typeAnalyzer: _typeAnalyzer,
-      ).checkFinalTargetAlreadyAssigned(target, isWrittenRepeatedly: true);
+      _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(
+        target,
+        isWrittenRepeatedly: true,
+      );
 
       valueType = switch (write) {
         VariableWriteResolutionImpl(:var element) =>
@@ -259,20 +262,19 @@ class ForResolver {
     required int rightParenOffset,
     required int endOffset,
   }) {
-    if (forParts is ForPartsWithDeclarationsImpl) {
-      forParts.variables2.accept2(_typeAnalyzer);
-    } else if (forParts is ForPartsWithExpressionImpl) {
-      if (forParts.initialization2 case var initialization?) {
-        _typeAnalyzer.analyzeExpression(
-          initialization,
-          _typeAnalyzer.operations.unknownType,
-        );
-        _typeAnalyzer.popRewrite();
-      }
-    } else if (forParts is ForPartsWithPatternImpl) {
-      forParts.variables.accept2(_typeAnalyzer);
-    } else {
-      throw StateError('Unrecognized for loop parts');
+    switch (forParts) {
+      case ForPartsWithDeclarationsImpl():
+        forParts.variables2.accept2(_typeAnalyzer);
+      case ForPartsWithExpressionImpl():
+        if (forParts.initialization2 case var initialization?) {
+          _typeAnalyzer.analyzeExpression(
+            initialization,
+            _typeAnalyzer.operations.unknownType,
+          );
+          _typeAnalyzer.popRewrite();
+        }
+      case ForPartsWithPatternImpl():
+        forParts.variables.accept2(_typeAnalyzer);
     }
 
     _typeAnalyzer.flowAnalysis.for_conditionBegin(

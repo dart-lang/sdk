@@ -6,8 +6,8 @@ import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 
 import '../../test/exhaustiveness/env.dart';
 import '../../test/exhaustiveness/utils.dart';
@@ -108,15 +108,15 @@ void main() {
   ]);
 }
 
-/// Test that [cases] are exhaustive over [type] if and only if all cases are
+/// Test that [cases] are exhaustive over [shape] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
 void expectExhaustiveOnlyAll(
-  ObjectPropertyLookup objectFieldLookup,
-  StaticType type,
+  ObjectPropertyLookup objectPropertyLookup,
+  Shape shape,
   List<Map<String, Object>> cases,
 ) {
-  var valueSpace = Space(const Path.root(), type);
-  var caseSpaces = cases.map((c) => ty(type, c)).toList();
+  var valueSpace = Space(const Path.root(), shape);
+  var caseSpaces = cases.map((c) => ty(shape, c)).toList();
 
   const trials = 100;
 
@@ -124,7 +124,7 @@ void expectExhaustiveOnlyAll(
   for (var j = 0; j < 100000; j++) {
     var watch = Stopwatch()..start();
     for (var i = 0; i < trials; i++) {
-      var actual = isExhaustive(objectFieldLookup, valueSpace, caseSpaces);
+      var actual = isExhaustive(objectPropertyLookup, valueSpace, caseSpaces);
       if (!actual) {
         throw 'Expected exhaustive';
       }

@@ -22,4 +22,5 @@ linter:
     - always_declare_return_types
     - deprecated_member_use_from_same_package
     - prefer_generic_function_type_aliases
+    - unnecessary_this_alias
     # - always_specify_types

@@ -881,6 +881,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: &
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: &
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: bitwiseAnd
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: &
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -895,25 +931,12 @@ CompilationUnit
             name: &
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: &
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: bitwiseAnd
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: &
@@ -1185,6 +1208,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: |
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: |
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: bitwiseOr
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: |
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1199,25 +1258,12 @@ CompilationUnit
             name: |
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: |
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: bitwiseOr
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: |
@@ -1308,6 +1354,14 @@ class {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1566,6 +1620,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: ==
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: ==
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: equal
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ==
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1580,25 +1670,12 @@ CompilationUnit
             name: ==
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: ==
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: equal
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ==
@@ -1758,6 +1835,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: >
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: >
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: greaterThan
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1772,25 +1885,12 @@ CompilationUnit
             name: >
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: >
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: greaterThan
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >
@@ -1866,6 +1966,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: >>
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: >>
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: shiftRight
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >>
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1880,25 +2016,12 @@ CompilationUnit
             name: >>
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: >>
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: shiftRight
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >>
@@ -1974,6 +2097,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: >=
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: >=
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: greaterThanOrEqual
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: >=
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1988,25 +2147,12 @@ CompilationUnit
             name: >=
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: >=
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: greaterThanOrEqual
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: >=
@@ -2082,6 +2228,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: ^
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: ^
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: bitwiseXor
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ^
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2096,25 +2278,12 @@ CompilationUnit
             name: ^
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: ^
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: bitwiseXor
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ^
@@ -2139,18 +2308,16 @@ class Test {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: Test
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          ConstructorDeclaration
-            typeName2: Test
-            typeName(v1): SimpleIdentifier
-              token: Test
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Test
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -2165,6 +2332,37 @@ CompilationUnit
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Test
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
             body: EmptyFunctionBody
@@ -2187,18 +2385,16 @@ class Test {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: Test
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          ConstructorDeclaration
-            typeName2: Test
-            typeName(v1): SimpleIdentifier
-              token: Test
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Test
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -2215,6 +2411,37 @@ CompilationUnit
                   token: x
                 equals: =
                 expression2: IntegerLiteral
+                  literal: 2
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Test
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -2236,18 +2463,16 @@ class Test {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: Test
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          ConstructorDeclaration
-            typeName2: Test
-            typeName(v1): SimpleIdentifier
-              token: Test
-            parameters: FormalParameterList
+          ConstructorDeclaration2
+            typeName: Test
+            formalParameters: FormalParameterList
               leftParenthesis: (
               rightParenthesis: )
             separator: :
@@ -2266,6 +2491,39 @@ CompilationUnit
                   token: x
                 equals: =
                 expression2: IntegerLiteral
+                  literal: 2
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Test
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            typeName: SimpleIdentifier
+              token: Test
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            separator: :
+            initializers
+              AssertInitializer
+                assertKeyword: assert
+                leftParenthesis: (
+                condition: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+              ConstructorFieldInitializer
+                thisKeyword: this
+                period: .
+                fieldName: SimpleIdentifier
+                  token: x
+                equals: =
+                expression: IntegerLiteral
                   literal: 2
             body: EmptyFunctionBody
               semicolon: ;
@@ -2474,6 +2732,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: <
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: <
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: lessThan
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2488,25 +2782,12 @@ CompilationUnit
             name: <
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: <
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: lessThan
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <
@@ -2582,6 +2863,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: <<
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: <<
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: shiftLeft
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <<
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2596,25 +2913,12 @@ CompilationUnit
             name: <<
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: <<
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: shiftLeft
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <<
@@ -2690,6 +2994,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: <=
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: <=
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: lessThanOrEqual
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: <=
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2704,25 +3044,12 @@ CompilationUnit
             name: <=
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: <=
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: lessThanOrEqual
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: <=
@@ -2798,6 +3125,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: -
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: -
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: subtract
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: -
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2812,25 +3175,12 @@ CompilationUnit
             name: -
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: -
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: subtract
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: -
@@ -2853,6 +3203,27 @@ class Bar {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Bar
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: foo
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -2869,7 +3240,7 @@ CompilationUnit
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -3068,6 +3439,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: %
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: %
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: modulo
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: %
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3082,25 +3489,12 @@ CompilationUnit
             name: %
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: %
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: modulo
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: %
@@ -3503,6 +3897,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: +
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: +
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: add
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: +
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3517,25 +3947,12 @@ CompilationUnit
             name: +
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: +
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: add
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: +
@@ -3710,6 +4127,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: /
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: /
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: divide
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: /
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3724,25 +4177,12 @@ CompilationUnit
             name: /
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: /
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: divide
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: /
@@ -3818,6 +4258,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: *
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: *
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: multiply
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: *
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -3832,25 +4308,12 @@ CompilationUnit
             name: *
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: *
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: multiply
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: *
@@ -4030,6 +4493,42 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          OperatorDeclaration
+            returnType: NamedType
+              name: int
+            operatorKeyword: operator
+            operator: ~/
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: x
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: BinaryOperatorInvocation
+                leftOperand: SuperReference
+                  superKeyword: super
+                operator: ~/
+                rightOperand: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                binaryOperator: truncatingDivide
+              expression(v1): BinaryExpression
+                leftOperand: SuperExpression
+                  superKeyword: super
+                operator: ~/
+                rightOperand: SimpleIdentifier
+                  token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4044,25 +4543,12 @@ CompilationUnit
             name: ~/
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: x
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 name: x
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: BinaryOperatorInvocation
-                leftOperand: SuperReference
-                  superKeyword: super
-                operator: ~/
-                rightOperand: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                binaryOperator: truncatingDivide
-              expression(v1): BinaryExpression
+              expression: BinaryExpression
                 leftOperand: SuperExpression
                   superKeyword: super
                 operator: ~/
@@ -4364,6 +4850,32 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
+            semicolon: ;
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: this
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4380,16 +4892,9 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: this
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
@@ -4414,6 +4919,34 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
+            semicolon: ;
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: this
+                RegularFormalParameter
+                  name: p
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4430,18 +4963,9 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: this
-                RegularFormalParameter
-                  name: p
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: this
@@ -4468,6 +4992,34 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
+            semicolon: ;
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                FieldFormalParameter
+                  thisKeyword: this
+                  period: .
+                  name: <empty> <synthetic>
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4484,18 +5036,9 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                FieldFormalParameter
-                  thisKeyword: this
-                  period: .
-                  name: <empty> <synthetic>
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this
@@ -4522,6 +5065,36 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            type: NamedType
+              name: int
+            fields
+              Field
+                name: f
+            semicolon: ;
+          ConstructorDeclaration2
+            typeName: C
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                FieldFormalParameter
+                  thisKeyword: this
+                  period: .
+                  name: <empty> <synthetic>
+                RegularFormalParameter
+                  name: p
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -4538,20 +5111,9 @@ CompilationUnit
                   name: f
             semicolon: ;
           ConstructorDeclaration
-            typeName2: C
-            typeName(v1): SimpleIdentifier
+            typeName: SimpleIdentifier
               token: C
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                FieldFormalParameter
-                  thisKeyword: this
-                  period: .
-                  name: <empty> <synthetic>
-                RegularFormalParameter
-                  name: p
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: FieldFormalParameter
                 thisKeyword: this

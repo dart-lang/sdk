@@ -170,7 +170,7 @@ class C {
     checkOffset<ConstructorFragment>(
       constructorDeclaration,
       constructorDeclaration.declaredFragment!,
-      constructorDeclaration.typeName2!.offset,
+      constructorDeclaration.typeName!.offset,
     );
   }
 
@@ -325,10 +325,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<FieldFragment>(
       fieldDeclaration,
       fieldDeclaration.declaredFragment!,
@@ -342,10 +339,7 @@ class C {
   static const int x = 0;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<FieldFragment>(
       fieldDeclaration,
       fieldDeclaration.declaredFragment!,
@@ -431,10 +425,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<FormalParameterFragment>(
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
@@ -499,7 +490,7 @@ class C {
   int get foo => 0;
 }
 ''');
-    var getterDeclaration = result.findNode.methodDeclaration('foo');
+    var getterDeclaration = result.findNode.getterDeclaration('foo');
     checkOffset<GetterFragment>(
       getterDeclaration,
       getterDeclaration.declaredFragment!,
@@ -513,10 +504,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<GetterFragment>(
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)
@@ -823,7 +811,7 @@ class C {
   set foo(int value) {}
 }
 ''');
-    var setterDeclaration = result.findNode.methodDeclaration('foo');
+    var setterDeclaration = result.findNode.setterDeclaration('foo');
     checkOffset<SetterFragment>(
       setterDeclaration,
       setterDeclaration.declaredFragment!,
@@ -837,10 +825,7 @@ class C {
   int? x;
 }
 ''');
-    var fieldDeclaration = result.findNode
-        .fieldDeclaration('x')
-        .fields
-        .variables[0];
+    var fieldDeclaration = result.findNode.field('x');
     checkOffset<SetterFragment>(
       fieldDeclaration,
       (fieldDeclaration.declaredFragment as FieldFragment)

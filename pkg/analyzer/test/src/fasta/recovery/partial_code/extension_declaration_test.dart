@@ -26,6 +26,24 @@ extension E on String class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -56,14 +74,14 @@ extension E on String const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -109,6 +127,27 @@ extension E on String enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -142,6 +181,17 @@ extension E on String
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -165,14 +215,14 @@ extension E on String final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -218,14 +268,14 @@ extension E on String int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -275,14 +325,14 @@ extension E on String void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -332,14 +382,14 @@ extension E on String int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -387,6 +437,23 @@ extension E on String mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -416,14 +483,14 @@ extension E on String set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -476,14 +543,14 @@ extension E on String typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -556,14 +623,14 @@ extension E on String var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: String
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -605,6 +672,23 @@ extension class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -644,6 +728,17 @@ extension const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: a
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: a
@@ -669,6 +764,26 @@ extension enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -703,6 +818,16 @@ extension
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       onClause: ExtensionOnClause
@@ -727,13 +852,13 @@ extension final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -786,6 +911,17 @@ extension int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: int
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: f
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: int
@@ -810,13 +946,13 @@ extension void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -864,14 +1000,14 @@ extension int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: int
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -915,6 +1051,17 @@ extension mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: mixin
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: mixin
@@ -949,14 +1096,14 @@ extension set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: set
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: a
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -998,14 +1145,14 @@ extension typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: typedef
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: A
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1062,13 +1209,13 @@ extension var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1110,6 +1257,24 @@ extension E class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1143,14 +1308,14 @@ extension E const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1199,6 +1364,27 @@ extension E enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1235,6 +1421,17 @@ extension E
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1261,14 +1458,14 @@ extension E final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1316,14 +1513,14 @@ extension E int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1371,14 +1568,14 @@ extension E void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1426,14 +1623,14 @@ extension E int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -1482,14 +1679,14 @@ extension E mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: mixin
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1538,14 +1735,14 @@ extension E set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -1601,14 +1798,14 @@ extension E typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -1684,14 +1881,14 @@ extension E var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1732,6 +1929,24 @@ extension E on class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1763,14 +1978,14 @@ extension E on const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1817,6 +2032,27 @@ extension E on enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1851,6 +2087,17 @@ extension E on
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockInstanceDeclarationBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -1875,14 +2122,14 @@ extension E on final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -1928,14 +2175,14 @@ extension E on int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -1981,14 +2228,14 @@ extension E on void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: void
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -2034,14 +2281,14 @@ extension E on int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: int
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelGetterDeclaration
@@ -2088,14 +2335,14 @@ extension E on mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: mixin
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelFunctionDeclaration
@@ -2142,14 +2389,14 @@ extension E on set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelSetterDeclaration
@@ -2203,14 +2450,14 @@ extension E on typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     GenericTypeAlias2
@@ -2284,14 +2531,14 @@ extension E on var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ExtensionDeclaration
+    ExtensionDeclaration2
       extensionKeyword: extension
       name: E
       onClause: ExtensionOnClause
         onKeyword: on
         extendedType: NamedType
           name: <empty> <synthetic>
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
     TopLevelVariablesDeclaration
@@ -2332,6 +2579,17 @@ extension E on String { class A {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2354,6 +2612,27 @@ extension E on String { const a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: a
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2371,7 +2650,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -2389,6 +2668,17 @@ extension E on String { enum E { v }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2411,6 +2701,17 @@ extension E on String {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2433,6 +2734,27 @@ extension E on String { final a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: a
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2450,7 +2772,7 @@ CompilationUnit
                 VariableDeclaration
                   name: a
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: } <synthetic>
@@ -2466,6 +2788,29 @@ extension E on String { int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          MethodDeclaration2
+            returnType: NamedType
+              name: int
+            name: f
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2500,6 +2845,29 @@ extension E on String { void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          MethodDeclaration2
+            returnType: NamedType
+              name: void
+            name: f
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2534,6 +2902,28 @@ extension E on String { int get a => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          GetterDeclaration
+            returnType: NamedType
+              name: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2551,7 +2941,7 @@ CompilationUnit
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: } <synthetic>
@@ -2572,6 +2962,32 @@ extension E on String { mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            fields
+              Field
+                name: mixin
+            semicolon: ; <synthetic>
+          MethodDeclaration2
+            name: M
+            formalParameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2610,6 +3026,31 @@ extension E on String { set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          SetterDeclaration
+            setKeyword: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2624,12 +3065,6 @@ CompilationUnit
             propertyKeyword: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -2657,6 +3092,38 @@ extension E on String { typedef A = B Function(C, D);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            fields
+              Field
+                name: A
+                equals: =
+                initializer: ParsedUnqualifiedName
+                  name: B
+            semicolon: ; <synthetic>
+          MethodDeclaration2
+            name: Function
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: C
+                RegularFormalParameter
+                  name: D
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E
@@ -2673,22 +3140,12 @@ CompilationUnit
                 VariableDeclaration
                   name: A
                   equals: =
-                  initializer2: ParsedUnqualifiedName
-                    name: B
-                  initializer(v1): SimpleIdentifier
+                  initializer: SimpleIdentifier
                     token: B
             semicolon: ; <synthetic>
           MethodDeclaration
             name: Function
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: C
-                RegularFormalParameter
-                  name: D
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: C
@@ -2710,6 +3167,24 @@ extension E on String { var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ExtensionDeclaration2
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: a
+            semicolon: ;
+        rightBracket: } <synthetic>
+  declarations(v1)
     ExtensionDeclaration
       extensionKeyword: extension
       name: E

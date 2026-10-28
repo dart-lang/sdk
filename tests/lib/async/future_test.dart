@@ -1320,9 +1320,9 @@ void testIgnoreWhenCompleteError() {
 }
 
 void testFuturePause() {
-  const Duration low = Duration(milliseconds: 10);
-  const Duration mid = Duration(milliseconds: 20);
-  const Duration hi = Duration(milliseconds: 30);
+  const Duration low = Duration(milliseconds: 100);
+  const Duration mid = Duration(milliseconds: 200);
+  const Duration hi = Duration(milliseconds: 300);
   // No argument means Duration.zero.
 
   asyncStart();

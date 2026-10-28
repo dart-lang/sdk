@@ -57,6 +57,7 @@ abstract class SetterDeclaration {
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   });
 
   void buildSetterOutlineNode({
@@ -169,6 +170,7 @@ class RegularSetterDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -178,6 +180,7 @@ class RegularSetterDeclaration
       bodyBuilderContext: createBodyBuilderContext(propertyBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
+      includeBody: includeBody,
     );
   }
 

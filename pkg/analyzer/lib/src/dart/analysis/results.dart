@@ -42,6 +42,35 @@ int? _getFragmentNameOffset(Fragment fragment) {
   return nameOffset;
 }
 
+/// Returns the V1 view of [declaration], a declaration in the V2 AST view.
+AstNode _toV1Declaration(AstNode declaration) {
+  if (declaration is TopLevelDeclarationImpl) {
+    // ignore: analyzer_v1_ast_use
+    return V1Projection.toV1CompilationUnitMember(declaration);
+  }
+  if (declaration is FunctionDeclarationV1OriginImpl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is VariableDeclarationV1OriginImpl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is MethodDeclarationV1OriginImpl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is ConstructorDeclaration2Impl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  if (declaration is EnumConstantDeclaration2Impl) {
+    // ignore: analyzer_v1_ast_use
+    return declaration.v1Projection;
+  }
+  return declaration;
+}
+
 abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
@@ -73,31 +102,31 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
     }
 
     if (fragment is InterfaceFragment) {
-      if (node is ClassDeclaration) {
+      if (node is ClassDeclaration2) {
         if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
-      } else if (node is ClassTypeAlias) {
+      } else if (node is ClassTypeAlias2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is EnumDeclaration) {
+      } else if (node is EnumDeclaration2) {
         if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
-      } else if (node is MixinDeclaration) {
+      } else if (node is MixinDeclaration2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         if (_hasOffset(node.namePart.typeName)) {
           result = node;
         }
       }
     } else if (fragment is ConstructorFragment) {
       var token = switch (node) {
-        ConstructorDeclaration() =>
-          node.name ?? node.typeName2 ?? node.newKeyword ?? node.factoryKeyword,
+        ConstructorDeclaration2() =>
+          node.name ?? node.typeName ?? node.newKeyword ?? node.factoryKeyword,
         PrimaryConstructorDeclaration() =>
           node.constructorName?.name ?? node.typeName,
         _ => null,
@@ -106,17 +135,17 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         result = node;
       }
     } else if (fragment is ExtensionFragment) {
-      if (node is ExtensionDeclaration) {
+      if (node is ExtensionDeclaration2) {
         if (_hasOffset(node.name ?? node.extensionKeyword)) {
           result = node;
         }
       }
     } else if (fragment is FieldFragment) {
-      if (node is EnumConstantDeclaration) {
+      if (node is EnumConstantDeclaration2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is VariableDeclaration) {
+      } else if (node is Field2) {
         if (_hasOffset(node.name)) {
           result = node;
         }
@@ -134,7 +163,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         result = node;
       }
     } else if (fragment is MethodFragment) {
-      if (node is MethodDeclaration && _hasOffset(node.name)) {
+      if (node is MethodDeclarationV1OriginImpl && _hasOffset(node.nameToken)) {
         result = node;
       }
     } else if (fragment is FormalParameterFragment) {
@@ -150,8 +179,8 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.name)) {
           result = node;
         }
-      } else if (node is MethodDeclaration) {
-        if (_hasOffset(node.name)) {
+      } else if (node is MethodDeclarationV1OriginImpl) {
+        if (_hasOffset(node.nameToken)) {
           result = node;
         }
       }
@@ -333,18 +362,8 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = V1Projection.toV1CompilationUnitMember(declaration);
-    } else if (!useV2 && declaration is VariableDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is FunctionTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
+    if (!useV2) {
+      declaration = _toV1Declaration(declaration);
     }
 
     return ElementDeclarationResultImpl(
@@ -497,18 +516,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = V1Projection.toV1CompilationUnitMember(declaration);
-    } else if (!useV2 && declaration is VariableDeclarationV1OriginImpl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is FunctionTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
-    } else if (!useV2 && declaration is GenericTypeAlias2Impl) {
-      // ignore: analyzer_v1_ast_use
-      declaration = declaration.v1Projection;
+    if (!useV2) {
+      declaration = _toV1Declaration(declaration);
     }
 
     return ElementDeclarationResultImpl(

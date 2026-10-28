@@ -69,34 +69,32 @@ class const BinaryNumOp(
   }
 }
 
-/// Recognizes calls to [num./].
-class const NumDiv() implements RecognizedCallMatcher {
+class const NumTruncDiv() implements RecognizedCallMatcher {
   @override
   BuildIR? match(List<CType> args) {
     switch (args) {
       case [IntType(), IntType()]:
         return (FlowGraphBuilder builder) {
-          final right = builder.pop();
-          builder.addUnaryIntOp(UnaryIntOpcode.toDouble);
-          builder.push(right);
-          builder.addUnaryIntOp(UnaryIntOpcode.toDouble);
-          builder.addBinaryDoubleOp(BinaryDoubleOpcode.div);
+          builder.addBinaryIntOp(.truncatingDiv);
         };
       case [IntType(), DoubleType()]:
         return (FlowGraphBuilder builder) {
           final right = builder.pop();
-          builder.addUnaryIntOp(UnaryIntOpcode.toDouble);
+          builder.addUnaryIntOp(.toDouble);
           builder.push(right);
-          builder.addBinaryDoubleOp(BinaryDoubleOpcode.div);
-        };
-      case [DoubleType(), DoubleType()]:
-        return (FlowGraphBuilder builder) {
-          builder.addBinaryDoubleOp(BinaryDoubleOpcode.div);
+          builder.addBinaryDoubleOp(.div);
+          builder.addUnaryDoubleOp(.truncate);
         };
       case [DoubleType(), IntType()]:
         return (FlowGraphBuilder builder) {
-          builder.addUnaryIntOp(UnaryIntOpcode.toDouble);
-          builder.addBinaryDoubleOp(BinaryDoubleOpcode.div);
+          builder.addUnaryIntOp(.toDouble);
+          builder.addBinaryDoubleOp(.div);
+          builder.addUnaryDoubleOp(.truncate);
+        };
+      case [DoubleType(), DoubleType()]:
+        return (FlowGraphBuilder builder) {
+          builder.addBinaryDoubleOp(.div);
+          builder.addUnaryDoubleOp(.truncate);
         };
     }
     return null;
@@ -229,6 +227,42 @@ class const BinaryDoubleOp(final BinaryDoubleOpcode op)
   }
 }
 
+/// Recognizes calls to binary [num] operations which convert arguments to [double].
+/// (such as [num./], [atan2]).
+class const BinaryDoubleOpFromNum(final BinaryDoubleOpcode op)
+    implements RecognizedCallMatcher {
+  @override
+  BuildIR? match(List<CType> args) {
+    switch (args) {
+      case [DoubleType(), DoubleType()]:
+        return (FlowGraphBuilder builder) {
+          builder.addBinaryDoubleOp(op);
+        };
+      case [DoubleType(), IntType()]:
+        return (FlowGraphBuilder builder) {
+          builder.addUnaryIntOp(.toDouble);
+          builder.addBinaryDoubleOp(op);
+        };
+      case [IntType(), DoubleType()]:
+        return (FlowGraphBuilder builder) {
+          final right = builder.pop();
+          builder.addUnaryIntOp(.toDouble);
+          builder.push(right);
+          builder.addBinaryDoubleOp(op);
+        };
+      case [IntType(), IntType()]:
+        return (FlowGraphBuilder builder) {
+          final right = builder.pop();
+          builder.addUnaryIntOp(.toDouble);
+          builder.push(right);
+          builder.addUnaryIntOp(.toDouble);
+          builder.addBinaryDoubleOp(op);
+        };
+    }
+    return null;
+  }
+}
+
 /// Recognizes calls to unary [double] operations.
 class const UnaryDoubleOp(final UnaryDoubleOpcode op)
     implements RecognizedCallMatcher {
@@ -238,6 +272,53 @@ class const UnaryDoubleOp(final UnaryDoubleOpcode op)
     return (FlowGraphBuilder builder) {
       builder.addUnaryDoubleOp(op);
     };
+  }
+}
+
+/// Recognizes calls to unary [num] operations which convert argument to [double].
+class const UnaryDoubleOpFromNum(final UnaryDoubleOpcode op)
+    implements RecognizedCallMatcher {
+  @override
+  BuildIR? match(List<CType> args) {
+    switch (args.single) {
+      case IntType():
+        return (FlowGraphBuilder builder) {
+          builder.addUnaryIntOp(.toDouble);
+          builder.addUnaryDoubleOp(op);
+        };
+      case DoubleType():
+        return (FlowGraphBuilder builder) {
+          builder.addUnaryDoubleOp(op);
+        };
+      default:
+        return null;
+    }
+  }
+}
+
+/// Recognizes calls to [dart:math::pow].
+class const Pow() implements RecognizedCallMatcher {
+  @override
+  BuildIR? match(List<CType> args) {
+    switch (args) {
+      case [DoubleType(), DoubleType()]:
+        return (FlowGraphBuilder builder) {
+          builder.addBinaryDoubleOp(BinaryDoubleOpcode.pow);
+        };
+      case [DoubleType(), IntType()]:
+        return (FlowGraphBuilder builder) {
+          builder.addUnaryIntOp(.toDouble);
+          builder.addBinaryDoubleOp(.pow);
+        };
+      case [IntType(), DoubleType()]:
+        return (FlowGraphBuilder builder) {
+          final right = builder.pop();
+          builder.addUnaryIntOp(.toDouble);
+          builder.push(right);
+          builder.addBinaryDoubleOp(.pow);
+        };
+    }
+    return null;
   }
 }
 
@@ -319,15 +400,12 @@ class CommonRecognizedMethods implements RecognizedMethods {
       BinaryIntOpcode.mod,
       BinaryDoubleOpcode.mod,
     ),
-    ?getProcedure('dart:core', 'num', '~/'): const BinaryNumOp(
-      BinaryIntOpcode.truncatingDiv,
-      BinaryDoubleOpcode.truncatingDiv,
-    ),
+    ?getProcedure('dart:core', 'num', '~/'): const NumTruncDiv(),
     ?getProcedure('dart:core', 'num', 'remainder'): const BinaryNumOp(
       BinaryIntOpcode.rem,
       BinaryDoubleOpcode.rem,
     ),
-    ?getProcedure('dart:core', 'num', '/'): const NumDiv(),
+    ?getProcedure('dart:core', 'num', '/'): const BinaryDoubleOpFromNum(.div),
     ?getProcedure('dart:core', 'num', 'toDouble'): const NumToDouble(),
     ?getProcedure('dart:core', 'num', 'toInt'): const NumToInt(),
     ?getProcedure('dart:core', 'num', '=='): const NumComparison(
@@ -392,9 +470,7 @@ class CommonRecognizedMethods implements RecognizedMethods {
     ?getProcedure('dart:core', 'double', '/'): const BinaryDoubleOp(
       BinaryDoubleOpcode.div,
     ),
-    ?getProcedure('dart:core', 'double', '~/'): const BinaryDoubleOp(
-      BinaryDoubleOpcode.truncatingDiv,
-    ),
+    ?getProcedure('dart:core', 'double', '~/'): const NumTruncDiv(),
     ?getProcedure('dart:core', 'double', 'remainder'): const BinaryDoubleOp(
       BinaryDoubleOpcode.rem,
     ),
@@ -458,6 +534,29 @@ class CommonRecognizedMethods implements RecognizedMethods {
 
     // dart:_internal
     ?getTopLevelProcedure('dart:_internal', 'unsafeCast'): const UnsafeCast(),
+
+    // dart:math
+    ?getTopLevelProcedure('dart:math', 'pow'): const Pow(),
+    ?getTopLevelProcedure('dart:math', 'atan2'): const BinaryDoubleOpFromNum(
+      .atan2,
+    ),
+    ?getTopLevelProcedure('dart:math', 'sin'): const UnaryDoubleOpFromNum(.sin),
+    ?getTopLevelProcedure('dart:math', 'cos'): const UnaryDoubleOpFromNum(.cos),
+    ?getTopLevelProcedure('dart:math', 'tan'): const UnaryDoubleOpFromNum(.tan),
+    ?getTopLevelProcedure('dart:math', 'asin'): const UnaryDoubleOpFromNum(
+      .asin,
+    ),
+    ?getTopLevelProcedure('dart:math', 'acos'): const UnaryDoubleOpFromNum(
+      .acos,
+    ),
+    ?getTopLevelProcedure('dart:math', 'atan'): const UnaryDoubleOpFromNum(
+      .atan,
+    ),
+    ?getTopLevelProcedure('dart:math', 'sqrt'): const UnaryDoubleOpFromNum(
+      .sqrt,
+    ),
+    ?getTopLevelProcedure('dart:math', 'exp'): const UnaryDoubleOpFromNum(.exp),
+    ?getTopLevelProcedure('dart:math', 'log'): const UnaryDoubleOpFromNum(.log),
   };
 
   @override

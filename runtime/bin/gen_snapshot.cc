@@ -32,7 +32,6 @@
 
 #include "platform/globals.h"
 #include "platform/growable_array.h"
-#include "platform/hashmap.h"
 #include "platform/syslog.h"
 #include "platform/text_buffer.h"
 
@@ -55,13 +54,9 @@ namespace bin {
     exit(exit_code);                                                           \
   }
 
-// The environment provided through the command line using -D options.
-static dart::SimpleHashMap* environment = nullptr;
-
 static bool ProcessEnvironmentOption(const char* arg,
                                      CommandLineOptions* vm_options) {
-  return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
-                                                   &environment);
+  return OptionProcessor::ProcessEnvironmentOption(arg, vm_options);
 }
 
 // The core snapshot to use when creating isolates. Normally nullptr, but loaded
@@ -820,7 +815,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
 
   Dart_EnterScope();
   Dart_Handle result =
-      Dart_SetEnvironmentCallback(DartUtils::EnvironmentCallback);
+      Dart_SetEnvironment(OptionProcessor::environment_array());
   CHECK_RESULT(result);
 
   // The root library has to be set to generate AOT snapshots, and sometimes we
@@ -899,7 +894,6 @@ int main(int argc, char** argv) {
     PrintUsage();
     return kErrorExitCode;
   }
-  DartUtils::SetEnvironment(environment);
 
   if (!Platform::Initialize()) {
     Syslog::PrintErr("Initialization failed\n");

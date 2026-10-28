@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// [RecursiveAstVisitor2] that delegates visit methods to functions.
 class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
@@ -20,7 +20,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(Label)? label;
   final void Function(LocalFunctionDeclaration)? localFunctionDeclaration;
   final void Function(LocalVariable)? localVariable;
-  final void Function(MethodDeclaration)? methodDeclaration;
+  final void Function(MethodDeclarationV1OriginImpl)? methodDeclaration;
   final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
   final void Function(PatternVariableDeclarationStatement)?
@@ -108,6 +108,11 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
   void visitGuardedPattern(GuardedPattern node) {
     guardedPattern?.call(node);
     super.visitGuardedPattern(node);
@@ -146,9 +151,13 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    methodDeclaration?.call(node);
-    super.visitMethodDeclaration(node);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
+  }
+
+  @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
   }
 
   @override
@@ -169,6 +178,11 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   ) {
     patternVariableDeclarationStatement?.call(node);
     super.visitPatternVariableDeclarationStatement(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -205,5 +219,13 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     unqualifiedFunctionInvocation?.call(node);
     super.visitUnqualifiedFunctionInvocation(node);
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    methodDeclaration?.call(node);
+    visitSuper();
   }
 }

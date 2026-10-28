@@ -5,10 +5,12 @@
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart'
     show FormalParameterKind;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/base/uri_offset.dart';
 import 'package:kernel/ast.dart'
     show DartType, DynamicType, Expression, InvalidExpression;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../api_prototype/codes.dart';
 import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
@@ -337,6 +339,13 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   final bool isPrimaryConstructorParameter;
 
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset ?? // Coverage-ignore(suite): Not run.
+        fileOffset,
+    nameOffset != null ? name.length : noLength,
+  );
+
   new({
     required this.kind,
     this._metadata,
@@ -565,24 +574,28 @@ class FormalParameterBuilder extends NamedBuilderImpl
   }) {
     assert(_variable == null);
     return new FormalParameterBuilder(
-      kind: kind,
-      modifiers: isDeclaring
-          ? (modifiers | Modifiers.InitializingFormal)
-          : modifiers,
-      type: isDeclaring
-          ? builderFactory.addInferableType(InferenceDefaultType.NullableObject)
-          : type,
-      name: name,
-      fileOffset: fileOffset,
-      nameOffset: nameOffset,
-      fileUri: fileUri,
-      isExtensionThis: isExtensionThis,
-      defaultValueToken: copyDefaultValueToken(),
-      hasImmediatelyDeclaredDefaultValue: hasImmediatelyDeclaredDefaultValue,
-      publicName: publicName,
-      wildcardIndex: _wildcardIndex,
-      isPrimaryConstructorParameter: !isDeclaring,
-    );
+        kind: kind,
+        modifiers: isDeclaring
+            ? (modifiers | Modifiers.InitializingFormal)
+            : modifiers,
+        type: isDeclaring
+            ? builderFactory.addInferableType(
+                InferenceDefaultType.NullableObject,
+              )
+            : type,
+        name: name,
+        fileOffset: fileOffset,
+        nameOffset: nameOffset,
+        fileUri: fileUri,
+        isExtensionThis: isExtensionThis,
+        defaultValueToken: copyDefaultValueToken(),
+        hasImmediatelyDeclaredDefaultValue: hasImmediatelyDeclaredDefaultValue,
+        publicName: publicName,
+        wildcardIndex: _wildcardIndex,
+        isPrimaryConstructorParameter: !isDeclaring,
+      )
+      // Mark the new parameter as duplicate if this is a duplicate.
+      ..next = next;
   }
 
   @override

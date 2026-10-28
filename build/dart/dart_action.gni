@@ -44,10 +44,6 @@ _is_dart = _dart_root == get_path_info("//", "abspath")
 
 if (_is_dart) {
   import("../toolchain/rbe.gni")
-  _dart_action_pool = "//build/toolchain:local_action_pool($host_toolchain)"
-} else {
-  _dart_action_pool =
-      "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
 }
 
 template("_compiled_action") {
@@ -93,23 +89,7 @@ template("_compiled_action") {
       deps += invoker.deps
     }
 
-    args = []
-
-    if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
-      args += [
-                "/usr/bin/python3",
-                rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
-              ] + rewrapper_args +
-              [
-                "--exec_strategy=" + rbe_expensive_exec_strategy,
-                "--",
-              ]
-    }
-    if (!defined(invoker.pool)) {
-      pool = _dart_action_pool
-    }
-
-    args += [ rebase_path(host_executable, root_build_dir) ] + invoker.args
+    args = [ rebase_path(host_executable, root_build_dir) ] + invoker.args
   }
 }
 
@@ -150,23 +130,7 @@ template("_prebuilt_tool_action") {
       inputs += [ invoker.dfe ]
     }
 
-    args = []
-
-    if (_is_dart && use_rbe && host_os == rbe_os && host_cpu == rbe_cpu) {
-      args += [
-                "/usr/bin/python3",
-                rebase_path("//build/rbe/rewrapper_dart.py", root_build_dir),
-              ] + rewrapper_args +
-              [
-                "--exec_strategy=" + rbe_expensive_exec_strategy,
-                "--",
-              ]
-    }
-    if (!defined(invoker.pool)) {
-      pool = _dart_action_pool
-    }
-
-    args += [ rebase_path(invoker.binary, root_build_dir) ] + vm_args
+    args = [ rebase_path(invoker.binary, root_build_dir) ] + vm_args
     if (defined(invoker.packages)) {
       args += [ "--packages=" + rebase_path(invoker.packages, root_build_dir) ]
     }
@@ -359,6 +323,7 @@ template("_built_tool_action") {
 #    visibility
 template("dart_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
+
   _built_tool_action(target_name) {
     tool = "$_dart_root/runtime/bin:dartvm"
     forward_variables_from(invoker,
@@ -419,6 +384,7 @@ template("dart_action") {
 #    visibility
 template("dartaotruntime_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
+
   _built_tool_action(target_name) {
     tool = "$_dart_root/runtime/bin:dartaotruntime"
     forward_variables_from(invoker,
@@ -471,6 +437,7 @@ template("gen_snapshot_action") {
   assert(
       !defined(invoker.script),
       "script must not be defined for $target_name. If there is a script use args instead.")
+
   _built_tool_action(target_name) {
     mnemonic = "GEN_SNAPSHOT"
     if (product_mode) {

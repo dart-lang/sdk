@@ -21,6 +21,7 @@ import '../../kernel/internal_ast.dart';
 import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
+import '../../source/parameters.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
@@ -59,6 +60,7 @@ abstract class MethodDeclaration {
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   });
 
   void buildOutlineNode({
@@ -70,11 +72,6 @@ abstract class MethodDeclaration {
     required List<TypeParameter>? classTypeParameters,
   });
 
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  );
-
   void checkVariance(
     SourceClassBuilder sourceClassBuilder,
     TypeEnvironment typeEnvironment,
@@ -85,8 +82,10 @@ abstract class MethodDeclaration {
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
+    required Parameters parameters,
     required MethodEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
   });
 
   void ensureTypes(
@@ -154,6 +153,7 @@ class MethodDeclarationImpl
     required Annotatable annotatable,
     required Uri annotatableFileUri,
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -164,6 +164,7 @@ class MethodDeclarationImpl
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
+      includeBody: includeBody,
     );
   }
 
@@ -186,14 +187,6 @@ class MethodDeclarationImpl
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
       classTypeParameters: classTypeParameters,
     );
-  }
-
-  @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  ) {
-    _encoding.checkTypes(problemReporting, typeEnvironment);
   }
 
   @override
@@ -225,7 +218,9 @@ class MethodDeclarationImpl
     required ProblemReporting problemReporting,
     required SourceMethodBuilder builder,
     required MethodEncodingStrategy encodingStrategy,
+    required Parameters parameters,
     required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
   }) {
     _encoding = encodingStrategy.createMethodEncoding(
       builder,
@@ -239,6 +234,7 @@ class MethodDeclarationImpl
       allowNameConflict: true,
     );
     returnType.registerInferredTypeListener(_encoding);
+    parameters.registerParameters(formals, isImplementation: isImplementation);
   }
 
   @override

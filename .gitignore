@@ -112,6 +112,7 @@ tools/xcodebuild
 /generated/
 /crash_logs/
 /build/config/gclient_args.gni
+/build/config/siso/.sisoenv
 /pkg/front_end/testcases/old_dills/
 logs/logs.json
 logs/results.json

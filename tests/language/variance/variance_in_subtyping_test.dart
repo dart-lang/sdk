@@ -88,7 +88,7 @@ main() {
   Expect.type<D<Contravariant<Middle>>>(e.method1());
 
   F f = new F();
-  Expect.type<D<Contravariant<Middle>>>(e.method1());
+  Expect.type<D<Contravariant<Middle>>>(f.method1());
 
   Iterable<Contravariant<Lower>> iterableLower = [new Contravariant<Lower>()];
   List<Contravariant<Middle>> listMiddle = [new Contravariant<Middle>()];

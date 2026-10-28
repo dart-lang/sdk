@@ -1536,9 +1536,8 @@ class _SpecParser {
   }
 
   static _ParsedExecutableHeader parseMethodHeader(String input) {
-    return _SpecParser._(
-      input,
-    )._parseExecutableHeader(_ExecutableHeaderContext.method);
+    return _SpecParser._(input)
+        ._parseExecutableHeader(_ExecutableHeaderContext.method);
   }
 
   static _ParsedMixinHeader parseMixinHeader(String input) {
@@ -1546,9 +1545,8 @@ class _SpecParser {
   }
 
   static _ParsedExecutableHeader parseTopLevelFunctionHeader(String input) {
-    return _SpecParser._(
-      input,
-    )._parseExecutableHeader(_ExecutableHeaderContext.topLevelFunction);
+    return _SpecParser._(input)
+        ._parseExecutableHeader(_ExecutableHeaderContext.topLevelFunction);
   }
 
   static _ParsedType parseType(String input) {

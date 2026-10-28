@@ -62,11 +62,15 @@ abstract class AbstractSemanticTokensHandler<T>
     CancellationToken token, {
     Range? range,
   }) {
-    var path = pathOfDoc(textDocument);
-
-    return path.mapResult((path) async {
+    return withPath(textDocument: textDocument, token, (
+      path,
+      _,
+      checkAbort,
+    ) async {
       // Always prefer a LineInfo from a resolved unit than server.getLineInfo.
       var resolvedUnit = (await requireResolvedUnit(path)).resultOrNull;
+      if (checkAbort() case var reason?) return reason;
+
       var lineInfo = resolvedUnit?.lineInfo ?? server.getLineInfo(path);
 
       // If there is no lineInfo, the request cannot be translated from LSP
@@ -81,9 +85,7 @@ abstract class AbstractSemanticTokensHandler<T>
             : <SemanticTokenInfo>[];
         var pluginHighlightRegions = getPluginResults(path).flattenedToList;
 
-        if (token.isCancellationRequested) {
-          return cancelled(token);
-        }
+        if (checkAbort() case var reason?) return reason;
 
         var encoder = SemanticTokenEncoder();
         Iterable<SemanticTokenInfo> pluginTokens = encoder

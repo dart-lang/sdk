@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This generator reads the analyzer's own AST through the V1 API.
+// ignore_for_file: analyzer_v1_ast_use, unnecessary_ignore
+
 import 'dart:io' as io;
 
 import 'package:analysis_server_client/protocol.dart' hide Element;
@@ -103,6 +106,15 @@ class AstNodeImplGenerator {
       throw StateError(
         '${classElement.name}: V1-only nodes are projections and cannot '
         'generate constructors.',
+      );
+    }
+
+    // V1-only nodes delegate to their canonical V2 source nodes.
+    if (api == _AstNodeApi.v1 &&
+        classElement.getGetter('_v1ProjectionSource') == null) {
+      throw StateError(
+        '${classElement.name}: V1-only nodes are projections and must '
+        'override _v1ProjectionSource.',
       );
     }
 
@@ -213,9 +225,7 @@ class AstNodeImplGenerator {
   }
 
   Future<void> _buildImplClasses(ResolvedUnitResult astUnitResult) async {
-    var declarations = astUnitResult
-        .unit
-        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
+    var declarations = astUnitResult.unit.declarations;
     for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         var implClass = await _buildImplClass(nodeImpl);
@@ -1821,7 +1831,8 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   new({required this.elementType});
 
   String get elementTypeCode {
-    return '${elementType.element.name!}Impl';
+    var name = elementType.element.name!;
+    return name.endsWith('Impl') ? name : '${name}Impl';
   }
 
   _V1ProjectionKind? get requiredV1Projection {

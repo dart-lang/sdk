@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
 import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
@@ -322,6 +322,194 @@ void f() {
 
     var resolved = await resolveCompletion(completion);
     expectDocumentation(resolved, contains('Named Constructor.'));
+  }
+
+  /// Docs are inline because they are short.
+  Future<void> test_dartDoc_inlined_short() async {
+    content = '''
+/// This is MyClass.
+class MyClass {}
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, equals('This is MyClass.'));
+  }
+
+  /// Docs are inline because they are short.
+  Future<void> test_dartDoc_inlined_short_inherited() async {
+    content = '''
+class BaseClass {
+  /// This is BaseClass.
+  void method() {}
+}
+
+class MyClass extends BaseClass {
+  void method() {}
+}
+
+void f(MyClass x) {
+  x.met^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('method()');
+    expectDocumentation(
+      completion,
+      equals('This is BaseClass.\n\nCopied from `BaseClass`.'),
+    );
+  }
+
+  /// Docs are lazy despite being short because we are auto-importing and
+  /// therefore already paying the price of the element reference in the resolve
+  /// info.
+  Future<void> test_dartDoc_lazilyResolved_becauseAutoImport() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+/// ${'This is a long dartdoc for MyClass' * 10}
+class MyClass {}
+''');
+    content = '''
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      contains('This is a long dartdoc for MyClass'),
+    );
+  }
+
+  /// Docs are lazy because they are long.
+  Future<void> test_dartDoc_lazilyResolved_long() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+/// ${'This is a long dartdoc for MyClass' * 10}
+class MyClass {}
+''');
+    content = '''
+import 'my_class.dart';
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      contains('This is a long dartdoc for MyClass'),
+    );
+  }
+
+  /// Docs are lazy because they are long.
+  Future<void> test_dartDoc_lazilyResolved_long_inherited() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+class BaseClass {
+  /// ${'This is a long dartdoc for BaseClass' * 10}
+    void method() {}
+}
+
+class MyClass extends BaseClass {
+  void method() {}
+}
+''');
+    content = '''
+import 'my_class.dart';
+
+void f(MyClass x) {
+  x.met^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('method()');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      contains('This is a long dartdoc for BaseClass'),
+    );
+  }
+
+  /// Docs are lazy despite being short because they reference a macro that
+  /// probably expands to something long (we don't compute it for the check).
+  Future<void> test_dartDoc_lazilyResolved_shortButMacro() async {
+    content = '''
+/// {@macro short}
+class MyClass {}
+
+/// {@template short}
+/// Template content
+/// {@endtemplate}
+class X {}
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, equals('Template content'));
+  }
+
+  /// Docs are lazy despite being short because they reference a macro that
+  /// probably expands to something long (we don't compute it for the check).
+  Future<void> test_dartDoc_lazilyResolved_shortButMacro_inherited() async {
+    content = '''
+class BaseClass {
+  /// {@macro short}
+  void method() {}
+}
+
+class MyClass extends BaseClass {
+  void method() {}
+}
+
+/// {@template short}
+/// Template content
+/// {@endtemplate}
+class X {}
+
+void f(MyClass x) {
+  x.met^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('method()');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      equals('Template content\n\nCopied from `BaseClass`.'),
+    );
   }
 
   Future<void> test_dotShorthand_disabledFeature() async {
@@ -2625,7 +2813,7 @@ var a = 1 /^
 
     // Use a completer to force the requests to overlap without races.
     var completer = Completer<void>();
-    CompletionHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       var responseFutures = [
         getCompletion(mainFileUri, position),
@@ -2663,7 +2851,7 @@ var a = 1 /^
       completer.complete();
       await Future.wait(expectationFutures);
     } finally {
-      CompletionHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
   }
 
@@ -5421,7 +5609,7 @@ void f() {
 
     // Use a Completer to control when the completion handler starts computing.
     var completer = Completer<void>();
-    CompletionHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       // Start the completion request but don't await it yet.
       var completionRequest = getCompletionList(
@@ -5439,7 +5627,7 @@ void f() {
       expect(result.items, isNotEmpty);
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
-      CompletionHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
   }
 

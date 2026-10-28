@@ -15,4 +15,5 @@ linter:
     - unrelated_type_equality_checks
     - annotate_overrides
     - always_declare_return_types
+    - unnecessary_this_alias
     # - always_specify_types

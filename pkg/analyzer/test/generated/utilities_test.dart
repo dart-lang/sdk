@@ -373,7 +373,7 @@ class B<U> = B0 with N implements J;
 ''');
     var destination = parseResult.findNode.classTypeAlias('A<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<ClassTypeAlias>(
+    _assertReplacementForChildren<ClassTypeAlias2>(
       destination: destination,
       source: parseResult.findNode.classTypeAlias('B<U>'),
       childAccessors: [
@@ -384,7 +384,7 @@ class B<U> = B0 with N implements J;
         (node) => node.withClause,
       ],
     );
-    _assertRemovalForNullableChild<ClassTypeAlias>(
+    _assertRemovalForNullableChild<ClassTypeAlias2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
@@ -483,10 +483,10 @@ class B {
   B.named(int b);
 }
 ''');
-    _assertReplacementForChildren<ConstructorDeclaration>(
+    _assertReplacementForChildren<ConstructorDeclaration2>(
       destination: parseResult.findNode.constructor('A.named'),
       source: parseResult.findNode.constructor('B.named'),
-      childAccessors: [(node) => node.body, (node) => node.parameters],
+      childAccessors: [(node) => node.body, (node) => node.formalParameters],
     );
     _assertAnnotatedNode(parseResult.findNode.constructor('A.named'));
   }
@@ -501,7 +501,7 @@ class B {
   factory B() = R;
 }
 ''');
-    _assertReplacementForChildren<ConstructorDeclaration>(
+    _assertReplacementForChildren<ConstructorDeclaration2>(
       destination: parseResult.findNode.constructor('factory A'),
       source: parseResult.findNode.constructor('factory B'),
       childAccessors: [(node) => node.factoryRedirectionTarget!],
@@ -656,7 +656,7 @@ enum E {
 enum E1<T> with M1 implements I1 {one, two}
 enum E2<U> with M2 implements I2 {one, two}
 ''');
-    _assertReplacementForChildren<EnumDeclaration>(
+    _assertReplacementForChildren<EnumDeclaration2>(
       destination: parseResult.findNode.enumDeclaration('enum E1'),
       source: parseResult.findNode.enumDeclaration('enum E2'),
       childAccessors: [
@@ -739,7 +739,7 @@ extension F<U> on double {}
 ''');
     var destination = parseResult.findNode.extensionDeclaration('E<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<ExtensionDeclaration>(
+    _assertReplacementForChildren<ExtensionDeclaration2>(
       destination: destination,
       source: parseResult.findNode.extensionDeclaration('F<U>'),
       childAccessors: [
@@ -747,27 +747,23 @@ extension F<U> on double {}
         (node) => node.typeParameters!,
       ],
     );
-    _assertRemovalForNullableChild<ExtensionDeclaration>(
+    _assertRemovalForNullableChild<ExtensionDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
   }
 
-  void test_fieldDeclaration() {
+  void test_field() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 class A {
-  @myA1
-  @myA2
-  int foo = 0;
-  int bar = 0;
+  var a = 0;
+  var b = 1;
 }
-class B extends B0 {}
 ''');
-    _assertAnnotatedNode(parseResult.findNode.fieldDeclaration('foo'));
-    _assertReplacementForChildren<FieldDeclaration>(
-      destination: parseResult.findNode.fieldDeclaration('foo'),
-      source: parseResult.findNode.fieldDeclaration('bar'),
-      childAccessors: [(node) => node.fields],
+    _assertReplacementForChildren<Field2>(
+      destination: parseResult.findNode.field('a = 0'),
+      source: parseResult.findNode.field('b = 1'),
+      childAccessors: [(node) => node.initializer!],
     );
   }
 
@@ -804,6 +800,30 @@ class A {
         (node) => node.type!,
         (node) => node.functionTypedSuffix!,
       ],
+    );
+  }
+
+  void test_fieldsDeclaration() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  @myA1
+  @myA2
+  int a = 0, b = 1;
+  double c = 2;
+}
+''');
+    var destination = parseResult.findNode.fieldsDeclaration('a = 0');
+    var source = parseResult.findNode.fieldsDeclaration('c = 2');
+    _assertAnnotatedNode(destination);
+    _assertReplaceInList(
+      destination: destination,
+      child: destination.fields[0],
+      replacement: destination.fields[1],
+    );
+    _assertReplacementForChildren<FieldsDeclaration>(
+      destination: destination,
+      source: source,
+      childAccessors: [(node) => node.type!],
     );
   }
 
@@ -1302,17 +1322,17 @@ class A {
 ''');
     var destination = parseResult.findNode.methodDeclaration('a<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<MethodDeclaration>(
+    _assertReplacementForChildren<MethodDeclaration2>(
       destination: destination,
       source: parseResult.findNode.methodDeclaration('b<U>'),
       childAccessors: [
         (node) => node.returnType!,
         (node) => node.typeParameters!,
-        (node) => node.parameters!,
+        (node) => node.formalParameters,
         (node) => node.body,
       ],
     );
-    _assertRemovalForNullableChild<MethodDeclaration>(
+    _assertRemovalForNullableChild<MethodDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
@@ -1331,7 +1351,7 @@ mixin B<U> on B0 implements J {
 ''');
     var destination = parseResult.findNode.mixinDeclaration('A<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<MixinDeclaration>(
+    _assertReplacementForChildren<MixinDeclaration2>(
       destination: destination,
       source: parseResult.findNode.mixinDeclaration('B<U>'),
       childAccessors: [
@@ -1341,7 +1361,7 @@ mixin B<U> on B0 implements J {
         (node) => node.body,
       ],
     );
-    _assertRemovalForNullableChild<MixinDeclaration>(
+    _assertRemovalForNullableChild<MixinDeclaration2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
@@ -1662,12 +1682,12 @@ void f(
     var a = parseResult.findNode.formalParameter('a<T>');
     _assertFormalParameterMetadata(a);
     _assertReplacementForChildren<RegularFormalParameter>(
-      destination:
-          parseResult.findNode.formalParameter('a<T>')
-              as RegularFormalParameter,
-      source:
-          parseResult.findNode.formalParameter('b<U>')
-              as RegularFormalParameter,
+      destination: parseResult.findNode.formalParameter(
+        'a<T>',
+      ) as RegularFormalParameter,
+      source: parseResult.findNode.formalParameter(
+        'b<U>',
+      ) as RegularFormalParameter,
       childAccessors: [
         (node) => node.type!,
         (node) => node.functionTypedSuffix!,
@@ -2012,39 +2032,6 @@ class A<T, U> {}
       destination: node,
       child: node.typeParameters[0],
       replacement: node.typeParameters[1],
-    );
-  }
-
-  void test_variableDeclaration() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-class A {
-  var a = 0;
-  var b = 1;
-}
-''');
-    _assertReplacementForChildren<VariableDeclaration>(
-      destination: parseResult.findNode.variableDeclaration('a = 0'),
-      source: parseResult.findNode.variableDeclaration('b = 1'),
-      childAccessors: [(node) => node.initializer2!],
-    );
-  }
-
-  void test_variableDeclarationList() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-class A {
-  int a = 0, b = 1;
-  double c = 2;
-}
-''');
-    _assertReplaceInList(
-      destination: parseResult.findNode.variableDeclarationList('int a'),
-      child: parseResult.findNode.variableDeclaration('a = 0'),
-      replacement: parseResult.findNode.variableDeclaration('b = 1'),
-    );
-    _assertReplacementForChildren<VariableDeclarationList>(
-      destination: parseResult.findNode.variableDeclarationList('int a'),
-      source: parseResult.findNode.variableDeclarationList('double c'),
-      childAccessors: [(node) => node.type!],
     );
   }
 

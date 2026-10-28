@@ -1419,7 +1419,11 @@ class SuggestionBuilder {
   }
 
   _ElementCompletionData _createElementCompletionData(Element element) {
-    var documentation = _getDocumentation(element);
+    var documentation = request.documentationComputer.compute(
+      element,
+      includeSummary: true,
+      includeFull: true,
+    );
 
     var suggestedElement = protocol.convertElement(element);
 
@@ -1491,21 +1495,6 @@ class SuggestionBuilder {
     return element.displayName;
   }
 
-  /// If the [element] has a documentation comment, return it.
-  _ElementDocumentation? _getDocumentation(Element element) {
-    var doc = request.documentationComputer.compute(
-      element,
-      includeSummary: true,
-    );
-    if (doc is DocumentationWithSummary) {
-      return _ElementDocumentation(full: doc.full, summary: doc.summary);
-    }
-    if (doc is Documentation) {
-      return _ElementDocumentation(full: doc.full, summary: null);
-    }
-    return null;
-  }
-
   /// Return the type associated with the [accessor], maybe `null` if an
   /// invalid setter with no parameters at all.
   DartType? _getSetterType(SetterElement accessor) {
@@ -1561,9 +1550,10 @@ class SuggestionBuilder {
   void _setDocumentation(CompletionSuggestion suggestion, Element element) {
     var doc = request.documentationComputer.compute(
       element,
+      includeFull: true,
       includeSummary: true,
     );
-    if (doc is DocumentationWithSummary) {
+    if (doc != null) {
       suggestion.docComplete = doc.full;
       suggestion.docSummary = doc.summary;
     }
@@ -1737,7 +1727,7 @@ class _ElementCompletionData {
   final int? requiredParameterCount;
   final bool? hasNamedParameters;
   CompletionDefaultArgumentList? defaultArgumentList;
-  final _ElementDocumentation? documentation;
+  final Documentation? documentation;
   final protocol.Element element;
   final String? colorHex;
 
@@ -1754,11 +1744,4 @@ class _ElementCompletionData {
     required this.element,
     required this.colorHex,
   });
-}
-
-class _ElementDocumentation {
-  final String full;
-  final String? summary;
-
-  new({required this.full, required this.summary});
 }

@@ -537,7 +537,6 @@ FunctionInstantiation
     name: i
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::i
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   typeArguments: TypeArgumentList
@@ -584,7 +583,6 @@ FunctionInstantiation
     name: i
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::i
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   typeArguments: TypeArgumentList
@@ -954,7 +952,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   typeArguments: TypeArgumentList
@@ -2137,7 +2134,6 @@ FunctionInstantiation
       name: v
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::v
-        invokeType: C Function()
         type: C
       staticType: C
     element: <testLibrary>::@class::C::@method::call
@@ -2201,7 +2197,6 @@ FunctionInstantiation
       name: v
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::v
-        invokeType: Object? Function()
         type: Object?
       staticType: Object?
     element: <testLibrary>::@extension::E::@method::call
@@ -2316,7 +2311,6 @@ FunctionInstantiation
       name: v
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@class::C::@getter::v
-        invokeType: C Function()
         type: C
       staticType: C
     element: package:test/a.dart::@class::C::@method::call
@@ -2394,7 +2388,6 @@ FunctionInstantiation
       name: c
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::c
-        invokeType: C Function()
         type: C
       staticType: C
     element: package:test/a.dart::@class::C::@method::call
@@ -2457,7 +2450,6 @@ ReceiverMethodInvocation
         name: c
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::c
-          invokeType: C Function()
           type: C
         staticType: C
       element: <testLibrary>::@class::C::@method::call
@@ -2686,7 +2678,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2749,7 +2740,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2802,7 +2792,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2854,7 +2843,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2914,7 +2902,6 @@ FunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::f
-      invokeType: List<int> Function()
       type: List<int>
     staticType: List<int>
   typeArguments: TypeArgumentList
@@ -2982,7 +2969,6 @@ FunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::f
-      invokeType: List<int> Function()
       type: List<int>
     staticType: List<int>
   typeArguments: TypeArgumentList
@@ -3245,7 +3231,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -3324,7 +3309,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   typeArguments: TypeArgumentList
@@ -4031,7 +4015,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4105,7 +4088,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4186,7 +4168,6 @@ FunctionInstantiation
       name: a
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4864,7 +4845,6 @@ FunctionInstantiation
       name: foo
       resolution: GetterInvocationResolution
         element: <testLibrary>::@extension::#0::@getter::foo
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -4936,7 +4916,6 @@ FunctionInstantiation
       name: foo
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::foo
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -5005,7 +4984,6 @@ FunctionInstantiation
       name: foo
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::foo
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -6012,7 +5990,6 @@ FunctionInstantiation
     name: i
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::i
-      invokeType: Never Function()
       type: Never
     staticType: Never
   typeArguments: TypeArgumentList
@@ -7500,7 +7477,6 @@ ReceiverPropertyExtraction
   name: hashCode
   resolution: GetterInvocationResolution
     element: dart:core::@class::Object::@getter::hashCode
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -7552,7 +7528,6 @@ FunctionInstantiation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -8985,7 +8960,6 @@ ImplicitFunctionInstantiation
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: void Function<T>(T)}
-      invokeType: void Function<T>(T) Function(int)
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -9150,7 +9124,6 @@ ImplicitFunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::f
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)
@@ -9257,7 +9230,6 @@ ImplicitFunctionInstantiation
     name: f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::f
-      invokeType: void Function<T>(T) Function()
       type: void Function<T>(T)
     staticType: void Function<T>(T)
   staticType: void Function(int)

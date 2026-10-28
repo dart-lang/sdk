@@ -397,7 +397,7 @@ abstract class _PhysicalResource implements Resource {
   String get path => _entry.path;
 
   /// Return the path context used by this resource provider.
-  Context get pathContext => io.Platform.isWindows ? windows : posix;
+  Context get pathContext => platform.isWindows ? windows : posix;
 
   @override
   ResourceProvider get provider => PhysicalResourceProvider.INSTANCE;
@@ -430,7 +430,7 @@ abstract class _PhysicalResource implements Resource {
   ///
   /// https://support.microsoft.com/en-us/kb/74496
   void _throwIfWindowsDeviceDriver() {
-    if (io.Platform.isWindows) {
+    if (platform.isWindows) {
       var shortName = this.shortName.toUpperCase();
       if (shortName == r'CON' ||
           shortName == r'PRN' ||

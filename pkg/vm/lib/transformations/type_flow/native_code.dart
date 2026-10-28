@@ -25,6 +25,9 @@ abstract class EntryPointsListener {
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
 
+  /// Add instantiation of the given record shape.
+  RecordConcreteType addAllocatedRecord(RecordShape shape);
+
   /// Returns Field representing positional field of a record with given shape.
   Field getRecordPositionalField(RecordShape shape, int pos);
 

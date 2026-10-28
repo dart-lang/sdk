@@ -362,6 +362,9 @@ final class Simplification extends Pass
   Instruction visitUnboxDouble(UnboxDouble instr) => instr;
 
   @override
+  Instruction visitReachabilityFence(ReachabilityFence instr) => instr;
+
+  @override
   Instruction visitParallelMove(ParallelMove instr) => instr;
 
   @override
@@ -617,27 +620,41 @@ final class Simplification extends Pass
       left = instr.left;
       right = instr.right;
     }
+    // Patterns with constant lhs.
+    if (left is Constant) {
+      final double leftVal = left.value.doubleValue;
+      switch (instr.op) {
+        case .pow when leftVal == 1.0:
+          // pow(1.0, x) == 1.0
+          return graph.getConstant(ConstantValue.fromDouble(1.0));
+        default:
+      }
+    }
     // Patterns with constant rhs.
     if (right is Constant) {
       final double rightVal = right.value.doubleValue;
       switch (instr.op) {
-        case BinaryDoubleOpcode.mul when rightVal == 1.0:
+        case .mul when rightVal == 1.0:
           // x * 1.0 == x
           return left;
+        case .pow when rightVal == 0.0:
+          // pow(x, 0.0/-0.0) == 1.0
+          return graph.getConstant(ConstantValue.fromDouble(1.0));
+        case .pow when rightVal == 1.0:
+          // pow(x, 1.0) == x
+          return left;
+        case .pow when rightVal == 2.0:
+          // pow(x, 2.0) == x^2
+          return UnaryDoubleOp(graph, instr.sourcePosition, .square, left);
         default:
       }
     }
     // Patterns with same lhs and rhs.
     if (left == right) {
       switch (instr.op) {
-        case BinaryDoubleOpcode.mul:
-          // x * x == power(x, 2)
-          return UnaryDoubleOp(
-            graph,
-            instr.sourcePosition,
-            UnaryDoubleOpcode.square,
-            left,
-          );
+        case .mul:
+          // x * x == x^2
+          return UnaryDoubleOp(graph, instr.sourcePosition, .square, left);
         default:
       }
     }

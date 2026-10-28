@@ -821,9 +821,9 @@ class AnnotationsListener extends StackListener {
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     push(
-      new VoidProto(
-        _references.voidReference,
-      ).instantiate(typeArguments).toTypeAnnotation(),
+      new VoidProto(_references.voidReference)
+          .instantiate(typeArguments)
+          .toTypeAnnotation(),
     );
   }
 

@@ -14,12 +14,20 @@ final highlightRegionTokenModifiers =
       },
       HighlightRegionType.CONSTRUCTOR_TEAR_OFF: {
         CustomSemanticTokenModifiers.constructor,
+        CustomSemanticTokenModifiers.tearOff,
       },
       HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION: {
         SemanticTokenModifiers.declaration,
       },
       HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION: {
         SemanticTokenModifiers.declaration,
+      },
+      HighlightRegionType.EXTENSION: {CustomSemanticTokenModifiers.extension},
+      HighlightRegionType.EXTENSION_TYPE: {
+        CustomSemanticTokenModifiers.extensionType,
+      },
+      HighlightRegionType.FUNCTION_TYPE_ALIAS: {
+        CustomSemanticTokenModifiers.functionTypeAlias,
       },
       HighlightRegionType.IMPORT_PREFIX: {
         CustomSemanticTokenModifiers.importPrefix,
@@ -47,6 +55,7 @@ final highlightRegionTokenModifiers =
       },
       HighlightRegionType.INSTANCE_METHOD_TEAR_OFF: {
         CustomSemanticTokenModifiers.instance,
+        CustomSemanticTokenModifiers.tearOff,
       },
       HighlightRegionType.INSTANCE_SETTER_DECLARATION: {
         SemanticTokenModifiers.declaration,
@@ -61,6 +70,10 @@ final highlightRegionTokenModifiers =
       HighlightRegionType.LOCAL_VARIABLE_DECLARATION: {
         SemanticTokenModifiers.declaration,
       },
+      HighlightRegionType.LOCAL_FUNCTION_TEAR_OFF: {
+        CustomSemanticTokenModifiers.tearOff,
+      },
+      HighlightRegionType.MIXIN: {CustomSemanticTokenModifiers.mixin},
       HighlightRegionType.PARAMETER_DECLARATION: {
         SemanticTokenModifiers.declaration,
       },
@@ -84,6 +97,7 @@ final highlightRegionTokenModifiers =
       },
       HighlightRegionType.STATIC_METHOD_TEAR_OFF: {
         SemanticTokenModifiers.static,
+        CustomSemanticTokenModifiers.tearOff,
       },
       HighlightRegionType.STATIC_SETTER_DECLARATION: {
         SemanticTokenModifiers.declaration,
@@ -96,6 +110,13 @@ final highlightRegionTokenModifiers =
         SemanticTokenModifiers.declaration,
         SemanticTokenModifiers.static,
       },
+      HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE: {
+        SemanticTokenModifiers.static,
+      },
+      HighlightRegionType.TOP_LEVEL_FUNCTION_TEAR_OFF: {
+        SemanticTokenModifiers.static,
+        CustomSemanticTokenModifiers.tearOff,
+      },
       HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION: {
         SemanticTokenModifiers.declaration,
       },
@@ -104,7 +125,9 @@ final highlightRegionTokenModifiers =
       },
       HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION: {
         SemanticTokenModifiers.declaration,
+        SemanticTokenModifiers.static,
       },
+      HighlightRegionType.TYPE_ALIAS: {CustomSemanticTokenModifiers.typeAlias},
       HighlightRegionType.VALID_STRING_ESCAPE: {
         CustomSemanticTokenModifiers.escape,
       },

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:dart_runtime_service_dds/dart_runtime_service_dds.dart';
@@ -22,6 +23,8 @@ class MockVmService {
   final HttpServer server;
   final int port;
   final clients = <json_rpc.Peer>[];
+  Uri? existingDdsUri;
+  int? yieldControlErrorCode;
 
   Uri get uri => Uri.parse('http://localhost:$port/');
 
@@ -55,6 +58,21 @@ class MockVmService {
       });
 
       peer.registerMethod('_yieldControlToDDS', (json_rpc.Parameters params) {
+        final errorCode = mock.yieldControlErrorCode;
+        if (errorCode != null) {
+          throw json_rpc.RpcException(errorCode, 'Server error');
+        }
+        final ddsUri = mock.existingDdsUri;
+        if (ddsUri != null) {
+          throw json_rpc.RpcException(
+            100,
+            'Feature is disabled',
+            data: <String, Object?>{
+              'details': 'A DDS instance is already connected at $ddsUri.',
+              'ddsUri': ddsUri.toString(),
+            },
+          );
+        }
         return vm.Success().toJson();
       });
 
@@ -82,6 +100,16 @@ class MockVmService {
             vm.Flag(name: 'pause_isolates_on_start', valueAsString: 'false'),
             vm.Flag(name: 'pause_isolates_on_exit', valueAsString: 'false'),
           ],
+        ).toJson();
+      });
+
+      peer.registerMethod('getPerfettoVMTimeline', (
+        json_rpc.Parameters params,
+      ) {
+        return vm.PerfettoTimeline(
+          trace: base64Encode(utf8.encode('vm-timeline')),
+          timeOriginMicros: params['timeOriginMicros'].asIntOr(-1),
+          timeExtentMicros: params['timeExtentMicros'].asIntOr(-1),
         ).toJson();
       });
 
@@ -193,6 +221,17 @@ void main() {
       },
     );
 
+    test('getPerfettoVMTimelineWithCpuSamples invokes getPerfettoVMTimeline on '
+        'VM service', () async {
+      final timeline = await ddsClient!.getPerfettoVMTimelineWithCpuSamples(
+        timeOriginMicros: 1,
+        timeExtentMicros: 1000,
+      );
+      expect(timeline.timeOriginMicros, 1);
+      expect(timeline.timeExtentMicros, 1000);
+      expect(utf8.decode(base64Decode(timeline.trace!)), 'vm-timeline');
+    });
+
     test('does not start DTD when serveDevTools is false', () async {
       late DartRuntimeServiceDdsBackend backend;
       final service = await DartRuntimeService.initialize(
@@ -220,6 +259,98 @@ void main() {
       );
       expect(backend.hostedDartToolingDaemon, isNotNull);
       await service.shutdown();
+    });
+
+    test('throws ExistingDartDevelopmentServiceException when DDS instance '
+        'already connected', () async {
+      mockVmService!.existingDdsUri = ddsService!.httpUri;
+      late DartRuntimeService frontendService;
+      late DartRuntimeServiceDdsBackend backend;
+      await expectLater(
+        DartRuntimeService.initialize(
+          config: const DartRuntimeServiceOptions(serveDevTools: true),
+          backendBuilder: (frontend) {
+            frontendService = frontend;
+            return backend = DartRuntimeServiceDdsBackend(
+              mockVmService!.uri,
+              frontend: frontend,
+              serveDevTools: true,
+            );
+          },
+        ),
+        throwsA(
+          isA<ExistingDartDevelopmentServiceException>()
+              .having(
+                (e) => e.errorCode,
+                'errorCode',
+                DartDevelopmentServiceException.existingDdsInstanceError,
+              )
+              .having((e) => e.ddsUri, 'ddsUri', ddsService!.httpUri),
+        ),
+      );
+      expect(backend.hostedDartToolingDaemon, isNull);
+      expect(frontendService.isServerRunning, isFalse);
+    });
+
+    test(
+      'throws failedToStart when yieldControlToDds fails with server error',
+      () async {
+        mockVmService!.yieldControlErrorCode =
+            vm.RPCErrorKind.kServerError.code;
+        await expectLater(
+          DartRuntimeService.initialize(
+            config: const DartRuntimeServiceOptions(),
+            backendBuilder: (frontend) => DartRuntimeServiceDdsBackend(
+              mockVmService!.uri,
+              frontend: frontend,
+            ),
+          ),
+          throwsA(
+            isA<DartDevelopmentServiceException>().having(
+              (e) => e.errorCode,
+              'errorCode',
+              DartDevelopmentServiceException.failedToStartError,
+            ),
+          ),
+        );
+      },
+    );
+
+    test('CLI entrypoint emits ddsExceptionDetails JSON on existing DDS '
+        'instance error', () async {
+      mockVmService!.existingDdsUri = ddsService!.httpUri;
+      final entrypointUri = await Isolate.resolvePackageUri(
+        Uri.parse('package:dart_runtime_service_dds/'),
+      );
+      final entrypointPath = path.normalize(
+        path.join(
+          entrypointUri!.toFilePath(),
+          '..',
+          'bin',
+          'dds_entrypoint.dart',
+        ),
+      );
+      final result = await Process.run(Platform.resolvedExecutable, <String>[
+        entrypointPath,
+        '--vm-service-uri=${mockVmService!.uri}',
+      ]);
+      expect(result.exitCode, 1);
+      final stderrOutput = (result.stderr as String).trim();
+      final decoded = json.decode(stderrOutput) as Map<String, Object?>;
+      expect(decoded['state'], 'error');
+      final details = decoded['ddsExceptionDetails'] as Map<String, Object?>?;
+      expect(details, isNotNull);
+      final exception = DartDevelopmentServiceException.fromJson(details!);
+      expect(
+        exception,
+        isA<ExistingDartDevelopmentServiceException>()
+            .having(
+              (e) => e.errorCode,
+              'errorCode',
+              DartDevelopmentServiceException.existingDdsInstanceError,
+            )
+            .having((e) => e.ddsUri, 'ddsUri', ddsService!.httpUri),
+      );
     });
   });
 

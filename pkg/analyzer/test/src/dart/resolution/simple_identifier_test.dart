@@ -56,7 +56,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -85,7 +84,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -114,7 +112,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::a
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -141,7 +138,6 @@ UnqualifiedNameExpression
   name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@getter::a
-    invokeType: int Function()
     type: int
   correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
   staticType: int
@@ -227,7 +223,6 @@ UnqualifiedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -379,7 +374,6 @@ UnqualifiedNameExpression
   name: bar
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::bar
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: SimpleIdentifier
@@ -477,7 +471,6 @@ UnqualifiedNameExpression
   name: $3
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E::@getter::$3
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: SimpleIdentifier
@@ -529,7 +522,6 @@ UnqualifiedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier
@@ -560,7 +552,6 @@ UnqualifiedNameExpression
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: SimpleIdentifier

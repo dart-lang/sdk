@@ -98,16 +98,14 @@ class ConstantResolver extends Transformer {
   }
 }
 
-class WasmTarget extends Target {
-  WasmTarget({
+abstract class WasmTargetBase extends Target {
+  WasmTargetBase({
     this.enableExperimentalFfi = true,
     this.enableExperimentalWasmInterop = true,
     this.removeAsserts = false,
-    this.mode = Mode.regular,
   });
 
   final bool removeAsserts;
-  final Mode mode;
   final bool enableExperimentalFfi;
   final bool enableExperimentalWasmInterop;
   Class? _growableList;
@@ -123,6 +121,11 @@ class WasmTarget extends Target {
   Class? _boxedDouble;
   Map<String, Class>? _nativeClasses;
 
+  bool get _isStandalone => false;
+  bool get _supportsFfi => true;
+
+  String get platformFile;
+
   @override
   bool get enableNoSuchMethodForwarders => true;
 
@@ -133,54 +136,24 @@ class WasmTarget extends Target {
   Verification get verification => const WasmVerification();
 
   @override
-  String get name {
-    return switch (mode) {
-      Mode.regular => 'wasm',
-      Mode.jsCompatibility => 'wasm_js_compatibility',
-      Mode.standalone => 'wasm_standalone',
-    };
-  }
-
-  String get platformFile {
-    return switch (mode) {
-      Mode.regular => 'dart2wasm_platform.dill',
-      Mode.jsCompatibility => 'dart2wasm_js_compatibility_platform.dill',
-      Mode.standalone => 'dart2wasm_standalone_platform.dill',
-    };
-  }
-
-  @override
   TargetFlags get flags => TargetFlags();
 
   @override
-  List<String> get extraRequiredLibraries => [
+  List<String> get extraRequiredLibraries => const [
     'dart:_boxed_bool',
     'dart:_boxed_double',
     'dart:_boxed_int',
     'dart:_compact_hash',
-    'dart:_http',
     'dart:_internal',
     'dart:_list',
     'dart:_string',
     'dart:_wasm',
     'dart:async',
-    'dart:developer',
-    'dart:ffi',
-    'dart:io',
-    'dart:nativewrappers',
     'dart:typed_data',
-    if (mode == .standalone)
-      'dart:_embedder'
-    else ...[
-      'dart:_js_helper',
-      'dart:_js_types',
-      'dart:js_interop',
-      'dart:js_interop_unsafe',
-    ],
   ];
 
   @override
-  List<String> get extraIndexedLibraries => [
+  List<String> get extraIndexedLibraries => const [
     'dart:_boxed_bool',
     'dart:_boxed_double',
     'dart:_boxed_int',
@@ -191,14 +164,6 @@ class WasmTarget extends Target {
     'dart:_wasm',
     'dart:collection',
     'dart:typed_data',
-    if (mode == .standalone)
-      'dart:_embedder'
-    else ...[
-      'dart:_js_helper',
-      'dart:_js_types',
-      'dart:js_interop',
-      'dart:js_interop_unsafe',
-    ],
   ];
 
   @override
@@ -327,7 +292,7 @@ class WasmTarget extends Target {
       }
     }
 
-    if (mode != .standalone) {
+    if (!_isStandalone) {
       Set<Library> transitiveImportingJSInterop = {
         ...jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component.libraries,
@@ -406,47 +371,49 @@ class WasmTarget extends Target {
     );
     logger?.call("Transformed mixin applications");
 
-    List<Library>? transitiveImportingDartFfi = ffiHelper
-        .calculateTransitiveImportsOfDartFfiIfUsed(component, libraries);
-    if (transitiveImportingDartFfi == null || invalidFfiUsage) {
-      logger?.call("Skipped ffi transformation");
-    } else {
-      wasmFfiNativeAddressTrans.transformLibraries(
-        component,
-        coreTypes,
-        hierarchy,
-        transitiveImportingDartFfi,
-        diagnosticReporter,
-        referenceFromIndex,
-      );
-      wasmFfiNativeTrans.transformLibraries(
-        component,
-        coreTypes,
-        hierarchy,
-        transitiveImportingDartFfi,
-        diagnosticReporter,
-        referenceFromIndex,
-      );
-      transformFfiDefinitions.transformLibraries(
-        component,
-        coreTypes,
-        hierarchy,
-        transitiveImportingDartFfi,
-        diagnosticReporter,
-        referenceFromIndex,
-        changedStructureNotifier,
-      );
-      transformFfiUseSites.transformLibraries(
-        this,
-        component,
-        coreTypes,
-        hierarchy,
-        transitiveImportingDartFfi,
-        diagnosticReporter,
-        referenceFromIndex,
-        environmentDefines,
-      );
-      logger?.call("Transformed ffi annotations");
+    if (_supportsFfi) {
+      List<Library>? transitiveImportingDartFfi = ffiHelper
+          .calculateTransitiveImportsOfDartFfiIfUsed(component, libraries);
+      if (transitiveImportingDartFfi == null || invalidFfiUsage) {
+        logger?.call("Skipped ffi transformation");
+      } else {
+        wasmFfiNativeAddressTrans.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex,
+        );
+        wasmFfiNativeTrans.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex,
+        );
+        transformFfiDefinitions.transformLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex,
+          changedStructureNotifier,
+        );
+        transformFfiUseSites.transformLibraries(
+          this,
+          component,
+          coreTypes,
+          hierarchy,
+          transitiveImportingDartFfi,
+          diagnosticReporter,
+          referenceFromIndex,
+          environmentDefines,
+        );
+        logger?.call("Transformed ffi annotations");
+      }
     }
 
     wasmTrans.transformLibraries(libraries, coreTypes, hierarchy);
@@ -454,7 +421,7 @@ class WasmTarget extends Target {
       libraries,
       coreTypes,
       diagnosticReporter,
-      isStandalone: mode == .standalone,
+      isStandalone: _isStandalone,
       enableExperimentalWasmInterop: enableExperimentalWasmInterop,
     );
 
@@ -633,7 +600,7 @@ class WasmTarget extends Target {
   Class concreteStringLiteralClass(CoreTypes coreTypes, String value) {
     return _stringImpl ??= coreTypes.index.getClass(
       "dart:_string",
-      mode == .standalone ? "EmbedderStringImpl" : "JSStringImpl",
+      _isStandalone ? "EmbedderStringImpl" : "JSStringImpl",
     );
   }
 
@@ -670,6 +637,106 @@ class WasmTarget extends Target {
   DartLibrarySupport get dartLibrarySupport => CustomizedDartLibrarySupport(
     unsupported: {if (!enableExperimentalFfi) 'ffi'},
   );
+}
+
+class WasmTarget extends WasmTargetBase {
+  WasmTarget({
+    super.enableExperimentalFfi,
+    super.enableExperimentalWasmInterop,
+    super.removeAsserts,
+    this.mode = Mode.regular,
+  });
+
+  final Mode mode;
+
+  @override
+  bool get _isStandalone => mode == .standalone;
+
+  @override
+  String get name {
+    return switch (mode) {
+      Mode.regular => 'wasm',
+      Mode.jsCompatibility => 'wasm_js_compatibility',
+      Mode.standalone => 'wasm_standalone',
+    };
+  }
+
+  @override
+  String get platformFile {
+    return switch (mode) {
+      Mode.regular => 'dart2wasm_platform.dill',
+      Mode.jsCompatibility => 'dart2wasm_js_compatibility_platform.dill',
+      Mode.standalone => 'dart2wasm_standalone_platform.dill',
+    };
+  }
+
+  @override
+  List<String> get extraRequiredLibraries => [
+    ...super.extraRequiredLibraries,
+    'dart:_http',
+    'dart:developer',
+    'dart:ffi',
+    'dart:io',
+    'dart:nativewrappers',
+    if (mode == .standalone)
+      'dart:_embedder'
+    else ...[
+      'dart:_js_helper',
+      'dart:_js_types',
+      'dart:js_interop',
+      'dart:js_interop_unsafe',
+    ],
+  ];
+
+  @override
+  List<String> get extraIndexedLibraries => [
+    ...super.extraIndexedLibraries,
+    if (mode == .standalone)
+      'dart:_embedder'
+    else ...[
+      'dart:_js_helper',
+      'dart:_js_types',
+      'dart:js_interop',
+      'dart:js_interop_unsafe',
+    ],
+  ];
+}
+
+class WasmDevTarget extends WasmTargetBase {
+  WasmDevTarget({
+    super.enableExperimentalFfi,
+    super.enableExperimentalWasmInterop,
+    super.removeAsserts,
+  });
+
+  // TODO(kustermann): Enable this once the wasm dev compiler is able to handle
+  // experimental ffi.
+  @override
+  bool get _supportsFfi => false;
+
+  @override
+  String get name => 'wasm_dev';
+
+  @override
+  String get platformFile => 'dart2wasm_dev_platform.dill';
+
+  @override
+  List<String> get extraRequiredLibraries => [
+    ...super.extraRequiredLibraries,
+    'dart:_js_helper',
+    'dart:_js_types',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+  ];
+
+  @override
+  List<String> get extraIndexedLibraries => [
+    ...super.extraIndexedLibraries,
+    'dart:_js_helper',
+    'dart:_js_types',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+  ];
 }
 
 class WasmVerification extends Verification {
