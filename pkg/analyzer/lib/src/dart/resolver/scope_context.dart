@@ -115,7 +115,7 @@ class ScopeContext {
       visitFactoryRedirectionTarget,
     );
 
-    withFormalParameterScope(fragment.formalParameters, () {
+    withFormalParameterScope(fragment, () {
       node.body.accept2(visitor);
     });
   }
@@ -280,7 +280,7 @@ class ScopeContext {
       node.typeParameters?.accept2(visitor);
       node.parameters?.accept2(visitor);
 
-      withFormalParameterScope(fragment.formalParameters, () {
+      withFormalParameterScope(fragment, () {
         node.body.accept2(visitor);
       });
     });
@@ -362,7 +362,7 @@ class ScopeContext {
       node.typeParameters?.accept2(visitor);
       node.formalParameters.accept2(visitor);
 
-      withFormalParameterScope(fragment.formalParameters, () {
+      withFormalParameterScope(fragment, () {
         node.documentationComment?.accept2(visitor);
         node.body.accept2(visitor);
       });
@@ -385,7 +385,7 @@ class ScopeContext {
         node.writtenTypeParameters?.accept2(visitor);
         node.writtenFormalParameters?.accept2(visitor);
 
-        withFormalParameterScope(fragment.formalParameters, () {
+        withFormalParameterScope(fragment, () {
           node.documentationComment?.accept2(visitor);
           node.body.accept2(visitor);
         });
@@ -437,7 +437,7 @@ class ScopeContext {
           ? PrimaryParameterScope(
               nameScope,
               fragment.element,
-              fragment.formalParameters,
+              fragment.declaredFormalParameters,
             )
           : nameScope,
       () {
@@ -461,7 +461,7 @@ class ScopeContext {
       node.typeParameters?.accept2(visitor);
       node.formalParameters.accept2(visitor);
 
-      withFormalParameterScope(fragment.formalParameters, () {
+      withFormalParameterScope(fragment, () {
         node.documentationComment?.accept2(visitor);
         node.body.accept2(visitor);
       });
@@ -481,7 +481,7 @@ class ScopeContext {
       node.returnType?.accept2(visitor);
       node.recoveryFormalParameters?.accept2(visitor);
 
-      withFormalParameterScope(fragment.formalParameters, () {
+      withFormalParameterScope(fragment, () {
         node.documentationComment?.accept2(visitor);
         node.body.accept2(visitor);
       });
@@ -501,7 +501,7 @@ class ScopeContext {
       node.returnType?.accept2(visitor);
       node.formalParameters.accept2(visitor);
 
-      withFormalParameterScope(fragment.formalParameters, () {
+      withFormalParameterScope(fragment, () {
         node.documentationComment?.accept2(visitor);
         node.body.accept2(visitor);
       });
@@ -518,11 +518,15 @@ class ScopeContext {
   }
 
   void withFormalParameterScope(
-    List<FormalParameterFragmentImpl> fragments,
+    ExecutableFragmentImpl fragment,
     void Function() operation,
   ) {
     withScope(
-      FormalParameterScope(nameScope, fragments, featureSet: _featureSet),
+      FormalParameterScope(
+        nameScope,
+        fragment.declaredFormalParameters,
+        featureSet: _featureSet,
+      ),
       operation,
     );
   }
@@ -590,7 +594,7 @@ class ScopeContext {
     return ConstructorInitializerScope(
       nameScope,
       fragment.element,
-      fragment.formalParameters,
+      fragment.declaredFormalParameters,
     );
   }
 

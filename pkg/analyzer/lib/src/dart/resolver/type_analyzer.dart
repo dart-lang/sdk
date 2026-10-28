@@ -2602,6 +2602,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   ) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
+    var formalParameters = fragment.declaredFormalParameterElements;
     var returnType = element.type.returnType;
 
     _withEnclosingExecutableElement(element, () {
@@ -2616,12 +2617,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         var enterOffset = node.formalParameters.offset;
         flowAnalysis.flowAnalysisRoot_enter(
           node,
-          element.formalParameters,
+          formalParameters,
           offset: enterOffset,
         );
         flowAnalysis.executableDeclaration_enter(
           node,
-          element.formalParameters,
+          formalParameters,
           isClosure: false,
           offset: enterOffset,
         );
@@ -4008,6 +4009,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
     var fragment = primaryConstructorDeclaration?.declaredFragment;
     var element = fragment?.element;
+    var formalParameters = fragment?.declaredFormalParameterElements;
 
     var returnType = element?.type.returnType;
 
@@ -4020,12 +4022,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         var enterOffset = (node.colon ?? node.thisKeyword).offset;
         flowAnalysis.flowAnalysisRoot_enter(
           node,
-          element?.formalParameters,
+          formalParameters,
           offset: enterOffset,
         );
         flowAnalysis.executableDeclaration_enter(
           node,
-          element?.formalParameters,
+          formalParameters,
           isClosure: false,
           offset: enterOffset,
         );
@@ -4547,7 +4549,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitTopLevelFunctionDeclaration(
     covariant TopLevelFunctionDeclarationImpl node,
   ) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    var formalParameters = fragment.declaredFormalParameterElements;
     var returnType = element.returnType;
 
     _withEnclosingExecutableElement(element, () {
@@ -4561,12 +4565,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       var enterOffset = (node.typeParameters ?? node.formalParameters).offset;
       flowAnalysis.flowAnalysisRoot_enter(
         node,
-        element.formalParameters,
+        formalParameters,
         offset: enterOffset,
       );
       flowAnalysis.executableDeclaration_enter(
         node,
-        element.formalParameters,
+        formalParameters,
         isClosure: false,
         offset: enterOffset,
       );
@@ -4590,7 +4594,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitTopLevelGetterDeclaration(
     covariant TopLevelGetterDeclarationImpl node,
   ) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    var formalParameters = fragment.declaredFormalParameterElements;
     var returnType = element.returnType;
 
     _withEnclosingExecutableElement(element, () {
@@ -4603,12 +4609,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       var enterOffset = node.body.offset;
       flowAnalysis.flowAnalysisRoot_enter(
         node,
-        element.formalParameters,
+        formalParameters,
         offset: enterOffset,
       );
       flowAnalysis.executableDeclaration_enter(
         node,
-        element.formalParameters,
+        formalParameters,
         isClosure: false,
         offset: enterOffset,
       );
@@ -4630,7 +4636,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void visitTopLevelSetterDeclaration(
     covariant TopLevelSetterDeclarationImpl node,
   ) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    var formalParameters = fragment.declaredFormalParameterElements;
     var returnType = element.returnType;
 
     _withEnclosingExecutableElement(element, () {
@@ -4644,12 +4652,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       var enterOffset = node.formalParameters.offset;
       flowAnalysis.flowAnalysisRoot_enter(
         node,
-        element.formalParameters,
+        formalParameters,
         offset: enterOffset,
       );
       flowAnalysis.executableDeclaration_enter(
         node,
-        element.formalParameters,
+        formalParameters,
         isClosure: false,
         offset: enterOffset,
       );
@@ -5353,6 +5361,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   void _resolveMethodDeclaration(MethodDeclarationV1OriginImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
+    var formalParameters = fragment.declaredFormalParameterElements;
     var returnType = element.returnType;
 
     _withEnclosingExecutableElement(element, () {
@@ -5372,12 +5381,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
                 .offset;
         flowAnalysis.flowAnalysisRoot_enter(
           node,
-          element.formalParameters,
+          formalParameters,
           offset: enterOffset,
         );
         flowAnalysis.executableDeclaration_enter(
           node,
-          element.formalParameters,
+          formalParameters,
           isClosure: false,
           offset: enterOffset,
         );

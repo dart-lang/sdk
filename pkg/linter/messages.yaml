@@ -1632,8 +1632,8 @@ LinterLintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when string interpolation or 
-      string literals use escaped inner quotes that can be avoided by 
+      The analyzer produces this diagnostic when string interpolation or
+      string literals use escaped inner quotes that can be avoided by
       choosing a different set of surrounding quotes.
 
       #### Example
@@ -5565,7 +5565,7 @@ LinterLintCode:
     state:
       stable: "2.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16351,7 +16351,7 @@ LinterLintCode:
     state:
       experimental: "3.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

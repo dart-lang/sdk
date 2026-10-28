@@ -18759,7 +18759,7 @@ CompileTimeErrorCode:
     sharedName: undefinedExtensionMemberRead
     problemMessage: "The extension '#extensionName' doesn't have an instance member named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing member, or defining a method or getter named '#name' in the extension."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18820,7 +18820,7 @@ CompileTimeErrorCode:
     sharedName: undefinedExtensionMemberRead
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedExtensionMemberReadSetterOnly:
     type: compileTimeError
     parameters:
@@ -18829,7 +18829,7 @@ CompileTimeErrorCode:
     sharedName: undefinedExtensionMemberRead
     problemMessage: "There's a setter '#name' in the extension '#extensionName', but no getter."
     correctionMessage: "Try defining a getter named '#name' in the extension."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedExtensionMemberWriteGetterOnly:
     type: compileTimeError
     parameters:
@@ -18838,7 +18838,7 @@ CompileTimeErrorCode:
     sharedName: undefinedExtensionMemberWrite
     problemMessage: "There's a getter '#name' in the extension '#extensionName', but no setter."
     correctionMessage: "Try defining a setter named '#name' in the extension."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedExtensionMemberWriteNotFound:
     type: compileTimeError
     parameters:
@@ -18847,7 +18847,7 @@ CompileTimeErrorCode:
     sharedName: undefinedExtensionMemberWrite
     problemMessage: "The extension '#extensionName' doesn't have an instance setter named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter named '#name' in the extension."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -18908,7 +18908,7 @@ CompileTimeErrorCode:
     sharedName: undefinedExtensionMemberWrite
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedExtensionMemberWriteWrongKind:
     type: compileTimeError
     parameters:
@@ -18918,7 +18918,7 @@ CompileTimeErrorCode:
     sharedName: undefinedExtensionMemberWrite
     problemMessage: "The #kind '#name' in the extension '#extensionName' can't be assigned to."
     correctionMessage: "Try assigning to a setter instead."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedExtensionMethod:
     type: compileTimeError
     parameters:
@@ -19247,7 +19247,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberRead
     problemMessage: "The member '#name' isn't defined for the type '#type'."
     correctionMessage: "Try importing the library that defines '#name', correcting the name to the name of an existing member, or defining a method, getter, or field named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19325,7 +19325,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberRead
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedInstanceMemberReadSetterOnly:
     type: compileTimeError
     parameters:
@@ -19334,7 +19334,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberRead
     problemMessage: "There's a setter '#name' for the type '#type', but no getter."
     correctionMessage: "Try defining a getter or field named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedInstanceMemberWriteFinal:
     type: compileTimeError
     parameters:
@@ -19343,7 +19343,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberWrite
     problemMessage: "The field '#name' of the type '#type' is final, so it can't be assigned to."
     correctionMessage: "Try making the field non-final, or removing the assignment."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedInstanceMemberWriteGetterOnly:
     type: compileTimeError
     parameters:
@@ -19352,7 +19352,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberWrite
     problemMessage: "There's a getter '#name' for the type '#type', but no setter."
     correctionMessage: "Try defining a setter named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedInstanceMemberWriteNotFound:
     type: compileTimeError
     parameters:
@@ -19361,7 +19361,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberWrite
     problemMessage: "The setter '#name' isn't defined for the type '#type'."
     correctionMessage: "Try importing the library that defines '#name', correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19463,7 +19463,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberWrite
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedInstanceMemberWriteWrongKind:
     type: compileTimeError
     parameters:
@@ -19473,7 +19473,7 @@ CompileTimeErrorCode:
     sharedName: undefinedInstanceMemberWrite
     problemMessage: "The #kind '#name' of the type '#type' can't be assigned to."
     correctionMessage: "Try assigning to a setter or a non-final field instead."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedMethod:
     type: compileTimeError
     parameters:
@@ -19960,7 +19960,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The function type '#aliasName' doesn't have a static member named '#name'."
     correctionMessage: "Try wrapping the function type alias in parentheses to access '#name' on the 'Type' object."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadNoStaticMembersDotShorthand:
     type: compileTimeError
     parameters:
@@ -19969,7 +19969,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The context type '#contextType' doesn't have static members or constructors."
     correctionMessage: "Try qualifying '#name' with the name of the declaration that has it."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadNotFound:
     type: compileTimeError
     parameters:
@@ -19980,7 +19980,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The #containerKind '#containerName' doesn't have a #expectedKinds named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing #expectedKinds, or defining a static member named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20049,7 +20049,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The #containerKind '#containerName' doesn't have a #expectedKinds named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing static constant, or defining a static constant named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadNotFoundConstant:
     type: compileTimeError
     parameters:
@@ -20060,7 +20060,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The #containerKind '#containerName' doesn't have a #expectedKinds named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing static constant or static method, or defining a static constant named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadNotFoundDotShorthand:
     type: compileTimeError
     parameters:
@@ -20070,7 +20070,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The context type '#contextType' doesn't have a #expectedKinds named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing #expectedKinds, or defining a static member named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadNotFoundDotShorthandConstant:
     type: compileTimeError
     parameters:
@@ -20080,7 +20080,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The context type '#contextType' doesn't have a #expectedKinds named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing static constant or static method, or defining a static constant named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadPrivate:
     type: compileTimeError
     parameters:
@@ -20089,7 +20089,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadPrivateDotShorthand:
     type: compileTimeError
     parameters:
@@ -20099,7 +20099,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The context type '#contextType' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try qualifying '#name' with a public name for the declaration, or making the declaration public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberReadSetterOnly:
     type: compileTimeError
     parameters:
@@ -20109,7 +20109,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "There's a static setter '#name' in the #containerKind '#containerName', but no getter."
     correctionMessage: "Try defining a static getter named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberWriteConst:
     type: compileTimeError
     parameters:
@@ -20119,7 +20119,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberWrite
     problemMessage: "The constant '#name' in the #containerKind '#containerName' can't be assigned to."
     correctionMessage: "Try making it a non-constant field, or removing the assignment."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberWriteFinal:
     type: compileTimeError
     parameters:
@@ -20129,7 +20129,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberWrite
     problemMessage: "The static field '#name' in the #containerKind '#containerName' is final, so it can't be assigned to."
     correctionMessage: "Try making the field non-final, or removing the assignment."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberWriteGetterOnly:
     type: compileTimeError
     parameters:
@@ -20139,7 +20139,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberWrite
     problemMessage: "There's a static getter '#name' in the #containerKind '#containerName', but no setter."
     correctionMessage: "Try defining a static setter named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberWriteNoStaticMembers:
     type: compileTimeError
     parameters:
@@ -20148,7 +20148,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberWrite
     problemMessage: "The function type '#aliasName' doesn't have a static setter named '#name'."
     correctionMessage: "Try wrapping the function type alias in parentheses to access '#name' on the 'Type' object."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberWriteNotFound:
     type: compileTimeError
     parameters:
@@ -20158,7 +20158,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberWrite
     problemMessage: "The #containerKind '#containerName' doesn't have a static setter named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing static setter, or defining a static setter or field named '#name'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20218,7 +20218,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberWrite
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedStaticMemberWriteWrongKind:
     type: compileTimeError
     parameters:
@@ -20229,7 +20229,7 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberWrite
     problemMessage: "The #kind '#name' in the #containerKind '#containerName' can't be assigned to."
     correctionMessage: "Try assigning to a static setter or field instead."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedSuperGetter:
     type: compileTimeError
     parameters:
@@ -20248,7 +20248,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberRead
     problemMessage: "The member '#name' isn't defined in a superclass of '#type'."
     correctionMessage: "Try correcting the name to the name of an existing member, or defining a method, getter, or field named '#name' in a superclass."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20343,7 +20343,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberRead
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedSuperMemberReadSetterOnly:
     type: compileTimeError
     parameters:
@@ -20352,7 +20352,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberRead
     problemMessage: "There's a setter '#name' in a superclass of '#type', but no getter."
     correctionMessage: "Try defining a getter or field named '#name' in a superclass."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedSuperMemberWriteFinal:
     type: compileTimeError
     parameters:
@@ -20361,7 +20361,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberWrite
     problemMessage: "The field '#name' in a superclass of '#type' is final, so it can't be assigned to."
     correctionMessage: "Try making the field non-final, or removing the assignment."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedSuperMemberWriteGetterOnly:
     type: compileTimeError
     parameters:
@@ -20370,7 +20370,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberWrite
     problemMessage: "There's a getter '#name' in a superclass of '#type', but no setter."
     correctionMessage: "Try defining a setter named '#name' in a superclass."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedSuperMemberWriteNotFound:
     type: compileTimeError
     parameters:
@@ -20379,7 +20379,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberWrite
     problemMessage: "The setter '#name' isn't defined in a superclass of '#type'."
     correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter or field named '#name' in a superclass."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -20507,7 +20507,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberWrite
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedSuperMemberWriteWrongKind:
     type: compileTimeError
     parameters:
@@ -20517,7 +20517,7 @@ CompileTimeErrorCode:
     sharedName: undefinedSuperMemberWrite
     problemMessage: "The #kind '#name' in a superclass of '#type' can't be assigned to."
     correctionMessage: "Try assigning to a setter or a non-final field instead."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
   undefinedSuperMethod:
     type: compileTimeError
     parameters:
@@ -20580,7 +20580,7 @@ CompileTimeErrorCode:
       Type type: the type where the operator is being looked for
     problemMessage: "The operator '#operator' isn't defined in a superclass of '#type'."
     correctionMessage: "Try defining the operator '#operator' in a superclass."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

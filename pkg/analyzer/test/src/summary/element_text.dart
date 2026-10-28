@@ -285,7 +285,7 @@ class _Element2Writer extends _AbstractElementWriter {
             _sink.writelnWithIndent(id);
             _sink.withIndent(() {
               annotation as ElementAnnotationImpl;
-              _writeNode(annotation.annotationAst);
+              _writeAnnotationAst(annotation.annotationAst);
             });
           }
         }
@@ -416,6 +416,16 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _assertHasExactlyOneTrue(List<bool> flags) {
     expect(flags.where((flag) => flag).length, 1);
+  }
+
+  void _writeAnnotationAst(Annotation node) {
+    expect(
+      node.parent2,
+      isNull,
+      reason: 'Element annotations must be detached.',
+    );
+
+    _writeNode(node);
   }
 
   void _writeConstantInitializerExpression(String name, Expression expression) {
@@ -1306,7 +1316,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.withIndent(() {
           for (var annotation in annotations) {
             annotation as ElementAnnotationImpl;
-            _writeNode(annotation.annotationAst);
+            _writeAnnotationAst(annotation.annotationAst);
           }
         });
       }

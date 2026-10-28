@@ -735,7 +735,7 @@ class _InfoBuilder {
           parameter.metadata.accept2(collector);
           addFormalParameters(parameter.functionTypedSuffix?.formalParameters);
           if (parameter.defaultClause case var defaultClause?) {
-            defaultClause.value2.accept2(collector);
+            collector.visitReplaceable(defaultClause.value2);
           }
         }
       }
@@ -747,7 +747,7 @@ class _InfoBuilder {
     addDirectives(partDirectives);
     addTypeParameters(typeParameters);
     addFormalParameters(formalParameters);
-    constantInitializer?.accept2(collector);
+    collector.visitReplaceable(constantInitializer);
     constructorInitializers?.accept2(collector);
     if (enumConstants != null) {
       for (var enumConstant in enumConstants) {
@@ -758,8 +758,13 @@ class _InfoBuilder {
       addTypeParameters(aliasedType.typeParameters);
       addFormalParameters(aliasedType.parameters);
     }
-    enumConstantArguments?.typeArguments?.accept2(collector);
-    enumConstantArguments?.argumentList.accept2(collector);
+    if (enumConstantArguments != null) {
+      // Detaching replaces the whole initializer of an enum constant.
+      if (isSerializable(enumConstantArguments)) {
+        enumConstantArguments.typeArguments?.accept2(collector);
+        enumConstantArguments.argumentList.accept2(collector);
+      }
+    }
     return collector.offsets.takeAndReset();
   }
 
@@ -1858,18 +1863,6 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
-    // We store FunctionExpression(s) as empty stubs: `() {}`.
-    // We just need it to have right code range, so we apply 2 offsets.
-    node.parameters?.leftParenthesis.offset = _iterator.take() ?? 0;
-
-    var body = node.body;
-    if (body is BlockFunctionBody) {
-      body.block.rightBracket.offset = _iterator.take() ?? 0;
-    }
-  }
-
-  @override
   void visitRegularFormalParameter(RegularFormalParameter node) {
     super.visitRegularFormalParameter(node);
 
@@ -1911,10 +1904,17 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitArgumentList(ArgumentList node) {
+  void visitArgumentList(covariant ArgumentListImpl node) {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.rightParenthesis);
-    super.visitArgumentList(node);
+    for (var argument in node.arguments2) {
+      switch (argument) {
+        case ExpressionImpl():
+          visitReplaceable(argument);
+        case NamedArgumentImpl():
+          argument.accept2(this);
+      }
+    }
   }
 
   @override
@@ -1929,7 +1929,8 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.leftParenthesis);
     _tokenOrNull(node.comma);
     _tokenOrNull(node.rightParenthesis);
-    super.visitAssertInitializer(node);
+    visitReplaceable(node.condition2);
+    visitReplaceable(node.message2);
   }
 
   @override
@@ -2000,7 +2001,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.thisKeyword);
     _tokenOrNull(node.fieldName2);
     _tokenOrNull(node.equals);
-    super.visitConstructorFieldInitializer(node);
+    visitReplaceable(node.expression2);
   }
 
   @override
@@ -2203,7 +2204,7 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   void visitNamedArgument(NamedArgument node) {
     _tokenOrNull(node.name);
     _tokenOrNull(node.colon);
-    super.visitNamedArgument(node);
+    visitReplaceable(node.argumentExpression2);
   }
 
   @override
@@ -2369,6 +2370,12 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     super.visitRegularFormalParameter(node);
   }
 
+  /// Visits [node], which detaching might replace with a marker, see
+  /// [replaceNotSerializableExpression].
+  void visitReplaceable(Expression? node) {
+    node?.accept2(this);
+  }
+
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _tokenOrNull(node.constKeyword);
@@ -2470,9 +2477,10 @@ class _OffsetsCollector extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
-    offsets.add(node.offset);
-    offsets.add(node.end - 1);
+  void visitReplaceable(Expression? node) {
+    if (node != null && isSerializable(node)) {
+      node.accept2(this);
+    }
   }
 }
 

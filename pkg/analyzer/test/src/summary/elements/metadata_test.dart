@@ -319,6 +319,575 @@ library
 ''');
   }
 
+  test_annotationArgument_functionExpression_nextArgument() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? a, Object? b);
+}
+
+@A(() {}, 1)
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration a (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:39) (firstTokenOffset:31) (offset:39)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+      functions
+        #F5 isComplete isOriginDeclaration isStatic f (nameOffset:64) (firstTokenOffset:46) (offset:64)
+          element: <testLibrary>::@function::f
+          metadata
+            Annotation
+              atSign: @ @46
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @47
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @48
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                    IntegerLiteral
+                      literal: 1 @56
+                      staticType: int
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                    IntegerLiteral
+                      literal: 1 @56
+                      staticType: int
+                  rightParenthesis: ) @57
+                staticType: A
+              name: SimpleIdentifier
+                token: A @47
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @48
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                  IntegerLiteral
+                    literal: 1 @56
+                    staticType: int
+                rightParenthesis: ) @57
+              element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional a
+              firstFragment: #F3
+              type: Object?
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: Object?
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F5
+      metadata
+        Annotation
+          atSign: @ @46
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @47
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @48
+              arguments2
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+                IntegerLiteral
+                  literal: 1 @56
+                  staticType: int
+              arguments(v1)
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
+                IntegerLiteral
+                  literal: 1 @56
+                  staticType: int
+              rightParenthesis: ) @57
+            staticType: A
+          name: SimpleIdentifier
+            token: A @47
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @48
+            arguments
+              SimpleIdentifier
+                token: _notSerializableExpression @-1
+                element: <null>
+                staticType: null
+              IntegerLiteral
+                literal: 1 @56
+                staticType: int
+            rightParenthesis: ) @57
+          element: <testLibrary>::@class::A::@constructor::new
+      returnType: void
+''');
+  }
+
+  test_annotationArgument_functionExpression_nextNamedArgument() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A({Object? a, Object? b});
+}
+
+@A(a: () {}, b: 1)
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 optionalNamed isOriginDeclaration a (nameOffset:29) (firstTokenOffset:21) (offset:29)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                #F4 optionalNamed isOriginDeclaration b (nameOffset:40) (firstTokenOffset:32) (offset:40)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+      functions
+        #F5 isComplete isOriginDeclaration isStatic f (nameOffset:72) (firstTokenOffset:48) (offset:72)
+          element: <testLibrary>::@function::f
+          metadata
+            Annotation
+              atSign: @ @48
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @49
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @50
+                  arguments2
+                    NamedArgument
+                      name: a @51
+                      colon: : @52
+                      argumentExpression2: UnqualifiedNameExpression
+                        name: _notSerializableExpression @-1
+                        resolution: <null>
+                        staticType: null
+                      argumentExpression(v1): SimpleIdentifier
+                        token: _notSerializableExpression @-1
+                        element: <null>
+                        staticType: null
+                    NamedArgument
+                      name: b @61
+                      colon: : @62
+                      argumentExpression2: IntegerLiteral
+                        literal: 1 @64
+                        staticType: int
+                  rightParenthesis: ) @65
+                staticType: A
+              name: SimpleIdentifier
+                token: A @49
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @50
+                arguments
+                  NamedArgument
+                    name: a @51
+                    colon: : @52
+                    argumentExpression: SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  NamedArgument
+                    name: b @61
+                    colon: : @62
+                    argumentExpression: IntegerLiteral
+                      literal: 1 @64
+                      staticType: int
+                rightParenthesis: ) @65
+              element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 optionalNamed a
+              firstFragment: #F3
+              type: Object?
+            #E1 optionalNamed b
+              firstFragment: #F4
+              type: Object?
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F5
+      metadata
+        Annotation
+          atSign: @ @48
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @49
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @50
+              arguments2
+                NamedArgument
+                  name: a @51
+                  colon: : @52
+                  argumentExpression2: UnqualifiedNameExpression
+                    name: _notSerializableExpression @-1
+                    resolution: <null>
+                    staticType: null
+                  argumentExpression(v1): SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                NamedArgument
+                  name: b @61
+                  colon: : @62
+                  argumentExpression2: IntegerLiteral
+                    literal: 1 @64
+                    staticType: int
+              rightParenthesis: ) @65
+            staticType: A
+          name: SimpleIdentifier
+            token: A @49
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @50
+            arguments
+              NamedArgument
+                name: a @51
+                colon: : @52
+                argumentExpression: SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
+              NamedArgument
+                name: b @61
+                colon: : @62
+                argumentExpression: IntegerLiteral
+                  literal: 1 @64
+                  staticType: int
+            rightParenthesis: ) @65
+          element: <testLibrary>::@class::A::@constructor::new
+      returnType: void
+''');
+  }
+
+  test_annotationArgument_functionExpression_typeParameter_ofClass() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? o);
+}
+
+class B<@A(() {}) T> {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration o (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+        #F4 class B (nameOffset:41) (firstTokenOffset:35) (offset:41)
+          element: <testLibrary>::@class::B
+          typeParameters
+            #F5 T (nameOffset:53) (firstTokenOffset:43) (offset:53)
+              element: #E0 T
+              metadata
+                Annotation
+                  atSign: @ @43
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @44
+                        element: <testLibrary>::@class::A
+                        type: A
+                      element: <testLibrary>::@class::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @45
+                      arguments2
+                        UnqualifiedNameExpression
+                          name: _notSerializableExpression @-1
+                          resolution: <null>
+                          staticType: null
+                      arguments(v1)
+                        SimpleIdentifier
+                          token: _notSerializableExpression @-1
+                          element: <null>
+                          staticType: null
+                      rightParenthesis: ) @51
+                    staticType: A
+                  name: SimpleIdentifier
+                    token: A @44
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @45
+                    arguments
+                      SimpleIdentifier
+                        token: _notSerializableExpression @-1
+                        element: <null>
+                        staticType: null
+                    rightParenthesis: ) @51
+                  element: <testLibrary>::@class::A::@constructor::new
+          constructors
+            #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E1 requiredPositional o
+              firstFragment: #F3
+              type: Object?
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F4
+      typeParameters
+        #E0 T
+          firstFragment: #F5
+          metadata
+            Annotation
+              atSign: @ @43
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @44
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @45
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  rightParenthesis: ) @51
+                staticType: A
+              name: SimpleIdentifier
+                token: A @44
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @45
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @51
+              element: <testLibrary>::@class::A::@constructor::new
+      constructors
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
+''');
+  }
+
+  test_annotationArgument_functionExpression_typeParameter_ofTypeAlias() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? o);
+}
+
+typedef F<@A(() {}) T> = void Function();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration o (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+      typeAliases
+        #F4 F (nameOffset:43) (firstTokenOffset:35) (offset:43)
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            #F5 T (nameOffset:55) (firstTokenOffset:45) (offset:55)
+              element: #E0 T
+              metadata
+                Annotation
+                  atSign: @ @45
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @46
+                        element: <testLibrary>::@class::A
+                        type: A
+                      element: <testLibrary>::@class::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @47
+                      arguments2
+                        UnqualifiedNameExpression
+                          name: _notSerializableExpression @-1
+                          resolution: <null>
+                          staticType: null
+                      arguments(v1)
+                        SimpleIdentifier
+                          token: _notSerializableExpression @-1
+                          element: <null>
+                          staticType: null
+                      rightParenthesis: ) @53
+                    staticType: A
+                  name: SimpleIdentifier
+                    token: A @46
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @47
+                    arguments
+                      SimpleIdentifier
+                        token: _notSerializableExpression @-1
+                        element: <null>
+                        staticType: null
+                    rightParenthesis: ) @53
+                  element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E1 requiredPositional o
+              firstFragment: #F3
+              type: Object?
+  typeAliases
+    isSimplyBounded F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F4
+      typeParameters
+        #E0 T
+          firstFragment: #F5
+          metadata
+            Annotation
+              atSign: @ @45
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @46
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @47
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  rightParenthesis: ) @53
+                staticType: A
+              name: SimpleIdentifier
+                token: A @46
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @47
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @53
+              element: <testLibrary>::@class::A::@constructor::new
+      aliasedType: void Function()
+''');
+  }
+
   test_annotationArgument_recordLiteral() async {
     var library = await buildLibrary(r'''
 @A((2, a: 3))
@@ -424,6 +993,152 @@ library
             #E0 requiredPositional hasImplicitType o
               firstFragment: #F5
               type: dynamic
+''');
+  }
+
+  test_annotationArgument_switchExpression_nextArgument() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? a, Object? b);
+}
+
+@A(switch (0) { _ => 0 }, 1)
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration a (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:39) (firstTokenOffset:31) (offset:39)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+      functions
+        #F5 isComplete isOriginDeclaration isStatic f (nameOffset:80) (firstTokenOffset:46) (offset:80)
+          element: <testLibrary>::@function::f
+          metadata
+            Annotation
+              atSign: @ @46
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @47
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @48
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                    IntegerLiteral
+                      literal: 1 @72
+                      staticType: int
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                    IntegerLiteral
+                      literal: 1 @72
+                      staticType: int
+                  rightParenthesis: ) @73
+                staticType: A
+              name: SimpleIdentifier
+                token: A @47
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @48
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                  IntegerLiteral
+                    literal: 1 @72
+                    staticType: int
+                rightParenthesis: ) @73
+              element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional a
+              firstFragment: #F3
+              type: Object?
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: Object?
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F5
+      metadata
+        Annotation
+          atSign: @ @46
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @47
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @48
+              arguments2
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+                IntegerLiteral
+                  literal: 1 @72
+                  staticType: int
+              arguments(v1)
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
+                IntegerLiteral
+                  literal: 1 @72
+                  staticType: int
+              rightParenthesis: ) @73
+            staticType: A
+          name: SimpleIdentifier
+            token: A @47
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @48
+            arguments
+              SimpleIdentifier
+                token: _notSerializableExpression @-1
+                element: <null>
+                staticType: null
+              IntegerLiteral
+                literal: 1 @72
+                staticType: int
+            rightParenthesis: ) @73
+          element: <testLibrary>::@class::A::@constructor::new
+      returnType: void
 ''');
   }
 
@@ -7570,6 +8285,103 @@ library
 ''');
   }
 
+  test_metadata_simpleFormalParameter_augmentation_constructor_inAugmentation_missingInIntroductory() async {
+    var library = await buildLibrary(r'''
+const a = 0;
+
+class A {
+  A();
+}
+
+augment class A {
+  augment A([@a int? x]);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:20) (firstTokenOffset:14) (offset:20)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:26) (offset:26)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 26
+              formalParameters
+                #F4 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  nextFragment: #F5
+              nextFragment: #F6
+        #F2 isAugmentation class A (nameOffset:48) (firstTokenOffset:34) (offset:48)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F6 isAugmentation isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:54) (offset:62)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 62
+              formalParameters
+                #F5 optionalPositional isOriginDeclaration x (nameOffset:73) (firstTokenOffset:65) (offset:73)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+                  metadata
+                    Annotation
+                      atSign: @ @65
+                      expression: UnqualifiedNameExpression
+                        name: a @66
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::a
+                          type: int
+                        staticType: int
+                      name: SimpleIdentifier
+                        token: a @66
+                        element: <testLibrary>::@getter::a
+                        staticType: null
+                      element: <testLibrary>::@getter::a
+                  previousFragment: #F4
+              previousFragment: #F3
+      topLevelVariables
+        #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F8
+      getters
+        #F8 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F7
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F7
+      type: int
+      constantInitializer
+        fragment: #F7
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F8
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_metadata_simpleFormalParameter_augmentation_constructor_inBoth_first() async {
     var library = await buildLibrary(r'''
 const a = 0;
@@ -8050,6 +8862,90 @@ library
 ''');
   }
 
+  test_metadata_simpleFormalParameter_augmentation_getter_inAugmentation_missingInIntroductory() async {
+    var library = await buildLibrary(r'''
+const a = 0;
+
+int get foo => 0;
+
+augment int get foo([@a int? x]) => 0;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F2
+        #F3 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+          element: <testLibrary>::@topLevelVariable::foo
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+        #F4 isComplete isOriginDeclaration isStatic foo (nameOffset:22) (firstTokenOffset:14) (offset:22)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F5 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: x@null
+              nextFragment: #F6
+          nextFragment: #F7
+        #F7 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:49) (firstTokenOffset:33) (offset:49)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F6 optionalPositional isOriginDeclaration x (nameOffset:62) (firstTokenOffset:54) (offset:62)
+              element: x@null
+              metadata
+                Annotation
+                  atSign: @ @54
+                  expression: UnqualifiedNameExpression
+                    name: a @55
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      type: int
+                    staticType: int
+                  name: SimpleIdentifier
+                    token: a @55
+                    element: <testLibrary>::@getter::a
+                    staticType: null
+                  element: <testLibrary>::@getter::a
+              previousFragment: #F5
+          previousFragment: #F4
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+    isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F3
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_metadata_simpleFormalParameter_augmentation_getter_inBoth_first() async {
     var library = await buildLibrary(r'''
 const a = 0;
@@ -8503,6 +9399,108 @@ library
                     element: <testLibrary>::@getter::a
                     staticType: null
                   element: <testLibrary>::@getter::a
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F8
+      type: int
+      constantInitializer
+        fragment: #F8
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F9
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_metadata_simpleFormalParameter_augmentation_method_inAugmentation_missingInIntroductory() async {
+    var library = await buildLibrary(r'''
+const a = 0;
+
+class A {
+  void foo() {}
+}
+
+augment class A {
+  augment void foo([@a int? x]) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:20) (firstTokenOffset:14) (offset:20)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 isComplete isOriginDeclaration foo (nameOffset:31) (firstTokenOffset:26) (offset:31)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F5
+              formalParameters
+                #F6 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+                  nextFragment: #F7
+        #F2 isAugmentation class A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F5 isAugmentation isComplete isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              formalParameters
+                #F7 optionalPositional isOriginDeclaration x (nameOffset:89) (firstTokenOffset:81) (offset:89)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+                  metadata
+                    Annotation
+                      atSign: @ @81
+                      expression: UnqualifiedNameExpression
+                        name: a @82
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::a
+                          type: int
+                        staticType: int
+                      name: SimpleIdentifier
+                        token: a @82
+                        element: <testLibrary>::@getter::a
+                        staticType: null
+                      element: <testLibrary>::@getter::a
+                  previousFragment: #F6
+      topLevelVariables
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F9
+      getters
+        #F9 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F8
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
           returnType: void
   topLevelVariables
     hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
@@ -9462,6 +10460,84 @@ library
                 element: <testLibrary>::@getter::a
                 staticType: null
               element: <testLibrary>::@getter::a
+      returnType: void
+''');
+  }
+
+  test_metadata_simpleFormalParameter_augmentation_topLevelFunction_inAugmentation_missingInIntroductory() async {
+    var library = await buildLibrary(r'''
+const a = 0;
+
+void foo() {}
+
+augment void foo([@a int? x]) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::a
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F1
+      functions
+        #F3 isComplete isOriginDeclaration isStatic foo (nameOffset:19) (firstTokenOffset:14) (offset:19)
+          element: <testLibrary>::@function::foo
+          nextFragment: #F4
+          formalParameters
+            #F5 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@function::foo::@formalParameter::x
+              nextFragment: #F6
+        #F4 isAugmentation isComplete isOriginDeclaration isStatic foo (nameOffset:42) (firstTokenOffset:29) (offset:42)
+          element: <testLibrary>::@function::foo
+          previousFragment: #F3
+          formalParameters
+            #F6 optionalPositional isOriginDeclaration x (nameOffset:55) (firstTokenOffset:47) (offset:55)
+              element: <testLibrary>::@function::foo::@formalParameter::x
+              metadata
+                Annotation
+                  atSign: @ @47
+                  expression: UnqualifiedNameExpression
+                    name: a @48
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      type: int
+                    staticType: int
+                  name: SimpleIdentifier
+                    token: a @48
+                    element: <testLibrary>::@getter::a
+                    staticType: null
+                  element: <testLibrary>::@getter::a
+              previousFragment: #F5
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::a
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F3
       returnType: void
 ''');
   }

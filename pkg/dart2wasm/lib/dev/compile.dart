@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:cfg/front_end/ast_to_ir.dart';
 import 'package:cfg/front_end/computed_scopes.dart';
 import 'package:cfg/front_end/recognized_methods.dart';
+import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/ssa_computation.dart';
@@ -81,8 +82,21 @@ class ModuleCompiler {
     requireMethods: false,
   );
 
+  // TODO(dart2wasm): Add support for class fields.
+  late final w.StructType objectStruct = module.types.defineStruct(
+    'Object',
+    fields: [w.FieldType(w.NumType.i32, mutable: false)],
+    brand: false,
+  );
+
   /// Maps a static's label to the global holding its ID.
   final Map<String, w.Global> _staticIds = {};
+
+  /// Maps a class's label to the global holding its ID.
+  final Map<String, w.Global> _classIds = {};
+
+  /// Maps an instance member name to the global holding its ID.
+  final Map<String, w.Global> _instanceMemberIds = {};
 
   ModuleCompiler(this.module, this.runtime);
 
@@ -93,14 +107,49 @@ class ModuleCompiler {
       _compileProcedure(procedure, isMain: procedure == mainMethod);
     }
     for (final cls in library.classes) {
+      defineClassSupers(cls);
+      for (final constructor in cls.constructors) {
+        _compileConstructor(constructor);
+      }
+      startInstanceMemberDefinitions(cls);
       for (final procedure in cls.procedures) {
+        if (procedure.isAbstract) continue; // Not needed at runtime.
         _compileProcedure(procedure, isMain: false);
       }
+      endInstanceMemberDefinitions(cls);
     }
   }
 
   void _compileProcedure(ast.Procedure procedure, {required bool isMain}) {
     final cFunction = functionRegistry.getFunction(procedure);
+    final graph = _buildCfg(cFunction);
+    final function = _buildWasmFunction(
+      memberLabel(procedure),
+      functionTypeFor(cFunction),
+      (b) => DevCfgToWasm(this, graph, b).generate(),
+    );
+    if (procedure.isInstanceMember) {
+      defineInstanceMember(procedure, function);
+    } else {
+      if (isMain) module.exports.export('main', function);
+      defineStatic(memberLabel(procedure), function);
+    }
+  }
+
+  /// Compiles [constructor] as a static that takes the new object.
+  void _compileConstructor(ast.Constructor constructor) {
+    final cFunction = functionRegistry.getFunction(constructor);
+    final graph = _buildCfg(cFunction);
+    final function = _buildWasmFunction(
+      memberLabel(constructor),
+      functionTypeFor(cFunction),
+      (b) => DevCfgToWasm(this, graph, b).generate(),
+    );
+    defineStatic(memberLabel(constructor), function);
+  }
+
+  /// Builds [cFunction]'s CFG representation.
+  FlowGraph _buildCfg(CFunction cFunction) {
     final graph = AstToIr(
       cFunction,
       functionRegistry,
@@ -108,56 +157,60 @@ class ModuleCompiler {
       onLocalFunction: (_) {},
       enableAsserts: false,
       typeParametersStyle: .separateFunctionAndClassTypeParameters,
-      scopes: ComputedScopes(procedure, enableAsserts: false),
+      scopes: ComputedScopes(cFunction.member, enableAsserts: false),
     ).buildFlowGraph();
-
     Pipeline([SSAComputation()]).run(graph);
-
-    final label = staticLabel(procedure);
-    final type = functionTypeFor(cFunction);
-    defineStatic(
-      label,
-      type,
-      (b) => DevCfgToWasm(this, graph, b).generate(),
-      exportName: isMain ? 'main' : null,
-    );
+    return graph;
   }
+
+  /// Returns the Wasm type of values of [type].
+  w.ValueType translateType(CType type) => switch (type) {
+    IntType() => w.NumType.i64,
+    DoubleType() => w.NumType.f64,
+    BoolType() => w.NumType.i32,
+    // TODO(dart2wasm): Lower String to a Dart object (Wasm struct).
+    StringType() => _jsString,
+    NullType() || NeverType() => const w.RefType.none(nullable: true),
+    StaticType(dartType: ast.InterfaceType()) => w.RefType.def(
+      objectStruct,
+      nullable: type.isNullable,
+    ),
+    _ => throw UnimplementedError('Unsupported type: $type'),
+  };
 
   w.FunctionType functionTypeFor(CFunction cFunction) {
     final functionNode = cFunction.functionNode!;
+    // TODO(dart2wasm): Support optional, named, and type parameters.
+    if (functionNode.requiredParameterCount !=
+            functionNode.positionalParameters.length ||
+        functionNode.namedParameters.isNotEmpty ||
+        functionNode.typeParameters.isNotEmpty) {
+      throw UnimplementedError('Unsupported parameters in ${cFunction.member}');
+    }
     final inputs = <w.ValueType>[
+      if (cFunction.hasReceiverParameter)
+        w.RefType.def(objectStruct, nullable: false),
       for (final param in functionNode.positionalParameters)
-        DevCfgToWasm.translateCType(CType.fromStaticType(param.type)),
+        translateType(CType.fromStaticType(param.type)),
     ];
     final returnType = cFunction.returnType;
     final outputs =
         (returnType.dartType is ast.VoidType || returnType is NeverType)
         ? const <w.ValueType>[]
-        : <w.ValueType>[DevCfgToWasm.translateCType(returnType)];
+        : <w.ValueType>[translateType(returnType)];
     return module.types.defineFunction(inputs, outputs);
   }
 
-  /// Defines static [label] with [type] and body [emitBody].
-  void defineStatic(
-    String label,
-    w.FunctionType type,
-    void Function(w.InstructionsBuilder b) emitBody, {
-    String? exportName,
-  }) {
-    final functionBuilder = module.functions.define(type, label);
-    emitBody(functionBuilder.body);
-    final function = functionBuilder.build();
-    if (exportName != null) {
-      module.exports.export(exportName, function);
-    }
-    // Declare [function] so `ref.func` can reference it.
-    module.elements.declarativeSegmentBuilder.declare(function);
+  /// Defines static [label] as [function] in the runtime.
+  void defineStatic(String label, w.BaseFunction function) {
     _start.global_get(_staticId(label));
     _start.ref_func(function);
-    _start.call(runtime.declareStatic);
+    _start.call(runtime.defineStatic);
   }
 
   /// Emits a call to static [label] with [type].
+  ///
+  /// Expects the arguments on the stack.
   void callStatic(w.InstructionsBuilder b, String label, w.FunctionType type) {
     b.global_get(_staticId(label));
     b.call(runtime.lookupStatic);
@@ -165,8 +218,92 @@ class ModuleCompiler {
     b.call_ref(type);
   }
 
+  /// Defines [cls]'s superclass.
+  void defineClassSupers(ast.Class cls) {
+    final classId = _classId(classLabel(cls));
+    final superclassId = _classId(classLabel(cls.superclass!));
+    _start.global_get(classId);
+    _start.global_get(superclassId);
+    _start.call(runtime.defineClassSupers);
+  }
+
+  /// Starts defining [cls]'s instance members.
+  void startInstanceMemberDefinitions(ast.Class cls) {
+    _start.global_get(_classId(classLabel(cls)));
+    _start.call(runtime.startInstanceMemberDefinitions);
+  }
+
+  /// Ends defining [cls]'s instance members.
+  void endInstanceMemberDefinitions(ast.Class cls) {
+    _start.global_get(_classId(classLabel(cls)));
+    _start.call(runtime.endInstanceMemberDefinitions);
+  }
+
+  /// Defines instance [member] as [function] in the runtime.
+  void defineInstanceMember(ast.Member member, w.BaseFunction function) {
+    final classId = _classId(classLabel(member.enclosingClass!));
+    final instanceMemberId = _instanceMemberId(instanceMemberName(member));
+    _start.global_get(classId);
+    _start.global_get(instanceMemberId);
+    _start.ref_func(function);
+    _start.call(runtime.defineInstanceMember);
+  }
+
+  /// Pushes a new instance of [cls].
+  void allocateObject(w.InstructionsBuilder b, ast.Class cls) {
+    b.global_get(_classId(classLabel(cls)));
+    b.struct_new(objectStruct);
+  }
+
+  /// Emits a call to [receiver.name] with [type].
+  ///
+  /// Expects the arguments on the stack (including [receiver]).
+  void callInstance(
+    w.InstructionsBuilder b,
+    w.Local receiver,
+    String name,
+    w.FunctionType type,
+  ) {
+    b.local_get(receiver);
+    b.struct_get(objectStruct, 0);
+    b.global_get(_instanceMemberId(name));
+    b.call(runtime.findTarget);
+    b.ref_cast(w.RefType.def(type, nullable: false));
+    b.call_ref(type);
+  }
+
+  /// Builds Wasm function [name] with [type] and body [emitBody].
+  w.BaseFunction _buildWasmFunction(
+    String name,
+    w.FunctionType type,
+    void Function(w.InstructionsBuilder b) emitBody,
+  ) {
+    final functionBuilder = module.functions.define(type, name);
+    emitBody(functionBuilder.body);
+    final function = functionBuilder.build();
+    // Declare [function] so `ref.func` can reference it.
+    module.elements.declarativeSegmentBuilder.declare(function);
+    return function;
+  }
+
   /// Returns the global holding static [label]'s ID.
-  w.Global _staticId(String label) => _staticIds.putIfAbsent(label, () {
+  w.Global _staticId(String label) => _id(_staticIds, label, runtime.staticId);
+
+  /// Returns the global holding class [label]'s ID.
+  w.Global _classId(String label) => _id(_classIds, label, runtime.classId);
+
+  /// Returns the global holding instance member [name]'s ID.
+  w.Global _instanceMemberId(String name) =>
+      _id(_instanceMemberIds, name, runtime.instanceMemberId);
+
+  /// Returns the global in [ids[label]].
+  ///
+  /// Initializes the ID with [idFunction] on first access.
+  w.Global _id(
+    Map<String, w.Global> ids,
+    String label,
+    w.BaseFunction idFunction,
+  ) => ids.putIfAbsent(label, () {
     // Emit a global variable to hold [label]'s ID.
     final globalBuilder = module.globals.define(
       w.GlobalType(w.NumType.i32, mutable: true),
@@ -177,21 +314,39 @@ class ModuleCompiler {
       ..i32_const(0)
       ..end();
     pushString(_start, label);
-    _start.call(runtime.staticId);
+    _start.call(idFunction);
     _start.global_set(globalBuilder.global);
     return globalBuilder.build();
   });
 }
 
-/// Returns the static label for [member].
-String staticLabel(ast.Member member) {
+/// Returns [member]'s label.
+///
+/// Example: `package:foo/foo.dart::Foo.bar`
+String memberLabel(ast.Member member) {
   final libraryUri = member.enclosingLibrary.importUri;
   final className = member.enclosingClass?.name;
-  final memberName = member.name.text;
+  final isUnnamedConstructor =
+      member is ast.Constructor && member.name.text.isEmpty;
+  final name = isUnnamedConstructor ? 'new' : member.name.text;
   if (className != null) {
-    return '$libraryUri::$className.$memberName';
+    return '$libraryUri::$className.$name';
   }
-  return '$libraryUri::$memberName';
+  return '$libraryUri::$name';
+}
+
+/// Returns [cls]'s label.
+///
+/// Example: `package:foo/foo.dart::Foo`
+String classLabel(ast.Class cls) =>
+    '${cls.enclosingLibrary.importUri}::${cls.name}';
+
+/// Returns instance [member]'s name.
+///
+/// Example: `mem` or `_mem@package:foo/foo.dart` if private.
+String instanceMemberName(ast.Member member) {
+  final name = member.name;
+  return name.isPrivate ? '${name.text}@${name.library!.importUri}' : name.text;
 }
 
 /// Pushes [value] as a JS string.

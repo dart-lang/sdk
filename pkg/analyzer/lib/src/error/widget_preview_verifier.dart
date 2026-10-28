@@ -48,7 +48,7 @@ class WidgetPreviewVerifier {
       return;
     }
 
-    var parent = node.parent2;
+    var parent = node.parent2!;
     bool isValidApplication = switch (parent) {
       // First, check that the preview application is happening in a supported
       // context.

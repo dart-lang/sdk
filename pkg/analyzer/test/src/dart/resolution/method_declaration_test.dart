@@ -16,6 +16,71 @@ main() {
 
 @reflectiveTest
 class MethodDeclarationResolutionTest extends PubPackageResolutionTest {
+  test_augmentation_formalParameter_missingInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo(int x);
+//     ^^^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment void foo() {
+//                 ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+    x;
+//  ^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+  }
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
+  token: x
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_augmentation_formalParameter_onlyInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  void foo();
+//     ^^^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment void foo([int x = 0]) {
+//                 ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+    x;
+  }
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: x
+  element: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+  staticType: int
+''');
+  }
+
   test_formalParameterScope_defaultValue() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {
