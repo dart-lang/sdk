@@ -1280,6 +1280,8 @@ class LibraryManifestBuilder {
                 .map((item) => item.id)
                 .sorted();
             classItem.allSubtypes = ManifestItemIdList(ids);
+          } else {
+            classItem.allSubtypes = null;
           }
         }
       }

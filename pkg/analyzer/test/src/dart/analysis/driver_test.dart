@@ -6522,6 +6522,121 @@ class C {}
     );
   }
 
+  test_dependency_class_add_allSubtypes_sealed_nonFinal() async {
+    configuration
+      ..withGetErrorsEvents = false
+      ..withStreamResolvedUnitResults = false;
+
+    _ManualRequirements.install((state) {
+      state.singleUnit.scopeClassElement('A').allSubtypes;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+sealed class A {}
+final class B extends A {}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+    exportMapId: #M4
+    exportMap
+      A: #M0
+      B: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    exportMapId: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            allSubtypes: #M2
+[status] idle
+''',
+      updatedA: r'''
+sealed class A {}
+final class B extends A {}
+class C extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        interface: #M3
+      C: #M7
+        interface: #M8
+    exportMapId: #M9
+    exportMap
+      A: #M0
+      B: #M2
+      C: #M7
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    childrenPropertyName: allSubtypes
+    expectedIds: #M2
+    actualIds: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M9
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            allSubtypes: <null>
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_add_directSubtypesOfSealed_related() async {
     configuration
       ..withGetErrorsEvents = false
@@ -60329,6 +60444,69 @@ final class D extends B {}
       B: #M1
       C: #M4
       D: #M7
+''',
+    );
+  }
+
+  test_manifest_class_allSubtypes_sealed_nonFinal() async {
+    configuration.withElementManifests = true;
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+sealed class A {}
+final class B extends A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        flags: isAbstract isSealed isSimplyBounded
+        supertype: Object @ dart:core
+        allSubtypes: #M1
+        directSubtypesOfSealed: #M1
+        interface: #M2
+      B: #M1
+        flags: isFinal isSimplyBounded
+        supertype: A @ package:test/test.dart
+        allSubtypes: []
+        interface: #M3
+    exportMapId: #M4
+    exportMap
+      A: #M0
+      B: #M1
+''',
+      updatedCode: r'''
+sealed class A {}
+final class B extends A {}
+class C extends A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        flags: isAbstract isSealed isSimplyBounded
+        supertype: Object @ dart:core
+        directSubtypesOfSealed: #M1 #M5
+        interface: #M2
+      B: #M1
+        flags: isFinal isSimplyBounded
+        supertype: A @ package:test/test.dart
+        allSubtypes: []
+        interface: #M3
+      C: #M5
+        flags: isSimplyBounded
+        supertype: A @ package:test/test.dart
+        interface: #M6
+    exportMapId: #M7
+    exportMap
+      A: #M0
+      B: #M1
+      C: #M5
 ''',
     );
   }
