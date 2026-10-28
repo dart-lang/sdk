@@ -15,11 +15,19 @@ import '../dtd_client.dart';
 import 'internal_service.dart';
 
 class FileSystemService extends InternalService {
-  FileSystemService({required this.secret, required this.unrestrictedMode});
+  FileSystemService({
+    required this.secret,
+    required this.unrestrictedMode,
+    this.onWorkspaceRootsChanged,
+  });
 
   final String secret;
   final bool unrestrictedMode;
-  final List<Uri> _ideWorkspaceRoots = [];
+
+  /// Callback invoked whenever the IDE workspace roots are updated via
+  /// `FileSystem.setIDEWorkspaceRoots`.
+  final void Function(List<Uri>)? onWorkspaceRootsChanged;
+  final _ideWorkspaceRoots = <Uri>[];
 
   @override
   String get serviceName => FileSystemServiceConstants.serviceName;
@@ -160,8 +168,10 @@ class FileSystemService extends InternalService {
       newRoots.add(rootUri);
     }
 
-    _ideWorkspaceRoots.clear();
-    _ideWorkspaceRoots.addAll(newRoots);
+    _ideWorkspaceRoots
+      ..clear()
+      ..addAll(newRoots);
+    onWorkspaceRootsChanged?.call(List<Uri>.unmodifiable(_ideWorkspaceRoots));
 
     return RPCResponses.success;
   }
