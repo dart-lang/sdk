@@ -76,7 +76,7 @@ vars = {
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
   "d8_tag": "version:15.7.111",
-  "jsshell_tag": "version:158.0.1",
+  "jsshell_tag": "version:159.0",
   "jsc_tag": "version:323425",
 
   # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/gcloud
@@ -165,7 +165,7 @@ vars = {
   "download_chrome": False,
   "chrome_tag": "157.0.8103.6",
   "download_firefox": False,
-  "firefox_tag": "158.0.1",
+  "firefox_tag": "159.0",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
