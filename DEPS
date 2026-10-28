@@ -133,26 +133,26 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "04da6763aa399607ddd1778ef9318a05276cbc01",
-  "dartdoc_rev": "c0e19cf6f46446ce479295732fee80b3ede3e4b7",
-  "ecosystem_rev": "0ab0cfd2f092d09eb20081f81b5e75cb50611b40",
+  "core_rev": "d7bd45c161f34e711778250621dbae48e754a26e",
+  "dartdoc_rev": "db94437c1e4246571ca32ab27cb43cca2307c93e",
+  "ecosystem_rev": "24b9ba8d8a04ae53cccaa574046bf76774e24001",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
   "http_rev": "c76dfb3a2a53ce5d8e3c4366f4a088422de09aa5",
-  "i18n_rev": "1f5ea2fb2381bdf7bab054a43c0d69771f104561",
+  "i18n_rev": "4c7b4ad14893d84ba6f1ec934b0068d2c2b3f088",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "3cbe319e3c1ec0f9253c126ba3e465e55229c3a4",
-  "protobuf_rev": "a73edc98c98fb25152aa3f12c1b9db91594c1369",
+  "native_rev": "e0ca7c60ffa6fe7377b26712569e9535c28f90ed",
+  "protobuf_rev": "1d52301b3dd61be159c55143c048a745175fead3",
   "pub_rev": "9df389a76385f82c1165c7cf93b78807b5ea8890", # rolled manually
-  "shelf_rev": "b66665b8b405e883b203fd401f25e0bde47cdb01",
+  "shelf_rev": "73b23828d7d8d4ffbb8fec62022bd48b48583250",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "201952a191be34a993f4ae182612c891ea4ef0a2",
-  "test_rev": "d1afeb14cc57a0487227f9c4e9485eece327b2af",
-  "tools_rev": "eee87b12f5a7f42149c4dff130eb6d5600fae883",
+  "test_rev": "5967927edd6a632c853647358d396bfc2cde03a6",
+  "tools_rev": "3980dca39a23ce4894656de47b1fc944fdabb984",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
   "web_rev": "4e60e61e55e1e2111f0fec9d19efff577c0dc671",
   "webdriver_rev": "8e5c611ea242efdc9f597a8a37c38a9c586120ee",
-  "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
+  "webkit_inspection_protocol_rev": "2c255f2a153239d009385774f12eb57e1c3056eb",
 
   # Windows deps
   "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",
