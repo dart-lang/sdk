@@ -32,9 +32,12 @@ application_snapshot("kernel-service_snapshot") {
     "--train",
     rebase_path("../../$_kernel_service_script", root_build_dir),
   ]
-  training_deps = [ "../../runtime/vm:vm_platform" ]
+  training_deps = [ "../../runtime/vm:vm_platform($host_toolchain)" ]
+  host_root_out_dir =
+      get_label_info("../../runtime/vm:vm_platform($host_toolchain)",
+                     "root_out_dir")
   training_inputs = [
-    "$root_out_dir/vm_platform.dill",
+    "$host_root_out_dir/vm_platform.dill",
     "../../.dart_tool/package_config.json",
   ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
