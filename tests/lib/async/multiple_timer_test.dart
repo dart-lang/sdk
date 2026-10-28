@@ -16,9 +16,9 @@ const Duration TIMEOUT4 = const Duration(milliseconds: 1500);
 
 // The stopwatch is more precise than the Timer.
 // Some browsers (Firefox and IE so far) can trigger too early. So we add more
-// margin. We use identical(1, 1.0) as an easy way to know if the test is
-// running on the web.
-int get safetyMargin => identical(1, 1.0) ? 100 : 0;
+// margin when running on the web.
+int get safetyMargin =>
+    const bool.fromEnvironment('dart.library.js_interop') ? 100 : 0;
 
 main() {
   Stopwatch _stopwatch1 = new Stopwatch();
