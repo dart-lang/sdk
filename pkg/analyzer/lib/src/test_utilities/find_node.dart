@@ -1364,6 +1364,14 @@ abstract class _FindNodeBase {
     );
   }
 
+  ParsedNameAccess parsedNameAccess(String search) {
+    return _node(search, (n) => n is ParsedNameAccess);
+  }
+
+  ParsedValueArguments parsedValueArguments(String search) {
+    return _node(search, (n) => n is ParsedValueArguments);
+  }
+
   PartDirective part(String search) {
     return _node(search, (n) => n is PartDirective);
   }
