@@ -1069,9 +1069,9 @@ void f() {}
   }
 
   void test_visitCommentReference() {
-    var code = '[x]';
+    var code = 'x';
     var parseResult = parseTestCodeWithDiagnostics('''
-/// $code
+/// [$code]
 void f() {}
 ''');
     var node = parseResult.findNode.singleCommentReference;
@@ -1079,21 +1079,35 @@ void f() {}
   }
 
   void test_visitCommentReference_new() {
-    var code = '[C.new]';
+    var code = 'C.new';
     var parseResult = parseTestCodeWithDiagnostics('''
-/// $code
+/// [$code]
 void f() {}
 ''');
     _assertSource(code, parseResult.findNode.singleCommentReference);
   }
 
   void test_visitCommentReference_operator() {
-    var code = '[p.C.operator +]';
+    var code = 'p.C.operator +';
     var parseResult = parseTestCodeWithDiagnostics('''
-/// $code
+/// [$code]
 void f() {}
 ''');
     _assertSource(code, parseResult.findNode.singleCommentReference);
+  }
+
+  void test_visitCommentReference_propertyAccess() {
+    var code = 'a.b.c';
+    var parseResult = parseTestCodeWithDiagnostics('''
+/// [$code]
+void f() {}
+''');
+    var node = parseResult.findNode.singleCommentReference;
+    _assertSource(code, node);
+
+    // ignore: analyzer_v1_ast_use
+    var propertyV1 = parseResult.findNodeV1.singlePropertyAccess;
+    expect(propertyV1.toSource(), code);
   }
 
   void test_visitCompilationUnit_declaration() {

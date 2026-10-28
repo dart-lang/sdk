@@ -296,11 +296,9 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    sink.write('[');
     for (var component in node.components) {
       component.accept2(this);
     }
-    sink.write(']');
   }
 
   @override
