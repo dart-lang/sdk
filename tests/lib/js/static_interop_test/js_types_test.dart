@@ -997,14 +997,15 @@ void syncTests() {
   Expect.isTrue(definedNonNullAny.isDefinedAndNotNull);
   Expect.isTrue(definedNonNullAny.typeofEquals('object'));
 
-  Expect.equals('foo', JSError('foo').message);
-  Expect.equals('Error', JSError('foo').name);
-  final defaultCause = JSError('foo').cause;
+  final JSError error = JSError('foo');
+  Expect.equals('foo', error.message);
+  Expect.equals('Error', error.name);
+  final defaultCause = error.cause;
   Expect.isTrue(
     isJSBackend ? defaultCause.isUndefined : defaultCause.isUndefinedOrNull,
   );
   Expect.equals('bar'.toJS, JSError('foo', cause: 'bar'.toJS).cause);
-  Expect.isTrue(JSError('foo').isA<JSError>());
+  Expect.isTrue(error.isA<JSError>());
   Expect.isFalse('foo'.isA<JSError>());
   Expect.isFalse(JSObject().isA<JSError>());
 

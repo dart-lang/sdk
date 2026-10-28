@@ -641,22 +641,22 @@ extension type JSError._(JSObject _) implements JSObject {
   /// See [`Error.cause`].
   ///
   /// [`Error.cause`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
-  external JSAny? cause;
+  external JSAny? get cause;
 
   /// See [`Error.message`].
   ///
   /// [`Error.message`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message
-  external String message;
+  external String get message;
 
   /// See [`Error.name`].
   ///
   /// [`Error.name`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
-  external String name;
+  external String get name;
 
   /// See [`Error.stack`].
   ///
   /// [`Error.stack`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/stack
-  external String stack;
+  external String get stack;
 }
 
 /// A Dart object that is wrapped with a JavaScript object so that it can be
