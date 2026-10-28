@@ -570,6 +570,17 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    _declarationNode = node;
+    var parameters = node.recoveryFormalParameters;
+    if (parameters != null && !identical(immediateChild, parameters)) {
+      _addParameters(parameters.allFormalParameters);
+    }
+  }
+
+  @override
   void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
     _declarationNode = node;
     var parameters = node.formalParameters;
