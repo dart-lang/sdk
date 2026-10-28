@@ -530,6 +530,7 @@ interpolator
 interpolators
 introducer
 inv
+invalidations
 involves
 ioo
 iowait
