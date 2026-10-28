@@ -2712,9 +2712,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     throw StateError('AssignmentExpression is a V1 projection.');
   }
 
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -3834,9 +3831,6 @@ final class BinaryExpressionImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('BinaryExpression is a V1 projection.');
   }
-
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -13450,10 +13444,6 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     throw StateError('ConstructorReference is a V1 projection.');
   }
 
-  @DoNotGenerate(reason: 'Delegates to the canonical V2 origin')
-  @override
-  String toSource() => _origin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -16002,9 +15992,6 @@ final class DotShorthandConstructorInvocationImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('DotShorthandConstructorInvocation is a V1 projection.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -21208,10 +21195,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     throw StateError('ExtensionOverride is a V1 projection.');
   }
 
-  @DoNotGenerate(reason: 'The canonical receiver owns the source spelling')
-  @override
-  String toSource() => _origin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -26194,9 +26177,6 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -26337,9 +26317,6 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -26976,9 +26953,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('FunctionExpressionInvocation is a V1 projection.');
   }
-
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -28044,9 +28018,6 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -29135,9 +29106,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -31432,9 +31400,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('ImplicitCallReference is a V1 projection.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -40549,9 +40514,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -48058,9 +48020,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
     throw StateError('PostfixExpression is a V1 projection.');
   }
 
-  @override
-  String toSource() => _origin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -48535,9 +48494,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
   void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('PrefixExpression is a V1 projection.');
   }
-
-  @override
-  String toSource() => _origin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -59844,9 +59800,6 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -62764,9 +62717,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
-
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
@@ -63175,9 +63125,6 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
-
-  @override
-  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
