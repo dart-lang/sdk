@@ -1624,7 +1624,7 @@ void f(x) {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f([$code]) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -1633,7 +1633,7 @@ void f([$code]) {}
     var parseResult = parseTestCodeWithDiagnostics('''
 void f({$code}) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -1642,7 +1642,7 @@ void f({$code}) {}
     var parseResult = parseTestCodeWithDiagnostics('''
 void f({$code}) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -1651,7 +1651,7 @@ void f({$code}) {}
     var parseResult = parseTestCodeWithDiagnostics('''
 void f([$code]) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -1660,7 +1660,7 @@ void f([$code]) {}
     var parseResult = parseTestCodeWithDiagnostics('''
 void f([$code]) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -1705,22 +1705,22 @@ final x = $code;
   void test_visitEmptyFunctionBody() {
     var code = ';';
     var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  ;
+abstract class A {
+  void foo();
 }
 ''');
-    var node = parseResult.findNode.singleEmptyStatement;
+    var node = parseResult.findNode.singleEmptyFunctionBody;
     _assertSource(code, node);
   }
 
   void test_visitEmptyStatement() {
     var code = ';';
     var parseResult = parseTestCodeWithDiagnostics('''
-abstract class A {
-  void foo();
+void f() {
+  ;
 }
 ''');
-    var node = parseResult.findNode.singleEmptyFunctionBody;
+    var node = parseResult.findNode.singleEmptyStatement;
     _assertSource(code, node);
   }
 
@@ -1841,13 +1841,12 @@ export 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    var unit = parseResult.findNode.unit;
-    var directive = unit.directives[0] as ExportDirective;
+    var node = parseResult.findNode.singleExportDirective;
     _assertSource(
       "export 'foo.dart'"
       " if (dart.library.io) 'foo_io.dart'"
       " if (dart.library.html) 'foo_html.dart';",
-      directive,
+      node,
     );
   }
 
@@ -2727,7 +2726,7 @@ $code
     var parseResult = parseTestCodeWithDiagnostics('''
 void f($code) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -2736,7 +2735,7 @@ void f($code) {}
     var parseResult = parseTestCodeWithDiagnostics('''
 void f($code) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -2745,7 +2744,7 @@ void f($code) {}
     var parseResult = parseTestCodeWithDiagnostics('''
 void f($code) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -2754,7 +2753,7 @@ void f($code) {}
     var parseResult = parseTestCodeWithDiagnostics('''
 void f($code) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -2765,7 +2764,7 @@ class A {
   void foo($code) {}
 }
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -2774,7 +2773,7 @@ class A {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f($code) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -2922,13 +2921,12 @@ import 'foo.dart'
   if (dart.library.io) 'foo_io.dart'
   if (dart.library.html) 'foo_html.dart';
 ''');
-    var unit = parseResult.findNode.unit;
-    var directive = unit.directives[0] as ImportDirective;
+    var node = parseResult.findNode.singleImportDirective;
     _assertSource(
       "import 'foo.dart'"
       " if (dart.library.io) 'foo_io.dart'"
       " if (dart.library.html) 'foo_html.dart';",
-      directive,
+      node,
     );
   }
 
@@ -3669,7 +3667,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f({$code}) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
@@ -3894,16 +3892,14 @@ int f() {
       'part of l;',
       featureSet: FeatureSets.language_3_4,
     );
-    var unit = parseResult.findNode.unit;
-    var directive = unit.directives[0] as PartOfDirective;
-    _assertSource("part of l;", directive);
+    var node = parseResult.findNode.singlePartOfDirective;
+    _assertSource("part of l;", node);
   }
 
   void test_visitPartOfDirective_uri() {
     var parseResult = parseTestCodeWithDiagnostics("part of 'a.dart';");
-    var unit = parseResult.findNode.unit;
-    var directive = unit.directives[0] as PartOfDirective;
-    _assertSource("part of 'a.dart';", directive);
+    var node = parseResult.findNode.singlePartOfDirective;
+    _assertSource("part of 'a.dart';", node);
   }
 
   void test_visitPartOfDirective_withMetadata() {
@@ -4003,7 +3999,7 @@ void f() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f([$code]) {}
 ''');
-    var node = parseResult.findNode.singleFormalParameter;
+    var node = parseResult.findNode.singleRegularFormalParameter;
     _assertSource(code, node);
   }
 
