@@ -56,6 +56,8 @@ def __resolve_uri(uri, pkg_map):
 # Unlike path.dir, behaves the same on Linux and Windows
 def __dirname(path):
     index = path.rfind("/")
+    if index == -1:
+       return "."
     return path[0:index]
 
 def __list_imports(ctx, uri, pkg_map):

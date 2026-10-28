@@ -115,7 +115,7 @@ base class WorkerClient {
   void _handleLsMessage(rpc.Parameters params) {
     final id = (params['languageServerId'].value as num).toInt();
     final message = params['message'].asMap;
-    _languageServers[id]?._incomingMessages.add(message);
+    _languageServers[id]?._controller.local.sink.add(message);
   }
 
   void _handleLsExited(rpc.Parameters params) {
@@ -374,15 +374,13 @@ final class LanguageServer {
   final Workspace _workspace;
   final int _id;
 
-  final _incomingMessages = StreamController<Object?>();
-  final _outgoingMessages = StreamController<Object?>();
-  late final StreamChannel<Object?> _channel;
+  final _controller = StreamChannelController<Object?>(
+    allowForeignErrors: false,
+  );
 
   LanguageServer._(this._client, this._workspace, this._id) {
-    _channel = StreamChannel(_incomingMessages.stream, _outgoingMessages.sink);
-
     // Forward outgoing LSP messages to the worker tunnel
-    _outgoingMessages.stream.listen((message) {
+    _controller.local.stream.listen((message) {
       if (_client._peer.isClosed) {
         return;
       }
@@ -399,7 +397,7 @@ final class LanguageServer {
   ///
   /// These are not encoded as JSON Strings, but instead travels as the kind of
   /// JSON values returned by [json] codec from `dart:convert`.
-  StreamChannel<Object?> get languageServerChannel => _channel;
+  StreamChannel<Object?> get languageServerChannel => _controller.foreign;
 
   /// Closes the language server.
   Future<void> close() async {
@@ -419,8 +417,7 @@ final class LanguageServer {
 
   void _cleanup() {
     _client._languageServers.remove(_id);
-    _incomingMessages.close().ignore();
-    _outgoingMessages.close().ignore();
+    _controller.local.sink.close().ignore();
   }
 }
 
