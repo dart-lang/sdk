@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,44 +20,6 @@ main() {
 
 @reflectiveTest
 class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
-  @V1Ast('Tests the V1 projection.')
-  test_classDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A extends Object {
-  void foo() {}
-}
-''');
-    _assertSource(
-      'class A extends Object {void foo() {}}',
-      result.findNodeV1.singleClassDeclaration,
-    );
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_classTypeAlias() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-mixin M {}
-class A = Object with M;
-''');
-    _assertSource(
-      'class A = Object with M;',
-      result.findNodeV1.singleClassTypeAlias,
-    );
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_constructorDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A {
-  A.named(int a) : assert(a > 0);
-}
-''');
-    _assertSource(
-      'A.named(int a) : assert (a > 0);',
-      result.findNodeV1.singleConstructorDeclaration,
-    );
-  }
-
   test_dotShorthandMethodInvocation() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -105,64 +66,6 @@ class A {
 A x = .foo.bar;
 ''');
     _assertSource('.foo', result.findNode.singleDotShorthandNameExpression);
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_enumConstantDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-enum E {
-  v(0);
-  const E(int a);
-}
-''');
-    _assertSource('v(0)', result.findNodeV1.singleEnumConstantDeclaration);
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_enumDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-enum E { v }
-''');
-    _assertSource('enum E {v}', result.findNodeV1.singleEnumDeclaration);
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_extensionDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-extension E on int {
-  void foo() {}
-}
-''');
-    _assertSource(
-      'extension E on int {void foo() {}}',
-      result.findNodeV1.singleExtensionDeclaration,
-    );
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_extensionTypeDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-extension type A(int it) {
-  void foo() {}
-}
-''');
-    _assertSource(
-      'extension type A(int it) {void foo() {}}',
-      result.findNodeV1.singleExtensionTypeDeclaration,
-    );
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_fieldDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-class A {
-  int a = 0, b = 1;
-}
-''');
-    _assertSource(
-      'int a = 0, b = 1;',
-      result.findNodeV1.singleFieldDeclaration,
-    );
   }
 
   test_functionInstantiation() async {
@@ -272,19 +175,6 @@ var x = math.pi;
     _assertSource(
       'math.pi',
       result.findNode.singleImportPrefixedNameExpression,
-    );
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  test_mixinDeclaration() async {
-    var result = await resolveTestCodeWithDiagnostics('''
-mixin M on Object {
-  void foo() {}
-}
-''');
-    _assertSource(
-      'mixin M on Object {void foo() {}}',
-      result.findNodeV1.singleMixinDeclaration,
     );
   }
 
@@ -419,6 +309,84 @@ enum E {
   }
 
   @V1Ast('Tests the V1 projection.')
+  void test_classDeclaration_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A extends Object {
+  void foo() {}
+}
+''');
+    var node = parseResult.findNodeV1.singleClassDeclaration;
+    expect(node.toSource(), 'class A extends Object {void foo() {}}');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_classTypeAlias_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+mixin M {}
+class A = Object with M;
+''');
+    var node = parseResult.findNodeV1.singleClassTypeAlias;
+    expect(node.toSource(), 'class A = Object with M;');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_constructorDeclaration_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  A.named(int a) : assert(a > 0);
+}
+''');
+    var node = parseResult.findNodeV1.singleConstructorDeclaration;
+    expect(node.toSource(), 'A.named(int a) : assert (a > 0);');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_constructorName_v1Projection() {
+    var code = 'prefix.A.foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = new $code();
+''');
+    var node = parseResult.findNodeV1.singleConstructorName;
+    expect(node.toSource(), code);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_dotShorthandInvocation_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo<int>(0, 1);
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandInvocation;
+    expect(node.toSource(), '.foo<int>(0, 1)');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_dotShorthandInvocation_v1Projection_withSelector() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo<int>(0, 1).bar;
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandInvocation;
+    expect(node.toSource(), '.foo<int>(0, 1)');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_dotShorthandPropertyAccess_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo;
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandPropertyAccess;
+    expect(node.toSource(), '.foo');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_dotShorthandPropertyAccess_v1Projection_withSelector() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = .foo.bar;
+''');
+    var node = parseResult.findNodeV1.singleDotShorthandPropertyAccess;
+    expect(node.toSource(), '.foo');
+  }
+
+  @V1Ast('Tests the V1 projection.')
   void test_emptyClassBody_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
 class A;
@@ -434,6 +402,13 @@ enum E;
 ''');
     var node = parseResult.findNodeV1.singleEmptyEnumBody;
     expect(node.toSource(), ';');
+  }
+
+  test_enum_blockBody_members() {
+    var code = 'enum E {v; void foo() {}}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleEnumDeclaration;
+    _assertSource(code, node);
   }
 
   test_enum_emptyBody() {
@@ -457,11 +432,43 @@ enum E;
     _assertSource(code, node);
   }
 
+  @V1Ast('Tests the V1 projection.')
+  void test_enumConstantDeclaration_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+enum E {
+  v(0);
+  const E(int a);
+}
+''');
+    var node = parseResult.findNodeV1.singleEnumConstantDeclaration;
+    expect(node.toSource(), 'v(0)');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_enumDeclaration_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+enum E { v }
+''');
+    var node = parseResult.findNodeV1.singleEnumDeclaration;
+    expect(node.toSource(), 'enum E {v}');
+  }
+
   test_extension_emptyBody() {
     var code = 'extension E on C;';
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleExtensionDeclaration;
     _assertSource(code, node);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_extensionDeclaration_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+extension E on int {
+  void foo() {}
+}
+''');
+    var node = parseResult.findNodeV1.singleExtensionDeclaration;
+    expect(node.toSource(), 'extension E on int {void foo() {}}');
   }
 
   test_extensionType_emptyBody() {
@@ -485,6 +492,38 @@ enum E;
     _assertSource(code, node);
   }
 
+  @V1Ast('Tests the V1 projection.')
+  void test_extensionTypeDeclaration_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+    var node = parseResult.findNodeV1.singleExtensionTypeDeclaration;
+    expect(node.toSource(), 'extension type A(int it) {void foo() {}}');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_fieldDeclaration_v1Projection() {
+    var parseResult = parseTestCodeWithDiagnostics('''
+class A {
+  int a = 0, b = 1;
+}
+''');
+    var node = parseResult.findNodeV1.singleFieldDeclaration;
+    expect(node.toSource(), 'int a = 0, b = 1;');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_instanceCreationExpression_v1Projection() {
+    var code = 'new prefix.A.foo()';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNodeV1.singleInstanceCreationExpression;
+    expect(node.toSource(), code);
+  }
+
   test_mixin_emptyBody() {
     var code = 'mixin M;';
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -493,65 +532,14 @@ enum E;
   }
 
   @V1Ast('Tests the V1 projection.')
-  void test_toSource_ConstructorName_v1Projection() {
-    var code = 'prefix.A.foo';
+  void test_mixinDeclaration_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
-final x = new $code();
+mixin M on Object {
+  void foo() {}
+}
 ''');
-    var node = FindNode(
-      parseResult.content,
-      parseResult.unit,
-    ).singleConstructorName;
-    expect(node.toSource(), code);
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  void test_toSource_dotShorthandInvocation_v1Projection() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = .foo<int>(0, 1);
-''');
-    var node = parseResult.findNodeV1.singleDotShorthandInvocation;
-    expect(node.toSource(), '.foo<int>(0, 1)');
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  void test_toSource_dotShorthandInvocation_v1Projection_withSelector() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = .foo<int>(0, 1).bar;
-''');
-    var node = parseResult.findNodeV1.singleDotShorthandInvocation;
-    expect(node.toSource(), '.foo<int>(0, 1)');
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  void test_toSource_dotShorthandPropertyAccess_v1Projection() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = .foo;
-''');
-    var node = parseResult.findNodeV1.singleDotShorthandPropertyAccess;
-    expect(node.toSource(), '.foo');
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  void test_toSource_dotShorthandPropertyAccess_v1Projection_withSelector() {
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = .foo.bar;
-''');
-    var node = parseResult.findNodeV1.singleDotShorthandPropertyAccess;
-    expect(node.toSource(), '.foo');
-  }
-
-  @V1Ast('Tests the V1 projection.')
-  void test_toSource_InstanceCreationExpression_v1Projection() {
-    var code = 'new prefix.A.foo()';
-    var parseResult = parseTestCodeWithDiagnostics('''
-final x = $code;
-''');
-    var node = FindNode(
-      parseResult.content,
-      parseResult.unit,
-    ).singleInstanceCreationExpression;
-    expect(node.toSource(), code);
+    var node = parseResult.findNodeV1.singleMixinDeclaration;
+    expect(node.toSource(), 'mixin M on Object {void foo() {}}');
   }
 
   void test_visitAdjacentStrings() {
