@@ -124,6 +124,26 @@ set s(int i) {}
     expect(node, isA<TopLevelSetterDeclaration>());
   }
 
+  void test_searchWithin_topLevelGetter_afterName_beforeBody() {
+    var source = r'''
+int get g=>0;
+''';
+    var unit = parseTestCodeWithDiagnostics(source).unit;
+    var node = _assertLocate(unit, source.indexOf('=>0'));
+    expect(node, isA<TopLevelGetterDeclaration>());
+  }
+
+  void test_searchWithin_topLevelGetter_afterName_beforeRecoveryParameters() {
+    var source = r'''
+int get g(int i) => 0;
+//       ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''';
+    var result = parseTestCodeWithDiagnostics(source);
+    var node = _assertLocate(result.unit, result.content.indexOf('(int i)'));
+    expect(node, isA<TopLevelGetterDeclaration>());
+  }
+
   void test_startEndOffset() {
     var code = ' f() {} ';
     //             01234567
