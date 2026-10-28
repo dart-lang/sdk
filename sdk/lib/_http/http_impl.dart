@@ -1275,7 +1275,26 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   String get reasonPhrase => _findReasonPhrase(statusCode);
   void set reasonPhrase(String reasonPhrase) {
     if (_outgoing.headersWritten) throw StateError("Header already sent");
-    _reasonPhrase = reasonPhrase;
+    _reasonPhrase = _validateReasonPhrase(reasonPhrase);
+  }
+
+  // reason-phrase = 1*( HTAB / SP / VCHAR / obs-text ) (RFC 9112 section 4).
+  // The phrase is written to the status line one byte per code unit, so
+  // anything else, including code units above 0xFF, is rejected.
+  static String _validateReasonPhrase(String reasonPhrase) {
+    for (var i = 0; i < reasonPhrase.length; i++) {
+      var codeUnit = reasonPhrase.codeUnitAt(i);
+      if ((codeUnit < _CharCode.SP && codeUnit != _CharCode.HT) ||
+          codeUnit == _CharCode.DEL ||
+          codeUnit > 0xFF) {
+        throw FormatException(
+          "Invalid HTTP reason phrase: ${json.encode(reasonPhrase)}",
+          reasonPhrase,
+          i,
+        );
+      }
+    }
+    return reasonPhrase;
   }
 
   Future redirect(Uri location, {int status = HttpStatus.movedTemporarily}) {

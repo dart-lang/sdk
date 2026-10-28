@@ -1088,6 +1088,9 @@ abstract interface class HttpResponse implements IOSink {
   /// The reason phrase must be set before the body is written
   /// to. Setting the reason phrase after writing to the response body
   /// or closing the response will throw a [StateError].
+  ///
+  /// Setting a reason phrase containing a control character other than
+  /// horizontal tab, or a character above U+00FF, throws a [FormatException].
   late String reasonPhrase;
 
   /// Gets and sets the persistent connection state. The initial value
