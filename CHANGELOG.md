@@ -272,6 +272,8 @@ the `if` statement above, `o` has type `D`.
   Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
   arguments as an array rather than as separate arguments to the Dart function.
 
+- Added the `JSError` type to represent the JavaScript `Error` class.
+
 - `Function.toJS` and `Function.toJSCaptureThis` now support functions without
   optional positional parameters that return `Future<T>` (where `T` is `void` or
   a subtype of `JSAny?`), automatically converting the returned `Future` to a
