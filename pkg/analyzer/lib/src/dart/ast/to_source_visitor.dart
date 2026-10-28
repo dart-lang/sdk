@@ -262,6 +262,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.extendsClause, prefix: ' ');
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
+    _visitNode(node.nativeClause, prefix: ' ');
     _visitNode(node.body);
   }
 
@@ -1113,8 +1114,10 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
+    _visitToken(node.keyQuestion);
     _visitNode(node.key2);
     sink.write(' : ');
+    _visitToken(node.valueQuestion);
     _visitNode(node.value2);
   }
 
@@ -1435,6 +1438,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
+    _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.leftParenthesis);
     _visitNodeList(node.fields2, separator: ', ');
     _visitToken(node.rightParenthesis);

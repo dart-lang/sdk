@@ -826,6 +826,15 @@ $code
     _assertSource(code, node);
   }
 
+  void test_visitClassDeclaration_native() {
+    var code = "class C extends A native 'code' {}";
+    var parseResult = parseTestCodeWithDiagnostics('''
+$code
+''');
+    var node = parseResult.findNode.singleClassDeclaration;
+    _assertSource(code, node);
+  }
+
   void test_visitClassDeclaration_parameters() {
     var code = 'class C<E> {}';
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -3324,6 +3333,24 @@ final x = {$code};
     _assertSource(code, node);
   }
 
+  void test_visitMapLiteralEntry_nullAwareKey() {
+    var code = '?a : 0';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = {$code};
+''');
+    var node = parseResult.findNode.singleMapLiteralEntry;
+    _assertSource(code, node);
+  }
+
+  void test_visitMapLiteralEntry_nullAwareValue() {
+    var code = '0 : ?a';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = {$code};
+''');
+    var node = parseResult.findNode.singleMapLiteralEntry;
+    _assertSource(code, node);
+  }
+
   void test_visitMapPattern_empty() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(x) {
@@ -4072,6 +4099,15 @@ class A() {
 final x = $code;
 ''');
     var node = parseResult.findNode.singleReceiverPropertyExtraction;
+    _assertSource(code, node);
+  }
+
+  void test_visitRecordLiteral_const() {
+    var code = 'const (0, a: 1)';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleRecordLiteral;
     _assertSource(code, node);
   }
 
