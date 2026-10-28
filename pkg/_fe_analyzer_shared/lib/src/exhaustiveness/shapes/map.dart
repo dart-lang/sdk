@@ -4,13 +4,13 @@
 
 part of '../types.dart';
 
-/// [StaticType] for a map pattern type using a [MapTypeRestriction] for its
+/// [Shape] for a map pattern type using a [MapShapeRestriction] for its
 /// uniqueness.
-class MapPatternStaticType<Type extends Object>
-    extends RestrictedStaticType<Type, MapTypeRestriction<Type>> {
+class MapPatternShape<Type extends Object>
+    extends RestrictedShape<Type, MapShapeRestriction<Type>> {
   new(
     super.typeOperations,
-    super.fieldLookup,
+    super.propertyLookup,
     super.type,
     super.restriction,
     super.name,
@@ -40,7 +40,7 @@ class MapPatternStaticType<Type extends Object>
   void witnessToDart(
     DartTemplateBuffer buffer,
     PropertyWitness witness,
-    Map<Key, PropertyWitness> witnessFields, {
+    Map<Key, PropertyWitness> witnessProperties, {
     required bool forCorrection,
   }) {
     buffer.write('{');
@@ -49,7 +49,7 @@ class MapPatternStaticType<Type extends Object>
       buffer.write(comma);
       buffer.write(key.valueAsText);
       buffer.write(': ');
-      PropertyWitness? witness = witnessFields[key];
+      PropertyWitness? witness = witnessProperties[key];
       if (witness != null) {
         witness.witnessToDart(buffer, forCorrection: forCorrection);
       } else {
@@ -59,11 +59,11 @@ class MapPatternStaticType<Type extends Object>
     }
     buffer.write('}');
 
-    // If we have restrictions on the record type we create an and pattern.
+    // If we have restrictions on the shape we create an and-pattern.
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     comma = '';
-    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessProperties.entries) {
       Key key = entry.key;
       if (key is! MapKey) {
         buffer.write(additionalStart);
@@ -82,7 +82,7 @@ class MapPatternStaticType<Type extends Object>
   }
 }
 
-/// Restriction object used for creating a unique [MapPatternStaticType] for a
+/// Restriction object used for creating a unique [MapPatternShape] for a
 /// map pattern.
 ///
 /// The uniqueness is defined by the key and value types, the key values of
@@ -90,7 +90,7 @@ class MapPatternStaticType<Type extends Object>
 ///
 /// This identity ensures that we can detect overlap between map patterns with
 /// the same set of keys.
-class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
+class MapShapeRestriction<Type extends Object> implements Restriction<Type> {
   final Type keyType;
   final Type valueType;
   final Set<MapKey> keys;
@@ -114,7 +114,7 @@ class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (other is! MapTypeRestriction<Type>) return false;
+    if (other is! MapShapeRestriction<Type>) return false;
     if (keyType != other.keyType || valueType != other.valueType) {
       return false;
     }
@@ -125,7 +125,7 @@ class MapTypeRestriction<Type extends Object> implements Restriction<Type> {
   @override
   bool isSubtypeOf(TypeOperations<Type> typeOperations, Restriction other) {
     if (other.isUnrestricted) return true;
-    if (other is! MapTypeRestriction<Type>) return false;
+    if (other is! MapShapeRestriction<Type>) return false;
     if (!typeOperations.isSubtypeOf(keyType, other.keyType)) return false;
     if (!typeOperations.isSubtypeOf(valueType, other.valueType)) return false;
     return keys.containsAll(other.keys);

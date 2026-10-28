@@ -85,40 +85,40 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
     ExhaustivenessResult? result = _exhaustivenessData.switchResults[node];
     if (result != null) {
       Features features = new Features();
-      features[Tags.scrutineeType] = staticTypeToText(result.scrutineeType);
+      features[Tags.scrutineeType] = shapeToText(result.scrutineeShape);
       Set<Key> keysOfInterest = {};
-      Set<Key> fieldsOfInterest = {};
+      Set<Key> propertiesOfInterest = {};
       for (Space caseSpace in result.caseSpaces) {
         for (SingleSpace singleSpace in caseSpace.singleSpaces) {
-          fieldsOfInterest.addAll(singleSpace.properties.keys);
+          propertiesOfInterest.addAll(singleSpace.properties.keys);
           keysOfInterest.addAll(singleSpace.additionalProperties.keys);
         }
       }
-      String? subtypes = typesToText(
-        result.scrutineeType.getSubtypes(keysOfInterest),
+      String? subtypes = shapesToText(
+        result.scrutineeShape.getSubshapes(keysOfInterest),
       );
       if (subtypes != null) {
         features[Tags.subtypes] = subtypes;
       }
-      if (result.scrutineeType.isSealed) {
-        String? expandedSubtypes = typesToText(
-          expandSealedSubtypes(result.scrutineeType, keysOfInterest),
+      if (result.scrutineeShape.isSealed) {
+        String? expandedSubtypes = shapesToText(
+          expandSealedSubshapes(result.scrutineeShape, keysOfInterest),
         );
         if (subtypes != expandedSubtypes && expandedSubtypes != null) {
           features[Tags.expandedSubtypes] = expandedSubtypes;
         }
-        String? order = typesToText(
-          checkingOrder(result.scrutineeType, keysOfInterest),
+        String? order = shapesToText(
+          checkingOrder(result.scrutineeShape, keysOfInterest),
         );
         if (order != null) {
           features[Tags.checkingOrder] = order;
         }
       }
-      if (fieldsOfInterest.isNotEmpty) {
-        features[Tags.scrutineeFields] = fieldsToText(
-          result.scrutineeType,
-          _exhaustivenessData.objectFieldLookup!,
-          fieldsOfInterest,
+      if (propertiesOfInterest.isNotEmpty) {
+        features[Tags.scrutineeFields] = propertiesToText(
+          result.scrutineeShape,
+          _exhaustivenessData.objectPropertyLookup!,
+          propertiesOfInterest,
         );
       }
       if (result.nonExhaustiveness case NonExhaustiveness nonExhaustiveness) {

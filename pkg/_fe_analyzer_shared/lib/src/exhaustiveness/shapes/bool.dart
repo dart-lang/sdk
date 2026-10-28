@@ -4,49 +4,48 @@
 
 part of '../types.dart';
 
-/// [StaticType] for the `bool` type.
-class BoolStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
-  new(super.typeOperations, super.fieldLookup, super.type)
+/// [Shape] for both boolean values.
+class BoolShape<Type extends Object> extends TypeBasedShape<Type> {
+  new(super.typeOperations, super.propertyLookup, super.type)
     : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;
 
-  late StaticType trueType = new _BoolValueStaticType<Type>(
+  late Shape trueShape = new _BoolValueShape<Type>(
     _typeOperations,
-    _fieldLookup,
+    _propertyLookup,
     _type,
     true,
   );
 
-  late StaticType falseType = new _BoolValueStaticType<Type>(
+  late Shape falseShape = new _BoolValueShape<Type>(
     _typeOperations,
-    _fieldLookup,
+    _propertyLookup,
     _type,
     false,
   );
 
   @override
-  Iterable<StaticType> getSubtypes(Set<Key> keysOfInterest) => [
-    trueType,
-    falseType,
+  Iterable<Shape> getSubshapes(Set<Key> keysOfInterest) => [
+    trueShape,
+    falseShape,
   ];
 }
 
-/// [StaticType] for an object restricted to a single boolean value (either
+/// [Shape] for an object restricted to a single boolean value (either
 /// `true` or `false`).
-class _BoolValueStaticType<Type extends Object>
-    extends ValueStaticType<Type, bool> {
+class _BoolValueShape<Type extends Object> extends ValueShape<Type, bool> {
   final bool _value;
 
   new(
     TypeOperations<Type> typeOperations,
-    FieldLookup<Type> fieldLookup,
+    PropertyLookup<Type> propertyLookup,
     Type type,
     this._value,
   ) : super(
         typeOperations,
-        fieldLookup,
+        propertyLookup,
         type,
         new IdentityRestriction<bool>(_value),
         '$_value',

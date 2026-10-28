@@ -1916,6 +1916,8 @@ subscription
 subsection
 subsections
 subsequently
+subshape
+subshapes
 subspace
 subspaces
 subst
@@ -1943,6 +1945,8 @@ superinterface
 superinterfaces
 supernode
 supers
+supershape
+supershapes
 supplies
 suppose
 suppresses

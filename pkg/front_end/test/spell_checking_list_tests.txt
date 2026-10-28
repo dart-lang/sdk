@@ -69,7 +69,6 @@ asin
 asserter
 assure
 asterisk
-atomic
 augmented
 auth
 authority
@@ -530,6 +529,7 @@ interpolator
 interpolators
 introducer
 inv
+invalidations
 involves
 ioo
 iowait

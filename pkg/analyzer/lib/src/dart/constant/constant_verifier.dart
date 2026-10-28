@@ -1081,7 +1081,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     required bool isSwitchExpression,
   }) {
     var scrutineeType = scrutinee.typeOrThrow;
-    var scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
+    var scrutineeShape = _exhaustivenessCache.getShapeForType(scrutineeType);
 
     var caseNodesWithSpace = <CaseNodeImpl>[];
     var caseIsGuarded = <bool>[];
@@ -1105,7 +1105,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         defaultNode = caseNode;
       } else if (caseNode is CaseNodeImpl) {
         Space space = patternConverter.createRootSpace(
-          scrutineeTypeEx,
+          scrutineeShape,
           caseNode.guardedPattern.pattern,
         );
         caseNodesWithSpace.add(caseNode);
@@ -1126,7 +1126,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     if (!patternConverter.hasInvalidType) {
       nonExhaustiveness = computeExhaustiveness(
         _exhaustivenessCache,
-        scrutineeTypeEx,
+        scrutineeShape,
         caseIsGuarded,
         caseSpaces,
         caseUnreachabilities: caseUnreachabilities,
@@ -1159,9 +1159,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
 
           Diagnostic diagnostic;
           _currentLibrary;
-          if (nonExhaustiveness.valueType.isEnumSubtype &&
-              nonExhaustiveness.valueType.libraryUri != _currentLibrary.uri &&
-              (nonExhaustiveness.valueType.isPrivate ||
+          if (nonExhaustiveness.valueShape.isEnumSubshape &&
+              nonExhaustiveness.valueShape.libraryUri != _currentLibrary.uri &&
+              (nonExhaustiveness.valueShape.isPrivate ||
                   nonExhaustiveness.witnesses.every(
                     (witness) => witness.asWitness.contains('._'),
                   ))) {
@@ -1203,7 +1203,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         var caseNode = caseNodesWithSpace[i];
         exhaustivenessDataForTesting.caseSpaces[caseNode] = caseSpaces[i];
       }
-      exhaustivenessDataForTesting.switchScrutineeType[node] = scrutineeTypeEx;
+      exhaustivenessDataForTesting.switchScrutineeShape[node] = scrutineeShape;
       exhaustivenessDataForTesting.switchCases[node] = caseSpaces;
       for (var caseUnreachability in caseUnreachabilities) {
         exhaustivenessDataForTesting

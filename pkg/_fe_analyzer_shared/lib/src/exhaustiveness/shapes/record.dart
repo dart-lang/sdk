@@ -4,9 +4,9 @@
 
 part of '../types.dart';
 
-/// [StaticType] for a record type.
-class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
-  new(super.typeOperations, super.fieldLookup, super.type)
+/// [Shape] for a record type.
+class RecordShape<Type extends Object> extends TypeBasedShape<Type> {
+  new(super.typeOperations, super.propertyLookup, super.type)
     : super(isImplicitlyNullable: false);
 
   @override
@@ -20,15 +20,15 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
     StringBuffer buffer = new StringBuffer();
     buffer.write('(');
     String comma = '';
-    fields.forEach((Key key, StaticType staticType) {
+    properties.forEach((Key key, Shape propertyShape) {
       if (key is RecordIndexKey) {
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${spaceProperties[key] ?? staticType}');
+        buffer.write('${spaceProperties[key] ?? propertyShape}');
       } else if (key is RecordNameKey) {
         buffer.write(comma);
         comma = ', ';
-        buffer.write('${key.name}: ${spaceProperties[key] ?? staticType}');
+        buffer.write('${key.name}: ${spaceProperties[key] ?? propertyShape}');
       }
     });
     buffer.write(')');
@@ -63,17 +63,17 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
   void witnessToDart(
     DartTemplateBuffer buffer,
     PropertyWitness witness,
-    Map<Key, PropertyWitness> witnessFields, {
+    Map<Key, PropertyWitness> witnessProperties, {
     required bool forCorrection,
   }) {
     buffer.write('(');
     String comma = '';
-    for (Key key in fields.keys) {
+    for (Key key in properties.keys) {
       if (key is RecordIndexKey) {
         buffer.write(comma);
         comma = ', ';
 
-        PropertyWitness? field = witnessFields[key];
+        PropertyWitness? field = witnessProperties[key];
         if (field != null) {
           field.witnessToDart(buffer, forCorrection: forCorrection);
         } else {
@@ -85,7 +85,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
 
         buffer.write(key.name);
         buffer.write(': ');
-        PropertyWitness? field = witnessFields[key];
+        PropertyWitness? field = witnessProperties[key];
         if (field != null) {
           field.witnessToDart(buffer, forCorrection: forCorrection);
         } else {
@@ -99,7 +99,7 @@ class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
     String additionalStart = ' && Object(';
     String additionalEnd = '';
     comma = '';
-    for (MapEntry<Key, PropertyWitness> entry in witnessFields.entries) {
+    for (MapEntry<Key, PropertyWitness> entry in witnessProperties.entries) {
       Key key = entry.key;
       if (key is! RecordKey) {
         buffer.write(additionalStart);

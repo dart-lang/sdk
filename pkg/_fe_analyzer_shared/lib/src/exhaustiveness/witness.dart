@@ -5,10 +5,10 @@
 import 'dart_template_buffer.dart';
 import 'key.dart';
 import 'path.dart';
+import 'shape.dart';
 import 'space.dart';
-import 'static_type.dart';
 
-/// Describes a pattern that matches the value or a field accessed from it.
+/// Describes a pattern that matches the value or a property accessed from it.
 ///
 /// Used only to generate the witness description.
 class Predicate {
@@ -16,21 +16,21 @@ class Predicate {
   /// tested by this predicate.
   final Path path;
 
-  /// The static type of the context. [valueType] is a subtype of this type.
-  final StaticType staticType;
+  /// The shape of the context. [valueShape] is a subshape of this shape.
+  final Shape contextShape;
 
-  /// The supertypes of [valueType] that were tested for exhaustiveness before
-  /// [valueType] was tested, ordered from the outermost to the immediate
-  /// supertype.
-  final List<StaticType>? superTypes;
+  /// The supershapes of [valueShape] that were tested for exhaustiveness
+  /// before [valueShape] was tested, ordered from the outermost to the
+  /// immediate supershape.
+  final List<Shape>? supershapes;
 
-  /// The type this predicate tests.
+  /// The shape this predicate tests.
   // TODO(johnniwinther): In order to model exhaustiveness on enum types,
   // bool values, and maybe integers at some point, we may later want a separate
   // kind of predicate that means "this value was equal to this constant".
-  final StaticType valueType;
+  final Shape valueShape;
 
-  /// The original [valueType] for this predicate.
+  /// The original [valueShape] for this predicate.
   ///
   /// This is used in [Witness.reduce] to track whether two predicates
   /// originally are aliases.
@@ -43,24 +43,24 @@ class Predicate {
   ///     class AImpl extends SImpl implements A {}
   ///
   /// then we can get a predicate for `AImpl` both through `A` and `SImpl`.
-  /// Such predicates are aliases and a reduction for one whose [valueType] is
-  /// a supertype of the other would exhaust both.
-  final StaticType originalValueType;
+  /// Such predicates are aliases and a reduction for one whose [valueShape] is
+  /// a supershape of the other would exhaust both.
+  final Shape originalValueShape;
 
   new({
     required this.path,
-    required this.staticType,
-    required this.superTypes,
-    required this.valueType,
-    StaticType? originalValueType,
-  }) : originalValueType = originalValueType ?? valueType;
+    required this.contextShape,
+    required this.supershapes,
+    required this.valueShape,
+    Shape? originalValueShape,
+  }) : originalValueShape = originalValueShape ?? valueShape;
 
   /// Returns `true` if this predicate is an alias of [other] that is less
   /// specific than [other].
   ///
   /// A predicate, A, is an alias of another predicate, B, if they have the
-  /// same [path] and [originalValueType]. Furthermore, A is less specific
-  /// than B if the [valueType] of B is a subtype of the [valueType] of A.
+  /// same [path] and [originalValueShape]. Furthermore, A is less specific
+  /// than B if the [valueShape] of B is a subshape of the [valueShape] of A.
   ///
   /// For instance consider this hierarchy:
   ///
@@ -89,21 +89,21 @@ class Predicate {
   ///     * For `BImpl` with supertype `B` we compute `B`.
   ///     * For `BImpl` with supertype `SImpl` we compute `S`.
   ///
-  /// Since the first two predicates have the same original value type, `AImpl`,
-  /// they are aliases, and since `A` is a subtype of `S`, `S` is also
+  /// Since the first two predicates have the same original value shape,
+  /// `AImpl`, they are aliases, and since `A` is a subtype of `S`, `S` is also
   /// less specific than `A`. Similarly for the last two predicates.
   bool isLessSpecificAliasThan(Predicate other) {
     return path == other.path &&
-        originalValueType.isSubtypeOf(other.originalValueType) &&
-        other.originalValueType.isSubtypeOf(originalValueType) &&
-        other.valueType.isSubtypeOf(valueType);
+        originalValueShape.isSubshapeOf(other.originalValueShape) &&
+        other.originalValueShape.isSubshapeOf(originalValueShape) &&
+        other.valueShape.isSubshapeOf(valueShape);
   }
 
   /// Returns `true` if this predicate is more specific than [other].
   ///
   /// A predicate, A, is more specific than another predicate, B, if both
-  /// predicates have the same path and the [valueType] of A is a subtype of the
-  /// [valueType] of B.
+  /// predicates have the same path and the [valueShape] of A is a subshape of
+  /// the [valueShape] of B.
   ///
   /// For instance if we have this hierarchy
   ///
@@ -117,14 +117,14 @@ class Predicate {
   /// then the predicate `AImpl` is more specific than `A` and `BImpl` is
   /// more specific than `B`.
   bool isMoreSpecificThan(Predicate other) =>
-      path == other.path && valueType.isSubtypeOf(other.valueType);
+      path == other.path && valueShape.isSubshapeOf(other.valueShape);
 
   @override
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write('Predicate(path=$path,type=$valueType');
-    if (valueType != originalValueType) {
-      sb.write(',original=$originalValueType');
+    sb.write('Predicate(path=$path,shape=$valueShape');
+    if (valueShape != originalValueShape) {
+      sb.write(',original=$originalValueShape');
     }
     sb.write(')');
     return sb.toString();
@@ -172,11 +172,11 @@ class Witness {
 
     for (Predicate predicate in _predicates) {
       PropertyWitness here = witness;
-      for (Key field in predicate.path.toList()) {
-        here = here.properties.putIfAbsent(field, () => new PropertyWitness());
+      for (Key key in predicate.path.toList()) {
+        here = here.properties.putIfAbsent(key, () => new PropertyWitness());
       }
-      here.staticType = predicate.staticType;
-      here.valueType = predicate.valueType;
+      here.contextShape = predicate.contextShape;
+      here.valueShape = predicate.valueShape;
     }
     return witness;
   }
@@ -306,7 +306,7 @@ class Witness {
   bool isLessSpecificThanSpace(Space space) {
     if (_predicates.length == 1) {
       for (SingleSpace singleSpace in space.singleSpaces) {
-        if (singleSpace.type.isSubtypeOf(_predicates.first.valueType)) {
+        if (singleSpace.shape.isSubshapeOf(_predicates.first.valueShape)) {
           return true;
         }
       }
@@ -327,7 +327,7 @@ class Witness {
   /// determined by [accessibility].
   ///
   /// If the witness is accessible, it itself is returned. Otherwise a reduced
-  /// witness is created with an accessible value type.
+  /// witness is created with an accessible value shape.
   ///
   /// For instance if we have this hierarchy
   ///
@@ -342,52 +342,52 @@ class Witness {
   ///
   /// outside the library, the witness `_BImpl()` that we find through `_AImpl`
   /// is not accessible, and we will reduce it to `A()` with an original value
-  /// type of `_BImpl`.
+  /// shape of `_BImpl`.
   Future<Witness> reduce(DartAccessibility accessibility) async {
     bool changed = false;
     List<Predicate> newPredicates = [];
     for (Predicate predicate in _predicates) {
-      if (!await predicate.valueType.isAccessible(accessibility)) {
-        StaticType? superType;
-        List<StaticType>? newSuperTypes;
-        List<StaticType>? superTypes = predicate.superTypes;
-        if (superTypes != null) {
-          int index = superTypes.length;
+      if (!await predicate.valueShape.isAccessible(accessibility)) {
+        Shape? supershape;
+        List<Shape>? newSupershapes;
+        List<Shape>? supershapes = predicate.supershapes;
+        if (supershapes != null) {
+          int index = supershapes.length;
           while (--index >= 0) {
-            StaticType staticType = superTypes[index];
-            if (await staticType.isAccessible(accessibility)) {
-              superType = staticType;
+            Shape shape = supershapes[index];
+            if (await shape.isAccessible(accessibility)) {
+              supershape = shape;
               break;
             }
           }
           if (index > 0) {
-            newSuperTypes = superTypes.sublist(0, index);
+            newSupershapes = supershapes.sublist(0, index);
           }
         }
         Predicate newPredicate;
-        if (superType != null) {
+        if (supershape != null) {
           newPredicate = new Predicate(
             path: predicate.path,
-            staticType: predicate.staticType,
-            superTypes: newSuperTypes,
-            valueType: superType,
-            originalValueType: predicate.originalValueType,
+            contextShape: predicate.contextShape,
+            supershapes: newSupershapes,
+            valueShape: supershape,
+            originalValueShape: predicate.originalValueShape,
           );
-        } else if (!await predicate.staticType.isAccessible(accessibility)) {
+        } else if (!await predicate.contextShape.isAccessible(accessibility)) {
           newPredicate = new Predicate(
             path: predicate.path,
-            staticType: predicate.staticType,
-            superTypes: null,
-            valueType: StaticType.nullableObject,
-            originalValueType: predicate.originalValueType,
+            contextShape: predicate.contextShape,
+            supershapes: null,
+            valueShape: Shape.nullableObject,
+            originalValueShape: predicate.originalValueShape,
           );
         } else {
           newPredicate = new Predicate(
             path: predicate.path,
-            staticType: predicate.staticType,
-            superTypes: null,
-            valueType: predicate.staticType,
-            originalValueType: predicate.originalValueType,
+            contextShape: predicate.contextShape,
+            supershapes: null,
+            valueShape: predicate.contextShape,
+            originalValueShape: predicate.originalValueShape,
           );
         }
         newPredicates.add(newPredicate);
@@ -405,13 +405,13 @@ class Witness {
 
 /// Helper class used to turn a list of [Predicate]s into a string.
 class PropertyWitness {
-  StaticType staticType = StaticType.nullableObject;
-  StaticType valueType = StaticType.nullableObject;
+  Shape contextShape = Shape.nullableObject;
+  Shape valueShape = Shape.nullableObject;
   final Map<Key, PropertyWitness> properties = {};
 
   void witnessToDart(DartTemplateBuffer buffer, {required bool forCorrection}) {
     if (properties.isNotEmpty) {
-      Map<StaticType, Map<Key, PropertyWitness>> witnessFieldsByType = {};
+      Map<Shape, Map<Key, PropertyWitness>> witnessPropertiesByShape = {};
       for (MapEntry<Key, PropertyWitness> entry in properties.entries) {
         Key key = entry.key;
         PropertyWitness witness = entry.value;
@@ -419,28 +419,28 @@ class PropertyWitness {
           continue;
         }
         if (key is ExtensionKey) {
-          (witnessFieldsByType[key.receiverType] ??= {})[key] = witness;
+          (witnessPropertiesByShape[key.receiverShape] ??= {})[key] = witness;
         } else {
-          (witnessFieldsByType[valueType] ??= {})[key] = witness;
+          (witnessPropertiesByShape[valueShape] ??= {})[key] = witness;
         }
       }
-      if (witnessFieldsByType.isNotEmpty) {
+      if (witnessPropertiesByShape.isNotEmpty) {
         String and = '';
-        for (MapEntry<StaticType, Map<Key, PropertyWitness>> entry
-            in witnessFieldsByType.entries) {
-          StaticType type = entry.key;
-          Map<Key, PropertyWitness> witnessFields = entry.value;
+        for (MapEntry<Shape, Map<Key, PropertyWitness>> entry
+            in witnessPropertiesByShape.entries) {
+          Shape shape = entry.key;
+          Map<Key, PropertyWitness> witnessProperties = entry.value;
           buffer.write(and);
           and = ' && ';
-          type.witnessToDart(
+          shape.witnessToDart(
             buffer,
             this,
-            witnessFields,
+            witnessProperties,
             forCorrection: forCorrection,
           );
         }
       } else {
-        valueType.witnessToDart(
+        valueShape.witnessToDart(
           buffer,
           this,
           const {},
@@ -448,7 +448,7 @@ class PropertyWitness {
         );
       }
     } else {
-      valueType.witnessToDart(
+      valueShape.witnessToDart(
         buffer,
         this,
         const {},
@@ -458,7 +458,7 @@ class PropertyWitness {
   }
 
   bool get isTrivial {
-    if (!staticType.isSubtypeOf(valueType)) return false;
+    if (!contextShape.isSubshapeOf(valueShape)) return false;
     for (PropertyWitness property in properties.values) {
       if (!property.isTrivial) {
         return false;
@@ -475,7 +475,7 @@ class PropertyWitness {
   }
 
   /// Return the witness as pattern syntax without subproperties that fully
-  /// match the static type.
+  /// match the shape.
   String get asCorrection {
     DartTemplateBuffer buffer = new SimpleDartBuffer();
     witnessToDart(buffer, forCorrection: true);

@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/profile.dart' as profile;
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 
 import '../../test/exhaustiveness/env.dart';
@@ -79,7 +79,7 @@ void testFieldCount(int n) {
   for (int i = 1; i <= 5; i++) {
     env.createClass('B$i', inherits: [a]);
   }
-  Map<String, StaticType> fields = {};
+  Map<String, Shape> fields = {};
   for (int i = 1; i <= n; i++) {
     fields['a$i'] = a;
   }
@@ -90,14 +90,14 @@ void testFieldCount(int n) {
 
 void expectExhaustive(
   String title,
-  ObjectPropertyLookup objectFieldLookup,
-  StaticType type,
+  ObjectPropertyLookup objectPropertyLookup,
+  Shape shape,
   List<Map<String, Object>> cases,
 ) {
-  var spaces = cases.map((c) => ty(type, c)).toList();
+  var spaces = cases.map((c) => ty(shape, c)).toList();
   profile.reset();
   print(
-    isExhaustive(objectFieldLookup, Space(const Path.root(), type), spaces),
+    isExhaustive(objectPropertyLookup, Space(const Path.root(), shape), spaces),
   );
   print('--------------------------------------------------------------------');
   print(title);

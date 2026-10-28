@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:test/test.dart';
 
 import 'env.dart';
@@ -152,8 +152,8 @@ void main() {
       expectExhaustiveness(env, a.nullable, [b, d, e.nullable]);
 
       // Can cover null with a null space.
-      expectExhaustiveness(env, a.nullable, [b, c, StaticType.nullType]);
-      expectExhaustiveness(env, a.nullable, [b, d, e, StaticType.nullType]);
+      expectExhaustiveness(env, a.nullable, [b, c, Shape.nullShape]);
+      expectExhaustiveness(env, a.nullable, [b, d, e, Shape.nullShape]);
 
       // Nullable covers the non-null.
       expectExhaustiveness(env, a.nullable, [
@@ -168,27 +168,27 @@ void main() {
       // Nullable covers null.
       expectExhaustiveness(env, a.nullable, [
         a.nullable,
-        StaticType.nullType,
+        Shape.nullShape,
       ], errors: 'Case #2 Null is unreachable.');
       expectExhaustiveness(env, b.nullable, [
         a.nullable,
-        StaticType.nullType,
+        Shape.nullShape,
       ], errors: 'Case #2 Null is unreachable.');
     });
   });
 }
 
 void expectExhaustiveness(
-  ObjectPropertyLookup objectFieldLookup,
-  StaticType valueType,
+  ObjectPropertyLookup objectPropertyLookup,
+  Shape valueShape,
   List<Object> cases, {
   List<bool>? caseIsGuarded,
   String errors = '',
 }) {
   List<CaseUnreachability> caseUnreachabilities = [];
   var nonExhaustiveness = computeExhaustiveness(
-    objectFieldLookup,
-    valueType,
+    objectPropertyLookup,
+    valueShape,
     caseIsGuarded ?? List.filled(cases.length, false),
     parseSpaces(cases),
     caseUnreachabilities: caseUnreachabilities,
