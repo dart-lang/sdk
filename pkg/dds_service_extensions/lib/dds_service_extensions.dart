@@ -517,6 +517,13 @@ class CachedCpuSamples extends CpuSamples {
   /// Provided if the CPU sample cache has filled and older samples have been
   /// dropped.
   final bool? truncated;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'userTag': userTag,
+        if (truncated != null) 'truncated': truncated,
+      };
 }
 
 /// A collection of [UserTag] names associated with caches of CPU samples.

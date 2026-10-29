@@ -1,3 +1,12 @@
+# 2.1.1-wip
+- Fix `toJson()` for `AvailableCachedCpuSamples`, `CachedCpuSamples`,
+  `ClientName`, `ResumePermissionsRequired`, `Size`, and `StreamHistory` to
+  include all response fields.
+- Fix `type` for `ClientName`, `ResumePermissionsRequired`, and `Size`, and
+  change `AvailableCachedCpuSamples.type` from
+  `AvailableCachedUserTagCpuSamples` to `AvailableCachedCpuSamples` to match
+  the DDS protocol.
+
 # 2.1.0
 - Deprecate `DdsExtension.getAvailableCachedCpuSamples` and
   `DdsExtension.getCachedCpuSamples` methods.
