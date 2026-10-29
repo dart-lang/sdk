@@ -17790,6 +17790,14 @@ LinterLintCode:
       `Widget` that isn't private to its library doesn't have a parameter named
       `key`.
 
+      A key lets Flutter match a widget to its existing element and state
+      across rebuilds, for example when items in a list are reordered,
+      inserted, or removed. Keys can also be used to find a widget in tests.
+      The widget itself might never need a key, but the code that creates it
+      might, such as a list that wraps each item in `ValueKey(item.id)`.
+      Accepting an optional `key` parameter keeps that option open for callers.
+      This is different from a widget that requires a key to work correctly.
+
       #### Example
 
       The following code produces this diagnostic because the constructor for
