@@ -144,18 +144,9 @@ class TypeSystemImpl implements TypeSystem {
   /// not a subtype of `int`. More generally, we check if there could be a
   /// type that implements both [left] and [right], regardless of whether
   /// [left] is a subtype of [right], or [right] is a subtype of [left].
-  ///
-  /// If [eraseTypes] is not null, this function uses that function to erase the
-  /// extension types within [left] and [right]. Otherwise, it uses the
-  /// extension type erasure.
-  bool canBeSubtypeOf(
-    TypeImpl left,
-    TypeImpl right, {
-    (TypeImpl, TypeImpl) Function(TypeImpl, TypeImpl)? eraseTypes,
-  }) {
-    (left, right) = eraseTypes != null
-        ? eraseTypes(left, right)
-        : (left.extensionTypeErasure, right.extensionTypeErasure);
+  bool canBeSubtypeOf(TypeImpl left, TypeImpl right) {
+    left = left.extensionTypeErasure;
+    right = right.extensionTypeErasure;
 
     // If one is `Null`, then the other must be nullable.
     var leftIsNullable = isPotentiallyNullable(left);
@@ -188,8 +179,7 @@ class TypeSystemImpl implements TypeSystem {
     if (left.isDartAsyncFutureOr) {
       var base = futureOrBase(left);
       var future = typeProvider.futureType(base);
-      return canBeSubtypeOf(base, right, eraseTypes: eraseTypes) ||
-          canBeSubtypeOf(future, right, eraseTypes: eraseTypes);
+      return canBeSubtypeOf(base, right) || canBeSubtypeOf(future, right);
     }
 
     // FutureOr<T> = T || Future<T>
@@ -197,8 +187,7 @@ class TypeSystemImpl implements TypeSystem {
     if (right.isDartAsyncFutureOr) {
       var base = futureOrBase(right);
       var future = typeProvider.futureType(base);
-      return canBeSubtypeOf(left, base, eraseTypes: eraseTypes) ||
-          canBeSubtypeOf(left, future, eraseTypes: eraseTypes);
+      return canBeSubtypeOf(left, base) || canBeSubtypeOf(left, future);
     }
 
     if (left is InterfaceTypeImpl && right is InterfaceTypeImpl) {
@@ -220,11 +209,7 @@ class TypeSystemImpl implements TypeSystem {
         var rightArguments = right.typeArguments;
         assert(leftArguments.length == rightArguments.length);
         for (var i = 0; i < leftArguments.length; i++) {
-          if (!canBeSubtypeOf(
-            leftArguments[i],
-            rightArguments[i],
-            eraseTypes: eraseTypes,
-          )) {
+          if (!canBeSubtypeOf(leftArguments[i], rightArguments[i])) {
             return false;
           }
         }
@@ -253,7 +238,6 @@ class TypeSystemImpl implements TypeSystem {
             if (!canBeSubtypeOf(
               substitution.substituteType(declaredArgument),
               rightArguments[i],
-              eraseTypes: eraseTypes,
             )) {
               return false;
             }
@@ -348,11 +332,7 @@ class TypeSystemImpl implements TypeSystem {
       for (var i = 0; i < left.positionalFields.length; i++) {
         var leftField = left.positionalFields[i];
         var rightField = right.positionalFields[i];
-        if (!canBeSubtypeOf(
-          leftField.type,
-          rightField.type,
-          eraseTypes: eraseTypes,
-        )) {
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
           return false;
         }
       }
@@ -366,11 +346,7 @@ class TypeSystemImpl implements TypeSystem {
         if (leftField.name != rightField.name) {
           return false;
         }
-        if (!canBeSubtypeOf(
-          leftField.type,
-          rightField.type,
-          eraseTypes: eraseTypes,
-        )) {
+        if (!canBeSubtypeOf(leftField.type, rightField.type)) {
           return false;
         }
       }
