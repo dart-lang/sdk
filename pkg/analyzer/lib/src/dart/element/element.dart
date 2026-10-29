@@ -159,61 +159,49 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   /// If we can find all possible subtypes of this class, return them.
   ///
-  /// If the class is final, all its subtypes are declared in this library.
+  /// If the class is final or sealed, and all its subtypes in this library
+  /// are final or sealed classes, or enums, then these are all possible
+  /// subtypes.
   ///
-  /// If the class is sealed, and all its subtypes are either final or sealed,
-  /// then these subtypes are all subtypes that are possible.
+  /// A base class or mixin could be extended, or mixed in, in other libraries.
   @trackedDirectly
   List<InterfaceTypeImpl>? get allSubtypes {
     globalResultRequirements?.record_classElement_allSubtypes(element: this);
 
     return globalResultRequirements.alreadyRecorded(() {
-      if (isFinal) {
-        var result = <InterfaceTypeImpl>[];
-        for (var element in library.children) {
-          if (element is InterfaceElementImpl && element != this) {
-            var elementThis = element.thisType;
-            if (elementThis.asInstanceOf(this) != null) {
-              result.add(elementThis);
-            }
-          }
-        }
-        return result;
+      if (!isFinal && !isSealed) {
+        return null;
       }
 
-      if (isSealed) {
-        var result = <InterfaceTypeImpl>[];
-        for (var element in library.children) {
-          if (element is! InterfaceElementImpl || identical(element, this)) {
-            continue;
-          }
+      var result = <InterfaceTypeImpl>[];
+      for (var element in library.children) {
+        if (element is! InterfaceElementImpl || identical(element, this)) {
+          continue;
+        }
 
-          var elementThis = element.thisType;
-          if (elementThis.asInstanceOf(this) == null) {
-            continue;
-          }
+        var elementThis = element.thisType;
+        if (elementThis.asInstanceOf(this) == null) {
+          continue;
+        }
 
-          switch (element) {
-            case ClassElementImpl _:
-              if (element.isFinal || element.isSealed) {
-                result.add(elementThis);
-              } else {
-                return null;
-              }
-            case EnumElementImpl _:
+        switch (element) {
+          case ClassElementImpl _:
+            if (element.isFinal || element.isSealed) {
               result.add(elementThis);
-            case MixinElementImpl _:
+            } else {
               return null;
-            case ExtensionTypeElementImpl():
-              // This should never happen because extension types can't be
-              // sealed.
-              assert(false);
-          }
+            }
+          case EnumElementImpl _:
+            result.add(elementThis);
+          case MixinElementImpl _:
+            return null;
+          case ExtensionTypeElementImpl():
+            // At runtime, an instance of an extension type is an instance of
+            // its representation type, which is also a subtype.
+            break;
         }
-        return result;
       }
-
-      return null;
+      return result;
     });
   }
 

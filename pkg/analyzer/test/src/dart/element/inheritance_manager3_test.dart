@@ -1158,6 +1158,27 @@ class C extends B implements A {}
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
+  test_getMember_method_covariantByDeclaration_merged_generic() async {
+    var result = await resolveTestCode('''
+class A {
+  void foo(covariant num a) {}
+}
+
+class B<T> {
+  void foo(T a) {}
+}
+
+class C extends B<int> implements A {}
+''');
+    var member = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo'),
+      concrete: true,
+    )!;
+    expect(member.formalParameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].type.getDisplayString(), 'int');
+  }
+
   test_getMember_mixin_notMerge_replace() async {
     var result = await resolveTestCode('''
 class A<T> {
@@ -1456,6 +1477,27 @@ class C extends B implements A {}
     // TODO(scheglov): It would be nice to use `_assertGetMember`.
     expect(member.baseElement, same(result.findElement.setter('foo', of: 'B')));
     expect(member.formalParameters[0].isCovariant, isTrue);
+  }
+
+  test_getMember_setter_covariantByDeclaration_merged_generic() async {
+    var result = await resolveTestCode('''
+class A {
+  set foo(covariant num a) {}
+}
+
+class B<T> {
+  set foo(T a) {}
+}
+
+class C extends B<int> implements A {}
+''');
+    var member = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo='),
+      concrete: true,
+    )!;
+    expect(member.formalParameters[0].isCovariant, isTrue);
+    expect(member.formalParameters[0].type.getDisplayString(), 'int');
   }
 
   test_getMember_super_abstract() async {
