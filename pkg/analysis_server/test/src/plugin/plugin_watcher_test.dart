@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
@@ -69,7 +67,7 @@ analyzer:
     expect(manager.contextRootPlugins, isEmpty);
     watcher.addedDriver(driver);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins, hasLength(1));
   }
 
@@ -84,7 +82,7 @@ analyzer:
     watcher.addedDriver(driver);
     expect(manager.contextRootPlugins, isEmpty);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins, isEmpty);
   }
 
@@ -129,7 +127,7 @@ plugins:
 
     watcher.addedDriver(driver);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins.values.first, hasLength(2));
 
     expect(manager.pluginIsolates, hasLength(2));
@@ -212,7 +210,7 @@ plugins:
 
     watcher.addedDriver(driver);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins.values.first, hasLength(2));
 
     var pluginFolder1 = getFolder(manager.contextRootPlugins.values.first[0]);
@@ -289,7 +287,7 @@ plugins:
 
     watcher.addedDriver(driver);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins.values.first, hasLength(2));
 
     var pluginFolder1 = getFolder(manager.contextRootPlugins.values.first[0]);
@@ -356,7 +354,7 @@ plugins:
 
     watcher.addedDriver(driver);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins.values.first, hasLength(1));
 
     var pluginFolder = getFolder(manager.contextRootPlugins.values.first.first);
@@ -415,7 +413,7 @@ plugins:
     expect(manager.contextRootPlugins, isEmpty);
     watcher.addedDriver(driver);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins, hasLength(1));
   }
 
@@ -451,7 +449,7 @@ plugins:
 
     watcher.addedDriver(driver);
 
-    await _waitForEvents();
+    await pumpEventQueue();
     expect(manager.contextRootPlugins.values.first, hasLength(1));
 
     expect(manager.pluginIsolates, hasLength(1));
@@ -485,7 +483,7 @@ plugins:
 
     var driver = driverFor(testFile);
     watcher.addedDriver(driver);
-    await _waitForEvents();
+    await pumpEventQueue();
 
     var pluginFolderPath1 = manager.contextRootPlugins.values.first.first;
     var pubspecFile1 = getFolder(pluginFolderPath1).getFile('pubspec.yaml');
@@ -510,7 +508,7 @@ plugins:
     driver.analysisOptionsMap[rootFolder] = builder.build();
 
     watcher.addedDriver(driver);
-    await _waitForEvents();
+    await pumpEventQueue();
 
     var pluginFolderPath2 = manager.contextRootPlugins.values.first.first;
     expect(pluginFolderPath2, isNot(pluginFolderPath1));
@@ -530,12 +528,5 @@ plugins:
     watcher.addedDriver(driver);
     watcher.removedDriver(driver);
     expect(manager.contextRootPlugins, isEmpty);
-  }
-
-  /// Wait until the timer associated with the driver's FileSystemState is
-  /// guaranteed to have expired and the list of changed files will have been
-  /// delivered.
-  Future<void> _waitForEvents() async {
-    await Future.delayed(Duration(seconds: 1));
   }
 }
