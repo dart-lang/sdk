@@ -362,10 +362,13 @@ abstract base class CodeGenerator extends Pass
         final to = move.to.physicalLocation;
         if (from != to) {
           if (from is StackLocation && to is StackLocation) {
+            assert((from is SimdSpillSlot) == (to is SimdSpillSlot));
             // Moves into spill slots cannot participate in cycles.
             // Generate them eagerly as they require a temporary register
             // which can be occupied while breaking a cycle.
-            final temp = getMoveTempRegister(RegisterClass.cpu);
+            final temp = getMoveTempRegister(
+              from is SimdSpillSlot ? RegisterClass.fpu : RegisterClass.cpu,
+            );
             generateMove(from, temp);
             generateMove(temp, to);
           } else {

@@ -75,10 +75,14 @@ final class Arm64StackFrame extends StackFrame {
   }
 
   @override
-  int spillSlotSizeInWords(RegisterClass registerClass) => 1;
+  int spillSlotSizeInWords(RegisterClass registerClass, bool isSimdValue) =>
+      isSimdValue ? 2 : 1;
 
   @override
-  int spillSlotAlignmentInWords(RegisterClass registerClass) => 1;
+  int spillSlotAlignmentInWords(
+    RegisterClass registerClass,
+    bool isSimdValue,
+  ) => isSimdValue ? 2 : 1;
 
   @override
   int argumentsStackSlots(Instruction instr) {
@@ -140,6 +144,8 @@ final class Arm64StackFrame extends StackFrame {
         return 1; // Result for BoxInt runtime call.
       case BoxDouble():
         return 1; // Result for BoxDouble runtime call.
+      case BoxSimd():
+        return 1; // Result for BoxFloat32x4/BoxFloat64x2/BoxInt32x4 runtime call.
       default:
         return 0;
     }
@@ -151,7 +157,9 @@ final class Arm64StackFrame extends StackFrame {
   @override
   int offsetFromFP(StackLocation location) {
     assert(isFinalized);
-    return _slotOffsetFromFP(location.stackSlotIndex);
+    return _slotOffsetFromFP(
+      location.stackSlotIndex + (location is SimdSpillSlot ? 1 : 0),
+    );
   }
 
   @override

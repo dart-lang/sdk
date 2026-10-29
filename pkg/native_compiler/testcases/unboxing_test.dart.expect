@@ -74,6 +74,65 @@ B13 = JoinBlock(B21, B6) idom:B0
   ParallelMove input(vloc:R0 -> R0)
   Return(v37)   # RA: (R0)
 
+--- test4
+B0 = EntryBlock() dominates:(B6, B14, B5)
+  Constant(1.0)
+  Constant(2.0)
+  Constant(3.0)
+  Constant(4.0)
+  Constant(5.0)
+  Constant(6.0)
+  Constant(7.0)
+  Constant(8.0)
+  v42 = Constant(UnboxedDoubleConstant(1.0))
+  v43 = Constant(UnboxedDoubleConstant(2.0))
+  v44 = Constant(UnboxedDoubleConstant(3.0))
+  v45 = Constant(UnboxedDoubleConstant(4.0))
+  v46 = Constant(UnboxedDoubleConstant(5.0))
+  v47 = Constant(UnboxedDoubleConstant(6.0))
+  v48 = Constant(UnboxedDoubleConstant(7.0))
+  v49 = Constant(UnboxedDoubleConstant(8.0))
+  v1 = Parameter(x)   # RA: param[0] <- ()
+  v2 = Parameter(c1)   # RA: param[1] <- ()
+  v3 = Parameter(c2)   # RA: param[2] <- ()
+  ParallelMove output(param[2] -> vloc:R2, param[1] -> vloc:R1, param[0] -> vloc:R0)
+  Branch(v2, true: B5, false: B6)   # RA: (R1)
+B5 = TargetBlock() idom:B0
+  ParallelMove input(UnboxedDoubleConstant(1.0) -> vloc:V0, UnboxedDoubleConstant(2.0) -> vloc:V1, UnboxedDoubleConstant(3.0) -> vloc:V2, UnboxedDoubleConstant(4.0) -> vloc:V3)
+  v12 = SimdOp Float32x4 factory(v42, v43, v44, v45)   # RA: V0 <- (V0, V1, V2, V3)
+  ParallelMove output(V0 -> stack[0])
+  Goto(B14)
+B6 = TargetBlock() idom:B0
+  ParallelMove input(UnboxedDoubleConstant(5.0) -> vloc:V0, UnboxedDoubleConstant(6.0) -> vloc:V1, UnboxedDoubleConstant(7.0) -> vloc:V2, UnboxedDoubleConstant(8.0) -> vloc:V3)
+  v20 = SimdOp Float32x4 factory(v46, v47, v48, v49)   # RA: V0 <- (V0, V1, V2, V3)
+  ParallelMove output(V0 -> stack[0])
+  Goto(B14)
+B14 = JoinBlock(B6, B5) idom:B0 dominates:(B29, B33, B28)
+  v40 = Phi(v20, v12)   # RA: V0 <- (V0, V0)
+  ParallelMove output(V0 -> stack[0])
+  ParallelMove input(vloc:V0 -> V0)
+  v50 = BoxSimd(v40)   # RA: R0 <- (V0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [V0], objects: []}
+  ParallelMove output(R0 -> vloc:R0)
+  DirectCall print(v50)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove output(param[2] -> R1)
+  Branch(v3, true: B28, false: B29)   # RA: (R1)
+B28 = TargetBlock() idom:B14
+  ParallelMove output(param[0] -> R0)
+  v51 = UnboxSimd(v1)   # RA: V0 <- (R0)
+  ParallelMove output(V0 -> stack[0])
+  Goto(B33)
+B29 = TargetBlock() idom:B14
+  ParallelMove control(stack[0] -> V0)
+  Goto(B33)
+B33 = JoinBlock(B29, B28) idom:B14
+  v41 = Phi(v40, v51)   # RA: V0 <- (V0, V0)
+  ParallelMove output(V0 -> stack[0])
+  ParallelMove input(vloc:V0 -> V0)
+  v52 = BoxSimd(v41)   # RA: R0 <- (V0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [V0], objects: []}
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v52)   # RA: (R0)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

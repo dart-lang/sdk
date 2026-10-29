@@ -1959,6 +1959,8 @@ final class _ExternalFloat64x2Array extends _TypedFloat64x2ListBase
 class Float32x4 {
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_fromDoubles")
   external factory Float32x4(double x, double y, double z, double w);
@@ -1971,16 +1973,22 @@ class Float32x4 {
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float32x4.zero() => Float32x4(0.0, 0.0, 0.0, 0.0);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_fromInt32x4Bits")
   external factory Float32x4.fromInt32x4Bits(Int32x4 x);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float32x4.fromFloat64x2(Float64x2 xy) =>
       Float32x4(xy.x, xy.y, 0.0, 0.0);
 }
@@ -2140,12 +2148,16 @@ final class _Float32x4 implements Float32x4 {
 class Int32x4 {
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_fromInts")
   external factory Int32x4(int x, int y, int z, int w);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Int32x4.splat(int value) => Int32x4(value, value, value, value);
 
   @patch
@@ -2155,11 +2167,14 @@ class Int32x4 {
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Int32x4.bool(bool x, bool y, bool z, bool w) =>
       Int32x4(x ? -1 : 0, y ? -1 : 0, z ? -1 : 0, w ? -1 : 0);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_fromFloat32x4Bits")
   external factory Int32x4.fromFloat32x4Bits(Float32x4 x);
@@ -2393,6 +2408,8 @@ final class _Int32x4 implements Int32x4 {
 class Float64x2 {
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_fromDoubles")
   external factory Float64x2(double x, double y);
@@ -2400,14 +2417,19 @@ class Float64x2 {
   @patch
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float64x2.splat(double v) => Float64x2(v, v);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   factory Float64x2.zero() => Float64x2(0.0, 0.0);
 
   @patch
   @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_fromFloat32x4")
   external factory Float64x2.fromFloat32x4(Float32x4 v);

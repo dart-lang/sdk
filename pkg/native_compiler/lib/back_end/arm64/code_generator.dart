@@ -2515,6 +2515,65 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitBoxSimd(BoxSimd instr) {
+    final operandReg = inputFPReg(instr, 0);
+    final tagsReg = temporaryReg(instr, 0);
+    final scratch1Reg = temporaryReg(instr, 1);
+    final scratch2Reg = temporaryReg(instr, 2);
+    final resultReg = outputReg(instr);
+    final done = Label();
+    final type = instr.type;
+    final instanceSize = roundUp(
+      type.unalignedInstanceSize(vmOffsets),
+      objectAlignment(wordSize),
+    );
+
+    Label slowPath = addSlowPath(() {
+      _asm.fstr(
+        operandReg,
+        _asm.address(
+          threadReg,
+          vmOffsets.Thread_unboxed_runtime_arg_offset,
+          .simd128,
+        ),
+        .simd128,
+      );
+      _asm.str(
+        nullReg, // Space for result.
+        RegOffsetAddress(stackPointerReg, 0),
+      );
+      final runtimeEntry = switch (instr.type) {
+        Float32x4Type() => RuntimeEntry.BoxFloat32x4,
+        Float64x2Type() => RuntimeEntry.BoxFloat64x2,
+        Int32x4Type() => RuntimeEntry.BoxInt32x4,
+      };
+      _callRuntime(runtimeEntry, 0);
+      _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 0));
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      tagsReg,
+      vmOffsets.computeNewObjectTags(type.classId, instanceSize, log2wordSize),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      tagsReg,
+      scratch1Reg,
+      scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: false,
+    );
+    _asm.fstr(
+      operandReg,
+      _asm.fieldAddress(resultReg, type.valueOffset(vmOffsets), .simd128),
+      .simd128,
+    );
+    _asm.bind(done);
+  }
+
+  @override
   void visitUnboxInt(UnboxInt instr) {
     var operandReg = inputReg(instr, 0);
     final resultReg = outputReg(instr);
@@ -2544,6 +2603,76 @@ final class Arm64CodeGenerator extends CodeGenerator {
       resultReg,
       _asm.fieldAddress(operandReg, vmOffsets.Double_value_offset),
     );
+  }
+
+  @override
+  void visitUnboxSimd(UnboxSimd instr) {
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputFPReg(instr);
+    _asm.fldr(
+      resultReg,
+      _asm.fieldAddress(
+        operandReg,
+        instr.type.valueOffset(vmOffsets),
+        .simd128,
+      ),
+      .simd128,
+    );
+  }
+
+  @override
+  void visitSimdOp(SimdOp instr) {
+    switch (instr.op) {
+      case .float32x4Factory:
+        final resultReg = outputFPReg(instr);
+        var converted = false;
+        for (var i = 0; i < 4; ++i) {
+          final operandReg = inputFPReg(instr, i);
+          if (operandReg == resultReg) {
+            if (!converted) {
+              _asm.fcvt(fpTempReg, operandReg, .s64, .s32);
+              converted = true;
+            }
+            _asm.ins(
+              VectorElement(resultReg, i, .s32),
+              VectorElement(fpTempReg, 0, .s32),
+            );
+          }
+        }
+        for (var i = 0; i < 4; ++i) {
+          final operandReg = inputFPReg(instr, i);
+          if (operandReg != resultReg) {
+            _asm.fcvt(fpTempReg, operandReg, .s64, .s32);
+            _asm.ins(
+              VectorElement(resultReg, i, .s32),
+              VectorElement(fpTempReg, 0, .s32),
+            );
+          }
+        }
+      case .float64x2Factory:
+        final resultReg = outputFPReg(instr);
+        // No need to insert operand 0 if it is allocated to the same register.
+        if (inputFPReg(instr, 1) == resultReg) {
+          _asm.ins(
+            VectorElement(resultReg, 1, .s64),
+            VectorElement(resultReg, 0, .s64),
+          );
+        }
+        for (var i = 0; i < 2; ++i) {
+          final operandReg = inputFPReg(instr, i);
+          if (operandReg != resultReg) {
+            _asm.ins(
+              VectorElement(resultReg, i, .s64),
+              VectorElement(operandReg, 0, .s64),
+            );
+          }
+        }
+      case .int32x4Factory:
+        final resultReg = outputFPReg(instr);
+        for (var i = 0; i < 4; ++i) {
+          _asm.ins(VectorElement(resultReg, i, .s32), inputReg(instr, i));
+        }
+    }
   }
 
   @override
@@ -3047,7 +3176,20 @@ final class Arm64CodeGenerator extends CodeGenerator {
             _asm.mov(to, from);
             return;
           case StackLocation():
+            assert(to is! SimdSpillSlot);
             _asm.str(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
+            return;
+          default:
+            break;
+        }
+      case SimdSpillSlot():
+        switch (to) {
+          case FPRegister():
+            _asm.fldr(
+              to,
+              _asm.address(FP, stackFrame.offsetFromFP(from), .simd128),
+              .simd128,
+            );
             return;
           default:
             break;
@@ -3066,7 +3208,15 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case FPRegister():
         switch (to) {
           case FPRegister():
-            _asm.fmov(to, from);
+            // TODO: distinguish between SIMD and double values.
+            _asm.vmov(to, from, .simd128);
+            return;
+          case SimdSpillSlot():
+            _asm.fstr(
+              from,
+              _asm.address(FP, stackFrame.offsetFromFP(to), .simd128),
+              .simd128,
+            );
             return;
           case StackLocation():
             _asm.fstr(from, _asm.address(FP, stackFrame.offsetFromFP(to)));
@@ -3438,5 +3588,25 @@ extension on ArrayKind {
     .float32x4ByteData ||
     .float64x2ByteData ||
     .int32x4ByteData => throw 'Unexpected array kind ${this}',
+  };
+}
+
+extension on SimdType {
+  ClassId get classId => switch (this) {
+    Float32x4Type() => ClassId.Float32x4Cid,
+    Float64x2Type() => ClassId.Float64x2Cid,
+    Int32x4Type() => ClassId.Int32x4Cid,
+  };
+
+  int unalignedInstanceSize(VMOffsets vmOffsets) => switch (this) {
+    Float32x4Type() => vmOffsets.Float32x4_InstanceSize,
+    Float64x2Type() => vmOffsets.Float64x2_InstanceSize,
+    Int32x4Type() => vmOffsets.Int32x4_InstanceSize,
+  };
+
+  int valueOffset(VMOffsets vmOffsets) => switch (this) {
+    Float32x4Type() => vmOffsets.Float32x4_value_offset,
+    Float64x2Type() => vmOffsets.Float64x2_value_offset,
+    Int32x4Type() => vmOffsets.Int32x4_value_offset,
   };
 }

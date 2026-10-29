@@ -2155,6 +2155,20 @@ final class BoxDouble extends Box {
   R accept<R>(InstructionVisitor<R> v) => v.visitBoxDouble(this);
 }
 
+/// Create a box out of raw SIMD value.
+final class BoxSimd extends Box {
+  @override
+  final SimdType type;
+
+  BoxSimd(super.graph, super.sourcePosition, super.operand, this.type);
+
+  @override
+  bool attributesEqual(covariant BoxSimd other) => this.type == other.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBoxSimd(this);
+}
+
 /// Base class for unboxing instructions.
 abstract base class Unbox extends Definition
     with NoThrow, Pure, Idempotent, BackendInstruction {
@@ -2189,6 +2203,54 @@ final class UnboxDouble extends Unbox {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitUnboxDouble(this);
+}
+
+/// Get raw SIMD value out of the box.
+final class UnboxSimd extends Unbox {
+  @override
+  final SimdType type;
+
+  UnboxSimd(super.graph, super.sourcePosition, super.operand, this.type);
+
+  @override
+  bool attributesEqual(covariant UnboxSimd other) => this.type == other.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnboxSimd(this);
+}
+
+enum SimdOpcode(final String name) {
+  float32x4Factory('Float32x4 factory'),
+  float64x2Factory('Float64x2 factory'),
+  int32x4Factory('Int32x4 factory');
+
+  int get inputCount => switch (this) {
+    float64x2Factory => 2,
+    float32x4Factory || int32x4Factory => 4,
+  };
+
+  CType get resultType => switch (this) {
+    float32x4Factory => const Float32x4Type(),
+    float64x2Factory => const Float64x2Type(),
+    int32x4Factory => const Int32x4Type(),
+  };
+}
+
+final class SimdOp extends Definition
+    with NoThrow, Pure, Idempotent, BackendInstruction {
+  SimdOpcode op;
+
+  SimdOp(super.graph, super.sourcePosition, this.op)
+    : super(inputCount: op.inputCount);
+
+  @override
+  CType get type => op.resultType;
+
+  @override
+  bool attributesEqual(covariant SimdOp other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitSimdOp(this);
 }
 
 /// Keep the value alive.

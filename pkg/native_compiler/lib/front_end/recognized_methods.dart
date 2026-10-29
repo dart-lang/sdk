@@ -83,6 +83,11 @@ void buildComparisonOp(FlowGraphBuilder builder, ComparisonOpcode op) {
   builder.addComparison(op);
 }
 
+/// Build IR for SIMD operations
+void buildSimdOp(FlowGraphBuilder builder, SimdOpcode op) {
+  builder.addSimdOp(op);
+}
+
 void buildDoubleIsNaN(FlowGraphBuilder builder) {
   final x = builder.pop();
   builder.push(x);
@@ -1912,6 +1917,19 @@ final class VmRecognizedMethods(
         '_memMove${arrayKind.elementSize}',
       ): (FlowGraphBuilder builder) {
         buildTypedDataMemMove(builder, arrayKind);
+      },
+
+    for (SimdOpcode op in const [
+      .float32x4Factory,
+      .float64x2Factory,
+      .int32x4Factory,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '${op.resultType}',
+        '',
+      ): (FlowGraphBuilder builder) {
+        buildSimdOp(builder, op);
       },
 
     // dart:developer

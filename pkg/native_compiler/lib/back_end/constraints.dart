@@ -57,7 +57,7 @@ const anyCpuLocation = AnyLocation(RegisterClass.cpu);
 const anyFpuLocation = AnyLocation(RegisterClass.fpu);
 
 RegisterClass registerClass(Definition def) => switch (def.type) {
-  DoubleType() => RegisterClass.fpu,
+  DoubleType() || SimdType() => RegisterClass.fpu,
   _ => RegisterClass.cpu,
 };
 

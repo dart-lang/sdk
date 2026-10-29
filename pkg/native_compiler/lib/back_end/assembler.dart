@@ -27,6 +27,7 @@ enum OperandSize {
   bool get is32or64 => is32 || is64;
   bool get is16or32or64 => is16 || is32 || is64;
   bool get is128 => (this == simd128);
+  bool get is64or128 => is64 || is128;
 
   bool get isSigned =>
       (this == s8) || (this == s16) || (this == s32) || (this == s64);
@@ -143,8 +144,7 @@ abstract base class Assembler {
   Address address(Register base, int offset, [OperandSize sz]);
 
   /// Create an address for an field of Dart instance.
-  Address fieldAddress(Register obj, int offset) =>
-      address(obj, offset - heapObjectTag);
+  Address fieldAddress(Register obj, int offset, [OperandSize sz]);
 
   void enterDartFrame();
   void leaveDartFrame();

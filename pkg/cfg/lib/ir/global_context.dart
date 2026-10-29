@@ -45,6 +45,7 @@ class GlobalContext {
   /// Translation of Dart static types into CFG IR types.
   late final AstToIrTypes astToIrTypes = AstToIrTypes(
     coreTypes,
+    coreLibraries,
     classHierarchy,
   );
 

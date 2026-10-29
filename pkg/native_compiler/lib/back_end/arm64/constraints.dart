@@ -595,12 +595,48 @@ final class Arm64Constraints extends Constraints {
   }
 
   @override
+  InstructionConstraints? visitBoxSimd(BoxSimd instr) {
+    final inputs = [allocatableFPRegisters.first];
+    return InstructionConstraints(
+      returnReg,
+      inputs,
+      // TODO: save registers on slow path
+      allRegistersExcept(returnReg, inputs),
+      Safepoint(),
+    );
+  }
+
+  @override
   InstructionConstraints? visitUnboxInt(UnboxInt instr) =>
       const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
 
   @override
   InstructionConstraints? visitUnboxDouble(UnboxDouble instr) =>
       const InstructionConstraints(anyFpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitUnboxSimd(UnboxSimd instr) =>
+      const InstructionConstraints(anyFpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitSimdOp(SimdOp instr) => switch (instr.op) {
+    .float32x4Factory => const InstructionConstraints(anyFpuRegister, [
+      anyFpuRegister,
+      anyFpuRegister,
+      anyFpuRegister,
+      anyFpuRegister,
+    ]),
+    .float64x2Factory => const InstructionConstraints(anyFpuRegister, [
+      anyFpuRegister,
+      anyFpuRegister,
+    ]),
+    .int32x4Factory => const InstructionConstraints(anyFpuRegister, [
+      anyCpuRegister,
+      anyCpuRegister,
+      anyCpuRegister,
+      anyCpuRegister,
+    ]),
+  };
 
   @override
   InstructionConstraints? visitBinaryIntOp(BinaryIntOp instr) =>

@@ -573,6 +573,18 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitBoxSimd(BoxSimd instr) {
+    switch (instr.type) {
+      case Float32x4Type():
+        assert(instr.operand.type is Float32x4Type);
+      case Float64x2Type():
+        assert(instr.operand.type is Float64x2Type);
+      case Int32x4Type():
+        assert(instr.operand.type is Int32x4Type);
+    }
+  }
+
+  @override
   void visitUnboxInt(UnboxInt instr) {
     assert(instr.operand.type is IntType);
   }
@@ -580,6 +592,33 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   @override
   void visitUnboxDouble(UnboxDouble instr) {
     assert(instr.operand.type is DoubleType);
+  }
+
+  @override
+  void visitUnboxSimd(UnboxSimd instr) {
+    switch (instr.type) {
+      case Float32x4Type():
+        assert(instr.operand.type is Float32x4Type);
+      case Float64x2Type():
+        assert(instr.operand.type is Float64x2Type);
+      case Int32x4Type():
+        assert(instr.operand.type is Int32x4Type);
+    }
+  }
+
+  @override
+  void visitSimdOp(SimdOp instr) {
+    switch (instr.op) {
+      case .float32x4Factory:
+      case .float64x2Factory:
+        for (var i = 0, n = instr.inputCount; i < n; ++i) {
+          assert(instr.inputDefAt(i).type is DoubleType);
+        }
+      case .int32x4Factory:
+        for (var i = 0, n = instr.inputCount; i < n; ++i) {
+          assert(instr.inputDefAt(i).type is IntType);
+        }
+    }
   }
 
   @override
