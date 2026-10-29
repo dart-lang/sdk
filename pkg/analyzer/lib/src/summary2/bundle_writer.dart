@@ -24,6 +24,7 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:collection/collection.dart';
 
 class BundleWriter {
   late final ReferenceTableWriter _references;
@@ -976,6 +977,10 @@ class ResolutionSink extends BinaryWriter {
         writeEnum(ElementTag.libraryImportPrefix);
         writeUri(element.firstFragment.enclosingFragment.source.uri);
         writeStringReference(element.localId);
+      case MethodElementImpl(isOriginInterface: true):
+        _writeInterfaceMember(element);
+      case PropertyAccessorElementImpl(isOriginInterface: true):
+        _writeInterfaceMember(element);
       case ElementImpl():
         writeEnum(ElementTag.elementImpl);
         var reference = element.reference!;
@@ -1078,6 +1083,29 @@ class ResolutionSink extends BinaryWriter {
       _writeFormalParameterElements(type.formalParameters);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
+  }
+
+  /// Writes [element], which is synthesized for the interface of a class.
+  ///
+  /// It is not declared, so it cannot be read back by its reference. Instead,
+  /// we write the class and the name of the member in its interface, and the
+  /// reader looks it up there.
+  void _writeInterfaceMember(ExecutableElementImpl element) {
+    var interfaceElement = element.enclosingElement as InterfaceElementImpl;
+    var interface = interfaceElement.inheritanceManager.getInterface(
+      interfaceElement,
+    );
+    // The name of a private member might be from another library.
+    var name =
+        interface.map.keys.firstWhereOrNull(
+          (name) => identical(interface.map[name], element),
+        ) ??
+        Name.forElement(element)!;
+
+    writeEnum(ElementTag.interfaceMember);
+    writeElement(interfaceElement);
+    writeOptionalObject(name.libraryUri, writeUri);
+    writeStringReference(name.name);
   }
 
   void _writeMetadata(MetadataImpl metadata) {

@@ -116,6 +116,28 @@ class X implements I, J {
     );
   }
 
+  test_getInherited_method_covariantByDeclaration_combined_declaredInClass() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant int x);
+}
+
+abstract class B {
+  void foo(num x);
+}
+
+class C implements A, B {
+  void foo(Object? x) {}
+}
+''');
+    _assertGetInherited(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'C.foo: void Function(num)',
+    );
+  }
+
   test_getInherited_mixin() async {
     var result = await resolveTestCode('''
 class A {
@@ -1101,14 +1123,182 @@ class C {
   void foo<U>(Object a, U b, covariant Object c) {}
 }
 ''');
-    var member = manager.getMember(
+    _assertGetMember(
+      result: result,
+      className: 'B',
+      name: 'foo',
+      expected: 'B.foo: void Function<U>(Object, U, Object)',
+    );
+    var interfaceMember = manager.getMember(
+      result.findElement.classOrMixin('B'),
+      Name(null, 'foo'),
+    )!;
+    expect(interfaceMember.formalParameters[0].isCovariant, isTrue);
+    expect(interfaceMember.formalParameters[1].isCovariant, isFalse);
+    expect(interfaceMember.formalParameters[2].isCovariant, isTrue);
+
+    _assertGetMember(
+      result: result,
+      className: 'B',
+      name: 'foo',
+      concrete: true,
+      expected: 'A.foo: void Function<U>(Object, U, int)',
+    );
+    var concreteMember = manager.getMember(
       result.findElement.classOrMixin('B'),
       Name(null, 'foo'),
       concrete: true,
     )!;
+    expect(concreteMember.formalParameters[0].isCovariant, isTrue);
+    expect(concreteMember.formalParameters[1].isCovariant, isFalse);
+    expect(concreteMember.formalParameters[2].isCovariant, isFalse);
+  }
+
+  test_getMember_method_covariantByDeclaration_combined_mergedType() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant Object? x, dynamic y);
+}
+
+abstract class B {
+  void foo(dynamic x, Object? y);
+}
+
+abstract class C implements B, A {}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'C.foo: void Function(Object?, Object?)',
+    );
+    var member = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo'),
+    )!;
     expect(member.formalParameters[0].isCovariant, isTrue);
-    expect(member.formalParameters[1].isCovariant, isFalse);
-    expect(member.formalParameters[2].isCovariant, isTrue);
+  }
+
+  test_getMember_method_covariantByDeclaration_combined_mixinApplication() async {
+    var result = await resolveTestCode('''
+class S {
+  void foo(covariant int x) {}
+}
+
+abstract class J {
+  void foo(num x);
+}
+
+mixin M implements J {}
+
+abstract class I {
+  void foo(Object? x);
+}
+
+abstract class C extends S with M implements I {}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'C.foo: void Function(Object?)',
+    );
+  }
+
+  test_getMember_method_covariantByDeclaration_combined_mixinConstraintsAndInterface() async {
+    var result = await resolveTestCode('''
+class S1 {
+  void foo(covariant int x) {}
+}
+
+class S2 {
+  void foo(num x) {}
+}
+
+abstract class I {
+  void foo(Object? x);
+}
+
+mixin M on S1, S2 implements I {}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'M',
+      name: 'foo',
+      expected: 'M.foo: void Function(Object?)',
+    );
+  }
+
+  test_getMember_method_covariantByDeclaration_combined_mostSpecific() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant num x);
+}
+
+abstract class B {
+  void foo(Object x);
+}
+
+abstract class C implements B, A {}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'C.foo: void Function(Object)',
+    );
+    var member = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo'),
+    )!;
+    expect(member.formalParameters[0].isCovariant, isTrue);
+  }
+
+  test_getMember_method_covariantByDeclaration_combined_sameType() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant Object x);
+}
+
+abstract class B {
+  void foo(Object x);
+}
+
+abstract class C implements B, A {}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'A.foo: void Function(Object)',
+    );
+    var member = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo'),
+    )!;
+    expect(member.formalParameters[0].isCovariant, isTrue);
+  }
+
+  test_getMember_method_covariantByDeclaration_combined_staticInClass() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant int x);
+}
+
+abstract class B {
+  void foo(num x);
+}
+
+abstract class C implements A, B {
+  static void foo(String x) {}
+}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'C.foo: void Function(num)',
+    );
   }
 
   test_getMember_method_covariantByDeclaration_inherited() async {
@@ -1131,11 +1321,6 @@ abstract class B extends A {
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
-  @FailingTest(
-    reason:
-        'The baseElement and the element associated with the declaration '
-        'are not the same',
-  )
   test_getMember_method_covariantByDeclaration_merged() async {
     var result = await resolveTestCode('''
 class A {
@@ -1148,14 +1333,31 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember(
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'A.foo: void Function(num)',
+    );
+    var interfaceMember = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo'),
+    )!;
+    expect(interfaceMember.formalParameters[0].isCovariant, isTrue);
+
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'B.foo: void Function(int)',
+    );
+    var concreteMember = manager.getMember(
       result.findElement.classOrMixin('C'),
       Name(null, 'foo'),
       concrete: true,
     )!;
-    // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement, same(result.findElement.method('foo', of: 'B')));
-    expect(member.formalParameters[0].isCovariant, isTrue);
+    expect(concreteMember.formalParameters[0].isCovariant, isFalse);
   }
 
   test_getMember_method_covariantByDeclaration_merged_generic() async {
@@ -1170,13 +1372,31 @@ class B<T> {
 
 class C extends B<int> implements A {}
 ''');
-    var member = manager.getMember(
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      expected: 'A.foo: void Function(num)',
+    );
+    var interfaceMember = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo'),
+    )!;
+    expect(interfaceMember.formalParameters[0].isCovariant, isTrue);
+
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo',
+      concrete: true,
+      expected: 'B.foo: void Function(int)',
+    );
+    var concreteMember = manager.getMember(
       result.findElement.classOrMixin('C'),
       Name(null, 'foo'),
       concrete: true,
     )!;
-    expect(member.formalParameters[0].isCovariant, isTrue);
-    expect(member.formalParameters[0].type.getDisplayString(), 'int');
+    expect(concreteMember.formalParameters[0].isCovariant, isFalse);
   }
 
   test_getMember_mixin_notMerge_replace() async {
@@ -1271,6 +1491,35 @@ abstract class X extends A implements B {}
       className: 'X',
       name: 'foo',
       expected: 'X.foo: Future<Object?> Function()',
+    );
+  }
+
+  test_getMember_optIn_topMerge_getterAndSetter_synthetic() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  Future<void> get foo;
+  set foo(Future<void> x);
+}
+
+abstract class B {
+  Future<dynamic> get foo;
+  set foo(Future<dynamic> x);
+}
+
+abstract class X implements A, B {}
+''');
+
+    _assertGetMember(
+      result: result,
+      className: 'X',
+      name: 'foo',
+      expected: 'X.foo: Future<Object?> Function()',
+    );
+    _assertGetMember(
+      result: result,
+      className: 'X',
+      name: 'foo=',
+      expected: 'X.foo=: void Function(Future<Object?>)',
     );
   }
 
@@ -1432,6 +1681,53 @@ class X extends A implements I {
     );
   }
 
+  test_getMember_setter_covariantByDeclaration_combined_getterInClass() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  set foo(covariant int x);
+}
+
+abstract class B {
+  set foo(num x);
+}
+
+abstract class C implements A, B {
+  int get foo => 0;
+}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo=',
+      expected: 'C.foo=: void Function(num)',
+    );
+  }
+
+  test_getMember_setter_covariantByDeclaration_combined_mostSpecific() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  set foo(covariant num x);
+}
+
+abstract class B {
+  set foo(Object x);
+}
+
+abstract class C implements B, A {}
+''');
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo=',
+      expected: 'C.foo=: void Function(Object)',
+    );
+    var member = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo='),
+    )!;
+    expect(member.formalParameters[0].isCovariant, isTrue);
+  }
+
   test_getMember_setter_covariantByDeclaration_inherited() async {
     var result = await resolveTestCode('''
 abstract class A {
@@ -1452,11 +1748,6 @@ abstract class B extends A {
     expect(member.formalParameters[0].isCovariant, isTrue);
   }
 
-  @FailingTest(
-    reason:
-        'The baseElement and the element associated with the declaration '
-        'are not the same',
-  )
   test_getMember_setter_covariantByDeclaration_merged() async {
     var result = await resolveTestCode('''
 class A {
@@ -1469,14 +1760,31 @@ class B {
 
 class C extends B implements A {}
 ''');
-    var member = manager.getMember(
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo=',
+      expected: 'A.foo=: void Function(num)',
+    );
+    var interfaceMember = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo='),
+    )!;
+    expect(interfaceMember.formalParameters[0].isCovariant, isTrue);
+
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo=',
+      concrete: true,
+      expected: 'B.foo=: void Function(int)',
+    );
+    var concreteMember = manager.getMember(
       result.findElement.classOrMixin('C'),
       Name(null, 'foo='),
       concrete: true,
     )!;
-    // TODO(scheglov): It would be nice to use `_assertGetMember`.
-    expect(member.baseElement, same(result.findElement.setter('foo', of: 'B')));
-    expect(member.formalParameters[0].isCovariant, isTrue);
+    expect(concreteMember.formalParameters[0].isCovariant, isFalse);
   }
 
   test_getMember_setter_covariantByDeclaration_merged_generic() async {
@@ -1491,13 +1799,31 @@ class B<T> {
 
 class C extends B<int> implements A {}
 ''');
-    var member = manager.getMember(
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo=',
+      expected: 'A.foo=: void Function(num)',
+    );
+    var interfaceMember = manager.getMember(
+      result.findElement.classOrMixin('C'),
+      Name(null, 'foo='),
+    )!;
+    expect(interfaceMember.formalParameters[0].isCovariant, isTrue);
+
+    _assertGetMember(
+      result: result,
+      className: 'C',
+      name: 'foo=',
+      concrete: true,
+      expected: 'B.foo=: void Function(int)',
+    );
+    var concreteMember = manager.getMember(
       result.findElement.classOrMixin('C'),
       Name(null, 'foo='),
       concrete: true,
     )!;
-    expect(member.formalParameters[0].isCovariant, isTrue);
-    expect(member.formalParameters[0].type.getDisplayString(), 'int');
+    expect(concreteMember.formalParameters[0].isCovariant, isFalse);
   }
 
   test_getMember_super_abstract() async {

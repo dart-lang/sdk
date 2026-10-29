@@ -1546,6 +1546,14 @@ class ResolutionReader {
         var enclosing = readElement() as ExecutableElementImpl;
         var index = _reader.readUint30();
         return enclosing.formalParametersIncludingRecovery[index];
+      case ElementTag.interfaceMember:
+        var interfaceElement = readElement() as InterfaceElementImpl;
+        var libraryUri = _reader.readOptionalObject(_reader.readUri);
+        var name = Name(libraryUri, _reader.readStringReference());
+        return _elementFactory.analysisSession.inheritanceManager.getMember(
+          interfaceElement,
+          name,
+        );
     }
   }
 

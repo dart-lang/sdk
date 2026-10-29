@@ -11237,6 +11237,124 @@ library
 ''');
   }
 
+  test_const_topLevel_binary_equal_combinedSignature() async {
+    var library = await buildLibrary(r'''
+abstract class I {
+  bool operator ==(covariant I other);
+}
+
+class C implements I {
+  const C();
+}
+
+const v = C() == C();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class I (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::I
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::I::@constructor::new
+              typeName: I
+          methods
+            #F3 isAbstract isOriginDeclaration == (nameOffset:35) (firstTokenOffset:21) (offset:35)
+              element: <testLibrary>::@class::I::@method::==
+              formalParameters
+                #F4 requiredPositional isExplicitlyCovariant isOriginDeclaration other (nameOffset:50) (firstTokenOffset:38) (offset:50)
+                  element: <testLibrary>::@class::I::@method::==::@formalParameter::other
+        #F5 class C (nameOffset:67) (firstTokenOffset:61) (offset:67)
+          element: <testLibrary>::@class::C
+          constructors
+            #F6 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:86) (offset:92)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 92
+      topLevelVariables
+        #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:106) (firstTokenOffset:106) (offset:106)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_0
+            BinaryOperatorInvocation
+              leftOperand: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @110
+                    element: <testLibrary>::@class::C
+                    type: C
+                  element: <testLibrary>::@class::C::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @111
+                  rightParenthesis: ) @112
+                staticType: C
+              operator: == @114
+              rightOperand: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: C @117
+                    element: <testLibrary>::@class::C
+                    type: C
+                  element: <testLibrary>::@class::C::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @118
+                  rightParenthesis: ) @119
+                staticType: C
+              binaryOperator: equal
+              element: <testLibrary>::@class::C::@method::==
+              staticType: bool
+          inducedGetter: #F8
+      getters
+        #F8 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:106)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F7
+  classes
+    isAbstract isSimplyBounded class I
+      reference: <testLibrary>::@class::I
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::I::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration ==
+          reference: <testLibrary>::@class::I::@method::==
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional isCovariant other
+              firstFragment: #F4
+              type: I
+          returnType: bool
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F5
+      interfaces
+        I
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F6
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F7
+      type: bool
+      constantInitializer
+        fragment: #F7
+        expression: expression_0
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F8
+      returnType: bool
+      variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
   test_const_topLevel_conditional() async {
     var library = await buildLibrary(r'''
 const vConditional = (1 == 2) ? 11 : 22;
@@ -11426,6 +11544,217 @@ library
       firstFragment: #F2
       returnType: num
       variable: <testLibrary>::@topLevelVariable::vIfNull
+''');
+  }
+
+  test_const_topLevel_instanceGetter_combinedSignature() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  Future<void> get foo;
+}
+
+abstract class B {
+  Future<dynamic> get foo;
+}
+
+abstract class X implements A, B {}
+
+class D implements X {
+  const D();
+  Future<Object?> get foo => throw 0;
+}
+
+const X x = D();
+const v = x.foo;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 isAbstract isOriginDeclaration foo (nameOffset:38) (firstTokenOffset:21) (offset:38)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F5 isAbstract class B (nameOffset:61) (firstTokenOffset:46) (offset:61)
+          element: <testLibrary>::@class::B
+          fields
+            #F6 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+              element: <testLibrary>::@class::B::@field::foo
+          constructors
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          getters
+            #F8 isAbstract isOriginDeclaration foo (nameOffset:87) (firstTokenOffset:67) (offset:87)
+              element: <testLibrary>::@class::B::@getter::foo
+        #F9 isAbstract class X (nameOffset:110) (firstTokenOffset:95) (offset:110)
+          element: <testLibrary>::@class::X
+          constructors
+            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:110)
+              element: <testLibrary>::@class::X::@constructor::new
+              typeName: X
+        #F11 class D (nameOffset:138) (firstTokenOffset:132) (offset:138)
+          element: <testLibrary>::@class::D
+          fields
+            #F12 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:138)
+              element: <testLibrary>::@class::D::@field::foo
+          constructors
+            #F13 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:157) (offset:163)
+              element: <testLibrary>::@class::D::@constructor::new
+              typeName: D
+              typeNameOffset: 163
+          getters
+            #F14 isComplete isOriginDeclaration foo (nameOffset:190) (firstTokenOffset:170) (offset:190)
+              element: <testLibrary>::@class::D::@getter::foo
+      topLevelVariables
+        #F15 hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:217) (firstTokenOffset:217) (offset:217)
+          element: <testLibrary>::@topLevelVariable::x
+          initializer: expression_0
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: D @221
+                  element: <testLibrary>::@class::D
+                  type: D
+                element: <testLibrary>::@class::D::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: ( @222
+                rightParenthesis: ) @223
+              staticType: D
+          inducedGetter: #F16
+        #F17 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:232) (firstTokenOffset:232) (offset:232)
+          element: <testLibrary>::@topLevelVariable::v
+          initializer: expression_1
+            ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x @236
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::x
+                  type: X
+                staticType: X
+              operator: . @237
+              name: foo @238
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@class::X::@getter::foo
+                type: Future<Object?>
+              staticType: Future<Object?>
+          inducedGetter: #F18
+      getters
+        #F16 isComplete isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:217)
+          element: <testLibrary>::@getter::x
+          inducingVariable: #F15
+        #F18 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:232)
+          element: <testLibrary>::@getter::v
+          inducingVariable: #F17
+  classes
+    isAbstract isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: Future<void>
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: Future<void>
+          variable: <testLibrary>::@class::A::@field::foo
+    isAbstract isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F6
+          type: Future<dynamic>
+          getter: <testLibrary>::@class::B::@getter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F7
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F8
+          returnType: Future<dynamic>
+          variable: <testLibrary>::@class::B::@field::foo
+    isAbstract isSimplyBounded class X
+      reference: <testLibrary>::@class::X
+      firstFragment: #F9
+      interfaces
+        A
+        B
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::X::@constructor::new
+          firstFragment: #F10
+    isSimplyBounded class D
+      reference: <testLibrary>::@class::D
+      firstFragment: #F11
+      interfaces
+        X
+      fields
+        isOriginGetterSetter foo
+          reference: <testLibrary>::@class::D::@field::foo
+          firstFragment: #F12
+          type: Future<Object?>
+          getter: <testLibrary>::@class::D::@getter::foo
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F13
+      getters
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::D::@getter::foo
+          firstFragment: #F14
+          returnType: Future<Object?>
+          variable: <testLibrary>::@class::D::@field::foo
+  topLevelVariables
+    hasInitializer isConst isOriginDeclaration isStatic x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F15
+      type: X
+      constantInitializer
+        fragment: #F15
+        expression: expression_0
+      getter: <testLibrary>::@getter::x
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
+      reference: <testLibrary>::@topLevelVariable::v
+      firstFragment: #F17
+      type: Future<Object?>
+      constantInitializer
+        fragment: #F17
+        expression: expression_1
+      getter: <testLibrary>::@getter::v
+  getters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F16
+      returnType: X
+      variable: <testLibrary>::@topLevelVariable::x
+    isOriginVariable isStatic v
+      reference: <testLibrary>::@getter::v
+      firstFragment: #F18
+      returnType: Future<Object?>
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 

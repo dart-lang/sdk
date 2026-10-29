@@ -207,6 +207,20 @@ class A {
 ''');
   }
 
+  test_implementsNone_covariantEqEqInInterface() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class I {
+  bool operator ==(covariant I other);
+}
+
+class A implements I {
+  const A();
+}
+
+const x = {A()};
+''');
+  }
+
   test_implementsNone_record_named() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

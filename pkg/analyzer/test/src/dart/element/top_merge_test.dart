@@ -251,12 +251,24 @@ class TopMergeTest extends AbstractTypeSystemTest {
       var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
     }
+    _checkCovariance(result, expected);
 
     result = typeSystem.topMerge(S, T);
     if (result != expected) {
       var expectedStr = expected.getDisplayString();
       var resultStr = result.getDisplayString();
       fail('Expected: $expectedStr, actual: $resultStr');
+    }
+    _checkCovariance(result, expected);
+  }
+
+  /// Equality of function types ignores covariance, so check it separately.
+  void _checkCovariance(TypeImpl result, TypeImpl expected) {
+    if (result is FunctionTypeImpl && expected is FunctionTypeImpl) {
+      expect(
+        result.formalParameters.map((e) => e.isCovariant).toList(),
+        expected.formalParameters.map((e) => e.isCovariant).toList(),
+      );
     }
   }
 

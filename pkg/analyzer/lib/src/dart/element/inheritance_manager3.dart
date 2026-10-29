@@ -97,6 +97,15 @@ class InheritanceManager3 {
   /// self-referencing cycles.
   final Set<InterfaceElementImpl> _processingClasses = {};
 
+  /// Members synthesized for combined member signatures, by class and name.
+  ///
+  /// There can be several with the same name, because signatures are combined
+  /// for each layer, for example for the superclass with a mixin applied, and
+  /// then for the class itself. A synthesized member is reused only for the
+  /// same kind and signature.
+  final Map<InterfaceElementImpl, Map<Name, List<InternalExecutableElement>>>
+  _synthesizedMembers = {};
+
   /// Combine types of [candidates] into a single most specific type.
   ///
   /// If such signature does not exist, return `null`, and if [conflicts] is
@@ -394,6 +403,9 @@ class InheritanceManager3 {
     _interfaces.removeWhere((element, _) {
       return uriSet.contains(element.library.uri);
     });
+    _synthesizedMembers.removeWhere((element, _) {
+      return uriSet.contains(element.library.uri);
+    });
   }
 
   void _addCandidates({
@@ -558,7 +570,7 @@ class InheritanceManager3 {
 
     (_combinedSignatures[targetClass] ??= {})[name] = expandedCandidates;
 
-    return _topMerge(typeSystem, targetClass, validOverrides);
+    return _topMerge(typeSystem, targetClass, name, candidates, validOverrides);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -806,18 +818,6 @@ class InheritanceManager3 {
         if (mixinConflicts.isNotEmpty) {
           conflicts.addAll(mixinConflicts);
         }
-      }
-    }
-
-    for (var entry in implemented.entries) {
-      var result = _inheritCovariance(
-        element,
-        namedCandidates,
-        entry.key,
-        entry.value,
-      );
-      if (!identical(entry.value, result)) {
-        implemented[entry.key] = result;
       }
     }
 
@@ -1147,279 +1147,89 @@ class InheritanceManager3 {
     );
   }
 
-  /// If a candidate from [namedCandidates] has covariant parameters, return
-  /// a copy of the [executable] with the corresponding parameters marked
-  /// covariant. If there are no covariant parameters, or parameters to
-  /// update are already covariant, return the [executable] itself.
-  InternalExecutableElement _inheritCovariance(
-    InterfaceElementImpl class_,
-    Map<Name, List<InternalExecutableElement>> namedCandidates,
-    Name name,
-    InternalExecutableElement executable,
-  ) {
-    if (executable.enclosingElement == class_) {
-      return executable;
-    }
-
-    var parameters = executable.formalParameters;
-    if (parameters.isEmpty) {
-      return executable;
-    }
-
-    var candidates = namedCandidates[name];
-    if (candidates == null) {
-      return executable;
-    }
-
-    // Find parameters that are covariant (by declaration) in any overridden.
-    Set<_ParameterDesc>? covariantParameters;
-    for (var candidate in candidates) {
-      var parameters = candidate.formalParameters;
-      for (var i = 0; i < parameters.length; i++) {
-        var parameter = parameters[i];
-        if (parameter.isCovariant) {
-          covariantParameters ??= {};
-          covariantParameters.add(_ParameterDesc(i, parameter));
-        }
-      }
-    }
-
-    if (covariantParameters == null) {
-      return executable;
-    }
-
-    // Update covariance of the parameters of the chosen executable.
-    List<InternalFormalParameterElement>? transformedParameters;
-    for (var index = 0; index < parameters.length; index++) {
-      var parameter = parameters[index];
-      var shouldBeCovariant = covariantParameters.contains(
-        _ParameterDesc(index, parameter),
-      );
-      if (parameter.isCovariant != shouldBeCovariant) {
-        transformedParameters ??= parameters.toList();
-        transformedParameters[index] = parameter.copyWith(
-          isCovariant: shouldBeCovariant,
-        );
-      }
-    }
-
-    if (transformedParameters == null) {
-      return executable;
-    }
-
-    if (executable is InternalMethodElement) {
-      var fragmentName = executable.name ?? '';
-
-      var elementReference = class_.reference.getOrCreateMethod(fragmentName);
-      if (elementReference.element case MethodElementImpl result) {
-        return result;
-      }
-
-      var resultFragment = MethodFragmentImpl(name: executable.name);
-      resultFragment.enclosingFragment = class_.firstFragment;
-      resultFragment.isOriginInterface = true;
-      var freshTypeParameters = _FreshExecutableTypeParameters(
-        executable.typeParameters,
-      );
-      resultFragment.typeParameters = freshTypeParameters.fragments;
-
-      var elementName = executable.name!;
-      var result = MethodElementImpl(
-        name: elementName,
-        reference: elementReference,
-        firstFragment: resultFragment,
-      );
-      freshTypeParameters.initializeElements(result.typeParameters);
-
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(transformedParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      result.returnType = freshTypeParameters.substitute(executable.returnType);
-
-      return result;
-    }
-
-    if (executable is InternalSetterElement) {
-      var fragmentName = executable.name ?? '';
-      var setterReference = class_.reference.getOrCreateSetter(fragmentName);
-      if (setterReference.element case SetterElementImpl result) {
-        return result;
-      }
-
-      var resultFragment = SetterFragmentImpl(name: executable.name);
-      resultFragment.enclosingFragment = class_.firstFragment;
-      resultFragment.isOriginInterface = true;
-      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
-      freshTypeParameters.initializeElements(const []);
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(transformedParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-
-      var result = SetterElementImpl(setterReference, resultFragment);
-      result.returnType = freshTypeParameters.substitute(executable.returnType);
-
-      var resultField = FieldFragmentImpl(name: executable.name);
-      resultField.enclosingFragment = class_.firstFragment;
-      resultField.isOriginGetterSetter = true;
-
-      var elementName = executable.name!;
-      var fieldReference = class_.reference.getOrCreateField(elementName);
-      assert(fieldReference.element == null);
-      FieldElementImpl(reference: fieldReference, firstFragment: resultField);
-
-      return result;
-    }
-
-    return executable;
-  }
-
-  /// Given one or more [validOverrides], merge them into a single resulting
-  /// signature. This signature always exists.
+  /// Merges [validOverrides] into a single signature, which always exists.
+  ///
+  /// The [validOverrides] are the most specific of [candidates]: their types
+  /// are subtypes of the types of all [candidates]. The result overrides all
+  /// [candidates], so a parameter of the result is covariant if the
+  /// corresponding parameter of any of them is covariant.
+  ///
+  /// Returns one of [validOverrides] if it has this signature, otherwise a
+  /// member of [targetClass] synthesized with it.
   InternalExecutableElement _topMerge(
     TypeSystemImpl typeSystem,
     InterfaceElementImpl targetClass,
+    Name name,
+    List<InternalExecutableElement> candidates,
     List<InternalExecutableElement> validOverrides,
   ) {
     var firstElement = validOverrides[0];
-
-    if (validOverrides.length == 1) {
-      return firstElement;
-    }
-
     var firstType = firstElement.type;
-    var allFirstType = true;
-    for (var e in validOverrides) {
-      if (e.type != firstType) {
-        allFirstType = false;
-        break;
-      }
-    }
-    if (allFirstType) {
-      return firstElement;
-    }
 
-    var resultType = _topMergeSignatureTypes(
-      typeSystem: typeSystem,
-      validOverrides: validOverrides,
-    );
+    FunctionTypeImpl resultType;
+    if (validOverrides.every((e) => e.type == firstType)) {
+      resultType = firstType;
+    } else {
+      resultType = _topMergeSignatureTypes(
+        typeSystem: typeSystem,
+        validOverrides: validOverrides,
+      );
+    }
+    resultType = _addCovarianceFrom(resultType, candidates);
 
     for (var executable in validOverrides) {
-      if (executable.type == resultType) {
+      if (_isSameSignature(executable.type, resultType)) {
         return executable;
       }
     }
 
-    if (firstElement is InternalMethodElement) {
-      var fragmentName = firstElement.firstFragment.name!;
-
-      var elementReference = targetClass.reference.getOrCreateMethod(
-        fragmentName,
-      );
-      if (elementReference.element case MethodElementImpl result) {
-        return result;
+    var synthesized = (_synthesizedMembers[targetClass] ??= {})[name] ??= [];
+    for (var executable in synthesized) {
+      if (executable.kind == firstElement.kind &&
+          _isSameSignature(executable.type, resultType)) {
+        return executable;
       }
-      assert(elementReference.element == null);
-
-      var resultFragment = MethodFragmentImpl(name: fragmentName);
-      resultFragment.enclosingFragment = targetClass.firstFragment;
-      resultFragment.isOriginInterface = true;
-      var freshTypeParameters = _FreshExecutableTypeParameters(
-        resultType.typeParameters,
-      );
-      resultFragment.typeParameters = freshTypeParameters.fragments;
-
-      var elementName = firstElement.name!;
-      var result = MethodElementImpl(
-        name: elementName,
-        reference: elementReference,
-        firstFragment: resultFragment,
-      );
-      freshTypeParameters.initializeElements(result.typeParameters);
-
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(resultType.formalParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      result.returnType = freshTypeParameters.substitute(resultType.returnType);
-
-      return result;
-    } else {
-      firstElement as InternalPropertyAccessorElement;
-      var fragmentName = firstElement.name!;
-      var field = FieldFragmentImpl(name: fragmentName);
-      field.isOriginGetterSetter = true;
-
-      PropertyAccessorFragmentImpl resultFragment;
-      PropertyAccessorElementImpl resultElement;
-      if (firstElement is InternalGetterElement) {
-        var elementReference = targetClass.reference.getOrCreateGetter(
-          fragmentName,
-        );
-        if (elementReference.element case GetterElementImpl result) {
-          return result;
-        }
-        assert(elementReference.element == null);
-
-        var fragment = GetterFragmentImpl(name: fragmentName);
-        resultFragment = fragment;
-
-        var result = GetterElementImpl(elementReference, fragment);
-        resultElement = result;
-      } else {
-        var elementReference = targetClass.reference.getOrCreateSetter(
-          fragmentName,
-        );
-        if (elementReference.element case SetterElementImpl result) {
-          return result;
-        }
-        assert(elementReference.element == null);
-
-        var fragment = SetterFragmentImpl(name: fragmentName);
-        resultFragment = fragment;
-        resultFragment.isOriginInterface = true;
-
-        var result = SetterElementImpl(elementReference, fragment);
-        resultElement = result;
-      }
-      resultFragment.enclosingFragment = targetClass.firstFragment;
-      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
-      freshTypeParameters.initializeElements(const []);
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(resultType.formalParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      resultElement.returnType = freshTypeParameters.substitute(
-        resultType.returnType,
-      );
-
-      field.enclosingFragment = targetClass.firstFragment;
-
-      var elementName = firstElement.name!;
-      var elementReference = targetClass.reference.getOrCreateField(
-        elementName,
-      );
-      assert(elementReference.element == null);
-      var fieldElement = FieldElementImpl(
-        reference: elementReference,
-        firstFragment: field,
-      );
-      resultFragment.element.variable = fieldElement;
-
-      if (firstElement is GetterElement) {
-        fieldElement.type = resultType.returnType;
-      } else {
-        var type = freshFormalParameterElements[0].type;
-        fieldElement.type = type;
-      }
-
-      return resultElement;
     }
+
+    var result = _synthesizeMember(targetClass, firstElement, resultType);
+    synthesized.add(result);
+    return result;
+  }
+
+  /// Returns [type], with formal parameters made covariant if the
+  /// corresponding parameters of any of [candidates] are covariant.
+  static FunctionTypeImpl _addCovarianceFrom(
+    FunctionTypeImpl type,
+    List<InternalExecutableElement> candidates,
+  ) {
+    var parameters = type.formalParameters;
+
+    List<InternalFormalParameterElement>? newParameters;
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
+      if (parameter.isCovariant) {
+        continue;
+      }
+      var isCovariant = candidates.any((candidate) {
+        var corresponding = candidate.correspondingParameter(parameter, i);
+        return corresponding != null && corresponding.isCovariant;
+      });
+      if (isCovariant) {
+        newParameters ??= parameters.toList(growable: false);
+        newParameters[i] = parameter.copyWith(isCovariant: true);
+      }
+    }
+
+    if (newParameters == null) {
+      return type;
+    }
+
+    return FunctionTypeImpl(
+      typeParameters: type.typeParameters,
+      formalParameters: newParameters,
+      returnType: type.returnType,
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
   }
 
   static Map<Name, InternalExecutableElement> _getTypeMembers(
@@ -1469,6 +1279,118 @@ class InheritanceManager3 {
   static bool _isDeclaredInObject(InternalExecutableElement element) {
     var enclosing = element.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
+  }
+
+  /// Whether [a] and [b] are equal function types with the same covariant
+  /// parameters. Equality of function types ignores covariance.
+  static bool _isSameSignature(FunctionTypeImpl a, FunctionTypeImpl b) {
+    if (a != b) {
+      return false;
+    }
+    // Equal function types have the same parameters, named ones are sorted.
+    var aParameters = a.formalParameters;
+    var bParameters = b.formalParameters;
+    for (var i = 0; i < aParameters.length; i++) {
+      if (aParameters[i].isCovariant != bParameters[i].isCovariant) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Returns a new member of [targetClass], with the kind and name of
+  /// [firstElement], and [resultType].
+  static InternalExecutableElement _synthesizeMember(
+    InterfaceElementImpl targetClass,
+    InternalExecutableElement firstElement,
+    FunctionTypeImpl resultType,
+  ) {
+    if (firstElement is InternalMethodElement) {
+      var fragmentName = firstElement.firstFragment.name!;
+
+      var resultFragment = MethodFragmentImpl(name: fragmentName);
+      resultFragment.enclosingFragment = targetClass.firstFragment;
+      resultFragment.isOriginInterface = true;
+      var freshTypeParameters = _FreshExecutableTypeParameters(
+        resultType.typeParameters,
+      );
+      resultFragment.typeParameters = freshTypeParameters.fragments;
+
+      var elementName = firstElement.name!;
+      var result = MethodElementImpl(
+        name: elementName,
+        reference: targetClass.reference.createUnregisteredMethod(fragmentName),
+        firstFragment: resultFragment,
+      );
+      freshTypeParameters.initializeElements(result.typeParameters);
+
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(resultType.formalParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
+          .map((e) => e.firstFragment)
+          .toFixedList();
+      result.returnType = freshTypeParameters.substitute(resultType.returnType);
+
+      return result;
+    } else {
+      firstElement as InternalPropertyAccessorElement;
+      var fragmentName = firstElement.name!;
+      var field = FieldFragmentImpl(name: fragmentName);
+      field.isOriginGetterSetter = true;
+
+      PropertyAccessorFragmentImpl resultFragment;
+      PropertyAccessorElementImpl resultElement;
+      if (firstElement is InternalGetterElement) {
+        var fragment = GetterFragmentImpl(name: fragmentName);
+        resultFragment = fragment;
+        resultFragment.isOriginInterface = true;
+
+        var result = GetterElementImpl(
+          targetClass.reference.createUnregisteredGetter(fragmentName),
+          fragment,
+        );
+        resultElement = result;
+      } else {
+        var fragment = SetterFragmentImpl(name: fragmentName);
+        resultFragment = fragment;
+        resultFragment.isOriginInterface = true;
+
+        var result = SetterElementImpl(
+          targetClass.reference.createUnregisteredSetter(fragmentName),
+          fragment,
+        );
+        resultElement = result;
+      }
+      resultFragment.enclosingFragment = targetClass.firstFragment;
+      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
+      freshTypeParameters.initializeElements(const []);
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(resultType.formalParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
+          .map((e) => e.firstFragment)
+          .toFixedList();
+      resultElement.returnType = freshTypeParameters.substitute(
+        resultType.returnType,
+      );
+
+      field.enclosingFragment = targetClass.firstFragment;
+
+      var elementName = firstElement.name!;
+      var fieldElement = FieldElementImpl(
+        reference: targetClass.reference.createUnregisteredField(elementName),
+        firstFragment: field,
+      );
+      resultFragment.element.variable = fieldElement;
+
+      if (firstElement is GetterElement) {
+        fieldElement.type = resultType.returnType;
+      } else {
+        var type = freshFormalParameterElements[0].type;
+        fieldElement.type = type;
+      }
+
+      return resultElement;
+    }
   }
 
   static FunctionTypeImpl _topMergeSignatureTypes({
@@ -1760,31 +1682,4 @@ final class _FreshExecutableTypeParameters {
   }
 
   TypeImpl substitute(DartType type) => _substitution.substituteType(type);
-}
-
-class _ParameterDesc {
-  final int? index;
-  final String? name;
-
-  factory(int index, FormalParameterElement element) {
-    return element.isNamed
-        ? _ParameterDesc.name(element.name)
-        : _ParameterDesc.index(index);
-  }
-
-  new index(this.index) : name = null;
-
-  new name(this.name) : index = null;
-
-  @override
-  int get hashCode {
-    return index?.hashCode ?? name?.hashCode ?? 0;
-  }
-
-  @override
-  bool operator ==(other) {
-    return other is _ParameterDesc &&
-        other.index == index &&
-        other.name == name;
-  }
 }
