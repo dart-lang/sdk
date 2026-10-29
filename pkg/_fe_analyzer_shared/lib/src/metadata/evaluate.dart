@@ -4,8 +4,9 @@
 
 import 'ast.dart';
 
-typedef GetFieldInitializer =
-    Expression? Function(FieldReference fieldReference);
+typedef GetFieldInitializer = Expression? Function(
+  FieldReference fieldReference,
+);
 
 /// Evaluates an [expression] based on the semantics that can be deduced from
 /// the syntax.
@@ -34,7 +35,7 @@ class Evaluator {
   final GetFieldInitializer? _getFieldInitializer;
   final Map<FieldReference, Expression>? _dereferences;
 
-  Evaluator({
+  new({
     required GetFieldInitializer? getFieldInitializer,
     required Map<FieldReference, Expression>? dereferences,
   }) : _getFieldInitializer = getFieldInitializer,

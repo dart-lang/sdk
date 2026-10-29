@@ -33,7 +33,7 @@ abstract class VariableBinder<Node extends Object, Variable extends Object> {
   /// statement.
   List<_SharedCaseScope<Variable>> _sharedCaseScopes = [];
 
-  VariableBinder({required this.errors});
+  new({required this.errors});
 
   /// Updates the set of bindings to account for the presence of a variable
   /// pattern.  [name] is the name of the variable, [variable] is the object
@@ -235,7 +235,7 @@ class _SharedCaseScope<Variable extends Object> {
   bool hasLabel = false;
   Map<String, _SharedCaseScopeVariable<Variable>> variables = {};
 
-  _SharedCaseScope(this.key);
+  new(this.key);
 
   /// Adds [newVariables] to [variables], marking absent variables as not
   /// consistent. If [isEmpty], just sets given variables as the starting set.

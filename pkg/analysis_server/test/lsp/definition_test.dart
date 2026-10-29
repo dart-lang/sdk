@@ -648,8 +648,34 @@ class A {
     await verifyDirective(source: "export 'destin^ation.dart';");
   }
 
+  Future<void> test_directive_export_inPart() async {
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), '''
+part 'source.dart';
+''');
+    await verifyDirective(
+      source: '''
+part of 'a.dart';
+
+export 'desti^nation.dart';
+''',
+    );
+  }
+
   Future<void> test_directive_import() async {
     await verifyDirective(source: "import 'desti^nation.dart';");
+  }
+
+  Future<void> test_directive_import_inPart() async {
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), '''
+part 'source.dart';
+''');
+    await verifyDirective(
+      source: '''
+part of 'a.dart';
+
+import 'desti^nation.dart';
+''',
+    );
   }
 
   Future<void> test_directive_part() async {
@@ -659,10 +685,40 @@ class A {
     );
   }
 
+  Future<void> test_directive_part_inPart() async {
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), '''
+part 'source.dart';
+''');
+    await verifyDirective(
+      source: '''
+part of 'a.dart';
+
+part 'desti^nation.dart';
+''',
+      destination: "part of 'source.dart';",
+    );
+  }
+
   Future<void> test_directive_partOf() async {
     await verifyDirective(
       source: "part of 'destin^ation.dart';",
       destination: "part 'source.dart';",
+    );
+  }
+
+  Future<void> test_directive_partOf_nestedPart() async {
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), '''
+part 'destination.dart';
+''');
+    await verifyDirective(
+      source: '''
+part of 'desti^nation.dart';
+''',
+      destination: '''
+part of 'a.dart';
+
+part 'source.dart';
+''',
     );
   }
 

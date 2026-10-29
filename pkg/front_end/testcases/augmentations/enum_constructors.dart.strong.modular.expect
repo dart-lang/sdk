@@ -1,59 +1,41 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/augmentations/enum_constructors.dart:11:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-//   new (int x, [int y = 0]) : x = x, y = y;
-//   ^
-//
-// pkg/front_end/testcases/augmentations/enum_constructors.dart:23:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-//   new ({required int x, int y = 0}) : x = x, y = y;
-//   ^
-//
 import self as self;
 import "dart:core" as core;
 
 class E1 extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::E1 e0 = invalid-expression "pkg/front_end/testcases/augmentations/enum_constructors.dart:11:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new (int x, [int y = 0]) : x = x, y = y;
-  ^";
-  enum-element static const field self::E1 e1 = invalid-expression "pkg/front_end/testcases/augmentations/enum_constructors.dart:11:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new (int x, [int y = 0]) : x = x, y = y;
-  ^";
+  enum-element static const field self::E1 e0 = #C3;
+  enum-element static const field self::E1 e1 = #C7;
   final field dynamic x;
   final field dynamic y;
-  static const field core::List<self::E1> values = invalid-expression "pkg/front_end/testcases/augmentations/enum_constructors.dart:11:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new (int x, [int y = 0]) : x = x, y = y;
-  ^";
+  static const field core::List<self::E1> values = #C8;
   const constructor •(core::int #index, core::String #name, core::int x, [core::int y = #C1]) → self::E1
-    : invalid-initializer "pkg/front_end/testcases/augmentations/enum_constructors.dart:11:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new (int x, [int y = 0]) : x = x, y = y;
-  ^"
+    : self::E1::x = x, self::E1::y = y, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::E2 e0 = invalid-expression "pkg/front_end/testcases/augmentations/enum_constructors.dart:23:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new ({required int x, int y = 0}) : x = x, y = y;
-  ^";
-  enum-element static const field self::E2 e1 = invalid-expression "pkg/front_end/testcases/augmentations/enum_constructors.dart:23:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new ({required int x, int y = 0}) : x = x, y = y;
-  ^";
+  enum-element static const field self::E2 e0 = #C9;
+  enum-element static const field self::E2 e1 = #C10;
   final field dynamic x;
   final field dynamic y;
-  static const field core::List<self::E2> values = invalid-expression "pkg/front_end/testcases/augmentations/enum_constructors.dart:23:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new ({required int x, int y = 0}) : x = x, y = y;
-  ^";
+  static const field core::List<self::E2> values = #C11;
   const constructor •(core::int #index, core::String #name, {required core::int x, core::int y = #C1}) → self::E2
-    : invalid-initializer "pkg/front_end/testcases/augmentations/enum_constructors.dart:23:3: Error: The superclass, '_Enum', has no unnamed constructor that takes no arguments.
-  new ({required int x, int y = 0}) : x = x, y = y;
-  ^"
+    : self::E2::x = x, self::E2::y = y, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
-static method main() → dynamic {}
+static method main() → dynamic {
+  self::expect(0, #C3.{self::E1::x}{dynamic});
+  self::expect(0, #C3.{self::E1::y}{dynamic});
+  self::expect(1, #C7.{self::E1::x}{dynamic});
+  self::expect(2, #C7.{self::E1::y}{dynamic});
+  self::expect(1, #C9.{self::E2::x}{dynamic});
+  self::expect(0, #C9.{self::E2::y}{dynamic});
+  self::expect(1, #C10.{self::E2::x}{dynamic});
+  self::expect(2, #C10.{self::E2::y}{dynamic});
+}
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
     throw "Expected ${expected}, actual ${actual}";
@@ -61,10 +43,22 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = 0
+  #C2 = "e0"
+  #C3 = self::E1 {x:#C1, y:#C1, index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = 2
+  #C6 = "e1"
+  #C7 = self::E1 {x:#C4, y:#C5, index:#C4, _name:#C6}
+  #C8 = <self::E1>[#C3, #C7]
+  #C9 = self::E2 {x:#C4, y:#C1, index:#C1, _name:#C2}
+  #C10 = self::E2 {x:#C4, y:#C5, index:#C4, _name:#C6}
+  #C11 = <self::E2>[#C9, #C10]
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///enum_constructors.dart:
 - E1. (from org-dartlang-testcase:///enum_constructors.dart:11:3)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - E2. (from org-dartlang-testcase:///enum_constructors.dart:23:3)

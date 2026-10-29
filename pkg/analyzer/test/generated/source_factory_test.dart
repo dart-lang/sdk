@@ -23,7 +23,7 @@ main() {
 class AbsoluteUriResolver extends UriResolver {
   final ResourceProvider resourceProvider;
 
-  AbsoluteUriResolver(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   Uri? pathToUri(String path) {
@@ -124,7 +124,7 @@ class SourceFactoryTest with ResourceProviderMixin {
 class UriResolver_absolute extends UriResolver {
   bool invoked = false;
 
-  UriResolver_absolute();
+  new();
 
   @override
   Uri? pathToUri(String path) {
@@ -141,7 +141,7 @@ class UriResolver_absolute extends UriResolver {
 class UriResolver_restoreUri extends UriResolver {
   String path1;
   Uri expected1;
-  UriResolver_restoreUri(this.path1, this.expected1);
+  new(this.path1, this.expected1);
 
   @override
   Uri? pathToUri(String path) {

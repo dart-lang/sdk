@@ -17,6 +17,42 @@ class PreferIsNotEmptyTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_is_not_empty';
 
+  test_customSubclass_isEmpty() async {
+    await assertNoDiagnostics(r'''
+abstract class MyIterable {
+  bool get isEmpty;
+  bool get isNotEmpty => !isEmpty;
+}
+
+class MyQueue extends MyIterable {
+  @override
+  bool get isEmpty => true;
+}
+
+void f(MyQueue p) {
+  p.isEmpty;
+}
+    ''');
+  }
+
+  test_customSubclass_isEmpty_not() async {
+    await assertDiagnosticsFromMarkup(r'''
+abstract class MyIterable {
+  bool get isEmpty;
+  bool get isNotEmpty => !isEmpty;
+}
+
+class MyQueue extends MyIterable {
+  @override
+  bool get isEmpty => true;
+}
+
+void f(MyQueue p) {
+  [!!p.isEmpty!];
+}
+    ''');
+  }
+
   test_iterable_isEmpty() async {
     await assertNoDiagnostics(r'''
 void f(Iterable<int> p) {

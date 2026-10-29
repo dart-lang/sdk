@@ -17,7 +17,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 class TopMergeHelper {
   final TypeSystemImpl typeSystem;
 
-  TopMergeHelper(this.typeSystem);
+  new(this.typeSystem);
 
   /// Merges two types into a single type.
   /// Compute the canonical representation of [T].
@@ -362,11 +362,7 @@ class _MergeTypeParametersResult {
   final Substitution aSubstitution;
   final Substitution bSubstitution;
 
-  _MergeTypeParametersResult(
-    this.typeParameters,
-    this.aSubstitution,
-    this.bSubstitution,
-  );
+  new(this.typeParameters, this.aSubstitution, this.bSubstitution);
 }
 
 /// This error should never happen, because we should never attempt
@@ -377,5 +373,5 @@ class _TopMergeStateError {
   final DartType S;
   final String message;
 
-  _TopMergeStateError(this.T, this.S, this.message);
+  new(this.T, this.S, this.message);
 }

@@ -19,7 +19,7 @@ class CoreStaticTypesTest {
     q['hello'];
     //^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+    // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
     q[0] = 'x';
     // [error column 6, length 3]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
@@ -43,11 +43,11 @@ class CoreStaticTypesTest {
     a['0'];
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+    // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
     a['0'] = 99;
     //^^^
     // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-    // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
+    // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
   }
 }
 

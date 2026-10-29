@@ -15,11 +15,13 @@ main() {
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
   // [cfe] Couldn't find constructor 'A'.
   new A.foo();
+  //  ^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   //  ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Couldn't find constructor 'A.foo'.
   new lib.A();
+  //  ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   //  ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Couldn't find constructor 'lib.A'.
 }

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertFlutterChildrenTest extends FixProcessorTest {
+class ConvertFlutterChildrenTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 

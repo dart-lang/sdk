@@ -448,7 +448,6 @@ DirectAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: ?.
@@ -511,7 +510,6 @@ DirectAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: .
@@ -671,14 +669,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -740,14 +736,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
     name: y
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::y
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::y
@@ -830,14 +824,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: ?.
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -899,14 +891,12 @@ CompoundAssignment
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A? Function()
         type: A?
       staticType: A?
     operator: .
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -1123,6 +1113,155 @@ m(int? x) {
 ''');
   }
 
+  test_cascade_nullable_propertyExtraction_call_Function() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(Function? x) {
+  x..call;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: FunctionInterfaceCallTearOffResolution
+    type: Function?
+  staticType: Function?
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: Function?
+  staticType: Function?
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function()? x) {
+  x..call;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_functionType_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function<T>()? x) {
+  x..call<int>;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: CascadePropertyExtraction
+    name: call
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_null_aware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function()? x) {
+  x?..call;
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: FunctionCallTearOffResolution
+    type: void Function()
+    associatedFunctionType: void Function()
+  staticType: void Function()
+V1: PropertyAccess
+  operator: ?..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: void Function()
+  staticType: void Function()
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<T extends void Function()?>(T x) {
+  x..call;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_eqEq_nullable() async {
     await resolveTestCodeWithDiagnostics(r'''
 m() {
@@ -1168,6 +1307,390 @@ m() {
 //                ^
 // [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
 }
+''');
+  }
+
+  test_functionInstantiation_nonNullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T) x) {
+  x<int>;
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T)? x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)?
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_notPromotableField() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final T Function<T>(T)? foo;
+//                        ^^^
+// [context 1] 'foo' refers to a public property so it couldn't be promoted.
+  A(this.foo);
+}
+
+m(A a) {
+  if (a.foo != null) {
+    a.foo<int>;
+//  ^^^^^
+// [diag.uncheckedInstantiationOfNullableValue][context 1] The function can't be unconditionally instantiated because it can be 'null'.
+  }
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::m::@formalParameter::a
+        type: A
+      staticType: A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      type: T Function<T>(T)?
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::m::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: T Function<T>(T)?
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_parenthesized_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  T foo<T>(T t) => t;
+}
+
+m(A? a) {
+  (a?.foo)<int>;
+//^^^^^^^^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::a
+          type: A?
+        staticType: A?
+      operator: ?.
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::A::@method::foo
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)?
+    rightParenthesis: )
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::m::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@class::A::@method::foo
+        staticType: T Function<T>(T)
+      staticType: T Function<T>(T)?
+    rightParenthesis: )
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_promoted() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T)? x) {
+  if (x != null) {
+    x<int>;
+  }
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_typeParameter_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<F extends T Function<T>(T)>(F? x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: F?
+    staticType: F?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: F?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_typeParameter_nullableBound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<F extends T Function<T>(T)?>(F x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: F
+    staticType: F
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: F
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
 ''');
   }
 
@@ -1343,7 +1866,6 @@ ReceiverPropertyExtraction
   name: isEven
   resolution: GetterInvocationResolution
     element: dart:core::@class::int::@getter::isEven
-    invokeType: bool Function()
     type: bool
   staticType: bool
 V1: PrefixedIdentifier
@@ -1805,6 +2327,44 @@ m(int? x) {
 //  ^^
 // [diag.uncheckedMethodInvocationOfNullableValue] The method '+' can't be unconditionally invoked because the receiver can be 'null'.
 }
+''');
+  }
+
+  test_propertyExtraction_call_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function()? x) {
+  x.call;
+//  ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: void Function()?
+    staticType: void Function()?
+  operator: .
+  name: call
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: void Function()?
+  period: .
+  identifier: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
 ''');
   }
 

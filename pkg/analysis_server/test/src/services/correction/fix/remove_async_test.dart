@@ -18,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveAsyncIllegalReturnTest extends FixProcessorTest {
+class RemoveAsyncIllegalReturnTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeAsync;
 
@@ -143,7 +144,8 @@ Future<void> f() async {
 }
 
 @reflectiveTest
-class RemoveAsyncReturnUnawaitedTest extends FixProcessorLintTest {
+class RemoveAsyncReturnUnawaitedTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeAsync;
 
@@ -199,7 +201,7 @@ Future<void> f() async {
 }
 
 @reflectiveTest
-class RemoveAsyncTest extends FixProcessorLintTest {
+class RemoveAsyncTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeAsync;
 

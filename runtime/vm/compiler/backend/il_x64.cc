@@ -4467,24 +4467,6 @@ DEFINE_EMIT(Float64x2Zero, (XmmRegister value)) {
   __ ClearFpuRegister(value);
 }
 
-DEFINE_EMIT(Float32x4Clamp,
-            (SameAsFirstInput,
-             XmmRegister value,
-             XmmRegister lower,
-             XmmRegister upper)) {
-  __ minps(value, upper);
-  __ maxps(value, lower);
-}
-
-DEFINE_EMIT(Float64x2Clamp,
-            (SameAsFirstInput,
-             XmmRegister value,
-             XmmRegister lower,
-             XmmRegister upper)) {
-  __ minpd(value, upper);
-  __ maxpd(value, lower);
-}
-
 DEFINE_EMIT(Int32x4FromInts,
             (XmmRegister result, Register, Register, Register, Register)) {
   // TODO(dartbug.com/30949) avoid transfer through memory.
@@ -4742,8 +4724,6 @@ DEFINE_EMIT(Int32x4Shift,
   SIMPLE(Int32x4FromBools)                                                     \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float64x2Zero)                                                        \
-  SIMPLE(Float32x4Clamp)                                                       \
-  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Int32x4GetX)                                                            \
   CASE(Int32x4GetY)                                                            \
   CASE(Int32x4GetZ)                                                            \

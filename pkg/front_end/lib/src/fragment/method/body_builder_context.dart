@@ -58,10 +58,6 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) =>
-      _declaration.getTearOffParameter(index);
-
-  @override
   void registerFunctionBody({
     required Statement? body,
     required ScopeProviderInfo? scopeProviderInfo,

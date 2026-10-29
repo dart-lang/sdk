@@ -149,16 +149,15 @@ After macro.''');
  */''');
     expect(result.full, '''
 Comment without a macro.''');
+    expect(result.summary, isNull);
   }
 
   test_processDartdoc_summary_different() {
-    var result =
-        info.processDartdoc('''
+    var result = info.processDartdoc('''
 /// Comment without a macro.
 ///
 /// Has content after summary.
-''', includeSummary: true)
-            as DocumentationWithSummary;
+''', includeSummary: true);
     expect(result.full, '''
 Comment without a macro.
 
@@ -167,12 +166,31 @@ Has content after summary.''');
 Comment without a macro.''');
   }
 
+  test_processDartdoc_summary_only() {
+    info.extractTemplate('''
+/// {@template foo}
+/// Template body.
+/// {@endtemplate}''');
+    var result = info.processDartdoc(
+      '''
+/// Summary.
+/// {@macro foo}
+///
+/// {@macro foo}
+''',
+      includeSummary: true,
+      includeFull: false,
+    );
+    expect(result.full, isNull);
+    expect(result.summary, '''
+Summary.
+Template body.''');
+  }
+
   test_processDartdoc_summary_same() {
-    var result =
-        info.processDartdoc('''
+    var result = info.processDartdoc('''
 /// Comment without a macro.
-''', includeSummary: true)
-            as DocumentationWithSummary;
+''', includeSummary: true);
     expect(result.full, '''
 Comment without a macro.''');
     expect(result.summary, '''

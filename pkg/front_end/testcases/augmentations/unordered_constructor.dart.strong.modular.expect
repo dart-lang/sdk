@@ -5,16 +5,22 @@ import "dart:core" as core;
 part unordered_constructor_part1.dart;
 part unordered_constructor_part2.dart;
 class Class1 extends core::Object {
+  field dynamic field;
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
   constructor •() → self::Class1
-    : super core::Object::•() {
+    : self::Class1::field = null, super core::Object::•() {
     core::print("Class1.new");
   }
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  constructor withInitializers() → self::Class1
+    : self::Class1::field = 0, super core::Object::•()
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
   constructor alias() → self::Class1
-    : super core::Object::•()
+    : this self::Class1::•()
     ;
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
@@ -28,16 +34,22 @@ class Class1 extends core::Object {
     return new self::Class1::•();
 }
 class Class2 extends core::Object {
+  field dynamic field;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
   constructor /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ •() → self::Class2
-    : super core::Object::•() {
+    : self::Class2::field = null, super core::Object::•() {
     core::print("Class2.new");
   }
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ withInitializers() → self::Class2
+    : self::Class2::field = 0, super core::Object::•()
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
   constructor /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ alias() → self::Class2
-    : super core::Object::•()
+    : this self::Class2::•()
     ;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ #C2
@@ -51,12 +63,18 @@ class Class2 extends core::Object {
     return new self::Class2::•();
 }
 class Class3 extends core::Object {
+  field dynamic field;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C2
   constructor /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ •() → self::Class3
-    : super core::Object::•() {
+    : self::Class3::field = null, super core::Object::•() {
     core::print("Class3.new");
   }
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ withInitializers() → self::Class3
+    : self::Class3::field = 0, super core::Object::•()
+    ;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ #C1
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ #C2
   constructor /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ alias() → self::Class3
@@ -75,6 +93,18 @@ class Class3 extends core::Object {
 }
 static const field core::int annotation1 = #C1;
 static const field core::int annotation2 = #C2;
+static method main() → dynamic {
+  self::expect(null, new self::Class1::•().{self::Class1::field}{dynamic});
+  self::expect(0, new self::Class1::withInitializers().{self::Class1::field}{dynamic});
+  self::expect(null, new self::Class2::•().{self::Class2::field}{dynamic});
+  self::expect(0, new self::Class2::withInitializers().{self::Class2::field}{dynamic});
+  self::expect(null, new self::Class3::•().{self::Class3::field}{dynamic});
+  self::expect(0, new self::Class3::withInitializers().{self::Class3::field}{dynamic});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
 
 constants  {
   #C1 = 1

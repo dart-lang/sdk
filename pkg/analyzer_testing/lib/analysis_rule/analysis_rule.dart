@@ -251,7 +251,7 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
 /// still available but deprecated, and using it's replacement,
 /// [AnalysisRuleTest.rule], is not yet mandatory.
 final class _SentinelRule extends AnalysisRule {
-  _SentinelRule() : super(name: 'sentinel', description: 'sentinel');
+  new() : super(name: 'sentinel', description: 'sentinel');
 
   @override
   dynamic noSuchMethod(invocation) => super.noSuchMethod(invocation);

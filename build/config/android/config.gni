@@ -81,16 +81,6 @@ if (is_android) {
   llvm_android_toolchain_root = "$android_ndk_root/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}"
   android_toolchain_root = "$android_ndk_root/toolchains/llvm/prebuilt/${android_host_os}-${android_host_arch}"
 
-  # Toolchain stuff ------------------------------------------------------------
-
-  if (component_mode == "shared_library") {
-    # By appending .cr, we prevent name collisions with libraries already
-    # loaded by the Android zygote.
-    android_product_extension = ".cr.so"
-  } else {
-    android_product_extension = ".so"
-  }
-
   # ABI ------------------------------------------------------------------------
 
   if (current_cpu == "x86") {

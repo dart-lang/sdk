@@ -32,7 +32,7 @@ external void _invokeMainInternal(List<String> args);
 /// Used to invoke the `main` function from JS, printing any exceptions that
 /// escape.
 @pragma("wasm:export", "\$invokeMain")
-WasmVoid _invokeMain(WasmArray<WasmExternRef?> args) {
+WasmVoid _invokeMain(WasmArray<WasmExternRef> args) {
   try {
     final dartArgs = <String>[];
     for (var i = 0; i < args.length; i++) {

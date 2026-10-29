@@ -60,7 +60,7 @@ var s3 = \'''
 }
 
 @reflectiveTest
-class AddLeadingNewlineToStringTest extends FixProcessorLintTest {
+class AddLeadingNewlineToStringTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addLeadingNewlineToString;
 

@@ -34,7 +34,7 @@ main(List<String> args) {
 
 class _TypeConstraintGenerationDataComputer
     extends DataComputer<List<GeneratedTypeConstraint>> {
-  const _TypeConstraintGenerationDataComputer();
+  const new();
 
   @override
   DataInterpreter<List<GeneratedTypeConstraint>> get dataValidator =>
@@ -64,11 +64,7 @@ class _TypeConstraintGenerationDataExtractor
     extends AstDataExtractor<List<GeneratedTypeConstraint>> {
   final TypeConstraintGenerationDataForTesting dataForTesting;
 
-  _TypeConstraintGenerationDataExtractor(
-    this.dataForTesting,
-    super.uri,
-    super.actualMap,
-  );
+  new(this.dataForTesting, super.uri, super.actualMap);
 
   @override
   List<GeneratedTypeConstraint>? computeNodeValue(Id id, AstNode node) {
@@ -78,7 +74,7 @@ class _TypeConstraintGenerationDataExtractor
 
 class _TypeConstraintGenerationDataInterpreter
     implements DataInterpreter<List<GeneratedTypeConstraint>> {
-  const _TypeConstraintGenerationDataInterpreter();
+  const new();
 
   @override
   String getText(

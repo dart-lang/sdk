@@ -115,7 +115,7 @@ base class WorkerClient {
   void _handleLsMessage(rpc.Parameters params) {
     final id = (params['languageServerId'].value as num).toInt();
     final message = params['message'].asMap;
-    _languageServers[id]?._incomingMessages.add(message);
+    _languageServers[id]?._controller.local.sink.add(message);
   }
 
   void _handleLsExited(rpc.Parameters params) {
@@ -149,7 +149,7 @@ base class WorkerClient {
 /// All paths passed to methods will be resolved against [workspaceFolder].
 final class Workspace {
   final WorkerClient _client;
-  final int id;
+  final int _id;
 
   /// Folder owned by this workspace.
   ///
@@ -157,13 +157,13 @@ final class Workspace {
   /// [workspaceFolder].
   final String workspaceFolder;
 
-  Workspace._(this._client, this.id, this.workspaceFolder);
+  Workspace._(this._client, this._id, this.workspaceFolder);
 
   /// Helper to attach the workspaceId to every request.
   Future<T> _request<T>(String method, [Map<String, Object?>? params]) async {
     return await _client._peer.request<T>(method, {
       ...?params,
-      'workspaceId': id,
+      'workspaceId': _id,
     });
   }
 
@@ -330,10 +330,12 @@ final class Workspace {
   /// will have to be removed using [SandboxedIframe.close].
   Future<void> close() async {
     try {
-      await _client._peer.request<void>('workspace/close', {'workspaceId': id});
+      await _client._peer.request<void>('workspace/close', {
+        'workspaceId': _id,
+      });
     } finally {
       final watchers = _client._watchers.values
-          .where((w) => w.workspace == this)
+          .where((w) => w._workspace == this)
           .toList();
       for (final w in watchers) {
         try {
@@ -343,7 +345,7 @@ final class Workspace {
         }
       }
       final languageServers = _client._languageServers.values
-          .where((ls) => ls.workspace == this)
+          .where((ls) => ls._workspace == this)
           .toList();
       for (final ls in languageServers) {
         try {
@@ -369,24 +371,22 @@ final class Workspace {
 /// A client for the language server running within a workspace.
 final class LanguageServer {
   final WorkerClient _client;
-  final Workspace workspace;
-  final int id;
+  final Workspace _workspace;
+  final int _id;
 
-  final _incomingMessages = StreamController<Object?>();
-  final _outgoingMessages = StreamController<Object?>();
-  late final StreamChannel<Object?> _channel;
+  final _controller = StreamChannelController<Object?>(
+    allowForeignErrors: false,
+  );
 
-  LanguageServer._(this._client, this.workspace, this.id) {
-    _channel = StreamChannel(_incomingMessages.stream, _outgoingMessages.sink);
-
+  LanguageServer._(this._client, this._workspace, this._id) {
     // Forward outgoing LSP messages to the worker tunnel
-    _outgoingMessages.stream.listen((message) {
+    _controller.local.stream.listen((message) {
       if (_client._peer.isClosed) {
         return;
       }
       _client._peer.sendNotification('workspace/languageServer/message', {
-        'workspaceId': workspace.id,
-        'languageServerId': id,
+        'workspaceId': _workspace._id,
+        'languageServerId': _id,
         'message': message,
       });
     });
@@ -397,14 +397,14 @@ final class LanguageServer {
   ///
   /// These are not encoded as JSON Strings, but instead travels as the kind of
   /// JSON values returned by [json] codec from `dart:convert`.
-  StreamChannel<Object?> get languageServerChannel => _channel;
+  StreamChannel<Object?> get languageServerChannel => _controller.foreign;
 
   /// Closes the language server.
   Future<void> close() async {
     try {
       await _client._peer.request<void>('workspace/languageServer/close', {
-        'workspaceId': workspace.id,
-        'languageServerId': id,
+        'workspaceId': _workspace._id,
+        'languageServerId': _id,
       });
     } finally {
       _cleanup();
@@ -416,9 +416,8 @@ final class LanguageServer {
   }
 
   void _cleanup() {
-    _client._languageServers.remove(id);
-    _incomingMessages.close().ignore();
-    _outgoingMessages.close().ignore();
+    _client._languageServers.remove(_id);
+    _controller.local.sink.close().ignore();
   }
 }
 
@@ -429,7 +428,7 @@ final class LanguageServer {
 /// is resolved, and [ready] will not resolve until someone subscribes to
 /// [changes].
 final class WorkspaceWatcher {
-  final Workspace workspace;
+  final Workspace _workspace;
 
   /// Folder or file to be watched.
   final String path;
@@ -437,7 +436,7 @@ final class WorkspaceWatcher {
   var _watcherId = Completer<int>();
   late final StreamController<FileChangeEvent> _controller;
 
-  WorkspaceWatcher._(this.workspace, this.path) {
+  WorkspaceWatcher._(this._workspace, this.path) {
     _controller = StreamController<FileChangeEvent>.broadcast(
       onListen: _onListen,
       onCancel: _onCancel,
@@ -469,11 +468,12 @@ final class WorkspaceWatcher {
     assert(!_watcherId.isCompleted);
     _watcherId.complete(
       Future(() async {
-        final result = await workspace._request<Map>('workspace/startWatcher', {
-          'path': path,
-        });
+        final result = await _workspace._request<Map>(
+          'workspace/startWatcher',
+          {'path': path},
+        );
         final watcherId = (result['watcherId'] as num).toInt();
-        workspace._client._watchers[watcherId] = this;
+        _workspace._client._watchers[watcherId] = this;
         return watcherId;
       }),
     );
@@ -483,18 +483,18 @@ final class WorkspaceWatcher {
     if (_controller.isClosed) return;
     _watcherId.future.then((watcherId) async {
       try {
-        await workspace._request<Map>('workspace/watcher/close', {
+        await _workspace._request<Map>('workspace/watcher/close', {
           'watcherId': watcherId,
         });
       } finally {
-        workspace._client._watchers.remove(watcherId);
+        _workspace._client._watchers.remove(watcherId);
       }
     }).ignore();
     _watcherId = Completer();
   }
 
   void _cleanup() {
-    workspace._client._watchers.removeWhere((_, w) => w == this);
+    _workspace._client._watchers.removeWhere((_, w) => w == this);
     _controller.close().ignore();
   }
 }

@@ -57,12 +57,12 @@ class D(final int _) {
 class E(int _, int _) {
   int x = _;
   //      ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name '_'.
 
   this : assert(_ > 0);
   //            ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name '_'.
 }
 

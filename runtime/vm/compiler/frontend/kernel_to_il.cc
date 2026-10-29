@@ -867,10 +867,6 @@ static bool CanUnboxElements(classid_t cid) {
 const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
   auto& state = thread->compiler_state();
   switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-      return state.TypedListGetFloat32();
-    case kUnboxedDouble:
-      return state.TypedListGetFloat64();
     case kUnboxedInt32x4:
       return state.TypedListGetInt32x4();
     case kUnboxedFloat32x4:
@@ -1724,9 +1720,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #else
       body += LoadDartStream();
-      body += LoadNativeField(Slot::StreamInfo_enabled());
-      // StreamInfo::enabled_ is a std::atomic<intptr_t>. This is effectively
-      // relaxed order access, which is acceptable for this use case.
+      body += LoadNativeField(Slot::TimelineStream_enabled());
+      // TimelineStream::enabled_ is a RelaxedAtomic<uintptr_t>.
+      // This is effectively relaxed order access, which is acceptable
+      // for this use case.
       body += IntToBool();
 #endif  // SUPPORT_TIMELINE
     } break;
@@ -2100,10 +2097,6 @@ static const Function& TypedListSetNativeFunction(Thread* thread,
                                                   classid_t cid) {
   auto& state = thread->compiler_state();
   switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-      return state.TypedListSetFloat32();
-    case kUnboxedDouble:
-      return state.TypedListSetFloat64();
     case kUnboxedInt32x4:
       return state.TypedListSetInt32x4();
     case kUnboxedFloat32x4:

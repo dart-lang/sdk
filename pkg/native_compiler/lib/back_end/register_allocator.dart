@@ -765,7 +765,12 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
             return;
           }
           int nextUsePosition =
-              allocated.findRegisterUseAfter(start)?.pos ?? allocated.end;
+              allocated.findRegisterUseAfter(toSplitPosition(start))?.pos ??
+              allocated.end;
+          if (nextUsePosition <= start) {
+            // Do not spill live range which is used immediately.
+            return;
+          }
           if (nextUsePosition < freeUntil) {
             freeUntil = nextUsePosition;
           }
@@ -875,7 +880,12 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       return false;
     }
     final spillPos = unallocated.start;
-    final nextUse = allocated.findRegisterUseAfter(spillPos);
+    final nextUse = allocated.findRegisterUseAfter(toSplitPosition(spillPos));
+    if (trace) {
+      print(
+        ' ... intersection with $allocated at $intersection, nextUse: $nextUse',
+      );
+    }
     if (nextUse == null) {
       // No more uses which require registers.
       if (trace) {
@@ -1335,8 +1345,17 @@ class LiveRange {
 
   UsePosition? findRegisterUseAfter(int pos) {
     assert(!isPhysical);
-    for (int i = currentUse; i <= uses.length; ++i) {
-      final use = uses[uses.length - i];
+    // Look back from 'currentUse' as we may need to check uses
+    // at split position immediately before current position.
+    var i = (currentUse <= uses.length) ? uses.length - currentUse : 0;
+    for (; i < uses.length; ++i) {
+      if (uses[i].pos < pos) {
+        break;
+      }
+    }
+    --i;
+    for (; i >= 0; --i) {
+      final use = uses[i];
       if (use.pos >= pos) {
         final constr = use.constraint;
         if (constr is AnyCpuRegister ||

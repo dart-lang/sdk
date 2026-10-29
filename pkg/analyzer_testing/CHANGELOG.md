@@ -1,6 +1,10 @@
-## 0.4.4-dev
+## 0.4.5-dev
 
-- Require version `14.6.0-dev` of the `analyzer` package.
+- Require version `14.7.0-dev` of the `analyzer` package.
+
+## 0.4.4
+
+- Require version `14.6.0` of the `analyzer` package.
 
 ## 0.4.3
 

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 /// A base class for providers that can contribute CodeLenses.
@@ -74,10 +75,16 @@ abstract class AbstractCodeLensProvider
     );
   }
 
+  /// Computes CodeLenses for [result].
+  ///
+  /// [checkAbort] should be used to check if the request should be aborted
+  /// (for example because of cancellation or file modification).
   Future<ErrorOr<List<CodeLens>>> handle(
+    LspClientCapabilities clientCapabilities,
     CodeLensParams params,
     MessageInfo message,
-    CancellationToken token,
+    ResolvedUnitResult result,
+    ErrorOr<List<CodeLens>>? Function() checkAbort,
   );
 
   bool isAvailable(

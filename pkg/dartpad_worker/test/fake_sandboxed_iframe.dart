@@ -7,7 +7,9 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:dartpad/src/exceptions.dart' show rethrowAsDartPadException;
 import 'package:dartpad/src/message_port/message_port.dart';
 import 'package:dartpad_worker/src/shared.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
@@ -37,7 +39,12 @@ final class LoadModulesEvent extends ModulesEvent {
 final class RunEvent extends SandboxEvent {
   final String libraryUri;
   final String mode;
-  RunEvent._({required this.libraryUri, required this.mode});
+  final String packageRoot;
+  RunEvent._({
+    required this.libraryUri,
+    required this.mode,
+    required this.packageRoot,
+  });
 }
 
 /// Triggered by [Sandbox.hotReload].
@@ -84,9 +91,16 @@ final class FakeSandboxedIframe {
     _peer.registerMethod('run', (Parameters params) {
       final mode = _mode = params['mode'].asString;
       final libraryUri = _libraryUri = params['libraryUri'].asString;
+      final packageRoot = params['packageRoot'].asString;
 
       emitIsolateStart(libraryUri, mode);
-      _addEvent(RunEvent._(libraryUri: libraryUri, mode: mode));
+      _addEvent(
+        RunEvent._(
+          libraryUri: libraryUri,
+          mode: mode,
+          packageRoot: packageRoot,
+        ),
+      );
       return <String, dynamic>{};
     });
 
@@ -188,6 +202,71 @@ final class FakeSandboxedIframe {
     });
   }
 
+  Future<T> _sendRequest<T>(
+    String method, [
+    Map<String, Object?> params = const {},
+  ]) async {
+    try {
+      return await _peer.sendRequest(method, params) as T;
+    } on RpcException catch (e) {
+      rethrowAsDartPadException(e);
+    }
+  }
+
+  Future<String> readFileAsText(String path) async {
+    final result = await _sendRequest<Map>('readFileAsText', {'path': path});
+    return result['text'] as String;
+  }
+
+  Future<Uint8List> readFileAsBytes(String path) async {
+    final result = await _sendRequest<Map>('readFileAsBytes', {'path': path});
+    return result['bytes'] as Uint8List;
+  }
+
+  Future<Map<String, Object?>> stat(String path) async {
+    final result = await _sendRequest<Map>('stat', {'path': path});
+    return result.cast<String, Object?>();
+  }
+
+  Future<List<Map<String, Object?>>> listDirectory(
+    String path, {
+    bool recursive = false,
+    bool ignoreHidden = false,
+  }) async {
+    final result = await _sendRequest<Map>('listDirectory', {
+      'path': path,
+      'recursive': recursive,
+      'ignoreHidden': ignoreHidden,
+    });
+    return (result['entries'] as List)
+        .map((e) => (e as Map).cast<String, Object?>())
+        .toList();
+  }
+
+  Future<
+    ({
+      String name,
+      String rootPath,
+      String packagePath,
+      String languageVersion,
+    })?
+  >
+  resolvePackage(String package) async {
+    final result = await _sendRequest<Map>('resolvePackage', {
+      'package': package,
+    });
+    final pkg = result['package'] as Map?;
+    if (pkg == null) {
+      return null;
+    }
+    return (
+      name: pkg['name'] as String,
+      rootPath: pkg['rootPath'] as String,
+      packagePath: pkg['packagePath'] as String,
+      languageVersion: pkg['languageVersion'] as String,
+    );
+  }
+
   Future<void> close() async {
     await _peer.close();
     await _eventStreamController.close();
@@ -222,6 +301,7 @@ extension ModulesEventChecks on Subject<ModulesEvent> {
 extension RunMainEventChecks on Subject<RunEvent> {
   Subject<String> get libraryUri => has((e) => e.libraryUri, 'libraryUri');
   Subject<String> get mode => has((e) => e.mode, 'mode');
+  Subject<String> get packageRoot => has((e) => e.packageRoot, 'packageRoot');
 }
 
 extension InvokeExtensionEventChecks on Subject<InvokeExtensionEvent> {

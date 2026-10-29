@@ -23,7 +23,7 @@ class SubtypeHelper {
   final InterfaceTypeImpl _objectNone;
   final InterfaceTypeImpl _objectQuestion;
 
-  SubtypeHelper(this._typeSystem)
+  new(this._typeSystem)
     : _typeProvider = _typeSystem.typeProvider,
       _nullNone = _typeSystem.nullNone,
       _objectNone = _typeSystem.objectNone,
@@ -439,8 +439,8 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
-        if (B0 != null && isSubtypeOf(B0, T1)) {
+        var B0 = T0.element.bound ?? _objectQuestion;
+        if (isSubtypeOf(B0, T1)) {
           return true;
         }
       }
@@ -467,8 +467,8 @@ class SubtypeHelper {
         if (S0 != null && isSubtypeOf(S0, T1)) {
           return true;
         }
-        var B0 = T0.element.bound;
-        if (B0 != null && isSubtypeOf(B0, T1)) {
+        var B0 = T0.element.bound ?? _objectQuestion;
+        if (isSubtypeOf(B0, T1)) {
           return true;
         }
       }
@@ -493,8 +493,8 @@ class SubtypeHelper {
         return true;
       }
 
-      var B0 = T0.element.bound;
-      if (B0 != null && isSubtypeOf(B0, T1)) {
+      var B0 = T0.element.bound ?? _objectQuestion;
+      if (isSubtypeOf(B0, T1)) {
         return true;
       }
     }

@@ -2372,10 +2372,9 @@ class _RawSocket extends Stream<RawSocketEvent>
     native.isClosedWrite = true;
     if (fd != null) _getStdioHandle(native, fd);
     var result = _RawSocket(native);
-    if (fd != null) {
+    if (fd != null && Platform.isMacOS) {
       var socketType = _StdIOUtils._nativeSocketType(result._socket);
-      result._isMacOSTerminalInput =
-          Platform.isMacOS && socketType == _stdioHandleTypeTerminal;
+      result._isMacOSTerminalInput = socketType == _stdioHandleTypeTerminal;
     }
     return result;
   }

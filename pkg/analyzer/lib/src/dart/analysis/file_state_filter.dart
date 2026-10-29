@@ -9,7 +9,7 @@ import 'package:analyzer/src/workspace/pub.dart';
 
 abstract class FileStateFilter {
   /// Return a filter of files that can be accessed by the [file].
-  factory FileStateFilter(FileState file) {
+  factory(FileState file) {
     var workspacePackage = file.workspacePackage;
     if (workspacePackage is PubPackage) {
       return _PubFilter(workspacePackage, file.path);
@@ -109,7 +109,7 @@ class _PubFilter implements FileStateFilter {
 
   final Set<String> dependencies;
 
-  factory _PubFilter(PubPackage package, String path) {
+  factory(PubPackage package, String path) {
     var packageRootFolder = package.root;
     var binFolder = packageRootFolder.getFolder('bin');
 
@@ -148,7 +148,7 @@ class _PubFilter implements FileStateFilter {
     );
   }
 
-  _PubFilter._({
+  new _({
     required this.targetPackage,
     required this.targetPackageName,
     required this.targetPackageIsFriendOfAnalyzer,

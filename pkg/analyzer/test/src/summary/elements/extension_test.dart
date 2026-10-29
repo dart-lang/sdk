@@ -474,7 +474,6 @@ library
                     name: foo @34
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -504,7 +503,6 @@ library
                     name: foo @77
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@extension::E::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -538,7 +536,6 @@ library
                 name: foo @34
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -574,7 +571,6 @@ library
                 name: foo @77
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@extension::E::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -737,7 +733,6 @@ library
                       name: foo @-1
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@enum::A::@getter::foo
-                        invokeType: A Function()
                         type: A
                       staticType: A
                   elements(v1)

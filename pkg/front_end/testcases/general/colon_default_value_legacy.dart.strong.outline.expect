@@ -8,5 +8,5 @@ class Class extends core::Object {
   method method({core::int x = 3}) → dynamic
     ;
 }
-static method topLevel({has-declared-initializer core::int x}) → dynamic
+static method topLevel({core::int x = 3}) → dynamic
   ;

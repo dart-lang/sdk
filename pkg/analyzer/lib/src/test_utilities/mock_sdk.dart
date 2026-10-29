@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 final _asyncLibrary = MockSdkLibrary('async', [
   MockSdkLibraryUnit('async/async.dart', r'''
@@ -1922,13 +1923,15 @@ void createMockSdk({
   required ResourceProvider resourceProvider,
   required Folder root,
   @internal List<MockSdkLibrary> additionalLibraries = const [],
+  @internal Version? languageVersion,
 }) {
   var lib = root.getFolder('lib');
   var libInternal = lib.getFolder('_internal');
 
-  var currentVersion = ExperimentStatus.currentVersion;
-  var currentVersionStr = '${currentVersion.major}.${currentVersion.minor}.0';
-  root.getFile('version').writeAsStringSync(currentVersionStr);
+  languageVersion ??= ExperimentStatus.currentVersion;
+  root
+      .getFile('version')
+      .writeAsStringSync('${languageVersion.major}.${languageVersion.minor}.0');
 
   var librariesBuffer = StringBuffer();
   librariesBuffer.writeln('const Map<String, LibraryInfo> libraries = const {');
@@ -1969,7 +1972,7 @@ class MockSdkLibrary implements SdkLibrary {
   final String name;
   final List<MockSdkLibraryUnit> units;
 
-  MockSdkLibrary(this.name, this.units);
+  new(this.name, this.units);
 
   @override
   bool get isDocumented => throw UnimplementedError();
@@ -1991,5 +1994,5 @@ class MockSdkLibraryUnit {
   final String path;
   final String content;
 
-  MockSdkLibraryUnit(this.path, this.content);
+  new(this.path, this.content);
 }

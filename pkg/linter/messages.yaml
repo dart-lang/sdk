@@ -657,25 +657,24 @@ LinterLintCode:
       Such declarations are not meant to be members of the analyzer public API,
       so if they are either declared outside of `package:analyzer/src`, or
       marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
-  analyzerToBeDeprecatedUse:
+  analyzerV1AstUse:
     type: lint
     parameters:
       String name: "the name of the used element"
-      String details: "the message of the `@ToBeDeprecated` annotation, preceded by a space; or empty if there is no message"
-    problemMessage: "'#name' is to be deprecated, and should be used only by declarations that are also to be deprecated.#details"
-    correctionMessage: "Try using the replacement, or annotating the enclosing declaration with '@ToBeDeprecated'."
+      String details: "the message of the `@V1Ast` annotation, preceded by a space; or empty if there is no message"
+    problemMessage: "'#name' is part of the V1 AST API, and should be used only from other V1 AST API.#details"
+    correctionMessage: "Try using the V2 counterpart, or annotating the enclosing declaration with '@V1Ast'."
     hasPublishedDocs: false
     state:
       internal: "3.14"
     categories: [publicInterface]
     deprecatedDetails: "For internal use only."
     comment: |-
-      Lint issued if an element annotated with `@ToBeDeprecated` is used from
-      a declaration that is not itself annotated with `@ToBeDeprecated`.
+      Lint issued if an element annotated with `@V1Ast` is used from
+      a declaration that is not itself annotated with `@V1Ast`.
 
-      `@ToBeDeprecated` marks the API, such as the V1 AST, that will become
-      deprecated once its replacement is stable. Such API should be used only
-      to implement other API that will be deprecated too, like
+      `@V1Ast` marks the V1 AST API, which remains supported for clients, but
+      should be used by the analyzer only to implement other V1 AST API, like
       `@Deprecated` with `deprecated_member_use_from_same_package`.
   annotateOverrides:
     type: lint
@@ -1630,8 +1629,32 @@ LinterLintCode:
       stable: "2.8"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when string interpolation or
+      string literals use escaped inner quotes that can be avoided by
+      choosing a different set of surrounding quotes.
+
+      #### Example
+
+      The following code produces this diagnostic because single quotes are
+      escaped inside a single-quoted string:
+
+      ```dart
+      var s = [!'It\'s not fun'!];
+      ```
+
+      #### Common fixes
+
+      Change the surrounding quotes so that you don't need to escape the inner
+      quotes:
+
+      ```dart
+      var s = "It's not fun";
+      ```
     deprecatedDetails: |-
-      Avoid escaping inner quotes by converting surrounding quotes.
+      **AVOID** escaping inner quotes by converting surrounding quotes.
 
       **BAD:**
       ```dart
@@ -5542,7 +5565,7 @@ LinterLintCode:
     state:
       stable: "2.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -6747,6 +6770,15 @@ LinterLintCode:
     sharedName: invalidRuntimeCheckWithJsInteropTypes
     problemMessage: "Runtime check between '#p0' and '#p1' checks whether a Dart value is a JS interop type, which might not be platform-consistent."
     correctionMessage: "Try using 'isA' from 'dart:js_interop' to check if the Dart value is a JS interop type."
+    hasPublishedDocs: false
+  invalidRuntimeCheckWithJsInteropTypesJsAndDartJs:
+    type: lint
+    parameters:
+      Object p0: undocumented
+      Object p1: undocumented
+    sharedName: invalidRuntimeCheckWithJsInteropTypes
+    problemMessage: "Runtime check or cast between '#p0' and '#p1' involves both a 'dart:js_interop' type and a 'dart:js' type, which are unrelated. 'dart:js' types are Dart wrappers around JS values and aren't JS values themselves."
+    correctionMessage: "Try using 'JsObject.fromBrowserObject' to convert a 'dart:js_interop' value to a 'dart:js' value, or the 'rawJSObject' member on 'JsObject' to convert a 'dart:js' value to a 'dart:js_interop' value."
     hasPublishedDocs: false
   invalidRuntimeCheckWithJsInteropTypesJsAsDart:
     type: lint
@@ -16319,7 +16351,7 @@ LinterLintCode:
     state:
       experimental: "3.14"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -16333,7 +16365,6 @@ LinterLintCode:
       check that could be performed on `this` directly under the `this-promotion` feature:
 
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           var [!self!] = this;
@@ -16351,7 +16382,6 @@ LinterLintCode:
       Remove the local variable and use `this` directly:
 
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           if (this is D) {
@@ -16367,7 +16397,6 @@ LinterLintCode:
 
       **BAD:**
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           var [!self!] = this;
@@ -16379,7 +16408,6 @@ LinterLintCode:
 
       **GOOD:**
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           if (this is D) {}

@@ -29,10 +29,6 @@ template("compile_platform") {
 
     if (defined(invoker.pool)) {
       pool = invoker.pool
-    } else if (_is_dart) {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
-    } else {
-      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
 
     outputs = invoker.outputs

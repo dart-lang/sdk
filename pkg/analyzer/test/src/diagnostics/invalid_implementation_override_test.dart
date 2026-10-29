@@ -159,6 +159,23 @@ class B extends A {
 ''');
   }
 
+  test_class_setter_covariant_inheritance_merge_generic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {}
+class B extends A {}
+
+class C<T> {
+  set foo(T b) {}
+}
+
+abstract class I {
+  set foo(covariant A a);
+}
+
+class D extends C<B> implements I {}
+''');
+  }
+
   test_enum_getter_abstractOverridesConcrete() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {

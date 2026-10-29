@@ -60,7 +60,7 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertQuotesTest extends FixProcessorLintTest {
+class ConvertQuotesTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertQuotes;
 

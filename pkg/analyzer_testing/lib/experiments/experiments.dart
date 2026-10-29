@@ -19,7 +19,6 @@ final List<Feature> experimentalFeaturesForTests = List.unmodifiable([
   Feature.enhanced_parts,
   Feature.single_combinators,
   Feature.static_extensions,
-  Feature.this_promotion,
   Feature.variance,
   Feature.receiver_type_inference,
 ]);

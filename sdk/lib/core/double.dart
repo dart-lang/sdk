@@ -44,6 +44,43 @@ abstract final class double extends num {
   static const double minPositive = 5e-324;
   static const double maxFinite = 1.7976931348623157e+308;
 
+  /// The largest integer that a [double] value can uniquely represent.
+  ///
+  /// The value, 2<sup>53</sup> - 1 or `9007199254740991`, is the largest
+  /// integer where [int.toDouble] does not represent more than one integer.
+  /// The next larger [double], `9007199254740992.0`, is also the value of the
+  /// [double] literal `9007199254740993.0` and the result of [int.toDouble] for
+  /// both `9007199254740992` and `9007199254740993` (2<sup>53</sup> and
+  /// 2<sup>53</sup> + 1).
+  /// Those integers require more than 53 bits to represent precisely,
+  /// and [double] values only have 53 bits of precision, so there is only
+  /// one [double] value per two integers. At larger scales, the gap between
+  /// [double] values becomes even larger.
+  ///
+  /// Any [double] in the range [minSafeInteger]..[maxSafeInteger] is guaranteed
+  /// to not have lost precision if it was converted from an [int], or parsed
+  /// from a decimal numeral, like a JSON number, into a [double] value,
+  /// or an [int] value if using JavaScript numbers.
+  ///
+  /// Corresponds to
+  /// [`Number.MAX_SAFE_INTEGER`](https://tc39.es/ecma262/#sec-number.max_safe_integer)
+  /// in JavaScript.
+  @Since("3.15")
+  static const int maxSafeInteger = 0x1F_FFFF_FFFF_FFFF;
+
+  /// The smallest integer that a [double] value can uniquely represent.
+  ///
+  /// The value, -(2<sup>53</sup> - 1) or `-9007199254740991`, is the smallest
+  /// integer where [int.toDouble] does not represent more than one integer.
+  /// All [double] values numerically below `-9007199254740991.0` represent a
+  /// range of more than one integer.
+  ///
+  /// Corresponds to
+  /// [`Number.MIN_SAFE_INTEGER`](https://tc39.es/ecma262/#sec-number.min_safe_integer)
+  /// in JavaScript.
+  @Since("3.15")
+  static const int minSafeInteger = -maxSafeInteger;
+
   double remainder(num other);
 
   double operator +(num other);

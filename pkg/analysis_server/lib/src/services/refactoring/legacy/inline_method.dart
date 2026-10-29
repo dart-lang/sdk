@@ -334,9 +334,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /// The builder used to build the edits.
   ///
   /// This refactor is unusual in that it builds the edits as part of checking
-  /// the final conditions rather than waiting until [buildChange] is called. It
-  /// also creates the builder while checking the initial conditions.
-  late ChangeBuilder builder;
+  /// the final conditions rather than waiting until [createChange] is called,
+  /// so the builder is supplied (or created) in the constructor.
+  final ChangeBuilder builder;
 
   @override
   bool isDeclaration = false;
@@ -362,8 +362,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   /// calls into the same block.
   final Map<AstNode, Set<String>> _introducedVariablesByBlock = {};
 
-  new(this.searchEngine, this.unitResult, this.offset)
-    : sessionHelper = AnalysisSessionHelper(unitResult.session),
+  new(this.searchEngine, this.unitResult, this.offset, {ChangeBuilder? builder})
+    : builder = builder ?? ChangeBuilder(session: unitResult.session),
+      sessionHelper = AnalysisSessionHelper(unitResult.session),
       utils = CorrectionUtils(unitResult);
 
   @override
@@ -418,7 +419,6 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<RefactoringStatus> checkInitialConditions() async {
-    builder = ChangeBuilder(session: unitResult.session);
     var result = RefactoringStatus();
     // prepare method information
     result.addStatus(await _prepareMethod());
@@ -469,6 +469,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange({ChangeBuilder? builder}) {
     // The parameter `builder` is unused because the edits were already built
     // in [checkFinalConditions].
+    assert(builder == null || builder == this.builder);
+
     var sourceChange = this.builder.sourceChange;
     sourceChange.message = refactoringName;
     return Future.value(sourceChange);
@@ -706,8 +708,10 @@ class _ReferenceProcessor {
     // prepare node and environment
     _node =
         _refUtils.findNode(reference.sourceRange.offset) as SimpleIdentifier;
-    var refStatement = _node.thisOrAncestorOfType<Statement>();
-    if (refStatement != null) {
+    var refStatement = _node.thisOrAncestorMatching(
+      (node) => node is Statement || node is FunctionBody,
+    );
+    if (refStatement is Statement) {
       _refLineRange = _refUtils.getLinesRangeStatements([refStatement]);
       _refPrefix = _refUtils.getNodePrefix(refStatement);
     } else {
@@ -761,6 +765,29 @@ class _ReferenceProcessor {
     }
     // not in block, cannot inline body
     return false;
+  }
+
+  Future<void> _inlineAsClosureInvocation() async {
+    var typeParameters = switch (ref._methodNode) {
+      FunctionDeclaration(:var functionExpression) =>
+        functionExpression.typeParameters,
+      MethodDeclaration(:var typeParameters) => typeParameters,
+      _ => null,
+    };
+    var originalSource = ref._methodUtils.getRangeText(
+      range.startEnd(typeParameters ?? ref._methodParameters!, ref._methodNode),
+    );
+    var methodPrefix = ref._methodUtils.getLinePrefix(ref._methodNode.offset);
+    var source = _refUtils
+        .replaceSourceIndent(originalSource, methodPrefix, _refPrefix)
+        .trim();
+    if (ref._methodBody is ExpressionFunctionBody) {
+      source = '(${removeEnd(source, ';')!})';
+    }
+    // do insert
+    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+      builder.addSimpleReplacement(range.node(_node), source);
+    });
   }
 
   Future<void> _inlineMethodInvocation(
@@ -859,6 +886,14 @@ class _ReferenceProcessor {
           parameterToVariableName,
         );
 
+        // Expression bodies and initializers have no statement before which to
+        // declare variables. Use a closure invocation to keep argument
+        // evaluation at the original invocation, including any `await`s.
+        if (result.variableDeclarations.isNotEmpty && _refLineRange == null) {
+          await _inlineAsClosureInvocation();
+          return;
+        }
+
         // If there are variable declarations, insert them before the statement.
         await _insertVariableDeclarations(
           result.variableDeclarations,
@@ -913,20 +948,7 @@ class _ReferenceProcessor {
       }
       return;
     }
-    // inline as closure invocation
-    String source;
-    {
-      source = ref._methodUtils.getRangeText(
-        range.startEnd(ref._methodParameters!.leftParenthesis, ref._methodNode),
-      );
-      var methodPrefix = ref._methodUtils.getLinePrefix(ref._methodNode.offset);
-      source = _refUtils.replaceSourceIndent(source, methodPrefix, _refPrefix);
-      source = source.trim();
-    }
-    // do insert
-    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
-      builder.addSimpleReplacement(range.node(_node), source);
-    });
+    await _inlineAsClosureInvocation();
   }
 
   /// Inserts [variableDeclarations] in front of the code at [refLineRange].
@@ -982,9 +1004,11 @@ class _ReferenceProcessor {
           }
           if (refElement is ExecutableElement) {
             var executable = refElement as ExecutableElement;
-            if (!executable.returnType.isDartAsyncFuture) {
+            var returnType = executable.returnType;
+            if (!returnType.isDartAsyncFuture &&
+                !returnType.isDartAsyncFutureOr) {
               status.addFatalError(
-                "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
+                "Can't inline an 'async' method into a function that doesn't return a 'Future' or 'FutureOr'.",
                 newLocation_fromNode(_node),
               );
               return;

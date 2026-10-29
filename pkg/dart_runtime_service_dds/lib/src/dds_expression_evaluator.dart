@@ -62,6 +62,8 @@ final class DdsExpressionEvaluator extends ExpressionEvaluator {
         scope: scope,
         targetId: targetId,
       );
+    } on vm.SentinelException catch (e) {
+      return e.sentinel.json!;
     } on vm.RPCError catch (e) {
       throw json_rpc.RpcException(e.code, e.message, data: e.data);
     }

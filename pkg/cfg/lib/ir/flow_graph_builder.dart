@@ -919,4 +919,11 @@ class FlowGraphBuilder {
     appendInstruction(instr);
     return instr;
   }
+
+  /// Append [ReachabilityFence] to the graph.
+  void addReachabilityFence() {
+    final value = pop();
+    final instr = ReachabilityFence(graph, currentSourcePosition, value);
+    appendInstruction(instr);
+  }
 }

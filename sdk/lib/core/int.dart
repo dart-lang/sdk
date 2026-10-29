@@ -15,9 +15,11 @@ part of "dart:core";
 /// and some integers with larger magnitude. That includes some integers larger
 /// than 2^63.
 /// The behavior of the operators and methods in the [int]
-/// class therefore sometimes differs between the Dart VM and Dart code
-/// compiled to JavaScript. For example, the bitwise operators truncate their
-/// operands to 32-bit integers when compiled to JavaScript.
+/// class therefore sometimes differs between native platforms and Dart code
+/// compiled to JavaScript. For example, when compiled to JavaScript, bitwise
+/// operators and bit-manipulation methods such as [toUnsigned],
+/// [toSigned], [trailingZeroBitCount], and [oneBitCount] truncate their
+/// operands to 32 bits and operate only on those 32 bits.
 ///
 /// Classes cannot extend, implement, or mix in `int`.
 ///
@@ -297,30 +299,41 @@ abstract final class int extends num {
   int get oneBitCount;
 
   /// Returns the least significant [width] bits of this integer as a
-  /// non-negative number (i.e. unsigned representation).  The returned value has
-  /// zeros in all bit positions higher than [width].
+  /// non-negative number (i.e. unsigned representation).
+  ///
+  /// The returned value has zeros in all bit positions higher than [width].
   /// ```dart
   /// (-1).toUnsigned(5) == 31   // 11111111  ->  00011111
   /// ```
-  /// This operation can be used to simulate arithmetic from low level languages.
-  /// For example, to increment an 8 bit quantity:
+  /// This operation can be used to simulate arithmetic from low level
+  /// languages. For example, to increment an 8 bit quantity:
   /// ```dart
   /// q = (q + 1).toUnsigned(8);
   /// ```
   /// `q` will count from `0` up to `255` and then wrap around to `0`.
   ///
-  /// If the input fits in [width] bits without truncation, the result is the
-  /// same as the input.  The minimum width needed to avoid truncation of `x` is
-  /// given by `x.bitLength`, i.e.
+  /// On JavaScript platforms, only the least significant 32 bits are used.
+  /// If [width] is 32 or greater, the least significant 32 bits are returned
+  /// as an unsigned 32-bit integer.
+  /// On native platforms, the 64-bit signed integer is used directly, and
+  /// [width] values of 64 or greater return `this` unchanged.
+  ///
+  /// If a non-negative input fits in [width] bits without truncation (up to
+  /// 63 bits on native platforms, or 32 bits on JavaScript platforms), the
+  /// result is the same as the input. The minimum width needed to avoid
+  /// truncation of a non-negative `x` within that range is given by
+  /// `x.bitLength`, i.e.
   /// ```dart
   /// x == x.toUnsigned(x.bitLength);
   /// ```
   int toUnsigned(int width);
 
   /// Returns the least significant [width] bits of this integer, extending the
-  /// highest retained bit to the sign. This is the same as truncating the value
-  /// to fit in [width] bits using an signed 2-s complement representation. The
-  /// returned value has the same bit value in all positions higher than [width].
+  /// highest retained bit to the sign.
+  ///
+  /// This is the same as truncating the value to fit in [width] bits using a
+  /// signed two's complement representation. The returned value has the same
+  /// bit value in all positions higher than [width].
   ///
   /// ```dart
   ///                          //     V--sign bit-V
@@ -328,17 +341,25 @@ abstract final class int extends num {
   /// 239.toSigned(5) == 15;   //  11101111 -> 00001111
   ///                          //     ^           ^
   /// ```
-  /// This operation can be used to simulate arithmetic from low level languages.
-  /// For example, to increment an 8 bit signed quantity:
+  /// This operation can be used to simulate arithmetic from low level
+  /// languages. For example, to increment an 8 bit signed quantity:
   /// ```dart
   /// q = (q + 1).toSigned(8);
   /// ```
   /// `q` will count from `0` up to `127`, wrap to `-128` and count back up to
   /// `127`.
   ///
-  /// If the input value fits in [width] bits without truncation, the result is
-  /// the same as the input.  The minimum width needed to avoid truncation of `x`
-  /// is `x.bitLength + 1`, i.e.
+  /// On JavaScript platforms, only the least significant 32 bits are used,
+  /// and [width] is effective up to 32 bits (if [width] is greater than 32,
+  /// the least significant 32 bits are returned as an unsigned 32-bit
+  /// integer).
+  /// On native platforms, the 64-bit signed integer is used directly, and
+  /// [width] values of 64 or greater return `this` unchanged.
+  ///
+  /// If the input value fits in [width] bits without truncation (up to 64
+  /// bits on native platforms, or 32 bits on JavaScript platforms), the
+  /// result is the same as the input. The minimum width needed to avoid
+  /// truncation of `x` within that range is `x.bitLength + 1`, i.e.
   /// ```dart
   /// x == x.toSigned(x.bitLength + 1);
   /// ```

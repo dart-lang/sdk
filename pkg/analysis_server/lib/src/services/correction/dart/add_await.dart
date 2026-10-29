@@ -200,6 +200,11 @@ extension on Expression {
     if (parent is ArgumentList) {
       return correspondingParameter?.type;
     }
+    if (parent case AssignmentExpression assignment) {
+      // A non-assignable value assigned through `operator []=` is reported as
+      // an argument error.
+      return assignment.writeType;
+    }
     return null;
   }
 

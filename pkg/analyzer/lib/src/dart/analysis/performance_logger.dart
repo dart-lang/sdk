@@ -13,7 +13,7 @@ class PerformanceLog<S extends StringSink?> {
 
   int _level = 0;
 
-  PerformanceLog(this.sink);
+  new(this.sink);
 
   /// Enter a new execution section, which starts at one point of code, runs
   /// some time, and then ends at the other point of code.
@@ -79,7 +79,7 @@ class PerformanceLogSection {
   final String _msg;
   final Stopwatch _timer = Stopwatch()..start();
 
-  PerformanceLogSection(this._logger, this._msg);
+  new(this._logger, this._msg);
 
   /// Stop the timer, log the time.
   void exit() {

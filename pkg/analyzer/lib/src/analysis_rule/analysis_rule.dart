@@ -13,7 +13,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -45,7 +45,7 @@ sealed class AbstractAnalysisRule {
   /// applied to a given rule.
   final RuleState state;
 
-  AbstractAnalysisRule({
+  new({
     required this.name,
     required this.description,
     this.state = const RuleState.stable(),
@@ -79,7 +79,7 @@ sealed class AbstractAnalysisRule {
   ///
   /// The node processors may use the provided [context] to access information
   /// that is not available from the AST nodes or their associated elements.
-  @ToBeDeprecated('Use registerNodeProcessors2 instead')
+  @V1Ast('The V2 counterpart is registerNodeProcessors2.')
   void registerNodeProcessors(
     RuleVisitorRegistry registry,
     RuleContext context,
@@ -185,7 +185,7 @@ sealed class AbstractAnalysisRule {
   message: 'Exported by package:analyzer/analysis_rule/analysis_rule.dart',
 )
 abstract class AnalysisRule extends AbstractAnalysisRule {
-  AnalysisRule({required super.name, required super.description, super.state});
+  new({required super.name, required super.description, super.state});
 
   /// The code to report for a violation.
   DiagnosticCode get diagnosticCode;
@@ -282,11 +282,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
   message: 'Exported by package:analyzer/analysis_rule/analysis_rule.dart',
 )
 abstract class MultiAnalysisRule extends AbstractAnalysisRule {
-  MultiAnalysisRule({
-    required super.name,
-    required super.description,
-    super.state,
-  });
+  new({required super.name, required super.description, super.state});
 
   /// Reports [diagnosticCode] at [node] with message [arguments] and
   /// [contextMessages].
@@ -383,7 +379,7 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
   message: 'Exported by package:analyzer/analysis_rule/analysis_rule.dart',
 )
 final class RemovedAnalysisRule extends MultiAnalysisRule {
-  RemovedAnalysisRule({
+  new({
     required super.name,
     required super.description,
     Version? since,

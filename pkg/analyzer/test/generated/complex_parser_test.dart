@@ -414,11 +414,11 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
   value: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: y
     operator: =
     value: IntegerLiteral
@@ -547,7 +547,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: x
+        variables
+          LocalVariable
+            name: xor
+      semicolon: ; <synthetic>
+    ExpressionStatement
+      expression2: ParsedUnqualifiedName
+        name: y
+      expression(v1): SimpleIdentifier
+        token: y
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -557,9 +572,7 @@ Block
             name: xor
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression2: ParsedUnqualifiedName
-        name: y
-      expression(v1): SimpleIdentifier
+      expression: SimpleIdentifier
         token: y
       semicolon: ;
   rightBracket: }
@@ -580,7 +593,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: LogicalAnd
         leftOperand: BinaryOperatorInvocation
@@ -1657,7 +1670,7 @@ ConditionalExpression
     token: b
   question: ?
   thenExpression2: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: c
     operator: =
     value: BooleanLiteral
@@ -1707,7 +1720,7 @@ ConditionalExpression
       token: x
   question: ?
   thenExpression2: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: c
     operator: =
     value: BooleanLiteral
@@ -1868,7 +1881,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
@@ -1978,7 +1991,7 @@ class A {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
@@ -2530,7 +2543,7 @@ LabeledStatement
     Label
       name: c
       colon: :
-  statement: ReturnStatement
+  statement2: ReturnStatement
     returnKeyword: return
     expression2: ParsedUnqualifiedName
       name: x
@@ -2845,29 +2858,44 @@ void f() {
 }
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclarationStatement
-        .functionDeclaration;
+    var node = parseResult.findNode.singleLocalFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   returnType: NamedType
     name: void
   name: g
-  functionExpression: FunctionExpression
-    typeParameters: TypeParameterList
-      leftBracket: <
-      typeParameters
-        TypeParameter
-          name: T
-      rightBracket: >
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    returnType: NamedType
+      name: void
+    name: g
+    functionExpression: FunctionExpression
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
 ''');
   }
 }

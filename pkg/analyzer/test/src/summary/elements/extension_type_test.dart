@@ -300,7 +300,6 @@ library
                     name: deprecated @30
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -345,7 +344,6 @@ library
                 name: deprecated @30
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -2527,7 +2525,6 @@ library
                         name: deprecated @18
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -2557,7 +2554,6 @@ library
                 name: deprecated @18
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -2583,7 +2579,6 @@ library
                     name: deprecated @18
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -2639,7 +2634,6 @@ library
                         name: deprecated @34
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -2669,7 +2663,6 @@ library
                 name: deprecated @34
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -2695,7 +2688,6 @@ library
                     name: deprecated @34
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -3148,7 +3140,6 @@ library
                         name: deprecated @18
                         resolution: GetterInvocationResolution
                           element: dart:core::@getter::deprecated
-                          invokeType: Deprecated Function()
                           type: Deprecated
                         staticType: Deprecated
                       name: SimpleIdentifier
@@ -3178,7 +3169,6 @@ library
                 name: deprecated @18
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -3204,7 +3194,6 @@ library
                     name: deprecated @18
                     resolution: GetterInvocationResolution
                       element: dart:core::@getter::deprecated
-                      invokeType: Deprecated Function()
                       type: Deprecated
                     staticType: Deprecated
                   name: SimpleIdentifier
@@ -5015,7 +5004,6 @@ library
                     name: foo @34
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier
@@ -5050,7 +5038,6 @@ library
                         name: foo @43
                         resolution: GetterInvocationResolution
                           element: <testLibrary>::@extensionType::E::@getter::foo
-                          invokeType: int Function()
                           type: int
                         staticType: int
                       name: SimpleIdentifier
@@ -5063,7 +5050,6 @@ library
                       name: foo @56
                       resolution: GetterInvocationResolution
                         element: <testLibrary>::@extensionType::E::@getter::foo
-                        invokeType: int Function()
                         type: int
                       staticType: int
           getters
@@ -5099,7 +5085,6 @@ library
                 name: foo @34
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5121,7 +5106,6 @@ library
                 name: foo @43
                 resolution: GetterInvocationResolution
                   element: <testLibrary>::@extensionType::E::@getter::foo
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -5155,7 +5139,6 @@ library
                     name: foo @43
                     resolution: GetterInvocationResolution
                       element: <testLibrary>::@extensionType::E::@getter::foo
-                      invokeType: int Function()
                       type: int
                     staticType: int
                   name: SimpleIdentifier

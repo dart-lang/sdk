@@ -141,7 +141,7 @@ class RuleConfig {
   /// The rule's severity in this configuration.
   final ConfiguredSeverity severity;
 
-  RuleConfig({required this.name, this.group, required this.severity});
+  new({required this.name, this.group, required this.severity});
 
   /// Whether this rule is enabled or disabled in this configuration.
   bool get isEnabled => severity != ConfiguredSeverity.disable;

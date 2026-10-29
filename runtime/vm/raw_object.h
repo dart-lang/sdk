@@ -48,18 +48,22 @@ class StackFrame;
 
 namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
+class ClassDeserializationCluster;
 class ClosureDataDeserializationCluster;
+class ClosureDeserializationCluster;
 class CodeDeserializationCluster;
 class CodeSourceMapDeserializationCluster;
 class CompressedStackMapsDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
+class FieldDeserializationCluster;
 class FunctionDeserializationCluster;
 class FunctionTypeDeserializationCluster;
 class ICDataDeserializationCluster;
 class IntDeserializationCluster;
 class InterfaceTypeDeserializationCluster;
+class LibraryDeserializationCluster;
 class ListDeserializationCluster;
 class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
@@ -67,6 +71,7 @@ class PcDescriptorsDeserializationCluster;
 class RecordDeserializationCluster;
 class RecordTypeDeserializationCluster;
 class SetDeserializationCluster;
+class ScriptDeserializationCluster;
 class SubtypeTestCacheDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
 class TypeParameterTypeDeserializationCluster;
@@ -1345,6 +1350,7 @@ class UntaggedClass : public UntaggedObject {
   friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
   friend class Api;
+  friend class module_snapshot::ClassDeserializationCluster;
   friend class module_snapshot::ObjectPoolDeserializationCluster;
 };
 
@@ -1787,6 +1793,7 @@ class UntaggedField : public UntaggedObject {
   friend class GuardFieldClassInstr;  // For sizeof(guarded_cid_/...)
   friend class LoadFieldInstr;        // For sizeof(guarded_cid_/...)
   friend class StoreFieldInstr;       // For sizeof(guarded_cid_/...)
+  friend class module_snapshot::FieldDeserializationCluster;
 };
 
 class alignas(8) UntaggedScript : public UntaggedObject {
@@ -1846,6 +1853,8 @@ class alignas(8) UntaggedScript : public UntaggedObject {
 
  private:
 #endif
+
+  friend class module_snapshot::ScriptDeserializationCluster;
 };
 
 class UntaggedLibrary : public UntaggedObject {
@@ -1921,6 +1930,7 @@ class UntaggedLibrary : public UntaggedObject {
 
   friend class Class;
   friend class Isolate;
+  friend class module_snapshot::LibraryDeserializationCluster;
   friend class module_snapshot::FunctionDeserializationCluster;
 };
 
@@ -3096,28 +3106,54 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   // For packed_type_parameter_counts_.
   using PackedNumParentTypeArguments =
       BitField<decltype(packed_type_parameter_counts_), uint8_t>;
+  static constexpr intptr_t kPackedNumParentTypeArgumentsPos =
+      PackedNumParentTypeArguments::shift();
+  static constexpr intptr_t kPackedNumParentTypeArgumentsSize =
+      PackedNumParentTypeArguments::bitsize();
+
   using PackedNumTypeParameters =
       BitField<decltype(packed_type_parameter_counts_),
                uint8_t,
                PackedNumParentTypeArguments::kNextBit>;
+  static constexpr intptr_t kPackedNumTypeParametersPos =
+      PackedNumTypeParameters::shift();
+  static constexpr intptr_t kPackedNumTypeParametersSize =
+      PackedNumTypeParameters::bitsize();
 
   // For packed_parameter_counts_.
   using PackedNumImplicitParameters =
       BitField<decltype(packed_parameter_counts_), uint8_t, 0, 1>;
+  static constexpr intptr_t kPackedNumImplicitParametersPos =
+      PackedNumImplicitParameters::shift();
+  static constexpr intptr_t kPackedNumImplicitParametersSize =
+      PackedNumImplicitParameters::bitsize();
+
   using PackedHasNamedOptionalParameters =
       BitField<decltype(packed_parameter_counts_),
                bool,
                PackedNumImplicitParameters::kNextBit>;
+  static constexpr intptr_t kPackedHasNamedOptionalParametersPos =
+      PackedHasNamedOptionalParameters::shift();
+
   using PackedNumFixedParameters =
       BitField<decltype(packed_parameter_counts_),
                uint16_t,
                PackedHasNamedOptionalParameters::kNextBit,
                14>;
+  static constexpr intptr_t kPackedNumFixedParametersPos =
+      PackedNumFixedParameters::shift();
+  static constexpr intptr_t kPackedNumFixedParametersSize =
+      PackedNumFixedParameters::bitsize();
+
   using PackedNumOptionalParameters =
       BitField<decltype(packed_parameter_counts_),
                uint16_t,
                PackedNumFixedParameters::kNextBit,
                14>;
+  static constexpr intptr_t kPackedNumOptionalParametersPos =
+      PackedNumOptionalParameters::shift();
+  static constexpr intptr_t kPackedNumOptionalParametersSize =
+      PackedNumOptionalParameters::bitsize();
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     compiler::target::kSmiBits,
                 "In-place mask for number of optional parameters cannot fit in "
@@ -3281,6 +3317,7 @@ class UntaggedClosure : public UntaggedInstance {
 
   friend class Interpreter;
   friend class UnitDeserializationRoots;
+  friend class module_snapshot::ClosureDeserializationCluster;
 };
 
 class UntaggedNumber : public UntaggedInstance {

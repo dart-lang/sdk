@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/profile.dart' as profile;
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 
 import '../../test/exhaustiveness/env.dart';
@@ -109,17 +109,17 @@ void main() {
   ]);
 }
 
-/// Test that [cases] are exhaustive over [type] if and only if all cases are
+/// Test that [cases] are exhaustive over [shape] if and only if all cases are
 /// included and that all subsets of the cases are not exhaustive.
 void expectExhaustiveOnlyAll(
-  ObjectPropertyLookup objectFieldLookup,
-  StaticType type,
+  ObjectPropertyLookup objectPropertyLookup,
+  Shape shape,
   List<Map<String, Object>> cases,
 ) {
-  var spaces = cases.map((c) => ty(type, c)).toList();
+  var spaces = cases.map((c) => ty(shape, c)).toList();
   profile.reset();
   print(
-    isExhaustive(objectFieldLookup, Space(const Path.root(), type), spaces),
+    isExhaustive(objectPropertyLookup, Space(const Path.root(), shape), spaces),
   );
   profile.log();
 }

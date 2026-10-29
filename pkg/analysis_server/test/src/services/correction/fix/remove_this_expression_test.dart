@@ -43,7 +43,7 @@ class A {
 }
 
 @reflectiveTest
-class RemoveThisExpressionTest extends FixProcessorLintTest {
+class RemoveThisExpressionTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeThisExpression;
 

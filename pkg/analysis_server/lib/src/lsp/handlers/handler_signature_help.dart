@@ -58,53 +58,60 @@ class SignatureHelpHandler
         params.context?.isRetrigger == false;
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) async {
+      var offset = toOffset(unit.lineInfo, pos);
+      return offset.mapResultSync((offset) {
+        var formats = clientCapabilities.signatureHelpDocumentationFormats;
+        var dartDocInfo = server.getDartdocDirectiveInfoFor(unit);
 
-    return (unit, offset).mapResultsSync((unit, offset) {
-      var formats = clientCapabilities.signatureHelpDocumentationFormats;
-      var dartDocInfo = server.getDartdocDirectiveInfoFor(unit);
+        // First check if we're in a type args list and if so build some
+        // signature help for that.
+        var typeArgsSignature = _tryGetTypeArgsSignatureHelp(
+          clientCapabilities,
+          dartDocInfo,
+          unit.unit,
+          offset,
+          autoTriggered,
+          formats,
+        );
+        if (typeArgsSignature != null) {
+          return success(typeArgsSignature);
+        }
 
-      // First check if we're in a type args list and if so build some
-      // signature help for that.
-      var typeArgsSignature = _tryGetTypeArgsSignatureHelp(
-        clientCapabilities,
-        dartDocInfo,
-        unit.unit,
-        offset,
-        autoTriggered,
-        formats,
-      );
-      if (typeArgsSignature != null) {
-        return success(typeArgsSignature);
-      }
+        var computer = DartUnitSignatureComputer(
+          dartDocInfo,
+          unit.unit,
+          offset,
+        );
+        if (!computer.offsetIsValid) {
+          return success(null); // No error, just no valid hover.
+        }
+        var signature = computer.compute();
+        if (signature == null) {
+          return success(null); // No error, just no valid hover.
+        }
 
-      var computer = DartUnitSignatureComputer(dartDocInfo, unit.unit, offset);
-      if (!computer.offsetIsValid) {
-        return success(null); // No error, just no valid hover.
-      }
-      var signature = computer.compute();
-      if (signature == null) {
-        return success(null); // No error, just no valid hover.
-      }
+        // Skip results if this was an auto-trigger but not from the start of the
+        // argument list.
+        // The ArgumentList's offset is before the paren, but the request offset
+        // will be after.
+        if (autoTriggered && offset != signature.argumentList.offset + 1) {
+          return success(null);
+        }
 
-      // Skip results if this was an auto-trigger but not from the start of the
-      // argument list.
-      // The ArgumentList's offset is before the paren, but the request offset
-      // will be after.
-      if (autoTriggered && offset != signature.argumentList.offset + 1) {
-        return success(null);
-      }
-
-      return success(
-        toSignatureHelp(
-          signature,
-          preferredFormats: formats,
-          clientSupportsNullActiveParameter:
-              clientCapabilities.signatureHelpNullActiveParameter,
-        ),
-      );
+        return success(
+          toSignatureHelp(
+            signature,
+            preferredFormats: formats,
+            clientSupportsNullActiveParameter:
+                clientCapabilities.signatureHelpNullActiveParameter,
+          ),
+        );
+      });
     });
   }
 

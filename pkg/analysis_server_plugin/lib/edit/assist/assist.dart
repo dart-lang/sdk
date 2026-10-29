@@ -17,7 +17,7 @@ final class Assist {
   final SourceChange change;
 
   /// Initializes a newly created assist to have the given [kind] and [change].
-  Assist(this.kind, this.change);
+  new(this.kind, this.change);
 
   @override
   String toString() {

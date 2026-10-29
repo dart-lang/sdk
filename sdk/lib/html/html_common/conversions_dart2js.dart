@@ -1,4 +1,4 @@
-part of html_common;
+part of 'dart:html_common';
 
 /// Converts native values to their Dart equivalent
 ///

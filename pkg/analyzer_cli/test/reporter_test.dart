@@ -96,7 +96,8 @@ void f() {
 
     expect(
       out.toString().trim(),
-      "error • Undefined name 'x'. • package:test/test.dart:2:3 • undefined_identifier",
+      "error • Undefined name 'x'. • package:test/test.dart:2:3 • "
+      'undefined_unqualified_name_read',
     );
   }
 
@@ -255,7 +256,7 @@ void f() {
       'version': 1,
       'diagnostics': [
         {
-          'code': 'undefined_identifier',
+          'code': 'undefined_unqualified_name_read',
           'severity': 'ERROR',
           'type': 'COMPILE_TIME_ERROR',
           'location': {
@@ -274,8 +275,9 @@ void f() {
             },
           },
           'problemMessage': "Undefined name 'x'.",
-          'correctionMessage': 'Try correcting the name to one that is defined, or defining the name.',
-          'documentation': 'https://dart.dev/diagnostics/undefined_identifier',
+          'correctionMessage':
+              "Try importing the library that defines 'x', correcting the "
+              'name to one that is defined, or defining the name.',
         },
       ],
     };

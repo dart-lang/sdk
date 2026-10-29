@@ -23,5 +23,5 @@ class AnalyzerPublicApi {
   /// being in the analyzer's `lib` folder.
   final String message;
 
-  const AnalyzerPublicApi({required this.message});
+  const new({required this.message});
 }

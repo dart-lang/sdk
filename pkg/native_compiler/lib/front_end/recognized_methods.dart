@@ -12,10 +12,12 @@ import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/external_name.dart' show getExternalName;
+import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/runtime/constant_objects.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:vm/modular/transformations/pragma.dart';
+import 'package:vm/modular/transformations/ffi/abi.dart' as ffi_abi;
 
 /// Build IR for native methods.
 void buildNativeMethod(
@@ -338,6 +340,48 @@ void buildGrowableListCapacity(
   builder.addLoadInstanceField(objectLayout.Array_length);
 }
 
+/// Build IR for hashCode fast-path.
+void buildHashCodeFastPath(
+  FlowGraphBuilder builder,
+  FunctionRegistry functionRegistry,
+  ObjectLayout objectLayout,
+  CField hashField,
+  CFunction function,
+) {
+  final type = builder.pop();
+
+  builder.push(type);
+  final hash = builder.addLoadInstanceField(objectLayout.AbstractType_hash);
+  builder.addIntConstant(0);
+  builder.addComparison(.intEqual);
+
+  final computedBlock = builder.newTargetBlock();
+  final notComputedBlock = builder.newTargetBlock();
+  builder.addBranch(notComputedBlock, computedBlock);
+
+  final joinBlock = builder.newJoinBlock();
+  final resultVar = builder.declareLocalVariable(
+    '#result',
+    null,
+    const IntType(),
+  );
+
+  builder.startBlock(computedBlock);
+  builder.push(hash);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(notComputedBlock);
+  builder.push(type);
+  buildNativeMethod(builder, functionRegistry, function);
+  builder.addStoreLocal(resultVar);
+  builder.addGoto(joinBlock);
+
+  builder.startBlock(joinBlock);
+  builder.addLoadLocal(resultVar);
+}
+
+/// Build IR for operator== fast-path.
 void buildEqualsWithSameObjectFastPath(
   FlowGraphBuilder builder,
   FunctionRegistry functionRegistry,
@@ -376,6 +420,81 @@ void buildEqualsWithSameObjectFastPath(
 
   builder.startBlock(joinBlock);
   builder.addLoadLocal(resultVar);
+}
+
+void buildFinalizerBaseGetIsolateFinalizers(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(objectLayout.Thread_isolate, hasObject: false);
+  builder.addLoadExternalField(
+    objectLayout.Isolate_finalizers,
+    hasObject: true,
+  );
+}
+
+void buildFinalizerBaseSetIsolateFinalizers(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final value = builder.pop();
+  builder.addLoadExternalField(objectLayout.Thread_isolate, hasObject: false);
+  builder.push(value);
+  builder.addStoreExternalField(
+    objectLayout.Isolate_finalizers,
+    hasObject: true,
+  );
+  builder.addNullConstant();
+}
+
+void buildFinalizerBaseSetIsolate(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(objectLayout.Thread_isolate, hasObject: false);
+  builder.addStoreInstanceField(objectLayout.FinalizerBase_isolate);
+  builder.addNullConstant();
+}
+
+void buildFinalizerEntryAllocate(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+  ast.Class cls,
+) {
+  final finalizer = builder.pop();
+  final detach = builder.pop();
+  final token = builder.pop();
+  final value = builder.pop();
+  final type = StaticType(
+    GlobalContext.instance.coreTypes.nonNullableRawType(cls),
+  );
+
+  final obj = builder.addAllocateObject(type);
+
+  builder.push(obj);
+  builder.push(value);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_value);
+
+  builder.push(obj);
+  builder.push(detach);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_detach);
+
+  builder.push(obj);
+  builder.push(token);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_token);
+
+  builder.push(obj);
+  builder.push(finalizer);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_finalizer);
+
+  builder.push(obj);
+  builder.addIntConstant(0);
+  builder.addStoreInstanceField(objectLayout.FinalizerEntry_externalSize);
+}
+
+void buildReachabilityFence(FlowGraphBuilder builder) {
+  builder.addReachabilityFence();
+  builder.addNullConstant();
 }
 
 /// Build IR for factory constructors of typed data view classes.
@@ -449,6 +568,40 @@ void buildTimelineGetNextTaskId(
   );
 }
 
+/// Build IR for dart:developer::_isDartStreamEnabled.
+void buildTimelineIsDartStreamEnabled(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(
+    objectLayout.Thread_dartStream,
+    hasObject: false,
+  );
+  builder.addLoadExternalField(
+    objectLayout.TimelineStream_enabled,
+    hasObject: true,
+  );
+  builder.addIntConstant(0);
+  builder.addComparison(.intNotEqual);
+}
+
+/// Build IR for dart:developer::extensionStreamHasListener.
+void buildExtensionStreamHasListener(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  builder.addLoadExternalField(
+    objectLayout.Thread_serviceExtensionStream,
+    hasObject: false,
+  );
+  builder.addLoadExternalField(
+    objectLayout.StreamInfo_enabled,
+    hasObject: true,
+  );
+  builder.addIntConstant(0);
+  builder.addComparison(.intNotEqual);
+}
+
 /// Build IR for ThreadLocal._hasValue.
 void buildThreadLocalHasValue(
   FlowGraphBuilder builder,
@@ -510,17 +663,16 @@ void buildThreadLocalGetValue(
 }
 
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
-void buildUnimplementedRecognizedMethod(
+void buildUnimplementedMethod(
   FlowGraphBuilder builder,
   CFunction function,
+  String message,
 ) {
   // Drop parameters.
   for (var i = 0, n = function.numberOfParameters; i < n; ++i) {
     builder.pop();
   }
-  builder.addConstant(
-    ConstantValue.fromString('Unimplemented recognized method: $function'),
-  );
+  builder.addConstant(ConstantValue.fromString(message));
   builder.addThrow(.exception, 1);
 }
 
@@ -604,6 +756,8 @@ extension on ArrayKind {
 final class VmRecognizedMethods(
   final FunctionRegistry functionRegistry,
   final ObjectLayout objectLayout,
+  final TargetCPU targetCPU,
+  final TargetOS targetOS,
 ) extends CommonRecognizedMethods {
   final coreTypes = GlobalContext.instance.coreTypes;
 
@@ -621,7 +775,11 @@ final class VmRecognizedMethods(
       }
       if (member.isExternal) {
         return (FlowGraphBuilder builder) {
-          buildUnimplementedRecognizedMethod(builder, function);
+          buildUnimplementedMethod(
+            builder,
+            function,
+            'Unimplemented recognized method: $function',
+          );
         };
       }
     }
@@ -631,9 +789,31 @@ final class VmRecognizedMethods(
           buildNativeMethod(builder, functionRegistry, function);
         };
       }
+      if (member.isFfiNative(coreTypes)) {
+        return (FlowGraphBuilder builder) {
+          buildUnimplementedMethod(
+            builder,
+            function,
+            'Unimplemented FFI native method: $function',
+          );
+        };
+      }
     }
     return null;
   }
+
+  @override
+  late final staticInvocations = <ast.Member, RecognizedCallMatcher>{
+    ...super.staticInvocations,
+    for (final MapEntry(key: member, value: builder)
+        in _recognizedMembers.entries)
+      if (member is ast.Procedure &&
+          member.isStatic &&
+          !member.isGetter &&
+          !member.isSetter &&
+          member.isPreferInline(coreTypes))
+        member: AnyArgsMatcher(builder),
+  };
 
   late final _recognizedMembers = <ast.Member, BuildIR>{
     // dart:core
@@ -769,6 +949,13 @@ final class VmRecognizedMethods(
       'get:isInfinite',
     ): (FlowGraphBuilder builder) {
       buildUnaryDoubleOp(builder, .isInfinite);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'get:hashCode',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .hash);
     },
     index.getProcedure(
       'dart:core',
@@ -993,6 +1180,26 @@ final class VmRecognizedMethods(
     },
     index.getProcedure(
       'dart:core',
+      '_Closure',
+      'get:_hash',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.Closure_hash);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_AbstractType',
+      'get:hashCode',
+    ): (FlowGraphBuilder builder) {
+      buildHashCodeFastPath(
+        builder,
+        functionRegistry,
+        objectLayout,
+        objectLayout.AbstractType_hash,
+        builder.graph.function,
+      );
+    },
+    index.getProcedure(
+      'dart:core',
       '_AbstractType',
       '==',
     ): (FlowGraphBuilder builder) {
@@ -1011,6 +1218,62 @@ final class VmRecognizedMethods(
         objectLayout,
         builder.graph.function,
       );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'get:key',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.WeakProperty_key);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'set:key',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.WeakProperty_key);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'get:value',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.WeakProperty_value);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakProperty',
+      'set:value',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.WeakProperty_value);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakReference',
+      'get:target',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.WeakReference_target);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_WeakReference',
+      'set:_target',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.WeakReference_target);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_FinalizerImpl',
+      'get:_callback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.FinalizerImpl_callback);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_FinalizerImpl',
+      'set:_callback',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.FinalizerImpl_callback);
     },
 
     // dart:_compact_hash
@@ -1183,6 +1446,54 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildInstanceGetter(builder, objectLayout.Object_classId);
     },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'get:_isolateFinalizers',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerBaseGetIsolateFinalizers(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'set:_isolateFinalizers',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerBaseSetIsolateFinalizers(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      '_setIsolate',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerBaseSetIsolate(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'get:_allEntries',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.FinalizerBase_allEntries);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerBase',
+      'set:_allEntries',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceSetter(builder, objectLayout.FinalizerBase_allEntries);
+    },
+    index.getProcedure(
+      'dart:_internal',
+      'FinalizerEntry',
+      'allocate',
+    ): (FlowGraphBuilder builder) {
+      buildFinalizerEntryAllocate(
+        builder,
+        objectLayout,
+        index.getClass('dart:_internal', 'FinalizerEntry'),
+      );
+    },
+    index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'):
+        buildReachabilityFence,
 
     // dart:async
     index.getProcedure(
@@ -1254,9 +1565,69 @@ final class VmRecognizedMethods(
     // dart:math
     index.getTopLevelProcedure(
       'dart:math',
+      '_doublePow',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .pow);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_atan2',
+    ): (FlowGraphBuilder builder) {
+      buildBinaryDoubleOp(builder, .atan2);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_sin',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .sin);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_cos',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .cos);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_tan',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .tan);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_asin',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .asin);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_acos',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .acos);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_atan',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .atan);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
       '_sqrt',
     ): (FlowGraphBuilder builder) {
       buildUnaryDoubleOp(builder, .sqrt);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_exp',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .exp);
+    },
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_log',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .log);
     },
 
     // dart:typed_data
@@ -1346,7 +1717,7 @@ final class VmRecognizedMethods(
     ])
       index.getProcedure(
         'dart:typed_data',
-        '_${arrayKind.elementName}ArrayView',
+        '_${arrayKind.elementName}ArrayViewBase',
         '[]',
       ): (FlowGraphBuilder builder) {
         buildArrayElementGetter(
@@ -1549,6 +1920,29 @@ final class VmRecognizedMethods(
       '_getNextTaskId',
     ): (FlowGraphBuilder builder) {
       buildTimelineGetNextTaskId(builder, objectLayout);
+    },
+    index.getTopLevelProcedure(
+      'dart:developer',
+      '_isDartStreamEnabled',
+    ): (FlowGraphBuilder builder) {
+      buildTimelineIsDartStreamEnabled(builder, objectLayout);
+    },
+    index.getTopLevelProcedure(
+      'dart:developer',
+      'get:extensionStreamHasListener',
+    ): (FlowGraphBuilder builder) {
+      buildExtensionStreamHasListener(builder, objectLayout);
+    },
+
+    // dart:ffi
+    index.getTopLevelProcedure('dart:ffi', '_abi'): (FlowGraphBuilder builder) {
+      final targetAbi = switch ((targetOS, targetCPU)) {
+        (.macos, .arm64) => ffi_abi.Abi.macosArm64,
+        (.ios, .arm64) => ffi_abi.Abi.iosArm64,
+      };
+      final targetAbiIndex = ffi_abi.Abi.values.indexOf(targetAbi);
+      assert(targetAbiIndex >= 0);
+      buildConstantGetter(builder, ConstantValue.fromInt(targetAbiIndex));
     },
 
     // dart:_vm

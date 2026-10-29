@@ -11,9 +11,9 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 
 /// The set of [Enum] values, backed by [int].
 extension type EnumSet<T extends Enum>(int _bits) {
-  EnumSet.empty() : this(0);
+  new empty() : this(0);
 
-  factory EnumSet.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return EnumSet(reader.readInt64());
   }
 

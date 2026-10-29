@@ -41,5 +41,7 @@ bool get isVmConfiguration =>
 
 bool get isBrowserConfiguration => _configuration.runtime.isBrowser;
 
+bool get isJSCommandLineConfiguration => _configuration.runtime.isJSCommandLine;
+
 bool get isWebConfiguration =>
     isDart2jsConfiguration || isDart2WasmConfiguration || isDdcConfiguration;

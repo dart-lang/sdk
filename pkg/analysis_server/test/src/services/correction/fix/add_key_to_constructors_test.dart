@@ -84,7 +84,7 @@ class MyWidget extends StatelessWidget {
 }
 
 @reflectiveTest
-class AddKeyToConstructorsTest extends FixProcessorLintTest {
+class AddKeyToConstructorsTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -740,7 +740,7 @@ class MyWidget extends ParentWidget {
 
 @reflectiveTest
 class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -785,7 +785,7 @@ class B extends A {
 
 @reflectiveTest
 class AddKeyToConstructorsWithoutSuperParametersTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 

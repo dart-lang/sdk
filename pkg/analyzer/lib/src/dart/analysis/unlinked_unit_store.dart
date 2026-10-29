@@ -54,5 +54,5 @@ class _UnlinkedUnitStoreData {
   final WeakReference<AnalysisDriverUnlinkedUnit> value;
   int usageCount = 1;
 
-  _UnlinkedUnitStoreData(this.value);
+  new(this.value);
 }

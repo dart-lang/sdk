@@ -43,7 +43,7 @@ void f(int? x) {
 UnknownType getValue() => UnknownType();
 // [diag.undefinedClass][column 1][length 11] Undefined class 'UnknownType'.
 //                        ^^^^^^^^^^^
-// [diag.undefinedFunction] The function 'UnknownType' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'UnknownType'.
 void f() {
   if (getValue() case final valueX?) {
     print(valueX);

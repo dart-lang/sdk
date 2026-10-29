@@ -977,7 +977,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     FormattedMessage? formattedMessage = super.addProblem(
       message,
@@ -987,7 +986,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: true,
     );
     if (formattedMessage != null) {
       library.problemsAsJson ??= <String>[];
@@ -1560,26 +1558,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _pendingGenericFunctionTypeChecks.clear();
   }
 
-  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
-    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
+  void installTypedefTearOffs() {
     Iterator<SourceTypeAliasBuilder> iterator = filteredMembersIterator(
       includeDuplicates: true,
     );
     while (iterator.moveNext()) {
       SourceTypeAliasBuilder declaration = iterator.current;
-      DelayedDefaultValueCloner? delayedDefaultValueCloner = declaration
-          .buildTypedefTearOffs(this, (Procedure procedure) {
-            procedure.isStatic = true;
-            if (!declaration.isDuplicate) {
-              library.addProcedure(procedure);
-            }
-          });
-      if (delayedDefaultValueCloner != null) {
-        (delayedDefaultValueCloners ??= []).add(delayedDefaultValueCloner);
-      }
+      declaration.buildTypedefTearOffs(this, (Procedure procedure) {
+        procedure.isStatic = true;
+        if (!declaration.isDuplicate) {
+          library.addProcedure(procedure);
+        }
+      });
     }
-
-    return delayedDefaultValueCloners;
   }
 }
 

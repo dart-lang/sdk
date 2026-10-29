@@ -27,7 +27,7 @@ class BinaryExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  BinaryExpressionResolver({required TypeAnalyzer typeAnalyzer})
+  new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 
@@ -42,28 +42,16 @@ class BinaryExpressionResolver {
     BinaryOperatorInvocationImpl node, {
     required TypeImpl contextType,
   }) {
-    var operator = node.operator.type;
-
-    if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
-      _resolveEqual(node, notEqual: operator == TokenType.BANG_EQ);
-      return;
+    switch (node.binaryOperator) {
+      case BinaryOperator.equal:
+        _resolveEqual(node, notEqual: false);
+      case BinaryOperator.notEqual:
+        _resolveEqual(node, notEqual: true);
+      case null:
+        _resolveUnsupportedOperator(node);
+      default:
+        _resolveUserDefinable(node, contextType: contextType);
     }
-
-    if (operator.isUserDefinableOperator && operator.isBinaryOperator) {
-      _resolveUserDefinable(node, contextType: contextType);
-      return;
-    }
-
-    // Report an error if not already reported by the parser.
-    if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
-      _diagnosticReporter.report(
-        diag.notBinaryOperator
-            .withArguments(name: operator.lexeme)
-            .at(node.operator),
-      );
-    }
-
-    _resolveUnsupportedOperator(node);
   }
 
   void resolveIfNull(IfNullImpl node, {required TypeImpl contextType}) {
@@ -368,6 +356,18 @@ class BinaryExpressionResolver {
   }
 
   void _resolveUnsupportedOperator(BinaryOperatorInvocationImpl node) {
+    var operator = node.operator;
+
+    // Report an error if not already reported by the parser.
+    if (operator.type != TokenType.BANG_EQ_EQ &&
+        operator.type != TokenType.EQ_EQ_EQ) {
+      _diagnosticReporter.report(
+        diag.notBinaryOperator
+            .withArguments(name: operator.lexeme)
+            .at(operator),
+      );
+    }
+
     _typeAnalyzer.analyzeInstanceReceiver(node.leftOperand);
     _typeAnalyzer.analyzeExpression(
       node.rightOperand,
@@ -459,7 +459,7 @@ class BinaryExpressionResolver {
     );
 
     node.element = result.getter2 as InternalMethodElement?;
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       if (leftOperand is SuperReference) {
         _diagnosticReporter.report(
           diag.undefinedSuperOperator

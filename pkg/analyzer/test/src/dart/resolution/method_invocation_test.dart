@@ -72,7 +72,7 @@ void f() {
 //  ^
 // [diag.missingIdentifier] Expected an identifier.
 //    ^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unknown'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unknown'.
 }
 
 void g(int a, int b) {}
@@ -3280,7 +3280,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -3331,7 +3330,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -3372,7 +3370,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -3472,7 +3469,6 @@ CallInvocation
       element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::C::@getter::foo
         substitution: {T: T}
-      invokeType: T Function()
       type: T
     staticType: T
   argumentList: ArgumentList
@@ -3609,7 +3605,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   argumentList: ArgumentList
@@ -3661,7 +3656,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   argumentList: ArgumentList
@@ -3710,7 +3704,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   argumentList: ArgumentList
@@ -3884,7 +3877,7 @@ var x = A.foo();
 // [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -3935,7 +3928,7 @@ var x = A.foo(a: 0);
 // [diag.undefinedNamedParameter] The named parameter 'a' isn't defined.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -4000,7 +3993,7 @@ var x = E.foo();
 // [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -4043,7 +4036,7 @@ V1: MethodInvocation
 main() {
   foo(0);
 //^^^
-// [diag.undefinedFunction] The function 'foo' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -4088,7 +4081,7 @@ import 'dart:math' as math;
 main() {
   math.foo(0);
 //     ^^^
-// [diag.undefinedFunction] The function 'foo' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'math'.
 }
 ''');
 
@@ -4140,7 +4133,7 @@ V1: MethodInvocation
 main() {
   bar.foo(0);
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'bar'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'bar'.
 }
 ''');
 
@@ -4195,7 +4188,7 @@ class C {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4250,7 +4243,7 @@ int x = 0;
 main() {
   C.foo(x);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4269,7 +4262,6 @@ ReceiverMethodInvocation
         name: x
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::x
-          invokeType: int Function()
           type: int
         correspondingParameter: <null>
         staticType: int
@@ -4313,7 +4305,7 @@ class C extends S {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4367,7 +4359,7 @@ class C {}
 main() {
   C.foo<int>();
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4429,7 +4421,7 @@ V1: MethodInvocation
 class C<T> {
   static main() => C.T();
 //                   ^
-// [diag.undefinedMethodOnTypeLiteral] The method 'T' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'T'.
 }
 ''');
 
@@ -4471,7 +4463,7 @@ V1: MethodInvocation
 main() {
   42.foo(0);
 //   ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'int'.
 }
 ''');
 
@@ -4523,7 +4515,7 @@ main() {
   var v = () {};
   v.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Null Function()'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Null Function()'.
 }
 ''');
 
@@ -4579,7 +4571,7 @@ class C {
   main() {
     foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -4709,7 +4701,7 @@ V1: MethodInvocation
 main(Object o) {
   o.call();
 //  ^^^^
-// [diag.undefinedMethod] The method 'call' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'call' isn't defined for the type 'Object'.
 }
 ''');
   }
@@ -4727,7 +4719,7 @@ class B extends A {
   main() {
     _foo(0);
 //  ^^^^
-// [diag.undefinedMethod] The method '_foo' isn't defined for the type 'B'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_foo'.
   }
 }
 ''');
@@ -4775,7 +4767,7 @@ class C {
 main() {
   C..foo();
 //   ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -4788,7 +4780,7 @@ main() {
 // ^^
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 //   ^^^^^^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'toString' isn't defined for the type 'A'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'A' doesn't have a static member or constructor named 'toString'.
 }
 ''');
   }
@@ -4982,7 +4974,6 @@ CallInvocation
       element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::C::@getter::foo
         substitution: {T: void}
-      invokeType: void Function()
       type: void
     staticType: void
   argumentList: ArgumentList
@@ -5110,7 +5101,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: void Function()
       type: void
     staticType: void
   argumentList: ArgumentList
@@ -5583,7 +5573,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -5886,7 +5875,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@extension::A::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -6326,7 +6314,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: T Function<T>(T, T) Function()
       type: T Function<T>(T, T)
     staticType: T Function<T>(T, T)
   argumentList: ArgumentList
@@ -6458,7 +6445,6 @@ ReceiverMethodInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: Function Function()
       type: Function
     staticType: Function
   operator: .
@@ -6522,7 +6508,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -6593,7 +6578,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -6658,7 +6642,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: int Function() Function()
       type: int Function()
     staticType: int Function()
   argumentList: ArgumentList
@@ -6905,7 +6888,6 @@ ReceiverMethodInvocation
       element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::C::@getter::a
         substitution: {T: T}
-      invokeType: T Function()
       type: T
     staticType: T
   operator: .
@@ -7130,7 +7112,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: void Function(C) Function()
       type: void Function(C)
     staticType: void Function(C)
   argumentList: ArgumentList
@@ -7535,7 +7516,7 @@ extension type X(B it) implements A {}
 void f(X x) {
   x.foo();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'X'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'X'.
 }
 ''');
 
@@ -8284,7 +8265,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@class::C::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -8363,7 +8343,6 @@ CallInvocation
     name: m
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@class::C::@getter::m
-      invokeType: void Function<T>() Function()
       type: void Function<T>()
     staticType: void Function<T>()
   typeArguments: TypeArgumentList
@@ -8520,7 +8499,6 @@ ReceiverMethodInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: A Function()
       type: A
     staticType: A
   operator: .
@@ -8981,7 +8959,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -9050,7 +9027,6 @@ CallInvocation
     name: _f
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::_f
-      invokeType: int Function(int)? Function()
       type: int Function(int)
     staticType: int Function(int)
   argumentList: ArgumentList
@@ -9512,14 +9488,12 @@ CallInvocation
       name: c
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::c
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
     name: m
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::m
-      invokeType: void Function() Function()
       type: void Function()
     staticType: void Function()
   argumentList: ArgumentList
@@ -9571,7 +9545,6 @@ ReceiverMethodInvocation
     name: c
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::c
-      invokeType: C Function()
       type: C
     staticType: C
   operator: .
@@ -9834,7 +9807,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   argumentList: ArgumentList
@@ -9886,7 +9858,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -9937,7 +9908,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -10050,7 +10020,6 @@ UnqualifiedFunctionInvocation
           name: a
           resolution: GetterInvocationResolution
             element: <testLibrary>::@getter::a
-            invokeType: int Function()
             type: int
           staticType: int
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::p
@@ -10107,7 +10076,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: int Function()
       type: int
     staticType: int
   argumentList: ArgumentList
@@ -10157,7 +10125,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -10276,7 +10243,6 @@ CallInvocation
     name: a
     resolution: GetterInvocationResolution
       element: package:test/a.dart::@getter::a
-      invokeType: A Function()
       type: A
     staticType: A
   typeArguments: TypeArgumentList
@@ -10543,7 +10509,7 @@ V1: MethodInvocation
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo()}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');
@@ -10587,7 +10553,7 @@ typedef void F({a = b?.foo()});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');
@@ -10652,7 +10618,6 @@ ReceiverMethodInvocation
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
@@ -10708,7 +10673,6 @@ ReceiverMethodInvocation
         name: a
         resolution: GetterInvocationResolution
           element: <testLibrary>::@getter::a
-          invokeType: int Function()
           type: int
         correspondingParameter: dart:core::@class::String::@method::codeUnitAt::@formalParameter::index
         staticType: int
@@ -11264,7 +11228,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -11316,7 +11279,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -11690,7 +11652,6 @@ ReceiverMethodInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: double Function(int)? Function()
       type: double Function(int)?
     staticType: double Function(int)?
   operator: ?.
@@ -11875,7 +11836,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: double Function(int) Function()
       type: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -11925,7 +11885,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::foo
-      invokeType: void Function(int) Function()
       type: void Function(int)
     staticType: void Function(int)
   argumentList: ArgumentList
@@ -12068,7 +12027,6 @@ CascadeExpression
         name: foo
         resolution: GetterInvocationResolution
           element: <testLibrary>::@class::A::@getter::foo
-          invokeType: int Function()
           type: int
         staticType: int
     CascadeSection
@@ -12507,7 +12465,6 @@ ReceiverMethodInvocation
       name: make
       resolution: GetterInvocationResolution
         element: package:test/a.dart::@getter::make
-        invokeType: A Function() Function()
         type: A Function()
       staticType: A Function()
     argumentList: ArgumentList
@@ -12597,7 +12554,6 @@ CallInvocation
     name: callback
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::callback
-      invokeType: int Function(int) Function()
       type: int Function(int)
     staticType: int Function(int)
   argumentList: ArgumentList
@@ -12680,7 +12636,6 @@ ReceiverMethodInvocation
       name: next
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::next
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
@@ -12879,7 +12834,6 @@ ReceiverMethodInvocation
     name: receiver
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::receiver
-      invokeType: C Function()
       type: C
     staticType: C
   operator: .
@@ -12952,7 +12906,6 @@ ReceiverMethodInvocation
       name: never
       resolution: GetterInvocationResolution
         element: <testLibrary>::@getter::never
-        invokeType: Never Function()
         type: Never
           alias: <testLibrary>::@typeAlias::N
       staticType: Never
@@ -13736,14 +13689,12 @@ CallInvocation
       name: a
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::B::@getter::a
-        invokeType: A Function()
         type: A
       staticType: A
     operator: .
     name: content
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::content
-      invokeType: String Function() Function()
       type: String Function()
     staticType: String Function()
   argumentList: ArgumentList
@@ -13815,7 +13766,6 @@ CallInvocation
       element: SubstitutedGetterElementImpl
         baseElement: dart:core::@class::Iterable::@getter::first
         substitution: {E: T}
-      invokeType: T Function()
       type: T
     staticType: T
   argumentList: ArgumentList
@@ -13868,7 +13818,6 @@ CallInvocation
       element: SubstitutedGetterElementImpl
         baseElement: dart:core::@class::Iterable::@getter::first
         substitution: {E: T}
-      invokeType: T Function()
       type: T
     staticType: T
   argumentList: ArgumentList

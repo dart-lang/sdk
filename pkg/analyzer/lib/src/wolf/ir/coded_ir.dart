@@ -19,7 +19,7 @@ class CodedIRContainer extends BaseIRContainer {
   final List<Object?> _literalTable;
   final List<DartType> _typeTable;
 
-  CodedIRContainer(CodedIRWriter super.writer)
+  new(CodedIRWriter super.writer)
     : _callDescriptorTable = writer._callDescriptorTable,
       _literalTable = writer._literalTable,
       _typeTable = writer._typeTable;

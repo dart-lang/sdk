@@ -8,6 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
+import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -59,9 +60,9 @@ class PluginsPage extends DiagnosticPageWithNav {
         h3('Configured plugins');
         for (var MapEntry(key: pluginName, value: specs)
             in allConfigs.entries) {
-          p('<strong>$pluginName</strong> specified in:');
+          p('<strong>${escape(pluginName)}</strong> specified in:', raw: true);
           ul(specs, (spec) {
-            buf.writeln('<code>${spec.optionsPath}</code>');
+            buf.writeln('<code>${escape(spec.optionsPath)}</code>');
           });
         }
       }
@@ -110,11 +111,11 @@ class PluginsPage extends DiagnosticPageWithNav {
               incompatibleSources
                   .putIfAbsent(pluginName, () => [])
                   .add(
-                    'In context <code>$contextPath</code>: '
-                    '<code>${spec1.optionsPath}</code> specifies '
-                    '<pre><code>$spec1Yaml</code></pre>'
-                    'but <code>${spec2.optionsPath}</code> specifies '
-                    '<pre><code>$spec2Yaml</code></pre>'
+                    'In context <code>${escape(contextPath)}</code>: '
+                    '<code>${escape(spec1.optionsPath)}</code> specifies '
+                    '<pre><code>${escape(spec1Yaml)}</code></pre>'
+                    'but <code>${escape(spec2.optionsPath)}</code> specifies '
+                    '<pre><code>${escape(spec2Yaml)}</code></pre>'
                     'The two plugin specifications must be identical.',
                   );
             }
@@ -126,15 +127,15 @@ class PluginsPage extends DiagnosticPageWithNav {
     if (incompatibleSources.isNotEmpty) {
       h3('Incompatible plugin sources');
       p(
-        'The following plugins are specified with incompatible sources (different '
-        'version constraints, paths, or git configurations) in different analysis '
-        'options files within the same context. This prevents them from being '
-        'run in the same isolate, and forces the server to spawn multiple '
-        'isolates.',
+        'The following plugins are specified with incompatible sources '
+        '(different version constraints, paths, or git configurations) in '
+        'different analysis options files within the same context. This '
+        'prevents them from being run in the same isolate, and forces the '
+        'server to spawn multiple isolates.',
       );
       for (var MapEntry(key: pluginName, value: conflictList)
           in incompatibleSources.entries) {
-        p('<strong>$pluginName</strong>:');
+        p('<strong>${escape(pluginName)}</strong>:', raw: true);
         ul(conflictList, (conflict) {
           buf.writeln(conflict);
         });

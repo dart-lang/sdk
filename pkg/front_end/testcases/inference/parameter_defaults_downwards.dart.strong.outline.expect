@@ -2,9 +2,15 @@ library test;
 import self as self;
 import "dart:core" as core;
 
-static method optional_toplevel([has-declared-initializer core::List<core::int> x]) → void
+static method optional_toplevel([core::List<core::int> x = const <core::int>[]]) → void
   ;
-static method named_toplevel({has-declared-initializer core::List<core::int> x}) → void
+static method named_toplevel({core::List<core::int> x = const <core::int>[]}) → void
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_defaults_downwards.dart:7:39 -> ListConstant(const <int>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_defaults_downwards.dart:9:36 -> ListConstant(const <int>[])
+Extra constant evaluation: evaluated: 2, effectively constant: 2

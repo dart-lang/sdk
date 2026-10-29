@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 class TopLevelDeclarations {
   final ResolvedUnitResult resolvedUnit;
 
-  TopLevelDeclarations(this.resolvedUnit);
+  new(this.resolvedUnit);
 
   DriverBasedAnalysisContext get _analysisContext {
     var analysisContext = resolvedUnit.session.analysisContext;

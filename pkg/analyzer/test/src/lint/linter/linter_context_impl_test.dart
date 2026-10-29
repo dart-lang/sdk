@@ -5,7 +5,6 @@
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -287,8 +286,7 @@ class CanBeConstConstructorTest extends AbstractLinterContextTest {
     String search,
     bool expectedResult,
   ) {
-    var constructor =
-        result.findNode.constructor(search) as ConstructorDeclarationImpl;
+    var constructor = result.findNode.constructor(search);
     expect(constructor.canBeConst, expectedResult);
   }
 

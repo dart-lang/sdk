@@ -22,7 +22,7 @@ class NullSafeApiVerifier {
   final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
 
-  NullSafeApiVerifier(this._diagnosticReporter, this._typeSystem);
+  new(this._diagnosticReporter, this._typeSystem);
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.

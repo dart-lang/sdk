@@ -334,8 +334,7 @@ typedef void (*Dart_SetWeakHandleReturnValueType)(Dart_NativeArguments,
 typedef void (*Dart_SetBooleanReturnValueType)(Dart_NativeArguments, bool);
 typedef void (*Dart_SetIntegerReturnValueType)(Dart_NativeArguments, int64_t);
 typedef void (*Dart_SetDoubleReturnValueType)(Dart_NativeArguments, double);
-typedef Dart_Handle (*Dart_SetEnvironmentCallbackType)(
-    Dart_EnvironmentCallback);
+typedef Dart_Handle (*Dart_SetEnvironmentType)(const char**);
 typedef Dart_Handle (*Dart_SetNativeResolverType)(Dart_Handle,
                                                   Dart_NativeEntryResolver,
                                                   Dart_NativeEntrySymbol);
@@ -708,7 +707,7 @@ static Dart_SetWeakHandleReturnValueType Dart_SetWeakHandleReturnValueFn = NULL;
 static Dart_SetBooleanReturnValueType Dart_SetBooleanReturnValueFn = NULL;
 static Dart_SetIntegerReturnValueType Dart_SetIntegerReturnValueFn = NULL;
 static Dart_SetDoubleReturnValueType Dart_SetDoubleReturnValueFn = NULL;
-static Dart_SetEnvironmentCallbackType Dart_SetEnvironmentCallbackFn = NULL;
+static Dart_SetEnvironmentType Dart_SetEnvironmentFn = NULL;
 static Dart_SetNativeResolverType Dart_SetNativeResolverFn = NULL;
 static Dart_GetNativeResolverType Dart_GetNativeResolverFn = NULL;
 static Dart_GetNativeSymbolType Dart_GetNativeSymbolFn = NULL;
@@ -1244,9 +1243,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
             process, "Dart_SetIntegerReturnValue");
     Dart_SetDoubleReturnValueFn = (Dart_SetDoubleReturnValueType)GetProcAddress(
         process, "Dart_SetDoubleReturnValue");
-    Dart_SetEnvironmentCallbackFn =
-        (Dart_SetEnvironmentCallbackType)GetProcAddress(
-            process, "Dart_SetEnvironmentCallback");
+    Dart_SetEnvironmentFn =
+        (Dart_SetEnvironmentType)GetProcAddress(process, "Dart_SetEnvironment");
     Dart_SetNativeResolverFn = (Dart_SetNativeResolverType)GetProcAddress(
         process, "Dart_SetNativeResolver");
     Dart_GetNativeResolverFn = (Dart_GetNativeResolverType)GetProcAddress(
@@ -2393,8 +2391,8 @@ void Dart_SetDoubleReturnValue(Dart_NativeArguments args, double retval) {
   Dart_SetDoubleReturnValueFn(args, retval);
 }
 
-Dart_Handle Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback) {
-  return Dart_SetEnvironmentCallbackFn(callback);
+Dart_Handle Dart_SetEnvironment(const char** environment) {
+  return Dart_SetEnvironmentFn(environment);
 }
 
 Dart_Handle Dart_SetNativeResolver(Dart_Handle library,

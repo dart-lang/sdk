@@ -58,9 +58,6 @@ class SetterBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) => null;
-
-  @override
   void registerFunctionBody({
     required Statement? body,
     required ScopeProviderInfo? scopeProviderInfo,

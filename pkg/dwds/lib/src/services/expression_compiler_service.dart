@@ -9,6 +9,41 @@ import 'package:async/async.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:dwds/src/utilities/sdk_configuration.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
+
+/// Returns the arguments for the DDC expression compiler worker.
+@visibleForTesting
+List<String> expressionCompilerWorkerArgs({
+  required Uri sdkSummaryUri,
+  required String address,
+  required int port,
+  required CompilerOptions compilerOptions,
+  required bool verbose,
+}) => [
+  '--experimental-expression-compiler',
+  '--dart-sdk-summary',
+  '$sdkSummaryUri',
+  '--asset-server-address',
+  address,
+  '--asset-server-port',
+  '$port',
+  '--module-format',
+  compilerOptions.moduleFormat.name,
+  if (verbose) '--verbose',
+  for (final experiment in compilerOptions.experiments)
+    '--enable-experiment=$experiment',
+  if (compilerOptions.canaryFeatures) '--canary',
+  ?_deprecatedJsInteropArg(compilerOptions.deprecatedJsInterop),
+];
+
+/// The `--[no-]deprecated-js-interop` argument, or `null` to use the compiler
+/// default.
+String? _deprecatedJsInteropArg(bool? deprecatedJsInterop) =>
+    switch (deprecatedJsInterop) {
+      null => null,
+      true => '--deprecated-js-interop',
+      false => '--no-deprecated-js-interop',
+    };
 
 class _Compiler {
   static final _logger = Logger('ExpressionCompilerService');
@@ -67,21 +102,13 @@ class _Compiler {
     final workerUri = sdkConfiguration.compilerWorkerUri!;
     final sdkSummaryUri = sdkConfiguration.sdkSummaryUri!;
 
-    final args = [
-      '--experimental-expression-compiler',
-      '--dart-sdk-summary',
-      '$sdkSummaryUri',
-      '--asset-server-address',
-      address,
-      '--asset-server-port',
-      '$port',
-      '--module-format',
-      compilerOptions.moduleFormat.name,
-      if (verbose) '--verbose',
-      for (final experiment in compilerOptions.experiments)
-        '--enable-experiment=$experiment',
-      if (compilerOptions.canaryFeatures) '--canary',
-    ];
+    final args = expressionCompilerWorkerArgs(
+      sdkSummaryUri: sdkSummaryUri,
+      address: address,
+      port: port,
+      compilerOptions: compilerOptions,
+      verbose: verbose,
+    );
 
     _logger.info('Starting...');
     _logger.finest('$workerUri ${args.join(' ')}');

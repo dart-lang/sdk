@@ -9,6 +9,10 @@ library;
 // extension type foo(dynamic whatnot) {
 //                   ^
 //
+// pkg/front_end/testcases/regress/invalid_this_reference_12.dart:6:18: Error: Not a constant expression.
+//   foo([int bar = foo.baz]) {}
+//                  ^^^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -21,7 +25,9 @@ extension type foo(dynamic whatnot) {
   constructor • = self::foo|constructor#;
   constructor tearoff • = self::foo|constructor#_#new#tearOff;
 }
-static extension-member method _extension#0|foo(lowered final dynamic #this, [has-declared-initializer core::int bar]) → dynamic
+static extension-member method _extension#0|foo(lowered final dynamic #this, [core::int bar = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_12.dart:6:18: Error: Not a constant expression.
+  foo([int bar = foo.baz]) {}
+                 ^^^"{<invalid>}.baz]) → dynamic
   ;
 static extension-member method _extension#0|get#foo(lowered final dynamic #this) → ([core::int]) → dynamic
   return ([core::int bar]) → dynamic => self::_extension#0|foo(#this, bar);

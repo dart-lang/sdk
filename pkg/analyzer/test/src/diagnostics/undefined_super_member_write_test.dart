@@ -40,7 +40,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -158,7 +157,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -217,7 +215,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -272,7 +269,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -445,7 +441,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -504,7 +499,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -557,7 +551,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -784,7 +777,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -842,7 +834,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -898,7 +889,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -1202,7 +1192,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -1261,7 +1250,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::foo
@@ -1811,8 +1799,6 @@ class B extends A {
     super.foo += 1;
 //        ^^^
 // [diag.undefinedSuperMemberWriteWrongKind] The method 'foo' in a superclass of 'B' can't be assigned to.
-//            ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
   }
 }
 ''');
@@ -1930,10 +1916,6 @@ class B extends A {
     super.foo ??= 1;
 //        ^^^
 // [diag.undefinedSuperMemberWriteWrongKind] The method 'foo' in a superclass of 'B' can't be assigned to.
-//                ^^
-// [diag.deadCode] Dead code.
-//                ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
   }
 }
 ''');
@@ -1956,7 +1938,7 @@ IfNullAssignment
     literal: 1
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: SuperExpression
@@ -1978,7 +1960,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::A::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 

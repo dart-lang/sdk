@@ -9,18 +9,23 @@ import 'package:analysis_server/src/plugin/dsatur.dart';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin2/generator.dart';
+import 'package:analysis_server/src/utilities/file_paths.dart' as file_paths;
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/hash/blake3.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
+import 'package:convert/convert.dart';
 
 /// An object that watches the results produced by analysis drivers to identify
 /// references to previously unseen packages and, if those packages have plugins
 /// associated with them, causes the plugin to be associated with the driver's
 /// context root (which in turn might cause the plugin to be started).
 class PluginWatcher implements DriverWatcher {
+  static final ScalarBlake3 _hasher = ScalarBlake3();
+
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -179,11 +184,11 @@ class PluginWatcher implements DriverWatcher {
             : groupDependencyOverrides,
       );
 
-      // TODO(srawlins): Better to name the folder based on a hash of the...
-      // maybe the plugin names. Maybe the configutations.
-      var folderName = groups.length == 1
-          ? contextRoot.root.path
-          : '${contextRoot.root.path}_group_$i';
+      var newPubspecContent = packageGenerator.generatePubspec();
+      var pubspecHash = hex.encode(
+        _hasher.hash(utf8.encode(newPubspecContent)),
+      );
+      var folderName = '${contextRoot.root.path}_$pubspecHash';
       var sharedPluginFolder = manager.pluginStateFolder(folderName);
 
       manager.instrumentationService.logInfo(
@@ -196,7 +201,6 @@ class PluginWatcher implements DriverWatcher {
       );
       sharedPluginFolder.create();
       var pubspecFile = sharedPluginFolder.getFile(file_paths.pubspecYaml);
-      var newPubspecContent = packageGenerator.generatePubspec();
       // Only write the pubspec if it is different, to support caching.
       if (!pubspecFile.exists ||
           newPubspecContent != pubspecFile.readAsStringSync()) {
@@ -204,7 +208,7 @@ class PluginWatcher implements DriverWatcher {
       }
 
       var binFolder = sharedPluginFolder.getFolder('bin')..create();
-      var entrypointFile = binFolder.getFile('plugin.dart');
+      var entrypointFile = binFolder.getFile(file_paths.pluginEntrypointDart);
       var newEntrypointContent = packageGenerator.generateEntrypoint();
       // Only write the entrypoint if it is different, to support caching.
       if (!entrypointFile.exists ||

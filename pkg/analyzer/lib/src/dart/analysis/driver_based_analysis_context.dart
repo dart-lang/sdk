@@ -25,7 +25,7 @@ class DriverBasedAnalysisContext implements AnalysisContext {
   /// Initialize a newly created context that uses the given [resourceProvider]
   /// to access the file system and that is based on the given analysis
   /// [driver].
-  DriverBasedAnalysisContext(this.resourceProvider, this.contextRoot);
+  new(this.resourceProvider, this.contextRoot);
 
   /// Get all the analysis options objects associated with this context.
   List<AnalysisOptionsImpl> get allAnalysisOptions => [

@@ -11,17 +11,17 @@ class Example {
   Example() {
     nextVar = 1;
     // [error column 5, length 7]
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] Setter not found: 'nextVar'.
     this.nextVar = 1;
     //   ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
     // [cfe] The setter 'nextVar' isn't defined for the type 'Example'.
   }
   static test() {
     nextVar = 0;
     // [error column 5, length 7]
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] Setter not found: 'nextVar'.
     this.nextVar = 0;
     // [error column 5, length 4]

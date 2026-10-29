@@ -1346,7 +1346,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // RDI: allocation size.
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
-    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1398,20 +1397,20 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ LoadObject(R12, NullObject());
     __ leaq(RDI, FieldAddress(AllocateArrayABI::kResultReg,
                               target::Array::header_size()));
-    Label loop;
+    Label loop, done;
+    __ cmpq(RDI, RCX);
+    __ j(UNSIGNED_GREATER_EQUAL, &done);
     __ Bind(&loop);
-    for (intptr_t offset = 0; offset < target::kObjectAlignment;
+    for (intptr_t offset = 0; offset < target::kCompressedWordSize;
          offset += target::kCompressedWordSize) {
       // No generational barrier needed, since we are storing null.
       __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
                                             Address(RDI, offset), R12);
     }
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ addq(RDI, Immediate(target::kObjectAlignment));
+    __ addq(RDI, Immediate(target::kCompressedWordSize));
     __ cmpq(RDI, RCX);
     __ j(UNSIGNED_LESS, &loop);
-    __ WriteAllocationCanary(RCX);
+    __ Bind(&done);
 
     InvokeAllocationProbePoint(assembler);
     __ ret();
@@ -1824,7 +1823,6 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R10: number of context variables.
   __ cmpq(R13, Address(THR, target::Thread::end_offset()));
   __ j(ABOVE_EQUAL, slow_case);
-  __ CheckAllocationCanary(RAX);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -2219,7 +2217,6 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       // Check if the allocation fits into the remaining space.
       __ cmpq(kNewTopReg, Address(THR, target::Thread::end_offset()));
       __ j(ABOVE_EQUAL, &slow_case);
-      __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
 
       __ movq(Address(THR, target::Thread::top_offset()), kNewTopReg);
     }  // kInstanceSizeReg = RSI
@@ -2241,22 +2238,21 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ LoadObject(kNullReg, NullObject());
 
       // Loop until the whole object is initialized.
-      Label loop;
+      Label loop, done;
+      __ cmpq(kNextFieldReg, kNewTopReg);
+      __ j(UNSIGNED_GREATER_EQUAL, &done);
       __ Bind(&loop);
-      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+      for (intptr_t offset = 0; offset < target::kWordSize;
            offset += target::kCompressedWordSize) {
         __ StoreCompressedIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
                                               Address(kNextFieldReg, offset),
                                               kNullReg);
       }
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-      __ addq(kNextFieldReg, Immediate(target::kObjectAlignment));
+      __ addq(kNextFieldReg, Immediate(target::kWordSize));
       __ cmpq(kNextFieldReg, kNewTopReg);
       __ j(UNSIGNED_LESS, &loop);
+      __ Bind(&done);
     }  // kNextFieldReg = RDI, kNullReg = R10
-
-    __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
 
     if (is_cls_parameterized) {
       Label not_parameterized_case;
@@ -3831,7 +3827,6 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* RDI: allocation size. */
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &call_runtime);
-    __ CheckAllocationCanary(RAX);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3876,17 +3871,21 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ leaq(RDI, FieldAddress(RAX, target::TypedData::HeaderSize()));
     __ StoreInternalPointer(
         RAX, FieldAddress(RAX, target::PointerBase::data_offset()), RDI);
-    Label loop;
-    __ Bind(&loop);
+
+    ASSERT(Utils::IsAligned(target::TypedData::HeaderSize() + target::kWordSize,
+                            target::kObjectAlignment));
+    __ StoreZero(Address(RDI, 0));
+    __ addq(RDI, Immediate(target::kWordSize));
+    Label loop, cmp;
+    __ jmp(&cmp, Assembler::kNearJump);
     ASSERT(target::kObjectAlignment == kFpuRegisterSize);
+    __ Bind(&loop);
     __ movups(Address(RDI, 0), XMM0);
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
     __ addq(RDI, Immediate(target::kObjectAlignment));
+    __ Bind(&cmp);
     __ cmpq(RDI, RCX);
     __ j(UNSIGNED_LESS, &loop, Assembler::kNearJump);
 
-    __ WriteAllocationCanary(RCX);  // Fix overshoot.
     InvokeAllocationProbePoint(assembler);
     __ ret();
 

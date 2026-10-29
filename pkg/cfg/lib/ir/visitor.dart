@@ -70,6 +70,7 @@ abstract interface class InstructionVisitor<R> {
   R visitBoxDouble(BoxDouble instr);
   R visitUnboxInt(UnboxInt instr);
   R visitUnboxDouble(UnboxDouble instr);
+  R visitReachabilityFence(ReachabilityFence instr);
   R visitParallelMove(ParallelMove instr);
 }
 
@@ -166,6 +167,8 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitBoxDouble(BoxDouble instr) => defaultBackendInstruction(instr);
   R visitUnboxInt(UnboxInt instr) => defaultBackendInstruction(instr);
   R visitUnboxDouble(UnboxDouble instr) => defaultBackendInstruction(instr);
+  R visitReachabilityFence(ReachabilityFence instr) =>
+      defaultBackendInstruction(instr);
   R visitParallelMove(ParallelMove instr) => defaultBackendInstruction(instr);
 }
 

@@ -40,13 +40,18 @@ class FoldingHandler
     }
 
     var lineFoldingOnly = clientCapabilities.lineFoldingOnly;
-    var path = pathOfDoc(params.textDocument);
 
-    return path.mapResult((path) async {
+    return withPath(textDocument: params.textDocument, token, (
+      path,
+      _,
+      checkAbort,
+    ) async {
       var partialResults = <List<FoldingRegion>>[];
       LineInfo? lineInfo;
 
       var unit = await server.getParsedUnit(path);
+      if (checkAbort() case var reason?) return reason;
+
       if (unit != null) {
         lineInfo = unit.lineInfo;
 

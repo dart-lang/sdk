@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=3.14
+
 import 'package:expect/static_type_helper.dart';
 
-// This test verifies that neither an `== null` nor an `is` test can promote the
-// type of `this`.  (In principle, we could soundly do so, but we have decided
-// not to do so at this time).
+// This test verifies that prior to enabling the language feature
+// `this-promotion`, neither an `== null` nor an `is` test could promote the
+// type of `this`.
 
 class C {
   void equality() {

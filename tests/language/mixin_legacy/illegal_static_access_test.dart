@@ -22,10 +22,10 @@ main() {
 
   Expect.throwsNoSuchMethodError(() => C.foo());
   //                                     ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: 'C.foo'.
   Expect.throwsNoSuchMethodError(() => C.bar());
   //                                     ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: 'C.bar'.
 }

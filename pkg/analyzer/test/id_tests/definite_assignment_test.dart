@@ -35,7 +35,7 @@ main(List<String> args) {
 }
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {
-  const _DefiniteAssignmentDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator =>
@@ -72,11 +72,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
 class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _DefiniteAssignmentDataExtractor(
-    super.uri,
-    super.actualMap,
-    this._flowResult,
-  );
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
@@ -106,7 +102,7 @@ class _DefiniteAssignmentDataExtractor extends AstDataExtractor<String> {
 }
 
 class _DefiniteAssignmentDataInterpreter implements DataInterpreter<String> {
-  const _DefiniteAssignmentDataInterpreter();
+  const new();
 
   @override
   String getText(String actualData, [String? indentation]) => actualData;

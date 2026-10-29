@@ -40,7 +40,7 @@ class C {
 }
 
 @reflectiveTest
-class RemoveTypeNameTest extends FixProcessorLintTest {
+class RemoveTypeNameTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeTypeName;
 

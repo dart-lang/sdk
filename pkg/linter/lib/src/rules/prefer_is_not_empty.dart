@@ -64,7 +64,11 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
     // Element should also support "isNotEmpty".
     var propertyTarget = propertyElement.enclosingElement;
     if (propertyTarget is! InterfaceElement ||
-        propertyTarget.getGetter('isNotEmpty') == null) {
+        propertyTarget.lookUpGetter(
+              name: 'isNotEmpty',
+              library: propertyTarget.library,
+            ) ==
+            null) {
       return;
     }
 

@@ -219,7 +219,7 @@ var a = [1, '2', 3];
     var result = await resolveTestCodeWithDiagnostics('''
 var a = [x];
 //       ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 ''');
     assertType(result.findNode.listLiteral('[x]'), 'List<InvalidType>');
   }
@@ -228,7 +228,7 @@ var a = [x];
     var result = await resolveTestCodeWithDiagnostics('''
 var a = [0, x, 2];
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 ''');
     assertType(result.findNode.listLiteral('[0, x'), 'List<InvalidType>');
   }

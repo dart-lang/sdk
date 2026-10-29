@@ -327,7 +327,7 @@ import 'dart:foo';
 void f(A a) {
   (a).foo += 0;
 //    ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'A'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type 'A', but no setter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -350,7 +350,7 @@ import 'dart:foo';
 void f(A a) {
   (a).foo = 0;
 //    ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'A'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type 'A', but no setter.
 }
 ''');
   }
@@ -372,7 +372,7 @@ import 'dart:foo';
 void f(A a) {
   (a).foo ??= 0;
 //    ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'A'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type 'A', but no setter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -985,7 +985,7 @@ import 'dart:foo';
 void f(A a) {
   (a).foo += 0;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -1030,7 +1030,7 @@ import 'dart:foo';
 void f(A a) {
   (a).foo ??= 0;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -1509,7 +1509,7 @@ import 'dart:foo';
 void f() {
   foo += 0;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -1530,7 +1530,7 @@ import 'dart:foo';
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
   }
@@ -1550,7 +1550,7 @@ import 'dart:foo';
 void f() {
   foo ??= 0;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -1829,7 +1829,7 @@ import 'dart:foo';
 void f() {
   foo += 0;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -1870,7 +1870,7 @@ import 'dart:foo';
 void f() {
   foo ??= 0;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');

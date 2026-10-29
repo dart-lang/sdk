@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// This generator reads the analyzer's own AST through the V1 API.
+// ignore_for_file: analyzer_v1_ast_use, unnecessary_ignore
+
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -105,7 +108,7 @@ class _ElementGenerator {
   final Set<String> fragmentStorageFlags = {};
   final List<_Replacement> replacements = [];
 
-  _ElementGenerator(this.unitResult);
+  new(this.unitResult);
 
   Future<String> generate() async {
     _replaceGeneratedFlags();
@@ -125,9 +128,7 @@ class _ElementGenerator {
   }
 
   void _replaceGeneratedFlags() {
-    var declarations = unitResult
-        .unit
-        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+    var declarations = unitResult.unit.declarations;
     for (var declaration in declarations) {
       if (declaration is! ClassDeclarationImpl) {
         continue;
@@ -282,9 +283,7 @@ class _ElementGenerator {
   }
 
   void _replaceStorageEnums() {
-    var declarations = unitResult
-        .unit
-        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+    var declarations = unitResult.unit.declarations;
     for (var declaration in declarations) {
       if (declaration is EnumDeclarationImpl) {
         var name = declaration.declaredFragment!.element.name!;
@@ -317,10 +316,7 @@ class _ExistingGeneratedGetter {
   final String? documentationComment;
   final List<String> annotations;
 
-  _ExistingGeneratedGetter({
-    required this.documentationComment,
-    required this.annotations,
-  });
+  new({required this.documentationComment, required this.annotations});
 }
 
 class _GenerateElementFlag {
@@ -328,7 +324,7 @@ class _GenerateElementFlag {
   final bool fragment;
   final _ElementFlagSource elementSource;
 
-  _GenerateElementFlag({
+  new({
     required this.name,
     required this.fragment,
     required this.elementSource,
@@ -339,7 +335,7 @@ class _GenerateElementFlags {
   final ClassElement element;
   final List<_GenerateElementFlag> flags;
 
-  _GenerateElementFlags(this.element, this.flags);
+  new(this.element, this.flags);
 }
 
 class _Replacement {
@@ -347,7 +343,7 @@ class _Replacement {
   final int end;
   final String text;
 
-  _Replacement({required this.offset, required this.end, required this.text});
+  new({required this.offset, required this.end, required this.text});
 }
 
 extension on StringBuffer {

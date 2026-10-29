@@ -70,7 +70,7 @@ f2() {
 }
 
 @reflectiveTest
-class ControlBodyOnNewLineLintTest extends FixProcessorLintTest {
+class ControlBodyOnNewLineLintTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addCurlyBraces;
 

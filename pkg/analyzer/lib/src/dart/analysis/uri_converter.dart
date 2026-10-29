@@ -14,7 +14,7 @@ class DriverBasedUriConverter implements UriConverter {
 
   /// Initialize a newly created URI converter to use the given [driver] to =
   /// perform the conversions.
-  DriverBasedUriConverter(this.driver);
+  new(this.driver);
 
   @override
   Uri? pathToUri(String path, {String? containingPath}) {

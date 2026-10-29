@@ -1324,9 +1324,8 @@ mixin LspAnalysisServerTestMixin
     FutureOr<Map<String, Object?>> globalConfig, {
     FutureOr<Map<String, Map<String, Object?>>>? folderConfig,
   }) {
-    var self = this;
-    if (self is AbstractLspAnalysisServerTest) {
-      self.setConfigurationSupport();
+    if (this is AbstractLspAnalysisServerTest) {
+      setConfigurationSupport();
     }
     return handleExpectedRequest<
       T,

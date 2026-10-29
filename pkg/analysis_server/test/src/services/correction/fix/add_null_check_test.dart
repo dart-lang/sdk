@@ -18,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
+class AddNullCheckReplaceWithNullAwareTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -132,7 +133,7 @@ void f(String? s) {
 }
 
 @reflectiveTest
-class AddNullCheckTest extends FixProcessorTest {
+class AddNullCheckTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 
@@ -310,6 +311,70 @@ class C {
 int f(C c) => c.func!();
 class C {
   int Function()? get func => null;
+}
+''');
+  }
+
+  Future<void> test_functionInstantiation() async {
+    await resolveTestCode('''
+void f(T Function<T>(T)? g) {
+  g<int>;
+}
+''');
+    await assertHasFix('''
+void f(T Function<T>(T)? g) {
+  g!<int>;
+}
+''');
+  }
+
+  Future<void> test_functionInstantiation_parenthesized() async {
+    await resolveTestCode('''
+void f(A? a) {
+  (a?.foo)<int>;
+}
+class A {
+  T foo<T>(T t) => t;
+}
+''');
+    await assertHasFix('''
+void f(A? a) {
+  (a?.foo)!<int>;
+}
+class A {
+  T foo<T>(T t) => t;
+}
+''');
+  }
+
+  Future<void> test_functionInstantiation_prefixedIdentifier() async {
+    await resolveTestCode('''
+void f(A a) {
+  a.foo<int>;
+}
+class A {
+  T Function<T>(T)? foo;
+}
+''');
+    await assertHasFix('''
+void f(A a) {
+  a.foo!<int>;
+}
+class A {
+  T Function<T>(T)? foo;
+}
+''');
+  }
+
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+void f(List<int> l, int? y) {
+  l[0] = y;
+}
+''');
+    await assertHasFix('''
+void f(List<int> l, int? y) {
+  l[0] = y!;
 }
 ''');
   }
@@ -674,7 +739,7 @@ Iterable<String> f(List<String>? args) sync* {
 }
 
 @reflectiveTest
-class CastNullableToNonNullableTest extends FixProcessorLintTest {
+class CastNullableToNonNullableTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 

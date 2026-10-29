@@ -76,7 +76,7 @@
 /// {@category Core}
 library dart.math;
 
-import "dart:_internal" show SystemHash;
+import "dart:_internal" show Since, SystemHash;
 
 part "point.dart";
 part "random.dart";
@@ -253,3 +253,26 @@ external double exp(num x);
 /// Returns negative infinity if [x] is equal to zero.
 /// Returns NaN if [x] is NaN or less than zero.
 external double log(num x);
+
+/// Returns the 32-bit signed wrapping product of [a] and [b].
+///
+/// Truncates [a] and [b] to 32-bit integers, multiplies them modulo 2^32,
+/// and returns the low 32 bits of the product as a signed integer in the
+/// range -2^31 to 2^31 - 1 (`(a * b).toSigned(32)` in 64-bit integer
+/// arithmetic).
+///
+/// Because signed and unsigned 32-bit wrapping multiplication produce the
+/// same low 32 bits, use `imul32(a, b).toUnsigned(32)` when an unsigned
+/// 32-bit result in `0` to `2^32 - 1` is needed.
+///
+/// ## Differences between JavaScript and 64-bit runtimes
+///
+/// On JavaScript runtimes, `a * b` is evaluated using 64-bit floating-point
+/// arithmetic ([double]). When the exact product of two 32-bit integers exceeds
+/// `2^53`, `(a * b).toSigned(32)` and `(a * b) & 0xFFFFFFFF` lose the low-order
+/// bits due to rounding in the floating-point multiply before truncation to 32
+/// bits. This function computes the exact low 32 bits without rounding, using
+/// [`Math.imul(a, b)`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul)
+/// when running on a JavaScript runtime.
+@Since("3.15")
+external int imul32(int a, int b);

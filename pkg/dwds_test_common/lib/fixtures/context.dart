@@ -139,7 +139,7 @@ abstract class TestContext {
   Future<void> modeTearDown();
 
   String get chromeDriverExecutable => _resolveChromeDriverExecutable();
-  String get chromeExecutable => _resolveChromeExecutable();
+  String? get chromeExecutable => _resolveChromeExecutable();
 
   Future<void> setUp({
     TestSettings testSettings = const TestSettings(),
@@ -305,7 +305,7 @@ abstract class TestContext {
                 '--disable-session-crashed-bubble',
                 '--no-sandbox',
               ],
-              'binary': chromeExecutable,
+              'binary': ?chromeExecutable,
             },
           });
         _webDriver = await _createDriverWithRetry(
@@ -683,10 +683,14 @@ final _chromeExecutableName = Platform.isWindows
     ? 'Application\\chrome.exe'
     : 'google-chrome';
 
-String _resolveExecutable({
+/// Returns the executable from the first set variable in [environmentKeys],
+/// or the one at [sdkRelativePath] if it exists in the Dart SDK checkout.
+///
+/// Returns null if neither is found, e.g. when this package is not used from
+/// a Dart SDK checkout.
+String? _resolveExecutable({
   required List<String> environmentKeys,
   required String sdkRelativePath,
-  required String fallbackName,
 }) {
   for (final env in environmentKeys) {
     if (Platform.environment.containsKey(env)) {
@@ -697,17 +701,20 @@ String _resolveExecutable({
   if (File(sdkPath).existsSync()) {
     return sdkPath;
   }
-  return fallbackName;
+  return null;
 }
 
-String _resolveChromeDriverExecutable() => _resolveExecutable(
-  environmentKeys: const ['CHROMEDRIVER_PATH'],
-  sdkRelativePath: 'third_party/webdriver/chrome/$_chromeDriverName',
-  fallbackName: _chromeDriverName,
-);
+/// Falls back to the ChromeDriver on the `PATH`.
+String _resolveChromeDriverExecutable() =>
+    _resolveExecutable(
+      environmentKeys: const ['CHROMEDRIVER_PATH'],
+      sdkRelativePath: 'third_party/webdriver/chrome/$_chromeDriverName',
+    ) ??
+    _chromeDriverName;
 
-String _resolveChromeExecutable() => _resolveExecutable(
+/// Returns null if no Chrome executable is found, so that ChromeDriver uses
+/// the Chrome installed on the system.
+String? _resolveChromeExecutable() => _resolveExecutable(
   environmentKeys: const ['CHROME_EXECUTABLE', 'CHROME_PATH'],
   sdkRelativePath: 'third_party/browsers/chrome/chrome/$_chromeExecutableName',
-  fallbackName: _chromeExecutableName,
 );

@@ -10,10 +10,10 @@ import 'key.dart';
 /// A path that describes location of a [SingleSpace] from the root of
 /// enclosing [Space].
 abstract class Path {
-  const Path();
+  const new();
 
   /// Create root path.
-  const factory Path.root() = _Root;
+  const factory root() = _Root;
 
   /// Returns a path that adds a step by the [key] to the current path.
   Path add(Key key) => new _Step(this, key);
@@ -26,7 +26,7 @@ abstract class Path {
 
 /// The root path object.
 class _Root extends Path {
-  const _Root();
+  const new();
 
   @override
   void _toList(List<Key> list) {}
@@ -52,7 +52,7 @@ class _Step extends Path {
   final Path parent;
   final Key key;
 
-  _Step(this.parent, this.key);
+  new(this.parent, this.key);
 
   @override
   List<Key> toList() {

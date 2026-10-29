@@ -44,7 +44,7 @@ class ABEngine {
 
   AnalysisContextCollectionImpl? _collection;
 
-  ABEngine({
+  new({
     required this.label,
     required this.overlay,
     required this.roots,
@@ -159,7 +159,7 @@ class SiteSelector {
   final List<String> roots;
   late AnalysisContextCollection _collection;
 
-  SiteSelector(this.overlay, this.roots) {
+  new(this.overlay, this.roots) {
     _collection = AnalysisContextCollection(
       includedPaths: roots,
       resourceProvider: overlay,

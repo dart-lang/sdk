@@ -583,5 +583,8 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitReachabilityFence(ReachabilityFence instr) {}
+
+  @override
   void visitParallelMove(ParallelMove instr) {}
 }

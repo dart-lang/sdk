@@ -147,8 +147,6 @@ f() {
   N n = .new();
 //^
 // [diag.ambiguousImport] The name 'N' is defined in the libraries 'package:test/lib1.dart' and 'package:test/lib2.dart'.
-//       ^^^
-// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'new' isn't defined for the context type 'InvalidType'.
   print(n);
 }''');
   }

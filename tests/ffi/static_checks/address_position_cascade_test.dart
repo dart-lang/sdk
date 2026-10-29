@@ -121,7 +121,7 @@ void testUndefinedLeaf() {
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   //                                                       ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<Int8>'.
 
   myNativeWith2Param(buffer.address.cast<Int8>().doesntExist, buffer.address);
@@ -129,7 +129,7 @@ void testUndefinedLeaf() {
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   //                                             ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<Int8>'.
 }
 
@@ -141,14 +141,14 @@ void testUndefinedNonLeaf() {
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   //                                    ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<NativeType>'.
   myNonLeafNative(buffer.address.doesntExist);
   //                     ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ADDRESS_POSITION
   // [cfe] The '.address' expression can only be used as argument to a leaf native external call.
   //                             ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'doesntExist' isn't defined for the type 'Pointer<Int8>'.
 }
 

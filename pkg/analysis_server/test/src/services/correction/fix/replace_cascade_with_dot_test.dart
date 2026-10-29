@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceCascadeWithDotTest extends FixProcessorLintTest {
+class ReplaceCascadeWithDotTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceCascadeWithDot;
 

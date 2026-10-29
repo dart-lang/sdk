@@ -9,28 +9,7 @@ import("//build/toolchain/rbe.gni")
 
 template("fuchsia_toolchain") {
   toolchain(target_name) {
-    if (use_rbe) {
-      compiler_args =
-          rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp" ]
-      if (target_cpu == "x64") {
-        target_triple = "x86_64-unknown-fuchsia"
-      } else if (target_cpu == "arm64") {
-        target_triple = "aarch64-unknown-fuchsia"
-      } else if (target_cpu == "riscv64") {
-        target_triple = "riscv64-unknown-fuchsia"
-      } else {
-        assert(false, "Unsupported target_cpu: $target_cpu")
-      }
-      compiler_args += [ "--inputs=build/rbe,buildtools/$rbe_os-$rbe_cpu/clang/bin/llvm,buildtools/$rbe_os-$rbe_cpu/clang/include/$target_triple/c++/v1/__config_site" ]
-
-      # TODO: Unfortunately I see no way to get build_arch reliably.
-      if (rbe_os != host_os) {
-        compiler_args += [ "--remote_wrapper=../../build/rbe/llvm.sh" ]
-      }
-      assembler_prefix = ""
-      compiler_prefix = string_join(" ", compiler_args) + " "
-      link_prefix = ""
-    } else if (use_ccache) {
+    if (use_ccache) {
       assembler_prefix = "ccache "
       compiler_prefix = "ccache "
       link_prefix = "ccache "
@@ -93,7 +72,6 @@ template("fuchsia_toolchain") {
     }
 
     tool("asm") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       depfile = "{{output}}.d"
       command = "$asm -MD -MF $depfile $target_triple_flags $sysroot_flags $lto_flags {{defines}} {{include_dirs}} {{asmflags}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
       depsformat = "gcc"
@@ -103,7 +81,6 @@ template("fuchsia_toolchain") {
     }
 
     tool("alink") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       rspfile = "{{output}}.rsp"
       command = "rm -f {{output}} && $ar rcs {{output}} @$rspfile"
       description = "AR {{output}}"
@@ -115,7 +92,6 @@ template("fuchsia_toolchain") {
     }
 
     tool("solink") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       soname = "{{target_output_name}}{{output_extension}}"  # e.g. "libfoo.so".
       sofile = "{{root_out_dir}}/$soname"  # Possibly including toolchain dir.
       unstripped_sofile =
@@ -163,7 +139,6 @@ template("fuchsia_toolchain") {
     }
 
     tool("link") {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
       exename = "{{target_output_name}}{{output_extension}}"
       outfile = "{{root_out_dir}}/$exename"
       rspfile = "$outfile.rsp"

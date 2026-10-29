@@ -4,13 +4,21 @@ import "dart:core" as core;
 
 static method method1(core::int a, core::String b) → (core::int, core::String)
   ;
-static method method2([has-declared-initializer(core::int, core::String) record]) → core::int
+static method method2([(core::int, core::String) record = const (0, "")]) → core::int
   ;
-static method method3([has-declared-initializer(core::int, core::String) record]) → core::String
+static method method3([(core::int, core::String) record = const (0, "")]) → core::String
   ;
 static method method4(core::int a, core::String b) → ({required a: core::int, required b: core::String})
   ;
-static method method5([has-declared-initializer({required a: core::int, required b: core::String}) record]) → core::int
+static method method5([({required a: core::int, required b: core::String}) record = const ({a: 0, b: ""})]) → core::int
   ;
-static method method6([has-declared-initializer({required a: core::int, required b: core::String}) record]) → core::String
+static method method6([({required a: core::int, required b: core::String}) record = const ({a: 0, b: ""})]) → core::String
   ;
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///records.dart:6:43 -> RecordConstant(const (0, ""))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///records.dart:7:46 -> RecordConstant(const (0, ""))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///records.dart:9:49 -> RecordConstant(const ({a: 0, b: ""}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///records.dart:10:52 -> RecordConstant(const ({a: 0, b: ""}))
+Extra constant evaluation: evaluated: 4, effectively constant: 4

@@ -90,27 +90,7 @@ int nestedLoopsWithBreakContinue(int maxI, int maxJ) {
 
 @pragma('wasm:never-inline')
 @pragma('wasm:cfg')
-int intOps(int a, int b) {
-  int r = 0;
-  r += a + b;
-  r += a - b;
-  r += a * b;
-  r += a & b;
-  r += a | b;
-  r += a ^ b;
-  r += a << 2;
-  r += a >> 1;
-  r += a >>> 1;
-  r += -a;
-  r += ~b;
-  return r;
-}
-
-@pragma('wasm:never-inline')
-@pragma('wasm:cfg')
-int greaterOrEqual(int a, int b) {
-  return a >= b ? 1 : 0;
-}
+bool negateBool(bool b) => !b;
 
 void main() {
   final int0 = int.parse('0');
@@ -153,13 +133,7 @@ void main() {
   // Nested loops with break & continue
   Expect.equals(144, nestedLoopsWithBreakContinue(int5, int4));
 
-  // Int operations
-  Expect.equals(108, intOps(int10, int3));
-
-  // Greater or equal
-  Expect.equals(1, greaterOrEqual(int5, int3));
-  Expect.equals(1, greaterOrEqual(int5, int5));
-  Expect.equals(0, greaterOrEqual(int3, int5));
-  Expect.equals(1, greaterOrEqual(int0, negFive));
-  Expect.equals(0, greaterOrEqual(negFive, int0));
+  // UnaryBoolOp (`!`)
+  Expect.isFalse(negateBool(int5 > int0));
+  Expect.isTrue(negateBool(int0 > int5));
 }

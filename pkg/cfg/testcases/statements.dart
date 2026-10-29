@@ -87,6 +87,24 @@ void switchStatement(int x) {
   }
 }
 
+enum Color { red, blue }
+
+int switchWithoutBreaks(int x, Color c) {
+  switch (x) {
+    case 1:
+      switch (c) {
+        case .red:
+          return 1;
+        case .blue:
+          return 2;
+      }
+    // CFE does not insert 'break' here.
+    case 2:
+      return 3;
+  }
+  return 4;
+}
+
 void tryBlocks() {
   var x = 1;
   try {

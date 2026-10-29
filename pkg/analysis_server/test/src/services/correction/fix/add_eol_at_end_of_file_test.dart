@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddEolAtEndOfFileTest extends FixProcessorLintTest {
+class AddEolAtEndOfFileTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addEolAtEndOfFile;
 

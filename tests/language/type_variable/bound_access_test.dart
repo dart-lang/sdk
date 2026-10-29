@@ -21,7 +21,7 @@ class NumClass<T extends num, S extends T> {
 
   num method2() => field1 + field2.length;
   //                               ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'length' isn't defined for the type 'num'.
 }
 

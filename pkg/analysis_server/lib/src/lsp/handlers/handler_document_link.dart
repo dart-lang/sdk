@@ -41,7 +41,7 @@ class DocumentLinkHandler
     var path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
       if (isDartDocument(params.textDocument)) {
-        return _getDartDocumentLinks(path);
+        return _getDartDocumentLinks(path, token);
       } else if (isPubspecYaml(pathContext, path)) {
         return _getPubspecDocumentLinks(path);
       } else if (isAnalysisOptionsYaml(pathContext, path)) {
@@ -89,10 +89,9 @@ class DocumentLinkHandler
   /// Get the [lsp.DocumentLink]s for a Dart file.
   Future<ErrorOr<List<lsp.DocumentLink>>> _getDartDocumentLinks(
     String filePath,
-  ) async {
-    var parsedUnit = await requireUnresolvedUnit(filePath);
-
-    return parsedUnit.mapResult((unit) async {
+    CancellationToken token,
+  ) {
+    return withParsedUnit(path: filePath, token, (unit, _, _) async {
       /// Helper to convert using LineInfo.
       lsp.DocumentLink convert(DocumentLink link) {
         return _convert(link, unit.lineInfo);

@@ -1,3 +1,35 @@
+--- Color.
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(#index)
+  v3 = Parameter(#name)
+  DirectCall _Enum.(v1, v2, v3)
+  Return(v8)
+
+--- Color._enumToString
+B0 = EntryBlock()
+  v2 = Constant("Color.")
+  v1 = Parameter(this)
+  v4 = InterfaceCall getter _Enum._name(v1)
+  v5 = StringInterpolation(v2, v4)
+  Return(v5)
+
+--- field-init Color.red
+B0 = EntryBlock()
+  v1 = Constant(InstanceConstant(const Color{_Enum.index: 0, _Enum._name: "red"}))
+  Return(v1)
+
+--- field-init Color.blue
+B0 = EntryBlock()
+  v1 = Constant(InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"}))
+  Return(v1)
+
+--- field-init Color.values
+B0 = EntryBlock()
+  v1 = Constant(ListConstant(const <Color>[const Color{_Enum.index: 0, _Enum._name: "red"}, const Color{_Enum.index: 1, _Enum._name: "blue"}]))
+  Return(v1)
+
 --- if1
 B0 = EntryBlock() dominates:(B6, B16, B5)
   v22 = Constant("oops")
@@ -250,6 +282,38 @@ B30 = JoinBlock(B27, B5) idom:B15
   Goto(B34)
 B34 = JoinBlock(B30, B3) idom:B0
   Return(v43)
+
+--- switchWithoutBreaks
+B0 = EntryBlock() dominates:(B9, B8)
+  v6 = Constant(1)
+  v12 = Constant(2)
+  v23 = Constant(InstanceConstant(const Color{_Enum.index: 0, _Enum._name: "red"}))
+  v29 = Constant(InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"}))
+  v38 = Constant(3)
+  v40 = Constant(4)
+  v1 = Parameter(x)
+  v2 = Parameter(c)
+  v7 = Comparison int ==(v1, v6)
+  Branch(v7, true: B8, false: B9)
+B8 = TargetBlock() idom:B0 dominates:(B26, B25)
+  v24 = InterfaceCall Object.==(v23, v2)
+  Branch(v24, true: B25, false: B26)
+B25 = TargetBlock() idom:B8
+  Return(v6)
+B26 = TargetBlock() idom:B8 dominates:(B32, B31)
+  v30 = InterfaceCall Object.==(v29, v2)
+  Branch(v30, true: B31, false: B32)
+B31 = TargetBlock() idom:B26
+  Return(v12)
+B32 = TargetBlock() idom:B26
+  Unreachable(message: "Exhaustive switch not matched")
+B9 = TargetBlock() idom:B0 dominates:(B15, B14)
+  v13 = Comparison int ==(v1, v12)
+  Branch(v13, true: B14, false: B15)
+B14 = TargetBlock() idom:B9
+  Return(v38)
+B15 = TargetBlock() idom:B9
+  Return(v40)
 
 --- tryBlocks
 B0 = EntryBlock() dominates:(B4, B24, B3)

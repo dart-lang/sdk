@@ -14,6 +14,6 @@ main() {
   // Ugly is hidden.
   print(ugly);
   //    ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'ugly'.
 }

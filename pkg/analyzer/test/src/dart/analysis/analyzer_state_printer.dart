@@ -27,7 +27,7 @@ class AnalyzerStatePrinter {
 
   final Set<LibraryCycle> _libraryCyclesWithWrittenDetails = Set.identity();
 
-  AnalyzerStatePrinter({
+  new({
     required this.byteStore,
     required this.unlinkedUnitStore,
     required this.idProvider,
@@ -820,5 +820,5 @@ class _LibraryCycleToPrint {
   final String pathListStr;
   final LibraryCycleTestData data;
 
-  _LibraryCycleToPrint(this.pathListStr, this.data);
+  new(this.pathListStr, this.data);
 }

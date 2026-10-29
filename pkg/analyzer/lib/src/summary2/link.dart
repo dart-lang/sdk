@@ -52,7 +52,7 @@ class DeclaringFormalParameterInfo {
   final FieldFragmentImpl fieldFragment;
   final FormalParameterFragmentImpl formalFragment;
 
-  DeclaringFormalParameterInfo({
+  new({
     required this.node,
     required this.fieldFragment,
     required this.formalFragment,
@@ -74,7 +74,7 @@ class Linker {
   Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
-  Linker({required this.elementFactory, required this.apiSignature});
+  new({required this.elementFactory, required this.apiSignature});
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -249,7 +249,6 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     _computeHasNonFinalField();
-    _setDefaultSupertypes();
 
     _buildClassSyntheticConstructors();
     _buildEnumSyntheticConstructors();
@@ -451,12 +450,6 @@ class Linker {
     TypesBuilder(this).build(nodesToBuildType);
   }
 
-  void _setDefaultSupertypes() {
-    for (var library in builders.values) {
-      library.setDefaultSupertypes();
-    }
-  }
-
   void _writeLibraries({required OperationPerformanceImpl performance}) {
     var bundleWriter = BundleWriter();
 
@@ -476,12 +469,12 @@ class Linker {
 class LinkResult {
   final Uint8List resolutionBytes;
 
-  LinkResult({required this.resolutionBytes});
+  new({required this.resolutionBytes});
 }
 
 class _AdditionalExport {
   final LibraryBuilder exportedLibrary;
   final ExportEntry entry;
 
-  _AdditionalExport(this.exportedLibrary, this.entry);
+  new(this.exportedLibrary, this.entry);
 }

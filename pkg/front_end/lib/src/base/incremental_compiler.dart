@@ -148,7 +148,6 @@ import 'incremental_compiler_cache_impl.dart' show IncrementalCompilerCacheImpl;
 import 'incremental_compiler_utils.dart' show MD5Ish;
 import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'library_graph.dart' show LibraryGraph;
-import 'loader.dart' show Loader;
 import 'lookup_result.dart' show LookupResult;
 import 'messages.dart'
     show DiagnosticMessageFromJson, Message, ProblemReporting;
@@ -331,353 +330,358 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (_resetTicker) {
       _ticker.reset();
     }
-    List<Uri>? entryPointsSavedForLaterOverwrite = entryPoints;
-    return context.runInContext<IncrementalCompilerResult>((
-      CompilerContext c,
-    ) async {
-      if (!context.options.haveBeenValidated) {
-        await context.options.validateOptions(errorOnMissingInput: false);
-      }
-
-      List<Uri> entryPoints =
-          entryPointsSavedForLaterOverwrite ?? context.options.inputs;
-      if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {
-        throw new StateError(
-          "Initialized for expression compilation: "
-          "cannot do another general compile.",
+    try {
+      return await context.runInContext<IncrementalCompilerResult>((
+        CompilerContext c,
+      ) async {
+        return await _computeDelta(
+          entryPoints,
+          c,
+          trackNeededDillLibraries,
+          fullComponent,
         );
-      }
-      _computeDeltaRunOnce = true;
-      IncrementalKernelTarget? lastGoodKernelTarget = _lastGoodKernelTarget;
-      _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.reset();
-
-      // Initial setup: Load platform, initialize from dill or component etc.
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_setupPackages);
-      UriTranslator uriTranslator = await _setupPackagesAndUriTranslator(c);
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_ensurePlatform);
-      IncrementalCompilerData data = await _ensurePlatformAndInitialize(
-        uriTranslator,
-        c,
-        entryPoints,
-      );
-
-      // Figure out what to keep and what to throw away.
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_invalidate);
-      Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
-      _invalidateNotKeptUserBuilders(invalidatedUris);
-      ReusageResult? reusedResult = _computeReusedLibraries(
-        lastGoodKernelTarget,
-        _userBuilders,
-        invalidatedUris,
-        uriTranslator,
-      );
-
-      // Experimental invalidation initialization (e.g. figure out if we can).
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_experimentalInvalidation);
-      ExperimentalInvalidation? experimentalInvalidation =
-          await _initializeExperimentalInvalidation(
-            reusedResult,
-            c,
-            uriTranslator,
-            context
-                .options
-                .target
-                .incrementalCompilerIncludeMixinApplicationInvalidatedLibraries,
-          );
-      recorderForTesting?.recordRebuildBodiesCount(
-        experimentalInvalidation?.missingSources.length ?? 0,
-      );
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_rewriteEntryPointsIfPart);
-      _rewriteEntryPointsIfPart(
-        entryPoints,
-        reusedResult,
-        experimentalInvalidation != null,
-      );
-
-      // Cleanup: After (potentially) removing builders we have stuff to cleanup
-      // to not leak, and we might need to re-create the dill target.
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_cleanup);
-      _cleanupRemovedBuilders(
-        lastGoodKernelTarget,
-        reusedResult,
-        uriTranslator,
-      );
-      _recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
-      ClassHierarchy? hierarchy = lastGoodKernelTarget?.loader.hierarchy;
-      _cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
-      List<DillLibraryBuilder> reusedLibraries = reusedResult.reusedLibraries;
-      reusedResult = null;
-
-      if (lastGoodKernelTarget != null) {
-        _ticker.logMs(
-          "Decided to reuse ${reusedLibraries.length}"
-          " of ${lastGoodKernelTarget.loader.loadedLibraryBuilders.length}"
-          " libraries",
-        );
-      }
-
-      // For modular compilation we can be asked to load components and track
-      // which libraries we actually use for the compilation. Set that up now.
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_loadEnsureLoadedComponents);
-      _loadEnsureLoadedComponents(reusedLibraries);
-      if (trackNeededDillLibraries) {
-        // Coverage-ignore-block(suite): Not run.
-        _resetTrackingOfUsedLibraries(hierarchy);
-      }
-
-      // For each computeDelta call we create a new kernel target which needs
-      // to be setup, and in the case of experimental invalidation some of the
-      // builders needs to be patched up.
-      IncrementalKernelTarget currentKernelTarget;
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
-      currentKernelTarget = _setupNewKernelTarget(
-        c,
-        uriTranslator,
-        hierarchy,
-        reusedLibraries,
-        experimentalInvalidation,
-        entryPoints,
-        _dillLoadedData!,
-      );
-      Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
-          _experimentalInvalidationCreateRebuildBodiesBuilders(
-            currentKernelTarget,
-            experimentalInvalidation,
-            uriTranslator,
-          );
-      entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-      await currentKernelTarget.computeNeededPrecompilations();
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(
-        BenchmarkPhases.incremental_experimentalInvalidationPatchUpScopes,
-      );
-      _experimentalInvalidationPatchUpScopes(
-        experimentalInvalidation,
-        rebuildBodiesMap,
-      );
-      rebuildBodiesMap = null;
-
-      // Checkpoint: Build the actual outline.
-      // Note that the [Component] is not the "full" component.
-      // It is a component consisting of all newly compiled libraries and all
-      // libraries loaded from .dill files or directly from components.
-      // Technically, it's the combination of
-      // `currentKernelTarget.loader.libraries` and
-      // `_dillLoadedData.loader.libraries`.
-      BuildResult buildResult = await currentKernelTarget.buildOutlines();
-      Component? componentWithDill = buildResult.component;
-
-      if (!outlineOnly) {
-        // Checkpoint: Build the actual bodies.
-        buildResult = await currentKernelTarget.buildComponent(
-          verify: c.options.verify,
-        );
-        componentWithDill = buildResult.component;
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (componentWithDill != null) {
-        context.options.target.performOutlineTransformations(
-          componentWithDill,
-          libraries: currentKernelTarget.loader.libraries,
-          changedStructureNotifier:
-              currentKernelTarget.changedStructureNotifier,
-        );
-      }
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_hierarchy);
-      hierarchy ??= currentKernelTarget.loader.hierarchy;
-      if (currentKernelTarget.classHierarchyChanges != null) {
-        // Coverage-ignore-block(suite): Not run.
-        hierarchy.applyTreeChanges(
-          [],
-          [],
-          currentKernelTarget.classHierarchyChanges!,
-        );
-      }
-      if (currentKernelTarget.classMemberChanges != null) {
-        // Coverage-ignore-block(suite): Not run.
-        hierarchy.applyMemberChanges(
-          currentKernelTarget.classMemberChanges!,
-          findDescendants: true,
-        );
-      }
-      recorderForTesting?.recordNonFullComponent(componentWithDill!);
-
-      Set<Library>? neededDillLibraries;
-      if (trackNeededDillLibraries) {
-        // Coverage-ignore-block(suite): Not run.
-        _benchmarker?.enterPhase(
-          BenchmarkPhases.incremental_performDillUsageTracking,
-        );
-        // Perform actual dill usage tracking.
-        neededDillLibraries = _performDillUsageTracking(
-          currentKernelTarget,
-          hierarchy,
-        );
-      }
-
-      // If we actually got a result we can throw away the
-      // [lastGoodKernelTarget] and the list of invalidated uris.
-      // TODO(jensj,johnniwinther): Given the code below, [componentWithDill] is
-      // assumed always to be non-null.
-      if (componentWithDill != null) {
-        _benchmarker
-        // Coverage-ignore(suite): Not run.
-        ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
-        this._invalidatedUris.clear();
-        _hasToCheckPackageUris = false;
-        lastGoodKernelTarget?.loader.releaseAncillaryResources();
-        lastGoodKernelTarget = null;
-      }
-
-      // Compute which libraries to output and which (previous) errors/warnings
-      // we have to reissue. In the process do some cleanup too.
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
-      List<Library> compiledLibraries = new List<Library>.of(
-        currentKernelTarget.loader.libraries,
-      );
-      Map<Uri, Source> uriToSource = componentWithDill!.uriToSource;
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(
-        BenchmarkPhases.incremental_experimentalCompilationPostCompilePatchup,
-      );
-      _experimentalCompilationPostCompilePatchup(
-        experimentalInvalidation,
-        uriToSource,
-      );
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(
-        BenchmarkPhases
-            .incremental_calculateOutputLibrariesAndIssueLibraryProblems,
-      );
-
-      Set<LibraryBuilder> cleanedUpBuilders = {};
-      List<Library> outputLibraries =
-          _calculateOutputLibrariesAndIssueLibraryProblems(
-            currentKernelTarget,
-            data.component != null || fullComponent,
-            compiledLibraries,
-            entryPoints,
-            reusedLibraries,
-            hierarchy,
-            uriTranslator,
-            uriToSource,
-            c,
-            cleanedUpBuilders: cleanedUpBuilders,
-          );
-      if (experimentalInvalidation != null &&
-          experimentalInvalidation.invalidatedMixinApplicationLibraries !=
-              null) {
-        outputLibraries = {
-          ...outputLibraries,
-          ...experimentalInvalidation.invalidatedMixinApplicationLibraries!,
-        }.toList();
-      }
-      List<String> problemsAsJson = _componentProblems.reissueProblems(
-        context,
-        currentKernelTarget,
-        componentWithDill,
-      );
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(
-        BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill,
-      );
-      _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
-        currentKernelTarget,
-        experimentalInvalidation,
-        cleanedUpBuilders: cleanedUpBuilders,
-      );
-
-      _benchmarker
-      // Coverage-ignore(suite): Not run.
-      ?.enterPhase(BenchmarkPhases.incremental_end);
-      experimentalInvalidation = null;
-
-      // Output result.
-      Procedure? mainMethod = componentWithDill.mainMethod;
-      Component result =
-          context.options.target.configureComponent(
-              new Component(
-                libraries: outputLibraries,
-                uriToSource: uriToSource,
-              ),
-            )
-            ..setMainMethodAndMode(mainMethod?.reference, true)
-            ..problemsAsJson = problemsAsJson;
-
-      // Copy the metadata *just created*. This will likely not contain metadata
-      // about other libraries.
-      result.metadata.addAll(componentWithDill.metadata);
-
-      if (outlineOnly) {
-        // Coverage-ignore-block(suite): Not run.
-        context.options.target.performOutlineComponentOperations(result);
-      }
-
+      });
+    } finally {
       // We're now done. Allow any waiting compile to start.
       Completer<dynamic> currentlyCompilingLocal = _currentlyCompiling!;
       _currentlyCompiling = null;
       currentlyCompilingLocal.complete();
+    }
+  }
 
-      _lastGoodKernelTarget = currentKernelTarget;
+  Future<IncrementalCompilerResult> _computeDelta(
+    List<Uri>? entryPointsPassed,
+    CompilerContext c,
+    bool trackNeededDillLibraries,
+    bool fullComponent,
+  ) async {
+    if (!context.options.haveBeenValidated) {
+      await context.options.validateOptions(errorOnMissingInput: false);
+    }
 
-      _benchmarker
-          // Coverage-ignore(suite): Not run.
-          ?.stop();
-
-      if (_benchmarker != null) {
-        // Coverage-ignore-block(suite): Not run.
-        // Report.
-        JsonEncoder encoder = new JsonEncoder.withIndent("  ");
-        print(encoder.convert(_benchmarker));
-      }
-
-      _ticker.logMs("Compile finished");
-      _cacheCompiledLibraries(compiledLibraries, result, uriTranslator);
-
-      return new IncrementalCompilerResult(
-        result,
-        classHierarchy: currentKernelTarget.loader.hierarchy,
-        coreTypes: currentKernelTarget.loader.coreTypes,
-        neededDillLibraries: neededDillLibraries,
-        loadedComponents: data.loadedModules ?? const [],
+    List<Uri> entryPoints = entryPointsPassed ?? context.options.inputs;
+    if (_computeDeltaRunOnce && _initializedForExpressionCompilationOnly) {
+      throw new StateError(
+        "Initialized for expression compilation: "
+        "cannot do another general compile.",
       );
-    });
+    }
+    _computeDeltaRunOnce = true;
+    IncrementalKernelTarget? lastGoodKernelTarget = _lastGoodKernelTarget;
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.reset();
+
+    // Initial setup: Load platform, initialize from dill or component etc.
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_setupPackages);
+    UriTranslator uriTranslator = await _setupPackagesAndUriTranslator(c);
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_ensurePlatform);
+    IncrementalCompilerData data = await _ensurePlatformAndInitialize(
+      uriTranslator,
+      c,
+      entryPoints,
+    );
+
+    // Figure out what to keep and what to throw away.
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_invalidate);
+    Set<Uri?> invalidatedUris = this._invalidatedUris.toSet();
+    _invalidateNotKeptUserBuilders(invalidatedUris);
+    ReusageResult? reusedResult = _computeReusedLibraries(
+      lastGoodKernelTarget,
+      _userBuilders,
+      invalidatedUris,
+      uriTranslator,
+    );
+
+    // Experimental invalidation initialization (e.g. figure out if we can).
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_experimentalInvalidation);
+    ExperimentalInvalidation? experimentalInvalidation =
+        await _initializeExperimentalInvalidation(
+          reusedResult,
+          c,
+          uriTranslator,
+          context
+              .options
+              .target
+              .incrementalCompilerIncludeMixinApplicationInvalidatedLibraries,
+        );
+    recorderForTesting?.recordRebuildBodiesCount(
+      experimentalInvalidation?.missingSources.length ?? 0,
+    );
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_rewriteEntryPointsIfPart);
+    _rewriteEntryPointsIfPart(
+      entryPoints,
+      reusedResult,
+      experimentalInvalidation != null,
+    );
+
+    // Cleanup: After (potentially) removing builders we have stuff to cleanup
+    // to not leak, and we might need to re-create the dill target.
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_cleanup);
+    _cleanupRemovedBuilders(lastGoodKernelTarget, reusedResult, uriTranslator);
+    _recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
+    ClassHierarchy? hierarchy = lastGoodKernelTarget?.loader.hierarchy;
+    _cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
+    List<DillLibraryBuilder> reusedLibraries = reusedResult.reusedLibraries;
+    reusedResult = null;
+
+    if (lastGoodKernelTarget != null) {
+      _ticker.logMs(
+        "Decided to reuse ${reusedLibraries.length}"
+        " of ${lastGoodKernelTarget.loader.loadedLibraryBuilders.length}"
+        " libraries",
+      );
+    }
+
+    // For modular compilation we can be asked to load components and track
+    // which libraries we actually use for the compilation. Set that up now.
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_loadEnsureLoadedComponents);
+    _loadEnsureLoadedComponents(reusedLibraries);
+    if (trackNeededDillLibraries) {
+      // Coverage-ignore-block(suite): Not run.
+      _resetTrackingOfUsedLibraries(hierarchy);
+    }
+
+    // For each computeDelta call we create a new kernel target which needs
+    // to be setup, and in the case of experimental invalidation some of the
+    // builders needs to be patched up.
+    IncrementalKernelTarget currentKernelTarget;
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_setupInLoop);
+    currentKernelTarget = _setupNewKernelTarget(
+      c,
+      uriTranslator,
+      hierarchy,
+      reusedLibraries,
+      experimentalInvalidation,
+      entryPoints,
+      _dillLoadedData!,
+    );
+    Map<DillLibraryBuilder, CompilationUnit>? rebuildBodiesMap =
+        _experimentalInvalidationCreateRebuildBodiesBuilders(
+          currentKernelTarget,
+          experimentalInvalidation,
+          uriTranslator,
+        );
+    entryPoints = currentKernelTarget.setEntryPoints(entryPoints);
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
+    await currentKernelTarget.computeNeededPrecompilations();
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(
+      BenchmarkPhases.incremental_experimentalInvalidationPatchUpScopes,
+    );
+    _experimentalInvalidationPatchUpScopes(
+      experimentalInvalidation,
+      rebuildBodiesMap,
+    );
+    rebuildBodiesMap = null;
+
+    // Checkpoint: Build the actual outline.
+    // Note that the [Component] is not the "full" component.
+    // It is a component consisting of all newly compiled libraries and all
+    // libraries loaded from .dill files or directly from components.
+    // Technically, it's the combination of
+    // `currentKernelTarget.loader.libraries` and
+    // `_dillLoadedData.loader.libraries`.
+    BuildResult buildResult = await currentKernelTarget.buildOutlines();
+    Component? componentWithDill = buildResult.component;
+
+    if (!outlineOnly) {
+      // Checkpoint: Build the actual bodies.
+      buildResult = await currentKernelTarget.buildComponent(
+        verify: c.options.verify,
+      );
+      componentWithDill = buildResult.component;
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (componentWithDill != null) {
+      context.options.target.performOutlineTransformations(
+        componentWithDill,
+        libraries: currentKernelTarget.loader.libraries,
+        changedStructureNotifier: currentKernelTarget.changedStructureNotifier,
+      );
+    }
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_hierarchy);
+    hierarchy ??= currentKernelTarget.loader.hierarchy;
+    if (currentKernelTarget.classHierarchyChanges != null) {
+      // Coverage-ignore-block(suite): Not run.
+      hierarchy.applyTreeChanges(
+        [],
+        [],
+        currentKernelTarget.classHierarchyChanges!,
+      );
+    }
+    if (currentKernelTarget.classMemberChanges != null) {
+      // Coverage-ignore-block(suite): Not run.
+      hierarchy.applyMemberChanges(
+        currentKernelTarget.classMemberChanges!,
+        findDescendants: true,
+      );
+    }
+    recorderForTesting?.recordNonFullComponent(componentWithDill!);
+
+    Set<Library>? neededDillLibraries;
+    if (trackNeededDillLibraries) {
+      // Coverage-ignore-block(suite): Not run.
+      _benchmarker?.enterPhase(
+        BenchmarkPhases.incremental_performDillUsageTracking,
+      );
+      // Perform actual dill usage tracking.
+      neededDillLibraries = _performDillUsageTracking(
+        currentKernelTarget,
+        hierarchy,
+      );
+    }
+
+    // If we actually got a result we can throw away the
+    // [lastGoodKernelTarget] and the list of invalidated uris.
+    // TODO(jensj,johnniwinther): Given the code below, [componentWithDill] is
+    // assumed always to be non-null.
+    if (componentWithDill != null) {
+      _benchmarker
+      // Coverage-ignore(suite): Not run.
+      ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
+      this._invalidatedUris.clear();
+      _hasToCheckPackageUris = false;
+      lastGoodKernelTarget?.loader.releaseAncillaryResources();
+      lastGoodKernelTarget = null;
+    }
+
+    // Compute which libraries to output and which (previous) errors/warnings
+    // we have to reissue. In the process do some cleanup too.
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_releaseAncillaryResources);
+    List<Library> compiledLibraries = new List<Library>.of(
+      currentKernelTarget.loader.libraries,
+    );
+    Map<Uri, Source> uriToSource = componentWithDill!.uriToSource;
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(
+      BenchmarkPhases.incremental_experimentalCompilationPostCompilePatchup,
+    );
+    _experimentalCompilationPostCompilePatchup(
+      experimentalInvalidation,
+      uriToSource,
+    );
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(
+      BenchmarkPhases
+          .incremental_calculateOutputLibrariesAndIssueLibraryProblems,
+    );
+
+    Set<LibraryBuilder> cleanedUpBuilders = {};
+    List<Library> outputLibraries =
+        _calculateOutputLibrariesAndIssueLibraryProblems(
+          currentKernelTarget,
+          data.component != null || fullComponent,
+          compiledLibraries,
+          entryPoints,
+          reusedLibraries,
+          hierarchy,
+          uriTranslator,
+          uriToSource,
+          c,
+          cleanedUpBuilders: cleanedUpBuilders,
+        );
+    if (experimentalInvalidation != null &&
+        experimentalInvalidation.invalidatedMixinApplicationLibraries != null) {
+      outputLibraries = {
+        ...outputLibraries,
+        ...experimentalInvalidation.invalidatedMixinApplicationLibraries!,
+      }.toList();
+    }
+    List<String> problemsAsJson = _componentProblems.reissueProblems(
+      context,
+      currentKernelTarget,
+      componentWithDill,
+    );
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(
+      BenchmarkPhases.incremental_convertSourceLibraryBuildersToDill,
+    );
+    _previousSourceBuilders = _convertSourceLibraryBuildersToDill(
+      currentKernelTarget,
+      experimentalInvalidation,
+      cleanedUpBuilders: cleanedUpBuilders,
+    );
+
+    _benchmarker
+    // Coverage-ignore(suite): Not run.
+    ?.enterPhase(BenchmarkPhases.incremental_end);
+    experimentalInvalidation = null;
+
+    // Output result.
+    Procedure? mainMethod = componentWithDill.mainMethod;
+    Component result =
+        context.options.target.configureComponent(
+            new Component(libraries: outputLibraries, uriToSource: uriToSource),
+          )
+          ..setMainMethodAndMode(mainMethod?.reference, true)
+          ..problemsAsJson = problemsAsJson;
+
+    // Copy the metadata *just created*. This will likely not contain metadata
+    // about other libraries.
+    result.metadata.addAll(componentWithDill.metadata);
+
+    if (outlineOnly) {
+      // Coverage-ignore-block(suite): Not run.
+      context.options.target.performOutlineComponentOperations(result);
+    }
+
+    _lastGoodKernelTarget = currentKernelTarget;
+
+    _benchmarker
+        // Coverage-ignore(suite): Not run.
+        ?.stop();
+
+    if (_benchmarker != null) {
+      // Coverage-ignore-block(suite): Not run.
+      // Report.
+      JsonEncoder encoder = new JsonEncoder.withIndent("  ");
+      print(encoder.convert(_benchmarker));
+    }
+
+    _ticker.logMs("Compile finished");
+    _cacheCompiledLibraries(compiledLibraries, result, uriTranslator);
+
+    return new IncrementalCompilerResult(
+      result,
+      classHierarchy: currentKernelTarget.loader.hierarchy,
+      coreTypes: currentKernelTarget.loader.coreTypes,
+      neededDillLibraries: neededDillLibraries,
+      loadedComponents: data.loadedModules ?? const [],
+    );
   }
 
   void _cacheCompiledLibraries(
@@ -1327,6 +1331,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               for (DillLibraryBuilder invalidated
                   in reusedResult.directlyInvalidated) {
                 directlyInvalidatedImportUris.add(invalidated.fileUri);
+                for (LibraryPart part in invalidated.library.parts) {
+                  // Coverage-ignore-block(suite): Not run.
+                  directlyInvalidatedImportUris.add(part.fileUri);
+                }
               }
             }
             for (Uri relatedUri in relatedUris) {
@@ -2355,7 +2363,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     bool foundErrors = false;
     for (TypeParameter typeParam in typeDefinitions) {
       if (!isLegalIdentifier(typeParam.name!)) {
-        lastGoodKernelTarget.loader.addProblem(
+        lastGoodKernelTarget.loader.addComponentProblem(
           diag.incrementalCompilerIllegalTypeParameter.withArguments(
             typeParameterName: '$typeParam',
           ),
@@ -2376,7 +2384,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         continue;
       }
 
-      lastGoodKernelTarget.loader.addProblem(
+      lastGoodKernelTarget.loader.addComponentProblem(
         diag.incrementalCompilerIllegalParameter.withArguments(
           parameterName: name,
         ),
@@ -3225,7 +3233,7 @@ abstract class _InitializationStrategy {
 
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3245,7 +3253,7 @@ class _InitializationFromSdkSummary extends _InitializationStrategy {
   // Coverage-ignore(suite): Not run.
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3311,7 +3319,7 @@ class _InitializationFromComponent extends _InitializationStrategy {
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3373,7 +3381,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,
@@ -3439,7 +3447,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
               : diag.initializeFromDillNotSelfContainedNoDump.withArguments(
                   previousCompilationUri: initializeFromDillUri.toString(),
                 );
-          loaderForProblemReporting.addProblem(
+          loaderForProblemReporting.addLibraryProblem(
             message,
             TreeNode.noOffset,
             1,
@@ -3459,7 +3467,7 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
                   exception: "$e",
                   stackTrace: "$st",
                 );
-          loaderForProblemReporting.addProblem(
+          loaderForProblemReporting.addLibraryProblem(
             message,
             TreeNode.noOffset,
             1,
@@ -3610,7 +3618,7 @@ class _InitializationFromExperimentalCache
   @override
   Future<int> initialize(
     IncrementalCompiler incrementalCompiler,
-    Loader loaderForProblemReporting,
+    DillLoader loaderForProblemReporting,
     Ticker ticker,
     UriTranslator uriTranslator,
     Map<String, Package> currentPackagesMap,

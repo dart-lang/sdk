@@ -33,7 +33,7 @@ final String s2 = '';
 }
 
 @reflectiveTest
-class RemoveUnnecessaryLateTest extends FixProcessorLintTest {
+class RemoveUnnecessaryLateTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryLate;
 

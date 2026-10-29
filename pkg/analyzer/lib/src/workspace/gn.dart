@@ -33,7 +33,7 @@ class GnWorkspace extends Workspace {
   @override
   final Packages packages;
 
-  GnWorkspace._(this.provider, this.root, this.buildGnFile, this.packages);
+  new _(this.provider, this.root, this.buildGnFile, this.packages);
 
   // TODO(scheglov): Finish switching to [packages].
   Map<String, Folder> get packageMap {
@@ -217,7 +217,7 @@ class GnWorkspacePackage extends WorkspacePackageImpl {
   @override
   final GnWorkspace workspace;
 
-  GnWorkspacePackage(this.root, this.workspace);
+  new(this.root, this.workspace);
 
   @override
   bool contains(Source source) {

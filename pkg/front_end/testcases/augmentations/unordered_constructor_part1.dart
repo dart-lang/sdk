@@ -9,6 +9,9 @@ augment class Class1 {
   augment new();
 
   @annotation1
+  augment new withInitializers();
+
+  @annotation1
   augment new alias();
 
   @annotation1
@@ -23,6 +26,8 @@ augment class Class2 {
     print('Class2.new');
   }
 
+  augment new withInitializers() : field = 0;
+
   augment new alias() : this();
 
   augment factory fact() {
@@ -36,6 +41,9 @@ augment class Class2 {
 augment class Class3 {
   @annotation2
   augment new();
+
+  @annotation2
+  augment new withInitializers();
 
   @annotation2
   augment new alias();

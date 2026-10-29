@@ -95,7 +95,7 @@ void f() {
 }
 
 @reflectiveTest
-class ReplaceNewWithConstTest extends FixProcessorLintTest {
+class ReplaceNewWithConstTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 

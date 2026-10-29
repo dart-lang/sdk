@@ -652,8 +652,7 @@ extension on Element {
       //   - Static member functions
       (this is ConstructorElement ||
           this is TopLevelFunctionElement ||
-          (this is ExecutableElement &&
-              (this as ExecutableElement).isStatic)) &&
+          (this is ExecutableElement && isStatic)) &&
       !isPrivate &&
       metadata.hasWidgetPreview;
   bool get isPragma => (library?.isDartCore ?? false) && name == 'pragma';
@@ -695,38 +694,37 @@ extension on Annotation {
 extension on Declaration {
   String get nameForError {
     // TODO(srawlins): Move this to analyzer when other uses are found.
-    var self = this;
-    switch (self) {
+    switch (this) {
       case ClassDeclaration():
-        return self.namePart.typeName.lexeme;
+        return namePart.typeName.lexeme;
       case ConstructorDeclaration():
-        var name = self.name?.lexeme ?? 'new';
+        var name = this.name?.lexeme ?? 'new';
         var typeName =
-            self.typeName ??
-            self.declaredFragment?.element.enclosingElement.name ??
+            this.typeName ??
+            declaredFragment?.element.enclosingElement.name ??
             'unknown';
         return '$typeName.$name';
       case EnumConstantDeclaration():
-        return self.name.lexeme;
+        return name.lexeme;
       case EnumDeclaration():
-        return self.namePart.typeName.lexeme;
+        return namePart.typeName.lexeme;
       case ExtensionDeclaration():
-        var name = self.name;
+        var name = this.name;
         return name?.lexeme ?? 'the unnamed extension';
       case ExtensionTypeDeclaration():
-        return self.namePart.typeName.lexeme;
+        return namePart.typeName.lexeme;
       case FunctionDeclaration():
-        return self.name.lexeme;
+        return name.lexeme;
       case MethodDeclaration():
-        return self.name.lexeme;
+        return name.lexeme;
       case MixinDeclaration():
-        return self.name.lexeme;
+        return name.lexeme;
       case TypeAlias():
-        return self.name.lexeme;
+        return name.lexeme;
       case VariableDeclaration():
-        return self.name.lexeme;
+        return name.lexeme;
       default:
-        assert(false, 'Uncovered Declaration subtype: ${self.runtimeType}');
+        assert(false, 'Uncovered Declaration subtype: $runtimeType');
         return '';
     }
   }

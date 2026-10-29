@@ -23,7 +23,7 @@ main() {
 
   x = topLevel(3);
   //  ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Getter not found: 'topLevel'.
   Expect.equals(6, x);
 }

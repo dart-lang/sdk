@@ -41,7 +41,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
   /// ```
   bool mayCompleteNormally = true;
 
-  factory BodyInferenceContext({
+  factory({
     required TypeSystemImpl typeSystem,
     required FunctionBodyImpl node,
     required TypeImpl? imposedType,
@@ -60,7 +60,7 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
     return bodyContext;
   }
 
-  factory BodyInferenceContext.forAnonymousBlockBody({
+  factory forAnonymousBlockBody({
     required TypeSystemImpl typeSystem,
     required AnonymousBlockBodyImpl node,
     required TypeImpl? imposedType,
@@ -77,13 +77,13 @@ class BodyInferenceContext implements SharedBodyInferenceContext {
     return bodyContext;
   }
 
-  BodyInferenceContext._({
-    required TypeSystemImpl typeSystem,
+  new _({
+    required this._typeSystem,
     required this.isAsync,
     required this.isGenerator,
     required this.imposedType,
     required this.contextType,
-  }) : _typeSystem = typeSystem;
+  });
 
   bool get isSync => !isAsync;
 

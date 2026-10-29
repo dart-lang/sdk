@@ -31,7 +31,8 @@ void main() {
 }
 
 @reflectiveTest
-class DeprecatedImplementsFunctionTest extends FixProcessorTest {
+class DeprecatedImplementsFunctionTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -48,7 +49,7 @@ abstract class C {}
 }
 
 @reflectiveTest
-class ExtendsDisallowedClassTest extends FixProcessorTest {
+class ExtendsDisallowedClassTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -63,7 +64,7 @@ class C {}
 }
 
 @reflectiveTest
-class ExtendsNonClassTest extends FixProcessorTest {
+class ExtendsNonClassTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -78,7 +79,8 @@ class C {}
 }
 
 @reflectiveTest
-class ExtendsTypeAliasExpandsToTypeParameterTest extends FixProcessorTest {
+class ExtendsTypeAliasExpandsToTypeParameterTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -95,7 +97,8 @@ class C {}
 }
 
 @reflectiveTest
-class ImplementsDeprecatedImplementTest extends FixProcessorTest {
+class ImplementsDeprecatedImplementTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -116,7 +119,8 @@ class B {}
 }
 
 @reflectiveTest
-class ImplementsDeprecatedSubclassTest extends FixProcessorTest {
+class ImplementsDeprecatedSubclassTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -152,7 +156,8 @@ class B {}
 }
 
 @reflectiveTest
-class ImplementsDisallowedClassTest extends FixProcessorTest {
+class ImplementsDisallowedClassTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -176,7 +181,7 @@ abstract class C implements List<int> {}
 }
 
 @reflectiveTest
-class ImplementsRepeatedTest extends FixProcessorTest {
+class ImplementsRepeatedTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -195,7 +200,7 @@ class C implements A {}
 }
 
 @reflectiveTest
-class ImplementsSuperClassTest extends FixProcessorTest {
+class ImplementsSuperClassTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -214,7 +219,8 @@ class C extends A {}
 }
 
 @reflectiveTest
-class ImplementsTypeAliasExpandsToTypeParameterTest extends FixProcessorTest {
+class ImplementsTypeAliasExpandsToTypeParameterTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -231,7 +237,7 @@ class C {}
 }
 
 @reflectiveTest
-class MixinOfDisallowedClassTest extends FixProcessorTest {
+class MixinOfDisallowedClassTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -246,7 +252,7 @@ abstract class C {}
 }
 
 @reflectiveTest
-class MixinOfNonInterfaceTest extends FixProcessorTest {
+class MixinOfNonInterfaceTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -261,7 +267,8 @@ mixin M {}
 }
 
 @reflectiveTest
-class SubtypeOfFfiClassInExtendsTest extends FixProcessorTest {
+class SubtypeOfFfiClassInExtendsTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -278,7 +285,8 @@ final class C {}
 }
 
 @reflectiveTest
-class SubtypeOfFfiClassInImplementsTest extends FixProcessorTest {
+class SubtypeOfFfiClassInImplementsTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -295,7 +303,8 @@ final class C {}
 }
 
 @reflectiveTest
-class SubtypeOfStructClassInExtendsTest extends FixProcessorTest {
+class SubtypeOfStructClassInExtendsTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 
@@ -318,7 +327,8 @@ final class C {}
 }
 
 @reflectiveTest
-class SubtypeOfStructClassInWithTest extends FixProcessorTest {
+class SubtypeOfStructClassInWithTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNameFromDeclarationClause;
 

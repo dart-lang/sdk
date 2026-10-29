@@ -2325,6 +2325,22 @@ void Precompiler::DropFunctions() {
 
   // Only needed during compilation.
   IG->object_store()->set_closure_functions_table(Object::null_array());
+
+  if (IG->object_store()->ffi_callback_functions() != Array::null()) {
+    FfiCallbackFunctionSet set(Z, IG->object_store()->ffi_callback_functions());
+    FfiCallbackFunctionSet::Iterator it(&set);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      function ^= set.GetKey(entry);
+      if (functions_to_retain_.ContainsKey(function)) {
+        trim_function(function);
+      } else {
+        drop_function(function);
+      }
+    }
+    set.Release();
+    IG->object_store()->set_ffi_callback_functions(Object::null_array());
+  }
 }
 
 void Precompiler::DropFields() {

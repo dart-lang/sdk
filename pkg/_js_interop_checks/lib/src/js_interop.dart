@@ -254,26 +254,40 @@ List<String> stringAnnotationValues(Expression node) {
         '$node.',
       );
     } else if (argLength == 1) {
-      var value = node.arguments.positional[0];
-      if (value is StringLiteral) {
-        values.addAll(value.value.split(','));
-      } else if (value is StaticGet) {
-        // Sometimes the CFE will translate the following to a StaticGet of a
-        // const field:
-        //
-        // const String fieldName = 'field';
-        // @JS(fieldName)
-        //
-        // In this case we derive the name from the intializer of the referenced
-        // field.
-        var target = value.target;
-        if (target is Field && target.isConst) {
-          final value = target.initializer;
-          if (value is StringLiteral) {
-            values.addAll(value.value.split(','));
-          }
-        }
-      }
+      values = _getConstructorInvocationValues(node.arguments.positional[0]);
+    }
+  }
+  return values;
+}
+
+List<String> _getConstructorInvocationValues(Expression? value) {
+  List<String> values = [];
+  if (value is StringLiteral) {
+    values.addAll(value.value.split(','));
+  } else if (value is StringConcatenation) {
+    values.addAll(
+      value.expressions
+          .map((e) => _getConstructorInvocationValues(e).join(','))
+          .join()
+          .split(','),
+    );
+  } else if (value is ConstantExpression) {
+    final constant = value.constant;
+    if (constant is StringConstant) {
+      values.addAll(constant.value.split(','));
+    }
+  } else if (value is StaticGet) {
+    // Sometimes the CFE will translate the following to a `StaticGet` of a
+    // const field:
+    //
+    // const String fieldName = 'field';
+    // @JS(fieldName)
+    //
+    // In this case we derive the name from the intializer of the referenced
+    // field.
+    var target = value.target;
+    if (target is Field && target.isConst) {
+      return _getConstructorInvocationValues(target.initializer);
     }
   }
   return values;

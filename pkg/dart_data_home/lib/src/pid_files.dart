@@ -81,6 +81,39 @@ bool createPidFile(String directory, String content) {
   return _pidFile != null;
 }
 
+/// Updates the content of the pid file for the current process previously
+/// created via [createPidFile].
+///
+/// Unlike [createPidFile], which can only be called once per process to
+/// create and lock the pid file, [updatePidFile] overwrites the existing
+/// open file handle in place without closing or reopening the file
+/// descriptor (which on POSIX systems would release the process's advisory
+/// file lock and allow [listPidFiles] to purge the file as stale).
+///
+/// Returns `true` if the pid file was successfully updated, or `false` if
+/// no pid file exists for the current process or an error occurred.
+bool updatePidFile(String content) {
+  final file = _pidFile;
+  if (file == null || !File(file.path).existsSync()) {
+    return false;
+  }
+  try {
+    // `file` is kept open across the lifetime of the process, so its file
+    // position is at the end of the previous write. Seek back to 0 before
+    // writing so we overwrite the previous content rather than appending to
+    // it, and truncate to the new end position so shorter content does not
+    // leave trailing bytes from the previous write.
+    file
+      ..setPositionSync(0)
+      ..writeStringSync(content)
+      ..truncateSync(file.positionSync())
+      ..flushSync();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 /// Loads content of all pid files in the given [directory] excluding the pid
 /// file of the current process.
 ///

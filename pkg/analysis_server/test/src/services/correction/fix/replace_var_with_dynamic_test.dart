@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceVarWithDynamicTest extends FixProcessorTest {
+class ReplaceVarWithDynamicTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceVarWithDynamic;
 

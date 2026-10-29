@@ -325,7 +325,7 @@ class _ObjectSetMeasure {
   final int count;
   final int size;
 
-  _ObjectSetMeasure({required this.count, required this.size});
+  new({required this.count, required this.size});
 }
 
 extension on Analysis {

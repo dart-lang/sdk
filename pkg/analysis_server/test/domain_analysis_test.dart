@@ -1702,6 +1702,43 @@ AnalysisErrors
     await server.onAnalysisComplete;
 
     // a.dart is analyzed, but b.dart is in the excluded folder.
+    expect(server.isAnalyzed(convertPath(aPath)), isTrue);
+    expect(server.isAnalyzed(convertPath(excluded_path)), isFalse);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
+  }
+
+  Future<void> test_setRoots_includedFolder_excludedFolder_hasPackage() async {
+    var aPath = '$testPackageLibPath/a.dart';
+    var excludedPath = '$testPackageRootPath/excluded';
+    var bPath = '$excludedPath/inner/lib/b.dart';
+
+    newPackageConfigJsonFile('$excludedPath/inner', '');
+    _createFilesWithErrors([aPath, bPath]);
+
+    await setRoots(included: [workspaceRootPath], excluded: [excludedPath]);
+    await server.onAnalysisComplete;
+
+    // The package in the excluded folder does not get a context.
+    var contextRootPaths = server.contextManager.analysisContexts
+        .map((context) => context.contextRoot.root.path)
+        .toList();
+    expect(
+      contextRootPaths,
+      isNot(contains(convertPath('$excludedPath/inner'))),
+    );
+
+    expect(server.isAnalyzed(convertPath(aPath)), isTrue);
+    expect(server.isAnalyzed(convertPath(bPath)), isFalse);
     assertNotificationsText(r'''
 AnalysisErrors
   file: /home/test/pubspec.yaml

@@ -16,7 +16,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 class DocCommentVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
-  DocCommentVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   /// Verifies that [commentReference] references a single element.
   ///

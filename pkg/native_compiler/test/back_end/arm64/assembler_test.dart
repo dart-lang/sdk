@@ -1946,6 +1946,107 @@ void main() {
       });
     });
 
+    test('fldp', () {
+      asm.fldp(V0, V1, RegOffsetAddress(R2, -512));
+      asm.fldp(V0, V1, RegOffsetAddress(R2, 16), .s32);
+      asm.fldp(V0, V1, RegOffsetAddress(R2, 512), .simd128);
+      asm.fldp(V3, V1, RegOffsetAddress(SP, 256));
+      asm.fldp(V2, V0, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
+      asm.fldp(V0, V4, WritebackRegOffsetAddress(R1, -8, isPostIndexed: false));
+      expectDisassembly(
+        'fldpd v0, v1, [r2, #-512]\n'
+        'fldps v0, v1, [r2, #16]\n'
+        'fldpq v0, v1, [r2, #512]\n'
+        'fldpd v3, v1, [csp, #256]\n'
+        'fldpd v2, v0, [r1], #16 !\n'
+        'fldpd v0, v4, [r1, #-8]!\n',
+      );
+      expectThrows(() {
+        asm.fldp(V0, V0, RegOffsetAddress(SP, 16));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 1));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 512));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, -520));
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 256), .s32);
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, -1040), .simd128);
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, RegOffsetAddress(R2, 16), .s16);
+      });
+      expectThrows(() {
+        asm.fldp(V0, V1, WritebackRegOffsetAddress(ZR, 8, isPostIndexed: true));
+      });
+      expectThrows(() {
+        asm.fldp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, 512, isPostIndexed: true),
+        );
+      });
+      expectThrows(() {
+        asm.fldp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, -520, isPostIndexed: false),
+        );
+      });
+    });
+
+    test('fstp', () {
+      asm.fstp(V0, V0, RegOffsetAddress(R2, 16));
+      asm.fstp(V0, V1, RegOffsetAddress(R2, 4), .s32);
+      asm.fstp(V0, V1, RegOffsetAddress(R2, -1024), .simd128);
+      asm.fstp(V3, V1, RegOffsetAddress(SP, 256));
+      asm.fstp(V2, V0, WritebackRegOffsetAddress(R1, 16, isPostIndexed: true));
+      asm.fstp(V0, V4, WritebackRegOffsetAddress(R1, -8, isPostIndexed: false));
+      expectDisassembly(
+        'fstpd v0, v0, [r2, #16]\n'
+        'fstps v0, v1, [r2, #4]\n'
+        'fstpq v0, v1, [r2, #-1024]\n'
+        'fstpd v3, v1, [csp, #256]\n'
+        'fstpd v2, v0, [r1], #16 !\n'
+        'fstpd v0, v4, [r1, #-8]!\n',
+      );
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, 4));
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, 512));
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, -520));
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, RegOffsetAddress(R2, 16), .s16);
+      });
+      expectThrows(() {
+        asm.fstp(V0, V1, WritebackRegOffsetAddress(ZR, 8, isPostIndexed: true));
+      });
+      expectThrows(() {
+        asm.fstp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, 512, isPostIndexed: true),
+        );
+      });
+      expectThrows(() {
+        asm.fstp(
+          V0,
+          V1,
+          WritebackRegOffsetAddress(R2, -520, isPostIndexed: false),
+        );
+      });
+    });
+
     test('nop', () {
       asm.nop();
       expectDisassembly('nop\n');

@@ -38,7 +38,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -99,7 +98,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -157,7 +155,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::foo
@@ -255,7 +252,6 @@ CallInvocation
     name: foo
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::foo
-      invokeType: dynamic Function()
       type: dynamic
     staticType: dynamic
   argumentList: ArgumentList
@@ -305,7 +301,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -343,7 +338,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::M::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -380,7 +374,6 @@ ReceiverPropertyExtraction
   name: foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -417,7 +410,6 @@ ReceiverPropertyExtraction
   name: _foo
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::A::@getter::_foo
-    invokeType: int Function()
     type: int
   staticType: int
 V1: PropertyAccess
@@ -897,6 +889,25 @@ V1: PropertyAccess
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
+''');
+  }
+
+  test_notFound_propertyExtraction_privateStatic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int get _foo => 0;
+}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+
+class B extends A {
+  void f() {
+    super._foo;
+//        ^^^^
+// [diag.undefinedSuperMemberReadNotFound] The member '_foo' isn't defined in a superclass of 'B'.
+  }
+}
 ''');
   }
 

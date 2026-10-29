@@ -15,7 +15,7 @@ class Contravariant<in T> {}
 class Invariant<inout T> {}
 mixin MCovariant<out T> {}
 mixin MContravariant<in T> {}
-mixin MInvariant<in T> {}
+mixin MInvariant<inout T> {}
 
 class A<out T> extends Contravariant<T> {}
 //    ^
@@ -49,7 +49,7 @@ class E<out T> implements Invariant<T> {}
 
 class F<out T> with MInvariant<T> {}
 //    ^
-// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MInvariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'MInvariant'.
 //          ^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE
 
@@ -115,7 +115,7 @@ class P<out T> = Contravariant<T> with MCovariant<T>;
 
 class Q<out T> = Invariant<T> with MInvariant<T>;
 //    ^
-// [cfe] Can't use 'out' type variable 'T' in an 'in' position in supertype 'MInvariant'.
+// [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'MInvariant'.
 //    ^
 // [cfe] Can't use 'out' type variable 'T' in an 'inout' position in supertype 'Invariant'.
 //          ^

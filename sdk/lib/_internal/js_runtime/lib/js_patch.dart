@@ -4,6 +4,7 @@
 
 // Patch file for dart:js library.
 import 'dart:collection' show HashMap, ListMixin;
+import 'dart:js_interop' show JSObject;
 import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
@@ -258,6 +259,9 @@ class JsObject {
   }
 
   String? _safeToStringAttributes() => safeDescribeJavaScriptObject(_jsObject);
+
+  @patch
+  JSObject get rawJSObject => JSObject.fromInteropObject(_jsObject);
 }
 
 class _SafeToStringHook extends SafeToStringHook {

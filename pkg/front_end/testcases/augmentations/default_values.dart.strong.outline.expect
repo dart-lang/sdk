@@ -1,0 +1,145 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:20:35: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+// augment int topLevelMethod1e([int x = 0]) => x; // Error
+//                                   ^
+// pkg/front_end/testcases/augmentations/default_values.dart:19:27: Context: The previous parameter with a default value.
+// int topLevelMethod1e([int x = 0]);
+//                           ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:23:35: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+// augment int topLevelMethod1f([int x]) => x; // Error
+//                                   ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:83:37: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+//   augment int instanceMethod1e([int x = 0]) => x; // Error
+//                                     ^
+// pkg/front_end/testcases/augmentations/default_values.dart:82:29: Context: The previous parameter with a default value.
+//   int instanceMethod1e([int x = 0]);
+//                             ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:86:37: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   augment int instanceMethod1f([int x]) => x; // Error
+//                                     ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:112:42: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+//   augment static int staticMethod1e([int x = 0]) => x; // Error
+//                                          ^
+// pkg/front_end/testcases/augmentations/default_values.dart:111:34: Context: The previous parameter with a default value.
+//   static int staticMethod1e([int x = 0]);
+//                                  ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:115:42: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   augment static int staticMethod1f([int x]) => x; // Error
+//                                          ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:54:33: Error: The default value for this optional parameter was already specified in the augmentation chain.
+// Try removing all but one of the default values.
+//   augment new generative1e([int x = 0]) : result = x; // Error
+//                                 ^
+// pkg/front_end/testcases/augmentations/default_values.dart:53:25: Context: The previous parameter with a default value.
+//   new generative1e([int x = 0]);
+//                         ^
+//
+// pkg/front_end/testcases/augmentations/default_values.dart:57:33: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// Try adding either an explicit non-'null' default value or the 'required' modifier.
+//   augment new generative1f([int x]) : result = x; // Error
+//                                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  final field core::int result;
+  constructor •([initializing-formal core::int result = 1.{core::int::unary-}(){() → core::int}]) → self::Class
+    ;
+  constructor generative1a([core::int x = 0]) → self::Class
+    ;
+  constructor generative1b([core::int x = 0]) → self::Class
+    ;
+  constructor generative1c([core::int x = 0]) → self::Class
+    ;
+  constructor generative1d([core::int x = 0]) → self::Class
+    ;
+  constructor generative1e([core::int x = 0]) → self::Class
+    ;
+  constructor generative1f([erroneously-initialized core::int x = null]) → self::Class
+    ;
+  constructor generative2a([core::int x = 0, core::int y = 0]) → self::Class
+    ;
+  constructor generative2b([core::int x = 0, core::int y = 0]) → self::Class
+    ;
+  constructor generative2c([core::int x = 0, core::int y = 0]) → self::Class
+    ;
+  method instanceMethod1a([core::int x = 0]) → core::int
+    ;
+  method instanceMethod1b([core::int x = 0]) → core::int
+    ;
+  method instanceMethod1c([core::int x = 0]) → core::int
+    ;
+  method instanceMethod1d([core::int x = 0]) → core::int
+    ;
+  method instanceMethod1e([core::int x = 0]) → core::int
+    ;
+  method instanceMethod1f([erroneously-initialized core::int x = null]) → core::int
+    ;
+  method instanceMethod2a([core::int x = 0, core::int y = 0]) → core::int
+    ;
+  method instanceMethod2b([core::int x = 0, core::int y = 0]) → core::int
+    ;
+  method instanceMethod2c([core::int x = 0, core::int y = 0]) → core::int
+    ;
+  static method staticMethod1a([core::int x = 0]) → core::int
+    ;
+  static method staticMethod1b([core::int x = 0]) → core::int
+    ;
+  static method staticMethod1c([core::int x = 0]) → core::int
+    ;
+  static method staticMethod1d([core::int x = 0]) → core::int
+    ;
+  static method staticMethod1e([core::int x = 0]) → core::int
+    ;
+  static method staticMethod1f([erroneously-initialized core::int x = null]) → core::int
+    ;
+  static method staticMethod2a([core::int x = 0, core::int y = 0]) → core::int
+    ;
+  static method staticMethod2b([core::int x = 0, core::int y = 0]) → core::int
+    ;
+  static method staticMethod2c([core::int x = 0, core::int y = 0]) → core::int
+    ;
+}
+static method topLevelMethod1a([core::int x = 0]) → core::int
+  ;
+static method topLevelMethod1b([core::int x = 0]) → core::int
+  ;
+static method topLevelMethod1c([core::int x = 0]) → core::int
+  ;
+static method topLevelMethod1d([core::int x = 0]) → core::int
+  ;
+static method topLevelMethod1e([core::int x = 0]) → core::int
+  ;
+static method topLevelMethod1f([erroneously-initialized core::int x = null]) → core::int
+  ;
+static method topLevelMethod2a([core::int x = 0, core::int y = 0]) → core::int
+  ;
+static method topLevelMethod2b([core::int x = 0, core::int y = 0]) → core::int
+  ;
+static method topLevelMethod2c([core::int x = 0, core::int y = 0]) → core::int
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///default_values.dart:37:22 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -35,7 +35,7 @@ class Diagnostic {
   /// The source in which the diagnostic occurred, or `null` if unknown.
   final Source source;
 
-  Diagnostic.forValues({
+  new forValues({
     required this.source,
     required int offset,
     required int length,
@@ -58,7 +58,7 @@ class Diagnostic {
   /// [diagnosticCode] and the list of [arguments] will be used to complete the
   /// message and correction. If any [contextMessages] are provided, they will
   /// be recorded with the diagnostic.
-  factory Diagnostic.tmp({
+  factory tmp({
     required Source source,
     required int offset,
     required int length,
@@ -66,14 +66,15 @@ class Diagnostic {
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
   }) {
-    assert(
-      arguments.length == diagnosticCode.numParameters,
-      'Message $diagnosticCode requires ${diagnosticCode.numParameters} '
-      'argument${diagnosticCode.numParameters == 1 ? '' : 's'}, but '
-      '${arguments.length} '
-      'argument${arguments.length == 1 ? ' was' : 's were'} '
-      'provided',
-    );
+    if (arguments.length != diagnosticCode.numParameters) {
+      throw ArgumentError(
+        'Message $diagnosticCode requires ${diagnosticCode.numParameters} '
+        'argument${diagnosticCode.numParameters == 1 ? '' : 's'}, but '
+        '${arguments.length} '
+        'argument${arguments.length == 1 ? ' was' : 's were'} '
+        'provided',
+      );
+    }
     String message = formatList(diagnosticCode.problemMessage, arguments);
     String? correctionTemplate = diagnosticCode.correctionMessage;
     String? correctionMessage;

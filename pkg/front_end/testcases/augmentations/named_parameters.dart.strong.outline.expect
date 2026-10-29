@@ -10,7 +10,7 @@ class Class extends core::Object {
     ;
   method instanceMethod({core::int y = 5, core::int x = 6}) → core::bool
     ;
-  static method staticMethod({has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+  static method staticMethod({core::int y = 5, core::int x = 6}) → core::bool
     ;
 }
 class Enum extends core::_Enum /*isEnum*/  {
@@ -25,13 +25,13 @@ class Enum extends core::_Enum /*isEnum*/  {
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
   method instanceMethod({core::int y = 5, core::int x = 6}) → core::bool
     ;
-  static method staticMethod({has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+  static method staticMethod({core::int y = 5, core::int x = 6}) → core::bool
     ;
 }
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method instanceMethod({core::int y = 5, core::int x = 6}) → core::bool
     ;
-  static method staticMethod({has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+  static method staticMethod({core::int y = 5, core::int x = 6}) → core::bool
     ;
 }
 class MixinApplication = core::Object with self::Mixin /*hasConstConstructor*/  {
@@ -56,13 +56,13 @@ extension type ExtensionType(core::bool value) {
   constructor constructor = self::ExtensionType|constructor#constructor;
   constructor tearoff constructor = self::ExtensionType|constructor#_#constructor#tearOff;
 }
-static method topLevel({has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+static method topLevel({core::int y = 5, core::int x = 6}) → core::bool
   ;
-static extension-member method Extension|instanceMethod(lowered final core::bool #this, {has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+static extension-member method Extension|instanceMethod(lowered final core::bool #this, {core::int y = 5, core::int x = 6}) → core::bool
   ;
 static extension-member method Extension|get#instanceMethod(lowered final core::bool #this) → ({x: core::int, y: core::int}) → core::bool
   return ({core::int y, core::int x}) → core::bool => self::Extension|instanceMethod(#this, y: y, x: x);
-static extension-member method Extension|staticMethod({has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+static extension-member method Extension|staticMethod({core::int y = 5, core::int x = 6}) → core::bool
   ;
 static extension-type-member method ExtensionType|constructor#(initializing-formal core::bool value) → self::ExtensionType% /* erasure=core::bool, declared=! */
   ;
@@ -72,11 +72,11 @@ static extension-type-member method ExtensionType|constructor#constructor({core:
   ;
 static extension-type-member synthetic method ExtensionType|constructor#_#constructor#tearOff({has-declared-initializer core::int y, has-declared-initializer core::int x}) → self::ExtensionType% /* erasure=core::bool, declared=! */
   return self::ExtensionType|constructor#constructor(y: y, x: x);
-static extension-type-member method ExtensionType|instanceMethod(lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this, {has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+static extension-type-member method ExtensionType|instanceMethod(lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this, {core::int y = 5, core::int x = 6}) → core::bool
   ;
 static extension-type-member method ExtensionType|get#instanceMethod(lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this) → ({x: core::int, y: core::int}) → core::bool
   return ({core::int y, core::int x}) → core::bool => self::ExtensionType|instanceMethod(#this, y: y, x: x);
-static extension-type-member method ExtensionType|staticMethod({has-declared-initializer core::int y, has-declared-initializer core::int x}) → core::bool
+static extension-type-member method ExtensionType|staticMethod({core::int y = 5, core::int x = 6}) → core::bool
   ;
 static method main() → dynamic
   ;

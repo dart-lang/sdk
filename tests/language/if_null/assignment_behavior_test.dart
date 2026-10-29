@@ -125,7 +125,7 @@ class C {
     check(1, () => v ??= y, ['$s.v', 'y', '$s.v=1']);
     finalOne ??= null;
     // [error column 5, length 8]
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] The setter 'finalOne' isn't defined for the type 'C'.
     //           ^^^^
     // [analyzer] STATIC_WARNING.DEAD_NULL_AWARE_EXPRESSION
@@ -194,7 +194,7 @@ main() {
   }
   C ??= null;
   // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
   h ??= null;
   // [error column 3, length 1]
@@ -257,11 +257,11 @@ main() {
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   h.C.xgetValue = 1;
   //  ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_WRITE
   // [cfe] Setter not found: 'xgetValue'.
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);

@@ -23,7 +23,7 @@ void test0() {
   c0.m1;
   c0.m1 = 0;
   // ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'm1' isn't defined for the type 'C0'.
   E0(c0).m1 = 0;
   E0(c0).m1;
@@ -33,26 +33,26 @@ void test0() {
 
   c0.m1 += 0;
   // ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'm1' isn't defined for the type 'C0'.
 
   c0.m1++;
   // ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'm1' isn't defined for the type 'C0'.
 
   c0.m2 = 0;
   c0.m2;
   // ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'm2' isn't defined for the type 'C0'.
   c0.m2 += 0;
   // ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'm2' isn't defined for the type 'C0'.
   c0.m2++;
   // ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'm2' isn't defined for the type 'C0'.
 
   E0(c0).m2;
@@ -109,12 +109,12 @@ void test1() {
 
   c1a.m1 = 0;
   //  ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'm1' isn't defined for the type 'C1<int>'.
 
   c1a.m2;
   //  ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'm2' isn't defined for the type 'C1<int>'.
 
   c1a.m2 = 0;
@@ -193,12 +193,12 @@ void test1() {
 
   c1c.m1 = 0;
   //  ^^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'm1' isn't defined for the type 'C1<Object>'.
 
   c1c.m2;
   //  ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'm2' isn't defined for the type 'C1<Object>'.
 }
 
@@ -222,13 +222,13 @@ extension E2 on C2 {
     this.m1;
     this.m1 = 0;
     //   ^^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
     // [cfe] The setter 'm1' isn't defined for the type 'C2'.
 
     this.m2 = 0;
     this.m2;
     //   ^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'm2' isn't defined for the type 'C2'.
 
     this[0] = 0;

@@ -39,20 +39,17 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       return;
     }
 
-    var patternPartsList = MissingPatternPart.byDiagnostic[diagnostic];
-    if (patternPartsList == null) {
+    var missingPatterns = await MissingPatternPart.byDiagnostic[diagnostic]
+        ?.computeMissingPatterns(
+          AnalyzerDartAccessibility(
+            isTypeInaccessible: _isTypeInaccessible,
+            isEnumValueInaccessible: _isEnumMemberInaccessible,
+          ),
+        );
+    if (missingPatterns == null) {
       return;
     }
-    if (patternPartsList.isEmpty) {
-      assert(
-        false,
-        'How did we get the diagnostic without any missing patterns?',
-      );
-      return;
-    }
-    // Make a modifiable copy. See:
-    // https://github.com/dart-lang/sdk/issues/62426
-    patternPartsList = patternPartsList.toList();
+    var patternPartsList = missingPatterns.partsList;
 
     // Keep `null` after the cases for values of the nullable type.
     var nullPatterns = <List<MissingPatternPart>>[];
@@ -68,17 +65,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     // It is possible that a missing pattern is unrepresentable at the location
     // of the switch. For instance, an enum with a private member can't be
     // matched outside of its library.
-    var needsDefault = false;
-    for (var patternParts in patternPartsList.toList()) {
-      if (_hasInaccessibleEnumMemberPart(patternParts)) {
-        needsDefault = true;
-        patternPartsList.remove(patternParts);
-      }
-      if (await _hasInaccessibleTypePart(patternParts)) {
-        patternPartsList.remove(patternParts);
-        needsDefault = true;
-      }
-    }
+    var needsDefault = missingPatterns.needsDefault;
 
     if (node is SwitchExpression) {
       await _switchExpression(
@@ -99,31 +86,21 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Returns whether [parts] references an enum field where either the enum
-  /// class itself or the missing field is not reachable because it's private.
-  bool _hasInaccessibleEnumMemberPart(List<MissingPatternPart> parts) {
-    for (var part in parts.whereType<MissingPatternEnumValuePart>()) {
-      if ((part.enumElement2.isPrivate || part.value2.isPrivate) &&
-          libraryElement2 != part.enumElement2.library) {
-        return true;
-      }
-    }
-
-    return false;
+  /// Returns whether the enum [value] from [enumElement] references an enum
+  /// field where either the enum class itself or the missing field is not
+  /// reachable because it's private.
+  bool _isEnumMemberInaccessible(EnumElement enumElement, FieldElement value) {
+    return (enumElement.isPrivate || value.isPrivate) &&
+        libraryElement2 != enumElement.library;
   }
 
-  /// Returns whether [parts] references a type from within a `src/` library
-  /// that is not from the current project.
-  Future<bool> _hasInaccessibleTypePart(List<MissingPatternPart> parts) async {
-    for (var part in parts.whereType<MissingPatternTypePart>()) {
-      if (part.type.element case Element(:var name?) && var element) {
-        var declarations = await getTopLevelDeclarations(name);
-        if (!declarations.containsValue(element)) {
-          return true;
-        }
-      }
+  /// Returns whether [element] with the given [name] references a type from
+  /// within a `src/` library that is not from the current project.
+  Future<bool> _isTypeInaccessible(Element element, String name) async {
+    var declarations = await getTopLevelDeclarations(name);
+    if (!declarations.containsValue(element)) {
+      return true;
     }
-
     return false;
   }
 
@@ -219,9 +196,9 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   ) {
     for (var part in parts) {
       if (part is MissingPatternEnumValuePart) {
-        builder.writeReference(part.enumElement2);
+        builder.writeReference(part.enumElement);
         builder.write('.');
-        builder.write(part.value2.name!);
+        builder.write(part.value.name!);
       } else if (part is MissingPatternTextPart) {
         builder.write(part.text);
       } else if (part is MissingPatternTypePart) {

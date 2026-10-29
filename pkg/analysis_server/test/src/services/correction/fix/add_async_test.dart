@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddAsyncTest extends FixProcessorTest {
+class AddAsyncTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addAsync;
 
@@ -522,7 +522,7 @@ f() async {
 }
 
 @reflectiveTest
-class DiscardedFuturesTest extends FixProcessorLintTest {
+class DiscardedFuturesTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addAsync;
 

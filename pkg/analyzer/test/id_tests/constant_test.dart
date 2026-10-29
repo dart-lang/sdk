@@ -42,7 +42,7 @@ main(List<String> args) {
 }
 
 class ConstantsDataComputer extends DataComputer<String> {
-  const ConstantsDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -79,7 +79,7 @@ class ConstantsDataComputer extends DataComputer<String> {
 }
 
 class ConstantsDataExtractor extends AstDataExtractor<String> {
-  ConstantsDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {

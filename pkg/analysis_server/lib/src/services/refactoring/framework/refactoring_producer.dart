@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/interactive_forms/interactive_forms.dart';
@@ -61,7 +63,7 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
   }
 
   /// Builds the interative form for this refactor.
-  ErrorOr<InteractiveForm> buildInteractiveForm();
+  FutureOr<ErrorOr<InteractiveForm>> buildInteractiveForm();
 
   /// A helper to create an [InteractiveForm] with client capabilities.
   InteractiveForm createForm(List<FormField> fields) {
@@ -90,7 +92,7 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
       );
     }
 
-    return buildInteractiveForm().mapResultSync((form) {
+    return (await buildInteractiveForm()).mapResultSync((form) {
       // Only process answers if they are non-null. Otherwise this is the very
       // first resolve, and we don't want to trigger errors on mandatory fields
       // that had no defaults yet.

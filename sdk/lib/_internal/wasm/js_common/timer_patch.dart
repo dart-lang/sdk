@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show patch, exportWasmFunction;
+import 'dart:_internal' show patch, exportWasmFunction, unsafeCast;
 
-import 'dart:_js_helper' show JS;
+import 'dart:_js_helper' show JS, jsObjectFromDartObject, jsObjectToDartObject;
+import 'dart:_wasm';
 
 // Implementation of `Timer` and `scheduleMicrotask` via the JS event loop.
 
@@ -17,17 +18,19 @@ class _JSEventLoop {
     // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
     exportWasmFunction(_invokeCallback);
 
-    return JS<double>(
+    return JS<WasmF64>(
       r"""(ms, c) =>
               setTimeout(() => dartInstance.exports.$invokeCallback(c),ms)""",
-      ms,
-      callback,
-    ).toInt();
+      ms.toWasmF64(),
+      jsObjectFromDartObject(callback),
+    ).toDouble().toInt();
   }
 
   /// Cancel a callback scheduled with `setTimeout`.
-  static void _clearTimeout(int handle) =>
-      JS<void>(r"""(handle) => clearTimeout(handle)""", handle.toDouble());
+  static void _clearTimeout(int handle) => JS<WasmVoid>(
+    r"""(handle) => clearTimeout(handle)""",
+    handle.toDouble().toWasmF64(),
+  );
 
   /// Schedule a periodic callback from JS via `setInterval`.
   static int _setInterval(double ms, dynamic Function() callback) {
@@ -35,17 +38,19 @@ class _JSEventLoop {
     // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
     exportWasmFunction(_invokeCallback);
 
-    return JS<double>(
+    return JS<WasmF64>(
       r"""(ms, c) =>
           setInterval(() => dartInstance.exports.$invokeCallback(c), ms)""",
-      ms,
-      callback,
-    ).toInt();
+      ms.toWasmF64(),
+      jsObjectFromDartObject(callback),
+    ).toDouble().toInt();
   }
 
   /// Cancel a callback scheduled with `setInterval`.
-  static void _clearInterval(int handle) =>
-      JS<void>(r"""(handle) => clearInterval(handle)""", handle.toDouble());
+  static void _clearInterval(int handle) => JS<WasmVoid>(
+    r"""(handle) => clearInterval(handle)""",
+    handle.toDouble().toWasmF64(),
+  );
 
   /// Schedule a callback from JS via `queueMicrotask`.
   static void _queueMicrotask(dynamic Function() callback) {
@@ -53,24 +58,25 @@ class _JSEventLoop {
     // backend to export it to JS (due to `@pragma('wasm:weak-export', ...)`)
     exportWasmFunction(_invokeCallback);
 
-    return JS<void>(
+    JS<WasmVoid>(
       r"""(c) =>
               queueMicrotask(() => dartInstance.exports.$invokeCallback(c))""",
-      callback,
+      jsObjectFromDartObject(callback),
     );
   }
 
   /// JS `Date.now()`, returns the number of milliseconds elapsed since the
   /// epoch.
-  static int _dateNow() => JS<double>('() => Date.now()').toInt();
+  static int _dateNow() => JS<WasmF64>('() => Date.now()').toDouble().toInt();
 }
 
 /// Used to invoke a Dart closure from JS (for microtasks and other callbacks),
 /// printing any exceptions that escape.
 @pragma("wasm:weak-export", "\$invokeCallback")
-void _invokeCallback(void Function() callback) {
+WasmVoid _invokeCallback(WasmExternRef callback) {
   try {
-    callback();
+    unsafeCast<void Function()>(jsObjectToDartObject(callback))();
+    return WasmVoid();
   } catch (e, s) {
     print(e);
     print(s);

@@ -342,6 +342,15 @@ void main() {
   Expect.isTrue(match.groupNames.contains("snd"));
   Expect.listEquals(["fst", "snd"], match.groupNames.toList());
 
+  // Regression test for calling `moveNext()` again after it returned `false`.
+  final groupNamesIterator = match.groupNames.iterator;
+  Expect.isTrue(groupNamesIterator.moveNext());
+  Expect.equals("fst", groupNamesIterator.current);
+  Expect.isTrue(groupNamesIterator.moveNext());
+  Expect.equals("snd", groupNamesIterator.current);
+  Expect.isFalse(groupNamesIterator.moveNext());
+  Expect.isFalse(groupNamesIterator.moveNext());
+
   // Backslash as ID_Start and ID_Continue (v8:5868).
   assertThrows(() => RegExp("(?<\\>.)")); // '\' misclassified as ID_Start.
   assertThrows(() => RegExp("(?<a\\>.)")); // '\' misclassified as ID_Continue.

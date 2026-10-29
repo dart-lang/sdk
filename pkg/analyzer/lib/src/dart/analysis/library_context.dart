@@ -55,7 +55,7 @@ class LibraryContext {
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
-  LibraryContext({
+  new({
     required this.testData,
     required AnalysisSessionImpl analysisSession,
     required this.logger,
@@ -128,30 +128,33 @@ class LibraryContext {
     required LibraryFileKind targetLibrary,
     required OperationPerformanceImpl performance,
   }) {
-    var libraryCycle = performance.run('libraryCycle', (performance) {
-      fileSystemState.newFileOperationPerformance = performance;
-      try {
-        return targetLibrary.libraryCycle;
-      } finally {
-        fileSystemState.newFileOperationPerformance = null;
+    fileSystemState.withParsedUnitsForLinking(() {
+      var libraryCycle = performance.run('libraryCycle', (performance) {
+        fileSystemState.newFileOperationPerformance = performance;
+        try {
+          return targetLibrary.libraryCycle;
+        } finally {
+          fileSystemState.newFileOperationPerformance = null;
+        }
+      });
+
+      if (loadedBundles.contains(libraryCycle)) {
+        return;
       }
+
+      performance.run('loadBundle', (performance) {
+        var cyclesToLoad = _collectCyclesToLoad(libraryCycle);
+        for (var cycle in cyclesToLoad) {
+          _loadBundle(cycle: cycle, performance: performance);
+        }
+      });
+
+      // There might be a rare (and wrong) situation, when the external
+      // summaries already include the [targetLibrary]. When this happens,
+      // [loadBundle] exists without doing any work. But the type provider must
+      // be created.
+      _createElementFactoryTypeProvider();
     });
-
-    if (loadedBundles.contains(libraryCycle)) {
-      return;
-    }
-
-    performance.run('loadBundle', (performance) {
-      var cyclesToLoad = _collectCyclesToLoad(libraryCycle);
-      for (var cycle in cyclesToLoad) {
-        _loadBundle(cycle: cycle, performance: performance);
-      }
-    });
-
-    // There might be a rare (and wrong) situation, when the external summaries
-    // already include the [targetLibrary]. When this happens, [loadBundle]
-    // exists without doing any work. But the type provider must be created.
-    _createElementFactoryTypeProvider();
   }
 
   /// Load data required to resolve the given [targetLibrary].
@@ -399,7 +402,11 @@ class LibraryContext {
     } else {
       testData?.forCycle(cycle).getKeys.add(cycle.linkedKey);
       performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
-      // TODO(scheglov): Take / clear parsed units in files.
+      for (var library in cycle.libraries) {
+        for (var file in library.files) {
+          file.takeParsedUnitForLinking();
+        }
+      }
       eventsController?.add(ReuseLinkedBundle(cycle: cycle));
       var bundleReader = performance.run('bundleReader', (performance) {
         return BundleReader(
@@ -542,7 +549,7 @@ class LibraryContextTestData {
   /// The current instance of [LibraryContext].
   LibraryContext? instance;
 
-  LibraryContextTestData({required this.fileSystemTestData});
+  new({required this.fileSystemTestData});
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
     var files = cycle.libraries.map((library) {
@@ -582,7 +589,7 @@ class _LinkedBundleCacheEntry {
   /// The serialized libraries, for [BundleReader].
   final Uint8List linkedBytes;
 
-  _LinkedBundleCacheEntry({
+  new({
     required this.nonTransitiveApiSignature,
     required this.id,
     required this.requirementsBytes,
@@ -688,8 +695,5 @@ class _LinkedBundleProbeResult {
   final Map<Uri, LibraryManifestHandle> libraryManifests;
   final Uint8List? linkedBytes;
 
-  _LinkedBundleProbeResult({
-    required this.libraryManifests,
-    required this.linkedBytes,
-  });
+  new({required this.libraryManifests, required this.linkedBytes});
 }

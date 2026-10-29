@@ -587,7 +587,6 @@ library
                 name: deprecated @16
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -613,7 +612,6 @@ library
             name: deprecated @16
             resolution: GetterInvocationResolution
               element: dart:core::@getter::deprecated
-              invokeType: Deprecated Function()
               type: Deprecated
             staticType: Deprecated
           name: SimpleIdentifier
@@ -669,7 +667,6 @@ library
                 name: a1 @18
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a1
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -687,7 +684,6 @@ library
                 name: a2 @40
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a2
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -706,7 +702,6 @@ library
                 name: a3 @70
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a3
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -732,7 +727,6 @@ library
             name: a1 @18
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a1
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -746,7 +740,6 @@ library
             name: a2 @40
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a2
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -760,7 +753,6 @@ library
             name: a3 @70
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a3
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -1668,7 +1660,6 @@ library
                 name: a1 @19
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a1
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1690,7 +1681,6 @@ library
                 name: a2 @41
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a2
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1714,7 +1704,6 @@ library
                 name: a3 @71
                 resolution: GetterInvocationResolution
                   element: package:test/a.dart::@getter::a3
-                  invokeType: int Function()
                   type: int
                 staticType: int
               name: SimpleIdentifier
@@ -1744,7 +1733,6 @@ library
             name: a1 @19
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a1
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -1758,7 +1746,6 @@ library
             name: a2 @41
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a2
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -1772,7 +1759,6 @@ library
             name: a3 @71
             resolution: GetterInvocationResolution
               element: package:test/a.dart::@getter::a3
-              invokeType: int Function()
               type: int
             staticType: int
           name: SimpleIdentifier
@@ -2353,7 +2339,6 @@ library
                 name: deprecated @16
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -2389,7 +2374,6 @@ library
             name: deprecated @16
             resolution: GetterInvocationResolution
               element: dart:core::@getter::deprecated
-              invokeType: Deprecated Function()
               type: Deprecated
             staticType: Deprecated
           name: SimpleIdentifier
@@ -3176,7 +3160,7 @@ library
           initializer: expression_0
             IntegerLiteral
               literal: 0 @16
-              staticType: null
+              staticType: int
           inducedGetter: #F2
           nextFragment: #F3
         #F3 hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
@@ -3209,6 +3193,116 @@ library
     isOriginVariable isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_variable_augmentation_chain_const_untyped() async {
+    var library = await buildLibrary(r'''
+const zero = 0;
+const one = 1;
+const foo = zero;
+augment const foo = one;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic zero (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::zero
+          initializer: expression_0
+            IntegerLiteral
+              literal: 0 @13
+              staticType: int
+          inducedGetter: #F2
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic one (nameOffset:22) (firstTokenOffset:22) (offset:22)
+          element: <testLibrary>::@topLevelVariable::one
+          initializer: expression_1
+            IntegerLiteral
+              literal: 1 @28
+              staticType: int
+          inducedGetter: #F4
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_2
+            UnqualifiedNameExpression
+              name: zero @43
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@getter::zero
+                type: int
+              staticType: int
+          inducedGetter: #F6
+          nextFragment: #F7
+        #F7 hasImplicitType hasInitializer isAugmentation isConst isOriginDeclaration isStatic foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
+          element: <testLibrary>::@topLevelVariable::foo
+          initializer: expression_3
+            UnqualifiedNameExpression
+              name: one @69
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@getter::one
+                type: int
+              staticType: int
+          inducedGetter: #F8
+          previousFragment: #F5
+      getters
+        #F2 isComplete isOriginVariable isStatic zero (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::zero
+          inducingVariable: #F1
+        #F4 isComplete isOriginVariable isStatic one (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+          element: <testLibrary>::@getter::one
+          inducingVariable: #F3
+        #F6 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F5
+          nextFragment: #F8
+        #F8 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F7
+          previousFragment: #F6
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer zero
+      reference: <testLibrary>::@topLevelVariable::zero
+      firstFragment: #F1
+      type: int
+      constantInitializer
+        fragment: #F1
+        expression: expression_0
+      getter: <testLibrary>::@getter::zero
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer one
+      reference: <testLibrary>::@topLevelVariable::one
+      firstFragment: #F3
+      type: int
+      constantInitializer
+        fragment: #F3
+        expression: expression_1
+      getter: <testLibrary>::@getter::one
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F5
+      type: int
+      constantInitializer
+        fragment: #F7
+        expression: expression_3
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginVariable isStatic zero
+      reference: <testLibrary>::@getter::zero
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::zero
+    isOriginVariable isStatic one
+      reference: <testLibrary>::@getter::one
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::one
+    isOriginVariable isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F6
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
 ''');
@@ -3433,6 +3527,68 @@ library
   exportNamespace
     foo: <testLibrary>::@getter::foo
     foo=: <testLibrary>::@setter::foo
+''');
+  }
+
+  test_variable_augmentation_chain_fromGetter_formalParameter() async {
+    var library = await buildLibrary(r'''
+int get foo([int x = 1]);
+augment final int foo = 0;
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+          element: <testLibrary>::@topLevelVariable::foo
+          nextFragment: #F2
+        #F2 hasInitializer isAugmentation isFinal isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
+          element: <testLibrary>::@topLevelVariable::foo
+          inducedGetter: #F3
+          previousFragment: #F1
+      getters
+        #F4 isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@getter::foo
+          formalParameters
+            #F5 optionalPositional isOriginDeclaration x (nameOffset:17) (firstTokenOffset:13) (offset:17)
+              element: x@17
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 1 @21
+                  staticType: int
+              nextFragment: #F6
+          nextFragment: #F3
+        #F3 isAugmentation isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+          element: <testLibrary>::@getter::foo
+          inducingVariable: #F2
+          formalParameters
+            #F6 optionalPositional isOriginOtherFragmentOfEnclosing x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: x@17
+              previousFragment: #F5
+          previousFragment: #F4
+  topLevelVariables
+    hasInitializer isOriginGetterSetter isStatic foo
+      reference: <testLibrary>::@topLevelVariable::foo
+      firstFragment: #F1
+      type: int
+      getter: <testLibrary>::@getter::foo
+  getters
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F4
+      formalParameters
+        #E0 optionalPositional hasDefaultValue x
+          firstFragment: #F5
+          type: int
+          constantInitializer
+            fragment: #F5
+            expression: expression_0
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -3770,7 +3926,6 @@ library
                 name: deprecated @16
                 resolution: GetterInvocationResolution
                   element: dart:core::@getter::deprecated
-                  invokeType: Deprecated Function()
                   type: Deprecated
                 staticType: Deprecated
               name: SimpleIdentifier
@@ -3800,7 +3955,6 @@ library
             name: deprecated @16
             resolution: GetterInvocationResolution
               element: dart:core::@getter::deprecated
-              invokeType: Deprecated Function()
               type: Deprecated
             staticType: Deprecated
           name: SimpleIdentifier

@@ -33,6 +33,7 @@ import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/regalloc_checker.dart';
 import 'package:native_compiler/back_end/register_allocator.dart';
+import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/front_end/recognized_methods.dart';
 import 'package:native_compiler/passes/lowering.dart';
 import 'package:native_compiler/passes/reorder_blocks.dart';
@@ -120,6 +121,8 @@ class CompileAndDumpIr extends RecursiveVisitor {
   late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
     functionRegistry,
     objectLayout,
+    TargetCPU.arm64,
+    TargetOS.macos,
   );
 
   @override

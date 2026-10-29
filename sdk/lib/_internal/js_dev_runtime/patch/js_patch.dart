@@ -6,6 +6,7 @@
 library dart.js;
 
 import 'dart:collection' show HashMap, ListMixin;
+import 'dart:js_interop' show JSObject;
 
 import 'dart:_js_helper' show NoReifyGeneric, Primitives;
 import 'dart:_foreign_helper' show JS, TYPE_REF;
@@ -144,6 +145,9 @@ class JsObject {
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
   }
+
+  @patch
+  JSObject get rawJSObject => JSObject.fromInteropObject(_jsObject);
 }
 
 @patch

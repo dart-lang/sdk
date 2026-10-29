@@ -39,7 +39,7 @@ class ContextRootImpl implements ContextRoot {
   final File? packagesFile;
 
   /// Initialize a newly created context root.
-  ContextRootImpl(
+  new(
     this.resourceProvider,
     this.root,
     this.workspace, {
@@ -184,7 +184,7 @@ class LocatedGlob {
   final Folder parent;
   final Glob glob;
 
-  LocatedGlob(this.parent, this.glob);
+  new(this.parent, this.glob);
 
   bool matches(String path) {
     var relativePath = parent.relativeIfContains(path);

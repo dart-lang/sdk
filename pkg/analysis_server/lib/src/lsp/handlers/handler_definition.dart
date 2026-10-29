@@ -150,11 +150,16 @@ class DefinitionHandler
     var supportsLocationLink = clientCapabilities.definitionLocationLink;
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
 
-    return path.mapResult((path) async {
+    return withPath(textDocument: params.textDocument, token, (
+      path,
+      _,
+      checkAbort,
+    ) async {
       // Always prefer a LineInfo from a resolved unit than server.getLineInfo.
       var resolvedUnit = (await requireResolvedUnit(path)).resultOrNull;
+      if (checkAbort() case var reason?) return reason;
+
       var lineInfo = resolvedUnit?.lineInfo ?? server.getLineInfo(path);
 
       // If there is no lineInfo, the request cannot be translated from LSP line/col
@@ -178,6 +183,7 @@ class DefinitionHandler
             await getAnalysisOptionsServerResult(path, offset),
           ...await getPluginResults(path, offset),
         ];
+        if (checkAbort() case var reason?) return reason;
 
         var merger = ResultMerger();
         var mergedResults = merger.mergeNavigation(allResults);

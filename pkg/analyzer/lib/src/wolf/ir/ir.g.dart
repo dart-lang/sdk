@@ -218,7 +218,7 @@ mixin IRToStringMixin implements RawIRContainerInterface {
 }
 
 class _ParameterShape0 extends Opcode {
-  const _ParameterShape0._(super.index) : super._();
+  const new _(super.index) : super._();
 
   int decodeCount(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -227,7 +227,7 @@ class _ParameterShape0 extends Opcode {
 }
 
 class _ParameterShape1 extends Opcode {
-  const _ParameterShape1._(super.index) : super._();
+  const new _(super.index) : super._();
 
   int decodeLocalIndex(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -236,7 +236,7 @@ class _ParameterShape1 extends Opcode {
 }
 
 class _ParameterShape2 extends Opcode {
-  const _ParameterShape2._(super.index) : super._();
+  const new _(super.index) : super._();
 
   LiteralRef decodeValue(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -245,11 +245,11 @@ class _ParameterShape2 extends Opcode {
 }
 
 class _ParameterShape3 extends Opcode {
-  const _ParameterShape3._(super.index) : super._();
+  const new _(super.index) : super._();
 }
 
 class _ParameterShape4 extends Opcode {
-  const _ParameterShape4._(super.index) : super._();
+  const new _(super.index) : super._();
 
   TypeRef decodeType(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -258,7 +258,7 @@ class _ParameterShape4 extends Opcode {
 }
 
 class _ParameterShape5 extends Opcode {
-  const _ParameterShape5._(super.index) : super._();
+  const new _(super.index) : super._();
 
   int decodePopCount(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -272,7 +272,7 @@ class _ParameterShape5 extends Opcode {
 }
 
 class _ParameterShape6 extends Opcode {
-  const _ParameterShape6._(super.index) : super._();
+  const new _(super.index) : super._();
 
   int decodeInputCount(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -286,7 +286,7 @@ class _ParameterShape6 extends Opcode {
 }
 
 class _ParameterShape7 extends Opcode {
-  const _ParameterShape7._(super.index) : super._();
+  const new _(super.index) : super._();
 
   int decodeInputCount(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -295,7 +295,7 @@ class _ParameterShape7 extends Opcode {
 }
 
 class _ParameterShape8 extends Opcode {
-  const _ParameterShape8._(super.index) : super._();
+  const new _(super.index) : super._();
 
   TypeRef decodeType(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -309,7 +309,7 @@ class _ParameterShape8 extends Opcode {
 }
 
 class _ParameterShape9 extends Opcode {
-  const _ParameterShape9._(super.index) : super._();
+  const new _(super.index) : super._();
 
   int decodeNesting(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -318,7 +318,7 @@ class _ParameterShape9 extends Opcode {
 }
 
 class _ParameterShape10 extends Opcode {
-  const _ParameterShape10._(super.index) : super._();
+  const new _(super.index) : super._();
 
   CallDescriptorRef decodeCallDescriptor(
     RawIRContainerInterface ir,
@@ -342,7 +342,7 @@ class _ParameterShape10 extends Opcode {
 class Opcode {
   final int index;
 
-  const Opcode._(this.index);
+  const new _(this.index);
 
   static const alloc = _ParameterShape0._(0);
   static const release = _ParameterShape0._(1);

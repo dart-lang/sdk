@@ -24,7 +24,17 @@ augment typedef void A();
 
     var node = parseResult.findNode.singleFunctionTypeAlias;
     assertParsedNodeText(node, r'''
-FunctionTypeAlias
+FunctionTypeAlias2
+  augmentKeyword: augment
+  typedefKeyword: typedef
+  returnType: NamedType
+    name: void
+  name: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  semicolon: ;
+V1: FunctionTypeAlias
   augmentKeyword: augment
   typedefKeyword: typedef
   returnType: NamedType
@@ -45,7 +55,15 @@ augment typedef A = int;
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''
-GenericTypeAlias
+GenericTypeAlias2
+  augmentKeyword: augment
+  typedefKeyword: typedef
+  name: A
+  equals: =
+  type: NamedType
+    name: int
+  semicolon: ;
+V1: GenericTypeAlias
   augmentKeyword: augment
   typedefKeyword: typedef
   name: A
@@ -69,6 +87,14 @@ typedef = int;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: int
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>

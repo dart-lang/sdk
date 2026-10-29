@@ -46,14 +46,16 @@ class HoverHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-    return (
-      success(clientCapabilities),
+    return withResolvedUnit(textDocument: params.textDocument, token, (
       unit,
-      offset,
-    ).mapResultsSync(_getHover);
+      _,
+      _,
+    ) async {
+      var offset = toOffset(unit.lineInfo, pos);
+      return offset.mapResultSync(
+        (offset) => _getHover(clientCapabilities, unit, offset),
+      );
+    });
   }
 
   Hover? toHover(

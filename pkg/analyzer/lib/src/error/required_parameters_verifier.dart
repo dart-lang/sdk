@@ -14,7 +14,7 @@ import 'package:analyzer/src/error/listener.dart';
 class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _errorReporter;
 
-  RequiredParametersVerifier(this._errorReporter);
+  new(this._errorReporter);
 
   void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
     if (node.resolution case StaticInvocationResolution(:var invokeType)) {
@@ -71,7 +71,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     _check(
       parameters: node.constructorElement?.formalParameters,
       arguments: node.arguments?.argumentList.arguments2 ?? <Argument>[],
@@ -241,7 +241,7 @@ class _RequiredAnnotation {
   /// If `null`, then the parameter is `required` in null safety.
   final ElementAnnotationImpl? annotation;
 
-  _RequiredAnnotation(this.annotation);
+  new(this.annotation);
 
   String? getReason({required bool strictCasts}) {
     if (annotation == null) {

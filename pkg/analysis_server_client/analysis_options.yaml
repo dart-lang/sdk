@@ -19,4 +19,5 @@ linter:
     - prefer_single_quotes
     - unawaited_futures
     - unnecessary_const_in_enum_constructor
+    - unnecessary_this_alias
     - unnecessary_type_name_in_constructor

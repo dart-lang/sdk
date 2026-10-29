@@ -7144,8 +7144,7 @@ class FileSystemStateTest with ResourceProviderMixin {
 
     var analysisOptions =
         (AnalysisOptionsBuilder()
-              ..contextFeatures = FeatureSet.latestLanguageVersion()
-              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+              ..contextFeatures = FeatureSet.latestLanguageVersion())
             .build();
     var featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,

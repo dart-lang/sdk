@@ -21,7 +21,19 @@ class MixinDeclarationParserTest extends ParserDiagnosticsTest {
 augment mixin M implements B {}
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: B
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -43,7 +55,19 @@ augment mixin M on A {}
 // [diag.mixinAugmentationHasOnClause] Mixin augmentations can't have 'on' clauses.
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  onClause: MixinOnClause
+    onKeyword: on
+    superclassConstraints
+      NamedType
+        name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -63,7 +87,23 @@ MixinDeclaration
 augment mixin M<T extends int> {}
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: int
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -95,7 +135,13 @@ mixin A {
     // So, we don't put them into AST at all.
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -112,7 +158,26 @@ mixin M {
 ''');
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        staticKeyword: static
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: F
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -128,7 +193,7 @@ MixinDeclaration
             VariableDeclaration
               name: F
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -143,7 +208,24 @@ mixin M {
 ''');
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      GetterDeclaration
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -156,7 +238,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -171,7 +253,25 @@ mixin M {
 ''');
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -201,7 +301,18 @@ mixin A {
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody2
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -223,7 +334,29 @@ mixin M {
 ''');
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      SetterDeclaration
+        setKeyword: set
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: _
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -233,14 +366,6 @@ MixinDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: _
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -262,7 +387,12 @@ mixin M;
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody
@@ -280,7 +410,12 @@ mixin M;
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody
@@ -295,7 +430,26 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        augmentKeyword: augment
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -311,7 +465,7 @@ MixinDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -325,7 +479,27 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -342,7 +516,7 @@ MixinDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -356,7 +530,28 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      FieldsDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        fields
+          Field
+            name: x
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+        semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -374,7 +569,7 @@ MixinDeclaration
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         semicolon: ;
     rightBracket: }
@@ -388,7 +583,26 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      GetterDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -403,7 +617,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -417,7 +631,27 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      GetterDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: int
+        getKeyword: get
+        name: foo
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -433,7 +667,7 @@ MixinDeclaration
         name: foo
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -450,7 +684,25 @@ mixin M on C implements A, (int, int), B {}
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin @11
+  name: M @17
+  onClause: MixinOnClause
+    onKeyword: on @19
+    superclassConstraints
+      NamedType
+        name: C @22
+  implementsClause: ImplementsClause
+    implementsKeyword: implements @24
+    interfaces
+      NamedType
+        name: A @35
+      NamedType
+        name: B @50
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @52
+    rightBracket: } @53
+V1: MixinDeclaration
   mixinKeyword: mixin @11
   name: M @17
   onClause: MixinOnClause
@@ -478,7 +730,27 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        augmentKeyword: augment
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -508,7 +780,28 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      MethodDeclaration2
+        augmentKeyword: augment
+        staticKeyword: static
+        returnType: NamedType
+          name: void
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -540,7 +833,17 @@ base mixin M {}
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  documentationComment: Comment
+    tokens
+      /// text
+  baseKeyword: base
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   documentationComment: Comment
     tokens
       /// text
@@ -561,7 +864,13 @@ final mixin M {}
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -578,7 +887,13 @@ interface mixin M {}
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -595,7 +910,13 @@ sealed mixin M {}
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: BlockClassBody
@@ -609,7 +930,20 @@ MixinDeclaration
 augment mixin M<T> {}
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -634,7 +968,20 @@ mixin M on A, (int, int), B {}
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin @0
+  name: M @6
+  onClause: MixinOnClause
+    onKeyword: on @8
+    superclassConstraints
+      NamedType
+        name: A @11
+      NamedType
+        name: B @26
+  body: BlockInstanceDeclarationBody
+    leftBracket: { @28
+    rightBracket: } @29
+V1: MixinDeclaration
   mixinKeyword: mixin @0
   name: M @6
   onClause: MixinOnClause
@@ -657,7 +1004,34 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      OperatorDeclaration
+        augmentKeyword: augment
+        returnType: NamedType
+          name: int
+        operatorKeyword: operator
+        operator: +
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: other
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+          semicolon: ;
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -672,14 +1046,6 @@ MixinDeclaration
         name: +
         parameters: FormalParameterList
           leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: other
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
               name: int
@@ -687,7 +1053,7 @@ MixinDeclaration
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
     rightBracket: }
@@ -703,7 +1069,13 @@ mixin const A() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -722,7 +1094,13 @@ mixin const A() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -740,7 +1118,13 @@ mixin const A {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -759,7 +1143,13 @@ mixin const A {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -777,7 +1167,13 @@ mixin const A.name() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -796,7 +1192,13 @@ mixin const A.name() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -814,7 +1216,13 @@ mixin A() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -833,7 +1241,13 @@ mixin A() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -851,7 +1265,13 @@ mixin A.name() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -870,7 +1290,13 @@ mixin A.name() {}
 
     var node = parseResult.findNode.singleMixinDeclaration;
     assertParsedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: A
   body: BlockClassBody
@@ -886,7 +1312,31 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      SetterDeclaration
+        augmentKeyword: augment
+        setKeyword: set
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -898,14 +1348,6 @@ MixinDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: x
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -927,7 +1369,32 @@ augment mixin M {
 }
 ''');
     assertParsedNodeText(parseResult.findNode.singleMixinDeclaration, r'''
-MixinDeclaration
+MixinDeclaration2
+  augmentKeyword: augment
+  mixinKeyword: mixin
+  name: M
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    members
+      SetterDeclaration
+        augmentKeyword: augment
+        staticKeyword: static
+        setKeyword: set
+        name: foo
+        formalParameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
+V1: MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: M
@@ -940,14 +1407,6 @@ MixinDeclaration
         propertyKeyword: set
         name: foo
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: x
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

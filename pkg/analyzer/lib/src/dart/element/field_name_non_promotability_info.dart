@@ -29,7 +29,7 @@ class FieldNameNonPromotabilityInfo {
   /// promotability of the given private name.
   final List<InterfaceElement> conflictingNsmClasses;
 
-  FieldNameNonPromotabilityInfo({
+  new({
     required this.conflictingFields,
     required this.conflictingGetters,
     required this.conflictingNsmClasses,

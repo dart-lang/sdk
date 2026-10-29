@@ -271,7 +271,6 @@ SwitchExpression
     name: a
     resolution: GetterInvocationResolution
       element: <testLibrary>::@getter::a
-      invokeType: num Function()
       type: num
     staticType: num
   expression(v1): SimpleIdentifier
@@ -859,7 +858,7 @@ void f(Object? x) {
     int a when a > 0 => a,
     _ => a,
 //       ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
   });
 }
 ''');

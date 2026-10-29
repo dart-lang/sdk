@@ -25,7 +25,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   /// the same, for example for all annotations of members of a class.
   ({Scope scope, AstResolver resolver})? _astResolverCache;
 
-  MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
+  new(this._linker, this._libraryFragment, this._libraryBuilder)
     : _containerScope = _libraryFragment.scope {
     _scope = _containerScope;
   }
@@ -58,17 +58,17 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitBlockClassBody(BlockClassBody node) {
+  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
     node.visitChildren2(this);
   }
 
   @override
-  void visitBlockEnumBody(BlockEnumBody node) {
+  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
     node.visitChildren2(this);
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     node.metadata.accept2(this);
     node.namePart.typeParameters?.accept2(this);
 
@@ -85,7 +85,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
   }
@@ -97,24 +97,18 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     node.metadata.accept2(this);
-    node.parameters.accept2(this);
+    node.formalParameters.accept2(this);
   }
 
   @override
-  void visitEmptyClassBody(EmptyClassBody node) {}
-
-  @override
-  void visitEmptyEnumBody(EmptyEnumBody node) {}
-
-  @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     node.metadata.accept2(this);
   }
 
   @override
-  void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
+  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
     node.metadata.accept2(this);
     node.namePart.typeParameters?.accept2(this);
 
@@ -141,7 +135,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
+  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
 
@@ -154,8 +148,8 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     node.metadata.accept2(this);
     node.namePart.typeParameters?.accept2(this);
@@ -173,16 +167,16 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     node.metadata.accept2(this);
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
       functionTypedSuffix.formalParameters.accept2(this);
     }
+  }
+
+  @override
+  void visitFieldsDeclaration(FieldsDeclaration node) {
+    node.metadata.accept2(this);
   }
 
   @override
@@ -192,19 +186,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    node.metadata.accept2(this);
-    node.functionExpression.accept2(this);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    node.typeParameters?.accept2(this);
-    node.parameters?.accept2(this);
-  }
-
-  @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
     node.parameters.accept2(this);
@@ -217,13 +199,18 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
     // TODO(eernst): Extend this visitor to visit types.
     // E.g., `List<Function<@m X>()> Function()` is not included now.
     var type = node.type;
     if (type is GenericFunctionType) type.accept2(this);
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
   }
 
   @override
@@ -237,14 +224,12 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-    node.parameters?.accept2(this);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node);
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
 
@@ -262,6 +247,11 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     node.metadata.accept2(this);
   }
@@ -272,7 +262,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     node.metadata.accept2(this);
   }
 
@@ -292,6 +282,19 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
+
+  @override
+  void visitSemicolonInstanceDeclarationBody(
+    SemicolonInstanceDeclarationBody node,
+  ) {}
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node);
+  }
+
+  @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     node.metadata.accept2(this);
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
@@ -300,16 +303,32 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    node.metadata.accept2(this);
+    node.typeParameters?.accept2(this);
+    node.formalParameters.accept2(this);
+  }
+
+  @override
   void visitTopLevelGetterDeclaration(
     covariant TopLevelGetterDeclarationImpl node,
   ) {
     node.metadata.accept2(this);
-    node.recoveryTypeParameters?.accept2(this);
     node.recoveryFormalParameters?.accept2(this);
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    node.metadata.accept2(this);
+    node.formalParameters.accept2(this);
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     node.metadata.accept2(this);
   }
 
@@ -321,5 +340,11 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitTypeParameterList(TypeParameterList node) {
     node.typeParameters.accept2(this);
+  }
+
+  void _visitMethodDeclaration(MethodDeclarationV1OriginImpl node) {
+    node.metadata.accept2(this);
+    node.writtenTypeParameters?.accept2(this);
+    node.writtenFormalParameters?.accept2(this);
   }
 }

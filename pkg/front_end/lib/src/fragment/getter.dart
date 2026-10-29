@@ -75,6 +75,10 @@ class GetterFragment implements Fragment, FunctionFragment {
       // Coverage-ignore(suite): Not run.
       ?.computeBuilderList;
 
+  Token? _bodyToken;
+
+  bool _hasBuiltBody = false;
+
   new({
     required this.name,
     required this.fileUri,
@@ -95,6 +99,7 @@ class GetterFragment implements Fragment, FunctionFragment {
     required this.nativeMethodName,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
+    required this._bodyToken,
   });
 
   @override
@@ -122,8 +127,31 @@ class GetterFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
+  FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
+    if (_hasBuiltBody) return null;
+    _hasBuiltBody = true;
     return new _GetterBodyBuildingContext(this);
+  }
+
+  void buildBodyForOutline(
+    SourceLibraryBuilder libraryBuilder, {
+    required bool includeBody,
+  }) {
+    Token? bodyToken = _bodyToken;
+    if (includeBody && bodyToken != null) {
+      FunctionBodyBuildingContext? functionBodyBuildingContext =
+          createFunctionBodyBuildingContext();
+      if (functionBodyBuildingContext != null) {
+        libraryBuilder.loader.createResolver().buildFunctionBody(
+          libraryBuilder: libraryBuilder,
+          functionBodyBuildingContext: functionBodyBuildingContext,
+          fileUri: fileUri,
+          startToken: bodyToken,
+          metadata: null,
+        );
+      }
+    }
+    _bodyToken = null;
   }
 
   @override
@@ -149,9 +177,6 @@ class _GetterBodyBuildingContext(final GetterFragment _fragment)
   @override
   // Coverage-ignore(suite): Not run.
   bool get shouldFinishFunction => true;
-
-  @override
-  bool get isImplementation => _fragment.declaration.isImplementation;
 
   @override
   List<TypeParameter>? get thisTypeParameters =>

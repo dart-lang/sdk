@@ -17,7 +17,7 @@ errorToString(error) {
       return "ERROR_A";
     case ERROR_B = 1:
     //   ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_CONST
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     //   ^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_CASE_EXPRESSION
     // [cfe] Setter not found: 'ERROR_B'.

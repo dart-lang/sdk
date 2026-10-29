@@ -35,7 +35,7 @@ class ConstructorElementToInfer {
   /// The element, might be [SubstitutedConstructorElementImpl].
   final InternalConstructorElement element;
 
-  ConstructorElementToInfer(this.typeParameters, this.element);
+  new(this.typeParameters, this.element);
 
   /// Return the equivalent generic function type that we could use to
   /// forward to the constructor, or for a non-generic type simply returns
@@ -62,14 +62,12 @@ class InvocationInferenceHelper {
   final bool _genericMetadataIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  InvocationInferenceHelper({
+  new({
     required TypeAnalyzer typeAnalyzer,
-    required DiagnosticReporter diagnosticReporter,
-    required TypeSystemImpl typeSystem,
+    required this._diagnosticReporter,
+    required this._typeSystem,
     required this.dataForTesting,
   }) : _typeAnalyzer = typeAnalyzer,
-       _diagnosticReporter = diagnosticReporter,
-       _typeSystem = typeSystem,
        _genericMetadataIsEnabled = typeAnalyzer.definingLibrary.featureSet
            .isEnabled(Feature.generic_metadata);
 
@@ -130,7 +128,7 @@ class InvocationInferenceHelper {
         contextType,
         tearOffType,
         diagnosticReporter: _diagnosticReporter,
-        errorNode: expression,
+        expression: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled:
             _typeAnalyzer.inferenceUsingBoundsIsEnabled,

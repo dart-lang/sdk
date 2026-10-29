@@ -5,9 +5,9 @@
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/key.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/path.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/shared.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/types.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -30,7 +30,7 @@ const AstTextStrategy textStrategy = const AstTextStrategy(
 class ExhaustivenessDataForTesting {
   /// Access to interface for looking up `Object` members on non-interface
   /// types.
-  ObjectPropertyLookup? objectFieldLookup;
+  ObjectPropertyLookup? objectPropertyLookup;
 
   /// Map from switch statement/expression nodes to the results of the
   /// exhaustiveness test.
@@ -39,7 +39,7 @@ class ExhaustivenessDataForTesting {
 
 // Coverage-ignore(suite): Not run.
 class ExhaustivenessResult(
-  final StaticType scrutineeType,
+  final Shape scrutineeShape,
   final List<Space> caseSpaces,
   final List<int> caseOffsets,
   final Set<int> unreachableCases,
@@ -124,9 +124,9 @@ class CfeTypeOperations(
   }
 
   @override
-  Map<Key, DartType> getFieldTypes(DartType type) {
+  Map<Key, DartType> getPropertyTypes(DartType type) {
     if (type is InterfaceType) {
-      Map<Key, DartType> fieldTypes = {};
+      Map<Key, DartType> propertyTypes = {};
       Map<Class, Substitution> substitutions = {};
       for (Member member in _classHierarchy.getInterfaceMembers(
         type.classNode,
@@ -134,13 +134,13 @@ class CfeTypeOperations(
         if (member.name.isPrivate && member.name.library != _enclosingLibrary) {
           continue;
         }
-        DartType? fieldType;
+        DartType? propertyType;
         if (member is Field) {
-          fieldType = member.getterType;
+          propertyType = member.getterType;
         } else if (member is Procedure && !member.isSetter) {
-          fieldType = member.getterType;
+          propertyType = member.getterType;
         }
-        if (fieldType != null) {
+        if (propertyType != null) {
           Class declaringClass = member.enclosingClass!;
           if (declaringClass.typeParameters.isNotEmpty) {
             Substitution substitution = substitutions[declaringClass] ??=
@@ -150,20 +150,20 @@ class CfeTypeOperations(
                     declaringClass,
                   )!,
                 );
-            fieldType = substitution.substituteType(fieldType);
+            propertyType = substitution.substituteType(propertyType);
           }
-          fieldTypes[new NameKey(member.name.text)] = fieldType;
+          propertyTypes[new NameKey(member.name.text)] = propertyType;
         }
       }
-      return fieldTypes;
+      return propertyTypes;
     } else if (type is ExtensionType) {
       // Coverage-ignore-block(suite): Not run.
       ExtensionTypeDeclaration extensionTypeDeclaration =
           type.extensionTypeDeclaration;
-      Map<Key, DartType> fieldTypes = {};
+      Map<Key, DartType> propertyTypes = {};
       for (TypeDeclarationType implementedType
           in extensionTypeDeclaration.implements) {
-        Map<Key, DartType> implementedFieldTypes = getFieldTypes(
+        Map<Key, DartType> implementedPropertyTypes = getPropertyTypes(
           implementedType,
         );
         if (implementedType.typeDeclaration.typeParameters.isNotEmpty) {
@@ -173,20 +173,21 @@ class CfeTypeOperations(
               implementedType.typeDeclaration,
             )!,
           );
-          for (MapEntry<Key, DartType> entry in implementedFieldTypes.entries) {
-            fieldTypes[entry.key] = substitution.substituteType(entry.value);
+          for (MapEntry<Key, DartType> entry
+              in implementedPropertyTypes.entries) {
+            propertyTypes[entry.key] = substitution.substituteType(entry.value);
           }
         } else {
-          fieldTypes.addAll(implementedFieldTypes);
+          propertyTypes.addAll(implementedPropertyTypes);
         }
       }
       Substitution substitution = Substitution.fromExtensionType(type);
       for (Procedure procedure in extensionTypeDeclaration.procedures) {
         if (!procedure.isSetter) {
-          DartType fieldType = substitution.substituteType(
+          DartType propertyType = substitution.substituteType(
             procedure.getterType,
           );
-          fieldTypes[new NameKey(procedure.name.text)] = fieldType;
+          propertyTypes[new NameKey(procedure.name.text)] = propertyType;
         }
       }
       for (ExtensionTypeMemberDescriptor descriptor
@@ -204,7 +205,7 @@ class CfeTypeOperations(
                 type.typeArguments,
               );
             }
-            fieldTypes[new NameKey(descriptor.name.text)] =
+            propertyTypes[new NameKey(descriptor.name.text)] =
                 functionType.returnType;
           case ExtensionTypeMemberKind.Getter:
             Procedure member = descriptor.memberReference!.asProcedure;
@@ -215,7 +216,7 @@ class CfeTypeOperations(
                 type.typeArguments,
               );
             }
-            fieldTypes[new NameKey(descriptor.name.text)] =
+            propertyTypes[new NameKey(descriptor.name.text)] =
                 functionType.returnType;
           case ExtensionTypeMemberKind.Field:
           case ExtensionTypeMemberKind.Constructor:
@@ -226,21 +227,23 @@ class CfeTypeOperations(
             break;
         }
       }
-      return fieldTypes;
+      return propertyTypes;
     } else if (type is RecordType) {
-      Map<Key, DartType> fieldTypes = {};
-      fieldTypes.addAll(
-        getFieldTypes(_typeEnvironment.coreTypes.objectNonNullableRawType),
+      Map<Key, DartType> propertyTypes = {};
+      propertyTypes.addAll(
+        getPropertyTypes(_typeEnvironment.coreTypes.objectNonNullableRawType),
       );
       for (int index = 0; index < type.positional.length; index++) {
-        fieldTypes[new RecordIndexKey(index)] = type.positional[index];
+        propertyTypes[new RecordIndexKey(index)] = type.positional[index];
       }
       for (NamedType field in type.named) {
-        fieldTypes[new RecordNameKey(field.name)] = field.type;
+        propertyTypes[new RecordNameKey(field.name)] = field.type;
       }
-      return fieldTypes;
+      return propertyTypes;
     } else {
-      return getFieldTypes(_typeEnvironment.coreTypes.objectNonNullableRawType);
+      return getPropertyTypes(
+        _typeEnvironment.coreTypes.objectNonNullableRawType,
+      );
     }
   }
 
@@ -431,7 +434,12 @@ class CfeEnumOperations(final ConstantEvaluator _constantEvaluator)
 
   @override
   String getEnumElementName(Field enumField) {
-    return '${enumField.enclosingClass!.name}.${enumField.name}';
+    return '${enumField.enclosingClass!.name}.${enumField.name.text}';
+  }
+
+  @override
+  String getEnumElementSimpleName(Field enumField) {
+    return enumField.name.text;
   }
 
   @override
@@ -616,7 +624,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
   @override
   Space dispatchPattern(
     Path path,
-    StaticType contextType,
+    Shape contextShape,
     Pattern pattern, {
     required bool nonNull,
   }) {
@@ -643,7 +651,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       }
       return createObjectSpace(
         path,
-        contextType,
+        contextShape,
         pattern.requiredType,
         properties,
         extensionPropertyTypes,
@@ -652,7 +660,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is VariablePattern) {
       return createVariableSpace(
         path,
-        contextType,
+        contextShape,
         pattern.variable.type,
         nonNull: nonNull,
       );
@@ -670,7 +678,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       }
       return createRecordSpace(
         path,
-        contextType,
+        contextShape,
         pattern.requiredType,
         positional,
         named,
@@ -678,26 +686,26 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is WildcardPattern) {
       return createWildcardSpace(
         path,
-        contextType,
+        contextShape,
         pattern.type,
         nonNull: nonNull,
       );
     } else if (pattern is OrPattern) {
       return createLogicalOrSpace(
         path,
-        contextType,
+        contextShape,
         pattern.left,
         pattern.right,
         nonNull: nonNull,
       );
     } else if (pattern is NullCheckPattern) {
-      return createNullCheckSpace(path, contextType, pattern.pattern);
+      return createNullCheckSpace(path, contextShape, pattern.pattern);
     } else if (pattern is NullAssertPattern) {
-      return createNullAssertSpace(path, contextType, pattern.pattern);
+      return createNullAssertSpace(path, contextShape, pattern.pattern);
     } else if (pattern is CastPattern) {
       return createCastSpace(
         path,
-        contextType,
+        contextShape,
         pattern.type,
         pattern.pattern,
         nonNull: nonNull,
@@ -705,7 +713,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     } else if (pattern is AndPattern) {
       return createLogicalAndSpace(
         path,
-        contextType,
+        contextShape,
         pattern.left,
         pattern.right,
         nonNull: nonNull,
@@ -787,12 +795,12 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
     if (enumValue != null) {
       return new Space(
         path,
-        cache.getEnumElementStaticType(enumValue.enumClass, enumValue),
+        cache.getEnumElementShape(enumValue.enumClass, enumValue),
       );
     } else if (constant is NullConstant) {
-      return new Space(path, StaticType.nullType);
+      return new Space(path, Shape.nullShape);
     } else if (constant is BoolConstant) {
-      return new Space(path, cache.getBoolValueStaticType(constant.value));
+      return new Space(path, cache.getBoolValueShape(constant.value));
     } else if (constant is RecordConstant) {
       Map<Key, Space> properties = {};
       for (
@@ -818,7 +826,7 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       }
       return new Space(
         path,
-        cache.getStaticType(constant.recordType),
+        cache.getShapeForType(constant.recordType),
         properties: properties,
       );
     } else if (hasPrimitiveEquality(constant)) {
@@ -826,48 +834,48 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       // to itself.
       return new Space(
         path,
-        cache.getUniqueStaticType<Constant>(
+        cache.getUniqueShape<Constant>(
           constant.getType(context),
           constant,
           constant.toText(textStrategy),
         ),
       );
     } else {
-      return new Space(path, cache.getUnknownStaticType());
+      return new Space(path, cache.getUnknownShape());
     }
   }
 
   @override
-  StaticType createUnknownStaticType() {
-    return cache.getUnknownStaticType();
+  Shape createUnknownShape() {
+    return cache.getUnknownShape();
   }
 
   @override
-  StaticType createStaticType(DartType type) {
-    return cache.getStaticType(type);
+  Shape createShapeForType(DartType type) {
+    return cache.getShapeForType(type);
   }
 
   @override
-  StaticType createListType(
+  Shape createListShape(
     DartType type,
-    ListTypeRestriction<DartType> restriction,
+    ListShapeRestriction<DartType> restriction,
   ) {
-    return cache.getListStaticType(type, restriction);
+    return cache.getListShape(type, restriction);
   }
 
   @override
-  StaticType createMapType(
+  Shape createMapShape(
     DartType type,
-    MapTypeRestriction<DartType> restriction,
+    MapShapeRestriction<DartType> restriction,
   ) {
-    return cache.getMapStaticType(type, restriction);
+    return cache.getMapShape(type, restriction);
   }
 
   @override
   TypeOperations<DartType> get typeOperations => cache.typeOperations;
 
   @override
-  ObjectPropertyLookup get objectFieldLookup => cache;
+  ObjectPropertyLookup get objectPropertyLookup => cache;
 }
 
 bool computeIsAlwaysExhaustiveType(DartType type, CoreTypes coreTypes) {

@@ -144,12 +144,19 @@ class PersistentWebSocket with StreamChannelMixin<dynamic> {
   var _closedManually = false;
 
   void _writeToWebSocket(dynamic data) {
-    if (data is String) {
-      _ws.sendText(data);
-    } else if (data is Uint8List) {
-      _ws.sendBytes(data);
-    } else {
-      throw UnsupportedError('Unexpected data type: ${data.runtimeType}');
+    try {
+      if (data is String) {
+        _ws.sendText(data);
+      } else if (data is Uint8List) {
+        _ws.sendBytes(data);
+      } else {
+        throw UnsupportedError('Unexpected data type: ${data.runtimeType}');
+      }
+    } on WebSocketConnectionClosed {
+      // The underlying connection was closed (e.g., by the server).
+      // Suppress surfacing an unhandled error by catching here.
+      // [onReconnect] is responsible for recovering after reconnect.
+      logger?.fine('$uri ($debugName): connection closed.');
     }
   }
 

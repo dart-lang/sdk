@@ -68,7 +68,7 @@ void foo(E e) => foo(E.a);
 
   Future<void> test_functionType() async {
     await resolveTestCode('''
-// ignore: dot_shorthand_undefined_member
+// ignore: undefined_static_member_read
 void f(int Function(int) g) => f(.^m());
 ''');
     await assertNoAssist();
@@ -76,7 +76,7 @@ void f(int Function(int) g) => f(.^m());
 
   Future<void> test_record() async {
     await resolveTestCode('''
-// ignore: dot_shorthand_undefined_member
+// ignore: undefined_static_member_read
 void f((int,) g) => f(.^m());
 ''');
     await assertNoAssist();

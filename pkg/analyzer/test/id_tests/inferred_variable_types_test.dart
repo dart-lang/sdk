@@ -32,7 +32,7 @@ main(List<String> args) {
 }
 
 class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
-  const _InferredVariableTypesDataComputer();
+  const new();
 
   @override
   DataInterpreter<DartType> get dataValidator =>
@@ -53,11 +53,21 @@ class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
 }
 
 class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
-  _InferredVariableTypesDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
-    if (node is VariableDeclaration) {
+    if (node is Field2) {
+      var element = node.declaredFragment!.element;
+      if (element.hasImplicitType) {
+        return element.type;
+      }
+    } else if (node is TopLevelVariable2) {
+      var element = node.declaredFragment!.element;
+      if (element.hasImplicitType) {
+        return element.type;
+      }
+    } else if (node is LocalVariable) {
       var element = node.declaredFragment!.element;
       if (element.hasImplicitType) {
         return element.type;
@@ -67,13 +77,12 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
       if (element.hasImplicitType) {
         return element.type;
       }
-    } else if (node is FunctionDeclarationStatement) {
-      var element = node.functionDeclaration.declaredFragment!.element;
+    } else if (node is LocalFunctionDeclaration) {
+      var element = node.declaredFragment!.element;
       if (element.hasImplicitReturnType) {
         return element.returnType;
       }
-    } else if (node is FunctionExpression &&
-        node.parent2 is! FunctionDeclaration) {
+    } else if (node is FunctionExpression) {
       var element = node.declaredFragment!.element;
       if (element.hasImplicitReturnType) {
         return element.returnType;
@@ -85,7 +94,7 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
 
 class _InferredVariableTypesDataInterpreter
     implements DataInterpreter<DartType> {
-  const _InferredVariableTypesDataInterpreter();
+  const new();
 
   @override
   String getText(DartType actualData, [String? indentation]) {

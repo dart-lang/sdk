@@ -9,11 +9,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   final Set<String> _names;
 
-  MixinSuperInvokedNamesCollector(this._names);
+  new(this._names);
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
-    if (node.leftOperand is SuperReference) {
+    if (node.leftOperand is SuperReference && node.binaryOperator != null) {
       _names.add(node.operator.lexeme);
     }
     super.visitBinaryOperatorInvocation(node);

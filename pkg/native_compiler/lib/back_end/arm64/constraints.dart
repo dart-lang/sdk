@@ -640,9 +640,11 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitBinaryDoubleOp(BinaryDoubleOp instr) =>
       switch (instr.op) {
-        BinaryDoubleOpcode.truncatingDiv => const InstructionConstraints(
-          anyCpuRegister,
-          [anyFpuRegister, anyFpuRegister],
+        .mod || .rem || .pow || .atan2 => InstructionConstraints(
+          returnFPReg,
+          const [V0, V1],
+          allRegistersExcept(returnFPReg, const [V0, V1]),
+          Safepoint(),
         ),
         _ => const InstructionConstraints(anyFpuRegister, [
           anyFpuRegister,
@@ -673,6 +675,24 @@ final class Arm64Constraints extends Constraints {
         .truncateToDouble => const InstructionConstraints(anyFpuRegister, [
           anyFpuRegister,
         ]),
+        .hash => const InstructionConstraints(
+          anyCpuRegister,
+          [anyFpuRegister],
+          [anyCpuRegister, anyCpuRegister],
+        ),
+        .sin ||
+        .cos ||
+        .tan ||
+        .asin ||
+        .acos ||
+        .atan ||
+        .exp ||
+        .log => InstructionConstraints(
+          returnFPReg,
+          const [V0],
+          allRegistersExcept(returnFPReg, const [V0]),
+          Safepoint(),
+        ),
       };
 
   @override

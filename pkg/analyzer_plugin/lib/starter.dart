@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/src/driver.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class ServerPluginStarter {
   /// Create a starter that can be used to start the given [plugin].
-  factory ServerPluginStarter(ServerPlugin plugin) => Driver(plugin);
+  factory(ServerPlugin plugin) => Driver(plugin);
 
   /// Establish the channel used to communicate with the server and start the
   /// plugin.

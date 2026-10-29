@@ -536,6 +536,7 @@ abstract mixin class ListBase<E> implements List<E> {
     if (iterable is List) {
       setRange(index, index + iterable.length, iterable);
     } else {
+      RangeError.checkValueInInterval(index, 0, this.length, "index");
       for (E element in iterable) {
         this[index++] = element;
       }

@@ -5,9 +5,14 @@ import "dart:core" as core;
 part unordered_constructor_part1.dart;
 part unordered_constructor_part2.dart;
 class Class1 extends core::Object {
+  field dynamic field;
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ self::annotation1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ self::annotation2
   constructor •() → self::Class1
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ self::annotation2
+  constructor withInitializers() → self::Class1
     ;
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ self::annotation1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ self::annotation2
@@ -23,9 +28,14 @@ class Class1 extends core::Object {
     return new self::Class1::•();
 }
 class Class2 extends core::Object {
+  field dynamic field;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ self::annotation1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ self::annotation2
   constructor /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ •() → self::Class2
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ self::annotation2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part1.dart */ withInitializers() → self::Class2
     ;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ self::annotation1
   @/* from org-dartlang-testcase:///unordered_constructor_part2.dart */ self::annotation2
@@ -41,9 +51,14 @@ class Class2 extends core::Object {
     return new self::Class2::•();
 }
 class Class3 extends core::Object {
+  field dynamic field;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ self::annotation1
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ self::annotation2
   constructor /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ •() → self::Class3
+    ;
+  @/* from org-dartlang-testcase:///unordered_constructor.dart */ self::annotation1
+  @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ self::annotation2
+  constructor /* from org-dartlang-testcase:///unordered_constructor_part2.dart */ withInitializers() → self::Class3
     ;
   @/* from org-dartlang-testcase:///unordered_constructor.dart */ self::annotation1
   @/* from org-dartlang-testcase:///unordered_constructor_part1.dart */ self::annotation2
@@ -60,6 +75,10 @@ class Class3 extends core::Object {
 }
 static const field core::int annotation1 = 1;
 static const field core::int annotation2 = 2;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
 
 
 Extra constant evaluation status:
@@ -71,20 +90,26 @@ Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_pa
 Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:14:3 -> IntConstant(2)
 Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:17:3 -> IntConstant(1)
 Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:17:3 -> IntConstant(2)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:27:3 -> IntConstant(1)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:22:3 -> IntConstant(2)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:30:3 -> IntConstant(1)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:25:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:20:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:20:3 -> IntConstant(2)
 Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:33:3 -> IntConstant(1)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:28:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:25:3 -> IntConstant(2)
 Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:36:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:28:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:39:3 -> IntConstant(1)
 Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:31:3 -> IntConstant(2)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:41:3 -> IntConstant(1)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:37:3 -> IntConstant(2)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:44:3 -> IntConstant(1)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:40:3 -> IntConstant(2)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:47:3 -> IntConstant(1)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:43:3 -> IntConstant(2)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:50:3 -> IntConstant(1)
-Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:46:3 -> IntConstant(2)
-Extra constant evaluation: evaluated: 27, effectively constant: 24
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:42:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:34:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:45:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part2.dart:37:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:52:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:42:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:55:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:45:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:58:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:48:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:61:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:51:3 -> IntConstant(2)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor.dart:64:3 -> IntConstant(1)
+Evaluated: FileUriExpression @ org-dartlang-testcase:///unordered_constructor_part1.dart:54:3 -> IntConstant(2)
+Extra constant evaluation: evaluated: 33, effectively constant: 30

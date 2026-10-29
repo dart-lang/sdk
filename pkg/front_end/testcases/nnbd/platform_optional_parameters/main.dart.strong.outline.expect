@@ -58,12 +58,12 @@ class Class extends core::Object {
   method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([erroneously-initialized core::int i = null]) → void
     ;
 }
-static method method([erroneously-initialized core::int i]) → void
+static method method([erroneously-initialized core::int i = null]) → void
   ;
 @_in::patch
-static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([erroneously-initialized core::int i]) → void
+static method /* from org-dartlang-testcase:///patch_lib.dart */ patchedMethod([erroneously-initialized core::int i = null]) → void
   ;
-static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([erroneously-initialized core::int i]) → void
+static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod([erroneously-initialized core::int i = null]) → void
   ;
 
 

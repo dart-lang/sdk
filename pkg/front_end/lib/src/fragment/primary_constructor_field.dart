@@ -128,7 +128,7 @@ class PrimaryConstructorFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -174,6 +174,7 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
@@ -228,6 +229,7 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
@@ -369,7 +371,6 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override
@@ -378,7 +379,6 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder builder,
     required PropertyEncodingStrategy encodingStrategy,
     required TypeParameterFactory typeParameterFactory,
-    required bool isImplementation,
   }) {}
 
   @override

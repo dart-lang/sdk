@@ -36,7 +36,7 @@ void f(Size size) {}
 }
 
 @reflectiveTest
-class ImportLibraryPrefixTest extends FixProcessorTest {
+class ImportLibraryPrefixTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryPrefix;
 

@@ -13,43 +13,33 @@ stages:
     - group:
       - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
       - test: --tags=extension
-      sdk:
-        - dev
-        - main
+      sdk: dev
       os:
         - linux
      # Windows extension tests:
     - group:
       - test: --tags=extension
-      sdk:
-        - dev
-        - main
+      sdk: dev
       os:
         - windows
     # First test shard:
     - group:
       - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
-      sdk:
-        - dev
-        - main
+      sdk: dev
       os:
         - linux
         - windows
     # Second test shard:
     - group:
       - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
-      sdk:
-        - dev
-        - main
+      sdk: dev
       os:
         - linux
         - windows
     # Third test shard:
     - group:
       - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
-      sdk:
-        - dev
-        - main
+      sdk: dev
       os:
         - linux
         - windows

@@ -35,20 +35,14 @@ class OrganizeImportsCommandHandler extends SimpleEditCommandHandler {
       );
     }
 
-    // Get the version of the doc before we calculate edits so we can send it back
-    // to the client so that they can discard this edit if the document has been
-    // modified since.
     var path = parameters['path'] as String;
-    var docIdentifier = server.getVersionedDocumentIdentifier(path);
     var autoTriggered = (parameters['autoTriggered'] as bool?) ?? false;
 
-    var result = await requireResolvedUnit(path);
-
-    if (cancellationToken.isCancellationRequested) {
-      return cancelled(cancellationToken);
-    }
-
-    return result.mapResult((result) async {
+    return withResolvedUnit(path: path, cancellationToken, (
+      result,
+      docIdentifier,
+      _,
+    ) async {
       var code = result.content;
       var unit = result.unit;
 

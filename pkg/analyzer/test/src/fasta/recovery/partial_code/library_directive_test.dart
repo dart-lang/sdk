@@ -34,6 +34,14 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -62,6 +70,16 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -69,7 +87,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -93,6 +111,17 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -169,6 +198,16 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -176,7 +215,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -199,6 +238,16 @@ CompilationUnit
           int
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -230,6 +279,18 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -326,6 +387,13 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -378,17 +446,25 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -418,7 +494,7 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -437,6 +513,25 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -467,6 +562,13 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -494,6 +596,14 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -521,6 +631,16 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -528,7 +648,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -551,6 +671,17 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -624,6 +755,16 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -631,7 +772,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -654,6 +795,18 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -686,6 +839,18 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -784,6 +949,13 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -834,17 +1006,25 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -873,7 +1053,7 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -892,6 +1072,25 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -921,6 +1120,13 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -952,6 +1158,14 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -983,6 +1197,16 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -990,7 +1214,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1017,6 +1241,17 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1102,6 +1337,16 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1109,7 +1354,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1134,6 +1379,16 @@ CompilationUnit
           int
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1168,6 +1423,18 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1272,6 +1539,13 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -1330,17 +1604,25 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1373,7 +1655,7 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -1392,6 +1674,25 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1425,6 +1726,13 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1454,6 +1762,14 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1483,6 +1799,16 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -1490,7 +1816,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1515,6 +1841,17 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    EnumDeclaration2
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters
@@ -1594,6 +1931,16 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1601,7 +1948,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1626,6 +1973,18 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -1660,6 +2019,18 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1764,6 +2135,13 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    MixinDeclaration2
+      mixinKeyword: mixin
+      name: M
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: M
@@ -1818,17 +2196,25 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1859,7 +2245,7 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -1878,6 +2264,25 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1909,6 +2314,13 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var

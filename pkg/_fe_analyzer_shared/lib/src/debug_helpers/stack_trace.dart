@@ -29,7 +29,7 @@ class StackTraceValue<T> {
   T _value;
   List<(T, StackTrace)> _stackTraces = [];
 
-  StackTraceValue(this._value) {
+  new(this._value) {
     _stackTraces.add((_value, StackTrace.current));
   }
 
@@ -66,7 +66,7 @@ class StackTraceList<T> with ListMixin<T> implements List<T> {
   List<T> _list;
   final List<(String, Object?, StackTrace)> _stackTraces = [];
 
-  StackTraceList(this._list) {
+  new(this._list) {
     _stackTraces.add(('init', _list, StackTrace.current));
   }
 
@@ -145,7 +145,7 @@ class StackTraceSet<T> with SetMixin<T> implements Set<T> {
   Set<T> _set;
   final List<(String, Object?, StackTrace)> _stackTraces = [];
 
-  StackTraceSet(this._set) {
+  new(this._set) {
     _stackTraces.add(('init', _set, StackTrace.current));
   }
 
@@ -221,7 +221,7 @@ class StackTraceMap<K, V> with MapBase<K, V> implements Map<K, V> {
   Map<K, V> _map;
   List<(String, Object?, StackTrace)> _stackTraces = [];
 
-  StackTraceMap(this._map);
+  new(this._map);
 
   Map<K, V> get value => _map;
 

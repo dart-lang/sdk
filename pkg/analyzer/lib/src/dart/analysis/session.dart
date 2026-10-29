@@ -27,7 +27,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// Initialize a newly created analysis session.
-  AnalysisSessionImpl(this._driver);
+  new(this._driver);
 
   @override
   AnalysisContext get analysisContext => _driver.analysisContext!;

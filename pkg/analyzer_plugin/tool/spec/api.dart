@@ -17,7 +17,7 @@ class Api extends ApiNode {
   final Types types;
   final Refactorings? refactorings;
 
-  Api(
+  new(
     this.version,
     this.domains,
     this.types,
@@ -38,7 +38,7 @@ class ApiNode {
   /// Html element representing this part of the API.
   final dom.Element? html;
 
-  ApiNode(this.html, bool? experimental, bool? deprecated)
+  new(this.html, bool? experimental, bool? deprecated)
     : experimental = experimental ?? false,
       deprecated = deprecated ?? false;
 }
@@ -62,7 +62,7 @@ class Domain extends ApiNode {
   final List<Request> requests;
   final List<Notification> notifications;
 
-  Domain(
+  new(
     this.name,
     this.requests,
     this.notifications,
@@ -77,7 +77,7 @@ class HierarchicalApiVisitor extends ApiVisitor {
   /// The API to visit.
   final Api api;
 
-  HierarchicalApiVisitor(this.api);
+  new(this.api);
 
   /// If [type] is a [TypeReference] that is defined in the API, follow the
   /// chain until a non-[TypeReference] is found, if possible.
@@ -186,7 +186,7 @@ class Notification extends ApiNode {
   /// object, or null if the notification has no parameters.
   final TypeObject? params;
 
-  Notification(
+  new(
     this.domainName,
     this.event,
     this.params,
@@ -229,7 +229,7 @@ class Refactoring extends ApiNode {
   /// options.
   final TypeObject? options;
 
-  Refactoring(
+  new(
     this.kind,
     this.feedback,
     this.options,
@@ -242,7 +242,7 @@ class Refactoring extends ApiNode {
 class Refactorings extends ApiNode with IterableMixin<Refactoring> {
   final List<Refactoring> refactorings;
 
-  Refactorings(this.refactorings, dom.Element html, {bool? experimental})
+  new(this.refactorings, dom.Element html, {bool? experimental})
     : super(html, experimental, false);
 
   @override
@@ -265,7 +265,7 @@ class Request extends ApiNode {
   /// object, or null if the response has no results.
   final TypeObject? result;
 
-  Request(
+  new(
     this.domainName,
     this.method,
     this.params,
@@ -317,7 +317,7 @@ class Request extends ApiNode {
 
 /// Base class for all possible types.
 abstract class TypeDecl extends ApiNode {
-  TypeDecl(super.html, super.experimental, super.deprecated);
+  new(super.html, super.experimental, super.deprecated);
 
   T accept<T>(ApiVisitor<T> visitor);
 }
@@ -329,7 +329,7 @@ class TypeDefinition extends ApiNode {
 
   bool isExternal = false;
 
-  TypeDefinition(
+  new(
     this.name,
     this.type,
     dom.Element html, {
@@ -343,12 +343,8 @@ class TypeDefinition extends ApiNode {
 class TypeEnum extends TypeDecl {
   final List<TypeEnumValue> values;
 
-  TypeEnum(
-    this.values,
-    dom.Element html, {
-    bool? experimental,
-    bool? deprecated,
-  }) : super(html, experimental, deprecated);
+  new(this.values, dom.Element html, {bool? experimental, bool? deprecated})
+    : super(html, experimental, deprecated);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeEnum(this);
@@ -358,19 +354,15 @@ class TypeEnum extends TypeDecl {
 class TypeEnumValue extends ApiNode {
   final String value;
 
-  TypeEnumValue(
-    this.value,
-    dom.Element html, {
-    bool? experimental,
-    bool? deprecated,
-  }) : super(html, experimental, deprecated);
+  new(this.value, dom.Element html, {bool? experimental, bool? deprecated})
+    : super(html, experimental, deprecated);
 }
 
 /// Type of a JSON list.
 class TypeList extends TypeDecl {
   final TypeDecl itemType;
 
-  TypeList(this.itemType, dom.Element html, {bool? experimental})
+  new(this.itemType, dom.Element html, {bool? experimental})
     : super(html, experimental, false);
 
   @override
@@ -388,7 +380,7 @@ class TypeMap extends TypeDecl {
   /// Type of map values.
   final TypeDecl valueType;
 
-  TypeMap(this.keyType, this.valueType, dom.Element html, {bool? experimental})
+  new(this.keyType, this.valueType, dom.Element html, {bool? experimental})
     : super(html, experimental, false);
 
   @override
@@ -399,12 +391,8 @@ class TypeMap extends TypeDecl {
 class TypeObject extends TypeDecl {
   final List<TypeObjectField> fields;
 
-  TypeObject(
-    this.fields,
-    dom.Element? html, {
-    bool? experimental,
-    bool? deprecated,
-  }) : super(html, experimental, deprecated);
+  new(this.fields, dom.Element? html, {bool? experimental, bool? deprecated})
+    : super(html, experimental, deprecated);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeObject(this);
@@ -429,7 +417,7 @@ class TypeObjectField extends ApiNode {
   /// Value that the field is required to contain, or null if it may vary.
   final Object? value;
 
-  TypeObjectField(
+  new(
     this.name,
     this.type,
     dom.Element? html, {
@@ -445,7 +433,7 @@ class TypeObjectField extends ApiNode {
 class TypeReference extends TypeDecl {
   final String typeName;
 
-  TypeReference(this.typeName, dom.Element? html, {bool? experimental})
+  new(this.typeName, dom.Element? html, {bool? experimental})
     : super(html, experimental, false) {
     if (typeName.isEmpty) {
       throw Exception('Empty type name');
@@ -462,7 +450,7 @@ class Types extends ApiNode with IterableMixin<TypeDefinition> {
 
   List<String> importUris = <String>[];
 
-  Types(this.types, dom.Element html, {bool? experimental})
+  new(this.types, dom.Element html, {bool? experimental})
     : super(html, experimental, false);
 
   @override
@@ -482,7 +470,7 @@ class TypeUnion extends TypeDecl {
   /// The field that is used to disambiguate this union
   final String field;
 
-  TypeUnion(this.choices, this.field, dom.Element html, {bool? experimental})
+  new(this.choices, this.field, dom.Element html, {bool? experimental})
     : super(html, experimental, false);
 
   @override

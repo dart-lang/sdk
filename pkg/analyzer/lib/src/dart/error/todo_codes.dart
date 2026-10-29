@@ -20,7 +20,7 @@ class Todo {
     'UNDONE': diag.undone,
   };
 
-  Todo._() {
+  new _() {
     throw UnimplementedError('Do not construct');
   }
 

@@ -23,12 +23,15 @@ abstract class RefactoringTest extends AbstractLspAnalysisServerTest
   /// The range of characters that were selected.
   Range? _range;
 
+  /// The parsed test source code.
+  late TestCode testCode;
+
   /// Return the command ID of the refactoring command that is expected to be
   /// available.
   String get refactoringCommandId;
 
   void addTestSource(String markedCode) {
-    var testCode = TestCode.parse(markedCode);
+    testCode = TestCode.parse(markedCode);
     var positions = testCode.positions;
     if (positions.isNotEmpty) {
       _position = positions[0].position;

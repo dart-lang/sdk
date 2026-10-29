@@ -8,12 +8,13 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show ProcessResult;
+import 'dart:io' show ProcessResult, pid;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/utilities/file_paths.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
@@ -37,6 +38,15 @@ import 'package:watcher/watcher.dart' as watcher;
 import 'package:yaml/yaml.dart';
 
 const _builtAsAot = bool.fromEnvironment('built_as_aot');
+
+/// How old a temporary file, left by an interrupted compile, must be before it
+/// is deleted. This is much longer than any compile takes.
+const _staleTemporaryFileAge = Duration(days: 1);
+
+/// The names of the temporary files that `_compileAotSnapshot` writes.
+final _temporaryFileName = RegExp(
+  r'^(plugin\.aot|depfile\.txt)\.\d+\.\d+\.tmp$',
+);
 
 /// An indication of a problem with the execution of a plugin that occurs prior
 /// to the execution of the plugin's entry point in an isolate.
@@ -95,6 +105,11 @@ class PluginManager {
   /// A table mapping the paths of plugins to information about those plugins.
   final Map<String, PluginIsolate> _pluginMap = <String, PluginIsolate>{};
 
+  /// A table mapping the paths of plugins that are currently being started to
+  /// a completer that completes when the plugin has finished starting.
+  final Map<String, Completer<void>> _startingPlugins =
+      <String, Completer<void>>{};
+
   /// The parameters for the last 'analysis.setAnalysisRoots' request that was
   /// received from the client.
   ///
@@ -139,6 +154,9 @@ class PluginManager {
 
   final ProcessRunner _processRunner;
 
+  /// The version of the Dart SDK that this plugin manager is running in.
+  final String _dartVersion;
+
   /// The set of context root paths with no configured _new_ plugins.
   final contextRootsWithNoPlugins = <String>{};
 
@@ -154,7 +172,8 @@ class PluginManager {
     this.instrumentationService,
     this.sessionLogger, {
     this._processRunner = const ProcessRunner(),
-  });
+    @visibleForTesting String? dartVersion,
+  }) : _dartVersion = dartVersion ?? platform.version;
 
   /// All of the legacy plugins that are currently known.
   List<PluginIsolate> get legacyPluginIsolates =>
@@ -182,78 +201,87 @@ class PluginManager {
     String path, {
     required bool isLegacyPlugin,
   }) async {
+    while (_startingPlugins[path] != null) {
+      await _startingPlugins[path]!.future;
+    }
     var pluginIsolate = _pluginMap[path];
     if (pluginIsolate != null) {
       pluginIsolate.addContextRoot(contextRoot);
       return;
     }
 
-    var startedSuccessfully = true;
-    PluginFiles pluginFiles;
+    var startingCompleter = Completer<void>();
+    _startingPlugins[path] = startingCompleter;
     try {
-      pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
-    } catch (exception, stackTrace) {
+      var startedSuccessfully = true;
+      PluginFiles pluginFiles;
+      try {
+        pluginFiles = filesFor(path, isLegacyPlugin: isLegacyPlugin);
+      } catch (exception, stackTrace) {
+        pluginIsolate = PluginIsolate(
+          path,
+          null,
+          null,
+          _notificationManager,
+          instrumentationService,
+          sessionLogger,
+          isLegacy: isLegacyPlugin,
+        );
+        pluginIsolate.reportException(CaughtException(exception, stackTrace));
+        _pluginMap[path] = pluginIsolate;
+        return;
+      }
       pluginIsolate = PluginIsolate(
         path,
-        null,
-        null,
+        pluginFiles.execution.path,
+        pluginFiles.packageConfig.path,
         _notificationManager,
         instrumentationService,
         sessionLogger,
         isLegacy: isLegacyPlugin,
       );
-      pluginIsolate.reportException(CaughtException(exception, stackTrace));
-      _pluginMap[path] = pluginIsolate;
-      return;
-    }
-    pluginIsolate = PluginIsolate(
-      path,
-      pluginFiles.execution.path,
-      pluginFiles.packageConfig.path,
-      _notificationManager,
-      instrumentationService,
-      sessionLogger,
-      isLegacy: isLegacyPlugin,
-    );
-    try {
-      instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
-      sessionLogger.logInfo('Starting plugin "$pluginIsolate"');
-      var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
-      unawaited(
-        session?.onDone.then((_) {
-          if (_pluginMap[path] == pluginIsolate) {
-            _pluginMap.remove(path);
-            _notifyPluginsChanged();
-          }
-        }),
-      );
-    } catch (exception, stackTrace) {
-      // Record the exception (for debugging purposes) and record the fact
-      // that we should not try to communicate with the plugin.
-      pluginIsolate.reportException(CaughtException(exception, stackTrace));
-      startedSuccessfully = false;
-    }
-
-    _pluginMap[path] = pluginIsolate;
-
-    _notifyPluginsChanged();
-
-    if (!isLegacyPlugin && _analysisSetAnalysisRootsParams != null) {
-      pluginIsolate.setAnalysisRoots(_analysisSetAnalysisRootsParams!);
-    }
-    pluginIsolate.addContextRoot(contextRoot);
-    if (startedSuccessfully) {
-      // Send these cached requests to the restarted plugin in order to catch it
-      // back up to the working state.
-      var cachedRequests = [
-        ?_analysisSetSubscriptionsParams,
-        if (_overlayState.isNotEmpty)
-          AnalysisUpdateContentParams(_overlayState),
-        ?_analysisSetPriorityFilesParams,
-      ];
-      for (var cachedRequest in cachedRequests) {
-        pluginIsolate.sendRequest(cachedRequest);
+      try {
+        instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
+        sessionLogger.logInfo('Starting plugin "$pluginIsolate"');
+        var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
+        unawaited(
+          session?.onDone.then((_) {
+            if (_pluginMap[path] == pluginIsolate) {
+              _pluginMap.remove(path);
+              _notifyPluginsChanged();
+            }
+          }),
+        );
+      } catch (exception, stackTrace) {
+        // Record the exception (for debugging purposes) and record the fact
+        // that we should not try to communicate with the plugin.
+        pluginIsolate.reportException(CaughtException(exception, stackTrace));
+        startedSuccessfully = false;
       }
+
+      _pluginMap[path] = pluginIsolate;
+
+      _notifyPluginsChanged();
+
+      if (!isLegacyPlugin && _analysisSetAnalysisRootsParams != null) {
+        pluginIsolate.setAnalysisRoots(_analysisSetAnalysisRootsParams!);
+      }
+      pluginIsolate.addContextRoot(contextRoot);
+      if (startedSuccessfully) {
+        // Send these cached requests to the restarted plugin in order to catch it
+        // back up to the working state.
+        var cachedRequests = [
+          ?_analysisSetSubscriptionsParams,
+          if (_overlayState.isNotEmpty)
+            AnalysisUpdateContentParams(_overlayState),
+          ?_analysisSetPriorityFilesParams,
+        ];
+        for (var cachedRequest in cachedRequests) {
+          pluginIsolate.sendRequest(cachedRequest);
+        }
+      }
+    } finally {
+      _startingPlugins.remove(path)?.complete();
     }
   }
 
@@ -366,15 +394,16 @@ class PluginManager {
     // copy the plugin contents, and the number of times we run `pub`.
 
     var parentFolder = pluginStateFolder(pluginPath);
-    if (parentFolder.exists) {
-      var executionFolder = parentFolder.getFolder(pluginFolder.shortName);
+    var executionFolder = parentFolder.getFolder(pluginFolder.shortName);
+    if (executionFolder.pluginEntrypoint.exists &&
+        executionFolder.getFile(file_paths.pubspecYaml).exists) {
       return _computeFiles(
         executionFolder,
         builtAsAot: builtAsAot,
         pubCommand: 'upgrade',
       );
     }
-    var executionFolder = pluginFolder.copyTo(parentFolder);
+    executionFolder = pluginFolder.copyTo(parentFolder);
     return _computeFiles(
       executionFolder,
       builtAsAot: builtAsAot,
@@ -398,7 +427,7 @@ class PluginManager {
   /// Returns the "plugin state" folder for a plugin at [pluginPath].
   ///
   /// This is a directory under the state location for '.plugin_manager', named
-  /// with a hash based on [pluginPath].
+  /// with a hash based on [pluginPath] and the version of the Dart SDK.
   Folder pluginStateFolder(String pluginPath) {
     var stateFolder = _resourceProvider.getStateLocation('.plugin_manager');
     if (stateFolder == null) {
@@ -576,6 +605,15 @@ class PluginManager {
 
   /// Compiles [entrypoint] to an AOT snapshot and records timing to the
   /// instrumentation log.
+  ///
+  /// Other analysis servers (possibly running a different version of the Dart
+  /// SDK) may be loading `plugin.aot` and reading `depfile.txt` at any time, so
+  /// the compiler never writes to those files directly. It writes to temporary
+  /// files in the same folder, which are renamed over the final files once
+  /// they are complete. A rename within one folder is atomic, and gives the
+  /// snapshot a new inode, so a process that has already mapped the old
+  /// snapshot keeps a consistent image, and a new process never sees a
+  /// partially written one.
   ProcessResult _compileAotSnapshot(File entrypoint) {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot $entrypoint".',
@@ -583,31 +621,41 @@ class PluginManager {
     sessionLogger.logInfo('Running "dart compile aot-snapshot $entrypoint".');
 
     var stopwatch = Stopwatch()..start();
-    var depfile = entrypoint.parent.getFile('depfile.txt');
-    var aotSnapshotFile = entrypoint.parent.getFile('plugin.aot');
-    if (aotSnapshotFile.exists) {
-      try {
-        // Delete any existing AOT snapshot. On MacOS, sometimes this file
-        // becomes quarantined due to a race condition with codesigning and
-        // overwriting the file.
-        aotSnapshotFile.delete();
-      } catch (e) {
-        instrumentationService.logInfo(
-          'Could not delete existing AOT plugin entrypoint at '
-          '"$aotSnapshotFile": $e.',
-        );
-        sessionLogger.logInfo(
-          'Could not delete existing AOT plugin entrypoint at '
-          '"$aotSnapshotFile": $e.',
-        );
+    var binFolder = entrypoint.parent;
+    var depfile = binFolder.getFile('depfile.txt');
+    var aotSnapshotFile = binFolder.getFile('plugin.aot');
+    _deleteStaleTemporaryFiles(binFolder);
+    var suffix = '$pid.${DateTime.now().microsecondsSinceEpoch}.tmp';
+    var temporaryDepfile = binFolder.getFile('depfile.txt.$suffix');
+    var temporarySnapshot = binFolder.getFile('plugin.aot.$suffix');
+
+    ProcessResult result;
+    try {
+      result = _processRunner.runSync(
+        sdk.dart,
+        [
+          'compile',
+          'aot-snapshot',
+          '-o',
+          temporarySnapshot.path,
+          '--depfile',
+          temporaryDepfile.path,
+          entrypoint.path,
+        ],
+        stderrEncoding: utf8,
+        stdoutEncoding: utf8,
+      );
+      if (result.exitCode == 0) {
+        // Publish the depfile before the snapshot. A reader that sees the new
+        // depfile with the old snapshot finds the snapshot stale (so it
+        // recompiles), and never the other way around.
+        _publishFile(temporaryDepfile, depfile);
+        _publishFile(temporarySnapshot, aotSnapshotFile);
       }
+    } finally {
+      _deleteIfExists(temporaryDepfile);
+      _deleteIfExists(temporarySnapshot);
     }
-    var result = _processRunner.runSync(
-      sdk.dart,
-      ['compile', 'aot-snapshot', '--depfile', depfile.path, entrypoint.path],
-      stderrEncoding: utf8,
-      stdoutEncoding: utf8,
-    );
     stopwatch.stop();
 
     instrumentationService.logInfo(
@@ -687,7 +735,7 @@ class PluginManager {
     String? pubCommand,
     Workspace? workspace,
   }) {
-    var pluginFile = pluginFolder.getFolder('bin').getFile('plugin.dart');
+    var pluginFile = pluginFolder.pluginEntrypoint;
     if (!pluginFile.exists) {
       throw PluginException("File '${pluginFile.path}' does not exist.");
     }
@@ -835,13 +883,51 @@ class PluginManager {
     return packageConfigFile;
   }
 
+  /// Deletes [file] if it exists, ignoring any failure.
+  void _deleteIfExists(File file) {
+    try {
+      if (file.exists) file.delete();
+    } catch (e) {
+      instrumentationService.logInfo('Could not delete "$file": $e.');
+      sessionLogger.logInfo('Could not delete "$file": $e.');
+    }
+  }
+
+  /// Deletes the temporary files, left in [binFolder] by compiles that were
+  /// interrupted (for example when the analysis server was killed), that are
+  /// older than [_staleTemporaryFileAge].
+  ///
+  /// A temporary file can be a whole AOT snapshot, so they are worth removing.
+  void _deleteStaleTemporaryFiles(Folder binFolder) {
+    try {
+      var cutoff =
+          DateTime.now().millisecondsSinceEpoch -
+          _staleTemporaryFileAge.inMilliseconds;
+      for (var child in binFolder.getChildren()) {
+        if (child is! File || !_temporaryFileName.hasMatch(child.shortName)) {
+          continue;
+        }
+        if (child.exists && child.modificationStamp < cutoff) {
+          _deleteIfExists(child);
+        }
+      }
+    } catch (e) {
+      instrumentationService.logInfo(
+        'Could not delete stale temporary files in "$binFolder": $e.',
+      );
+      sessionLogger.logInfo(
+        'Could not delete stale temporary files in "$binFolder": $e.',
+      );
+    }
+  }
+
   /// Returns a viable existing plugin AOT snapshot, if it exists and its
   /// modification timestamp is newer than all of its dependencies, and `null`
   /// otherwise.
   ///
-  /// The dependencies of an AOT snapshot are the pubspec file, the
-  /// entrypoint file, and all of the files referenced in the depfile which
-  /// is generated by the `dart compile` command.
+  /// The dependencies of an AOT snapshot are the pubspec file, the package
+  /// config file, the entrypoint file, and all of the files referenced in the
+  /// depfile which is generated by the `dart compile` command.
   File? _existingAotSnapshot({
     required ResourceProvider resourceProvider,
     required File pluginFile,
@@ -854,6 +940,12 @@ class PluginManager {
     if (pluginFile.modificationStamp > snapshotModificationStamp) return null;
     var pubspecFile = pluginFolder.getFile(file_paths.pubspecYaml);
     if (pubspecFile.modificationStamp > snapshotModificationStamp) return null;
+    var packageConfigFile = pluginFolder
+        .getFolder(file_paths.dotDartTool)
+        .getFile(file_paths.packageConfigJson);
+    if (packageConfigFile.modificationStamp > snapshotModificationStamp) {
+      return null;
+    }
 
     var depfile = pluginFolder.getFolder('bin').getFile('depfile.txt');
     if (!depfile.exists) return null;
@@ -882,6 +974,29 @@ class PluginManager {
   }
 
   void _notifyPluginsChanged() => _pluginsChanged.add(null);
+
+  /// Atomically moves the completed [temporary] file over [destination].
+  ///
+  /// If [temporary] does not exist, there is nothing to publish. If the move
+  /// fails (for example on Windows, when another process has [destination]
+  /// open) but [destination] exists, then it is complete, so it is used as is.
+  /// It might be stale, in which case this load uses an out of date plugin.
+  /// The next lookup compares its modification time to its dependencies, finds
+  /// it stale, and compiles again.
+  void _publishFile(File temporary, File destination) {
+    if (!temporary.exists) return;
+    try {
+      temporary.renameSync(destination.path);
+    } on FileSystemException catch (e) {
+      if (!destination.exists) rethrow;
+      instrumentationService.logInfo(
+        'Could not replace "$destination": $e. Using the existing file.',
+      );
+      sessionLogger.logInfo(
+        'Could not replace "$destination": $e. Using the existing file.',
+      );
+    }
+  }
 
   /// Return the names of packages that are listed as dependencies in the given
   /// [pubspecFile].
@@ -934,9 +1049,14 @@ class PluginManager {
     return result;
   }
 
-  /// Returns a hex-encoded MD5 signature of the given file [path].
+  /// Returns a hex-encoded MD5 signature of the given file [path], and the
+  /// version of the Dart SDK that this plugin manager is running in.
+  ///
+  /// The Dart version is included so that analysis servers running different
+  /// versions of the Dart SDK do not share (and keep invalidating) each other's
+  /// compiled plugins.
   String _uniqueDirectoryName(String path) {
-    var bytes = md5.convert(path.codeUnits).bytes;
+    var bytes = md5.convert('$_dartVersion\n$path'.codeUnits).bytes;
     return hex.encode(bytes);
   }
 

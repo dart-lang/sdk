@@ -4,23 +4,25 @@
 
 import 'dart:_internal' show patch;
 import 'dart:_js_helper' show JS;
+import 'dart:_wasm';
 
 @patch
 class Stopwatch {
   static int Function() _timerTicks = () {
-    return JS<double>("() => Date.now()").toInt();
+    return JS<WasmF64>("() => Date.now()").toDouble().toInt();
   };
 
   @patch
   static int _initTicker() {
-    if (JS<bool>("() => typeof dartUseDateNowForTicks !== \"undefined\"")) {
+    if (JS<WasmI32>("() => typeof dartUseDateNowForTicks !== \"undefined\"")
+        .toBool()) {
       // Millisecond precision, as int.
       return 1000;
     } else {
       // Microsecond precision as double. Convert to int without losing
       // precision.
       _timerTicks = () {
-        return JS<double>("() => 1000 * performance.now()").toInt();
+        return JS<WasmF64>("() => 1000 * performance.now()").toDouble().toInt();
       };
       return 1000000;
     }

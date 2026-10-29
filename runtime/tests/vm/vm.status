@@ -117,6 +117,7 @@ cc/TwoWayInduction: SkipByDesign # Building flow graph is not supported from byt
 cc/TypePropagator_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/WrapAroundAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
 dart/await_type_check_with_dynamic_loading_test: SkipByDesign # dart:mirrors is not supported.
+dart/isolates/closures_without_captured_variables_test: SkipByDesign # Interpreter does not do context trimming like optimizing compiler.
 dart/redirection_type_shuffling_test: SkipByDesign # dart:mirrors is not supported.
 dart/regress_52703_test: Pass, Slow
 

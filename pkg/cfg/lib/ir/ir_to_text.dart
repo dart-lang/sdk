@@ -193,6 +193,8 @@ final class IrToText extends VoidInstructionVisitor {
         _currentLine.write(instr.closureLayout);
       case ParallelMove():
         _currentLine.write(instr.moves.join(', '));
+      case Unreachable():
+        _currentLine.write('message: "${instr.message}"');
       case _:
     }
     return inputCols ?? const [];

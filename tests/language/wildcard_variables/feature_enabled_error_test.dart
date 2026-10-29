@@ -8,6 +8,6 @@ main() {
   int _ = 1;
   _ = 2;
   // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Setter not found: '_'.
 }

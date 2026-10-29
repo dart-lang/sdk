@@ -114,14 +114,23 @@ ListLiteral
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: x
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: x
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
@@ -141,7 +150,7 @@ ListLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix
@@ -557,7 +566,7 @@ SetOrMapLiteral
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: DirectAssignment
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: x
           operator: =
           value: IntegerLiteral
@@ -586,7 +595,7 @@ SetOrMapLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix

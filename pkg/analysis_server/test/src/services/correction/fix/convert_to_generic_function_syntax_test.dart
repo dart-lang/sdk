@@ -35,7 +35,8 @@ typedef F2<P, R> = Function(P x);
 }
 
 @reflectiveTest
-class PreferGenericFunctionTypeAliasesTest extends FixProcessorLintTest {
+class PreferGenericFunctionTypeAliasesTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToGenericFunctionSyntax;
 
@@ -113,7 +114,8 @@ g(String Function(int Function() h) f) {}
 }
 
 @reflectiveTest
-class UseFunctionTypeSyntaxForParametersTest extends FixProcessorLintTest {
+class UseFunctionTypeSyntaxForParametersTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToGenericFunctionSyntax;
 

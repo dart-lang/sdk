@@ -50,7 +50,6 @@ static ClassPtr CreateDummyClass(const String& class_name,
                                  const Script& script) {
   const Class& cls = Class::Handle(Class::New(
       Library::Handle(), class_name, script, TokenPosition::kNoSource));
-  cls.set_is_synthesized_class_unsafe();  // Dummy class for testing.
   cls.set_is_declaration_loaded_unsafe();
   return cls.ptr();
 }

@@ -16,8 +16,7 @@ import 'package:analyzer/src/error/listener.dart';
 class YieldStatementResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  YieldStatementResolver({required TypeAnalyzer typeAnalyzer})
-    : _typeAnalyzer = typeAnalyzer;
+  new({required this._typeAnalyzer});
 
   DiagnosticReporter get _diagnosticReporter =>
       _typeAnalyzer.diagnosticReporter;

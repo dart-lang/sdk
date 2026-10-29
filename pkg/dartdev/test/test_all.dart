@@ -4,7 +4,6 @@
 
 import 'package:test/test.dart';
 
-import 'analysis_server_test.dart' as analysis_server;
 import 'analytics_test.dart' as analytics;
 import 'commands/analyze_test.dart' as analyze;
 import 'commands/compile_test.dart' as compile;
@@ -40,7 +39,6 @@ import 'utils_test.dart' as utils;
 
 void main() {
   group('dart', () {
-    analysis_server.main();
     analytics.main();
     analyze.main();
     compile.main();

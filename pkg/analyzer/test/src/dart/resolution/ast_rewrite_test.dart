@@ -63,7 +63,6 @@ ImplicitCallTearOff
         element: SubstitutedMethodElementImpl
           baseElement: dart:core::@class::Map::@method::[]=
           substitution: {K: int, V: C}
-        invokeType: void Function(int, C)
         acceptedType: C
     operator: =
     value: UnqualifiedNameExpression
@@ -600,7 +599,6 @@ ImplicitCallTearOff
     name: c
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      invokeType: C Function()
       type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
@@ -650,14 +648,12 @@ ImplicitCallTearOff
       name: c
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::c
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
     name: c
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      invokeType: C Function()
       type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
@@ -2218,7 +2214,7 @@ class C {}
 void f() {
   C.new = 1;
 //  ^^^
-// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'C' doesn't have a static setter named 'new'.
 }
 ''');
 

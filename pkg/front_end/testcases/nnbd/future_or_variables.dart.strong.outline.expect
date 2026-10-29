@@ -17,9 +17,9 @@ class Class1 extends core::Object {
     ;
   method instanceMethod2({FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null}) → void
     ;
-  static method staticMethod1([FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3]) → void
+  static method staticMethod1([FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null]) → void
     ;
-  static method staticMethod2({FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3}) → void
+  static method staticMethod2({FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null}) → void
     ;
 }
 class Class2 extends core::Object {
@@ -34,9 +34,9 @@ class Class2 extends core::Object {
 static field FutureOr<dynamic>topLevelField1;
 static field FutureOr<core::int?>topLevelField2;
 static field FutureOr<FutureOr<dynamic>>topLevelField3;
-static method toplevelMethod1([FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3]) → void
+static method toplevelMethod1([FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null]) → void
   ;
-static method toplevelMethod2({FutureOr<dynamic>parameter1, FutureOr<core::int?>parameter2, FutureOr<FutureOr<dynamic>>parameter3}) → void
+static method toplevelMethod2({FutureOr<dynamic>parameter1 = null, FutureOr<core::int?>parameter2 = null, FutureOr<FutureOr<dynamic>>parameter3 = null}) → void
   ;
 static method main() → dynamic
   ;

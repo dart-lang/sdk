@@ -3984,6 +3984,112 @@ static simd128_value_t ShuffleTableIndices(intptr_t mask) {
   return indices;
 }
 
+DEFINE_EMIT(Simd32x4Shuffle, (VRegister result, VRegister value)) {
+  const intptr_t mask = instr->mask();
+  // Each case comment lists the lanes of `value` that the result lanes x, y,
+  // z and w take.
+  switch (mask) {
+    case 0x00:  // xxxx
+      __ vdups(result, value, 0);
+      break;
+    case 0x55:  // yyyy
+      __ vdups(result, value, 1);
+      break;
+    case 0xAA:  // zzzz
+      __ vdups(result, value, 2);
+      break;
+    case 0xFF:  // wwww
+      __ vdups(result, value, 3);
+      break;
+    case 0xB1:  // yxwz
+      __ vrev64_4s(result, value);
+      break;
+    case 0x39:  // yzwx
+      __ vext(result, value, value, 4);
+      break;
+    case 0x4E:  // zwxy
+      __ vext(result, value, value, 8);
+      break;
+    case 0x93:  // wxyz
+      __ vext(result, value, value, 12);
+      break;
+    case 0xE5:  // yyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 1);
+      break;
+    case 0xE6:  // zyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 2);
+      break;
+    case 0xE7:  // wyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 3);
+      break;
+    case 0xE0:  // xxzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 0);
+      break;
+    case 0xE8:  // xzzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 2);
+      break;
+    case 0xEC:  // xwzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 3);
+      break;
+    case 0xC4:  // xyxw
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 0);
+      break;
+    case 0xD4:  // xyyw
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 1);
+      break;
+    case 0xF4:  // xyww
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 3);
+      break;
+    case 0x24:  // xyzx
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 0);
+      break;
+    case 0x64:  // xyzy
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 1);
+      break;
+    case 0xA4:  // xyzz
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 2);
+      break;
+    default:
+      __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
+      __ vtbl1(result, value, VTMP);
+      break;
+  }
+}
+
+DEFINE_EMIT(Simd32x4ShuffleMix,
+            (VRegister result, VRegister left, VRegister right)) {
+  const intptr_t mask = instr->mask();
+  // Each case comment lists the lanes that the result lanes x, y, z and w
+  // take. x and y come from `left`, z and w from `right`.
+  switch (mask) {
+    case 0x4E:  // zwxy
+      __ vext(result, left, right, 8);
+      break;
+    case 0xE4:  // xyzw
+      __ vmov(result, left);
+      __ vinsd(result, 1, right, 1);
+      break;
+    default:
+      __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
+      __ vtbl1(result, left, VTMP);
+      __ vtbl1(VTMP, right, VTMP);
+      __ vinsd(result, 1, VTMP, 1);
+      break;
+  }
+}
+
 DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
   switch (instr->kind()) {
 #define EMIT(Name, op)                                                         \
@@ -3992,14 +4098,6 @@ DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
     break;
     SIMD_OP_SIMPLE_BINARY(EMIT)
 #undef EMIT
-    case SimdOpInstr::kFloat32x4ShuffleMix:
-    case SimdOpInstr::kInt32x4ShuffleMix: {
-      __ LoadQImmediate(VTMP, ShuffleTableIndices(instr->mask()));
-      __ vtbl1(result, left, VTMP);
-      __ vtbl1(VTMP, right, VTMP);
-      __ vinsd(result, 1, VTMP, 1);
-      break;
-    }
     case SimdOpInstr::kFloat32x4NotEqual:
       __ vceqs(result, left, right);
       // Invert the result.
@@ -4061,23 +4159,6 @@ DEFINE_EMIT(SimdUnaryOp, (VRegister result, VRegister value)) {
       __ vinss(result, 0, value, 3);
       __ fcvtds(result, result);
       break;
-    case SimdOpInstr::kInt32x4Shuffle:
-    case SimdOpInstr::kFloat32x4Shuffle: {
-      const intptr_t mask = instr->mask();
-      if (mask == 0x00) {
-        __ vdups(result, value, 0);
-      } else if (mask == 0x55) {
-        __ vdups(result, value, 1);
-      } else if (mask == 0xAA) {
-        __ vdups(result, value, 2);
-      } else if (mask == 0xFF) {
-        __ vdups(result, value, 3);
-      } else {
-        __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
-        __ vtbl1(result, value, VTMP);
-      }
-      break;
-    }
     case SimdOpInstr::kFloat32x4Splat:
       // Convert to Float32.
       __ fcvtsd(VTMP, value);
@@ -4145,20 +4226,6 @@ DEFINE_EMIT(
   __ vinss(r, 2, VTMP, 0);
   __ fcvtsd(VTMP, v3);
   __ vinss(r, 3, VTMP, 0);
-}
-
-DEFINE_EMIT(
-    Float32x4Clamp,
-    (VRegister result, VRegister value, VRegister lower, VRegister upper)) {
-  __ vmins(result, value, upper);
-  __ vmaxs(result, result, lower);
-}
-
-DEFINE_EMIT(
-    Float64x2Clamp,
-    (VRegister result, VRegister value, VRegister lower, VRegister upper)) {
-  __ vmind(result, value, upper);
-  __ vmaxd(result, result, lower);
 }
 
 DEFINE_EMIT(Float32x4With,
@@ -4404,8 +4471,6 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Int32x4ShrU)                                                            \
   ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
-  CASE(Float32x4ShuffleMix)                                                    \
-  CASE(Int32x4ShuffleMix)                                                      \
   CASE(Float32x4NotEqual)                                                      \
   CASE(Float32x4LessThan)                                                      \
   CASE(Float32x4LessThanOrEqual)                                               \
@@ -4413,14 +4478,15 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Float32x4ShuffleMix)                                                    \
+  CASE(Int32x4ShuffleMix)                                                      \
+  ____(Simd32x4ShuffleMix)                                                     \
   SIMPLE(Int32x4NotEqual)                                                      \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
   CASE(Float32x4GetZ)                                                          \
   CASE(Float32x4GetW)                                                          \
-  CASE(Int32x4Shuffle)                                                         \
-  CASE(Float32x4Shuffle)                                                       \
   CASE(Float32x4Splat)                                                         \
   CASE(Float64x2GetX)                                                          \
   CASE(Float64x2GetY)                                                          \
@@ -4428,6 +4494,9 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Float64x2ToFloat32x4)                                                   \
   CASE(Float32x4ToFloat64x2)                                                   \
   ____(SimdUnaryOp)                                                            \
+  CASE(Int32x4Shuffle)                                                         \
+  CASE(Float32x4Shuffle)                                                       \
+  ____(Simd32x4Shuffle)                                                        \
   CASE(Float32x4GetSignMask)                                                   \
   CASE(Int32x4GetSignMask)                                                     \
   ____(Simd32x4GetSignMask)                                                    \
@@ -4435,8 +4504,6 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Float32x4Zero)                                                          \
   CASE(Float64x2Zero)                                                          \
   ____(SimdZero)                                                               \
-  SIMPLE(Float32x4Clamp)                                                       \
-  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \

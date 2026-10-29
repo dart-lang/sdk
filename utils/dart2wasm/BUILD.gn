@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/dart_action.gni")
 import("../aot_snapshot.gni")
 import("../compile_platform.gni")
 
@@ -42,6 +43,18 @@ aot_snapshot("dart2wasm_product_snapshot") {
   main_dart = "../../pkg/dart2wasm/bin/dart2wasm.dart"
   name = "dart2wasm_product"
   force_product_mode = true
+}
+
+aot_snapshot("dart2wasm_dev_snapshot") {
+  main_dart = "../../pkg/dart2wasm/bin/dart2wasm_dev.dart"
+  name = "dart2wasm_dev"
+}
+
+aot_snapshot("dart2wasm_dev_asserts_snapshot") {
+  main_dart = "../../pkg/dart2wasm/bin/dart2wasm_dev.dart"
+  name = "dart2wasm_dev_asserts"
+  gen_kernel_args = [ "--enable-asserts" ]
+  gen_snapshot_args = [ "--enable-asserts" ]
 }
 
 compile_platform("dart2wasm_platform") {
@@ -93,10 +106,62 @@ compile_platform("dart2wasm_standalone_platform") {
   ]
 }
 
+compile_platform("dart2wasm_dev_platform") {
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = rebase_path("$sdk_root/", root_build_dir)
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+
+  outputs = [
+    "$root_out_dir/dart2wasm_dev_platform.dill",
+    "$root_out_dir/dart2wasm_dev_outline.dill",
+  ]
+
+  args = [
+    "--target=dart2wasm_dev",
+    "dart:core",
+  ]
+}
+
 wasm_module("ffi_native_test_wasm_module") {
   module_name = "ffi_native_test_module"
 }
 
 group("test_wasm_modules") {
   deps = [ ":ffi_native_test_wasm_module" ]
+}
+
+dartaotruntime_action("wasm_dev_rt") {
+  main_dart = "../../pkg/wasm_dev_rt/bin/wasm_dev_rt.dart"
+  script = "$root_out_dir/dart2wasm.snapshot"
+  package_config = "../../.dart_tool/package_config.json"
+  platform_dill = "$root_out_dir/dart2wasm_platform.dill"
+  output = "$root_out_dir/wasm_dev_rt.wasm"
+  depfile = "$output.d"
+
+  inputs = [
+    main_dart,
+    package_config,
+    platform_dill,
+  ]
+
+  outputs = [
+    output,
+    "$root_out_dir/wasm_dev_rt.wasm.map",
+    "$root_out_dir/wasm_dev_rt.mjs",
+    "$root_out_dir/wasm_dev_rt.support.js",
+  ]
+
+  deps = [
+    ":dart2wasm_platform",
+    ":dart2wasm_snapshot",
+  ]
+
+  args = [
+    "--packages=" + rebase_path(package_config, root_build_dir),
+    "--platform=" + rebase_path(platform_dill, root_build_dir),
+    "--depfile=" + rebase_path(depfile, root_build_dir),
+    "--enable-experimental-wasm-interop",
+    rebase_path(main_dart, root_build_dir),
+    rebase_path(output, root_build_dir),
+  ]
 }

@@ -58,7 +58,7 @@ part of 'experiments.dart';
 
   Map<String, dynamic>? _features;
 
-  _ExperimentsGenerator(this.experimentsYaml);
+  new(this.experimentsYaml);
 
   Map<String, dynamic> get features {
     var features = _features;

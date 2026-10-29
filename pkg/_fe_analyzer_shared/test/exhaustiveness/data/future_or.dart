@@ -564,6 +564,7 @@ nonExhaustiveNullable(
    checkingOrder={FutureOr<bool?>,FutureOr<bool?>,Null,bool?,Future<bool?>,bool,Null,true,false},
    error=non-exhaustive:null;null,
    expandedSubtypes={true,false,Null,Future<bool?>},
+   reduced=non-exhaustive:null,
    subtypes={FutureOr<bool?>,Null},
    type=FutureOr<bool?>
   */

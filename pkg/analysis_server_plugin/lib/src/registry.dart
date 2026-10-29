@@ -29,7 +29,7 @@ final class PluginRegistryImpl extends PluginRegistry with RegistryMixin {
   @override
   final Map<String, DiagnosticCode> codeMap = {};
 
-  PluginRegistryImpl(this.pluginName);
+  new(this.pluginName);
 
   @override
   void registerAssist(ProducerGenerator generator) {

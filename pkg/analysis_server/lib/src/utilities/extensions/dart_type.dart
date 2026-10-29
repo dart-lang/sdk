@@ -24,12 +24,11 @@ extension TypeParametersInScopeExtension on DartType? {
   /// If two or more type arguments correspond to the same type parameter,
   /// `null` is also returned.
   TypeParameterType? typeParameterCorrespondingTo(DartType? other) {
-    var self = this;
-    if (self is! InterfaceType || other is! TypeParameterType) {
+    if (this is! InterfaceType || other is! TypeParameterType) {
       return null;
     }
     int? parameterIndex;
-    for (var (index, current) in self.typeArguments.indexed) {
+    for (var (index, current) in typeArguments.indexed) {
       if (other.element == current.element) {
         if (parameterIndex != null) {
           // More than one match.
@@ -39,7 +38,7 @@ extension TypeParametersInScopeExtension on DartType? {
       }
     }
     if (parameterIndex == null) return null;
-    return self.element.typeParameters[parameterIndex].instantiate(
+    return element.typeParameters[parameterIndex].instantiate(
       nullabilitySuffix: other.nullabilitySuffix,
     );
   }

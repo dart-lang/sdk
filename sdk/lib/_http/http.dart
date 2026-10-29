@@ -1830,8 +1830,13 @@ abstract interface class HttpClientRequest implements IOSink {
 
   /// Gets and sets the content length of the request.
   ///
-  /// If the size of the request is not known in advance set content length to
-  /// -1, which is also the default.
+  /// For request methods that do not anticipate a body (such as "GET" and
+  /// "HEAD"), the default is `0` and chunked transfer encoding is not used
+  /// when [contentLength] is negative.
+  ///
+  /// For other methods (such as "POST" and "PUT"), the default is `-1`,
+  /// indicating that the size of the request is not known in advance and
+  /// chunked transfer encoding will be used.
   int contentLength = -1;
 
   /// Gets or sets if the [HttpClientRequest] should buffer output.

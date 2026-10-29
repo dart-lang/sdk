@@ -29,7 +29,7 @@ class LiteralElementVerifier {
   final TypeImpl? mapKeyType;
   final TypeImpl? mapValueType;
 
-  LiteralElementVerifier(
+  new(
     this.typeProvider,
     this.typeSystem,
     this._diagnosticReporter,
@@ -305,7 +305,7 @@ class LiteralElementVerifier {
             elementType as FunctionTypeImpl,
             tearoffType,
             diagnosticReporter: _diagnosticReporter,
-            errorNode: expression,
+            expression: expression,
             genericMetadataIsEnabled: true,
             inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
               Feature.inference_using_bounds,

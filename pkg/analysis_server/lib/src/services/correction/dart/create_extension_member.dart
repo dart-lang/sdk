@@ -40,12 +40,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
         nameNode.annotationContainingName != null) {
       return;
     }
-    if (!nameNode.inGetterContext()) {
-      return;
-    }
-    // An invoked name needs a method, which `CreateExtensionMethod` creates.
-    if (nameNode.parent case MethodInvocation(:var methodName)
-        when methodName == nameNode) {
+    if (!nameNode.inGetterContext() || nameNode.isInvocationName) {
       return;
     }
 
@@ -828,31 +823,23 @@ extension on TypeParameterElement {
 extension on DartType {
   List<TypeParameterElement> recursiveTypeParameters(List<DartType?> visited) {
     visited.add(this);
-    var self = this;
-    if (self is TypeParameterType) {
-      return self.element.referencedTypeParameters(visited);
-    } else if (self is InterfaceType) {
-      return self.typeArguments.typeParameters(visited);
-    } else {
-      return [];
-    }
+    return switch (this) {
+      TypeParameterType() => element.referencedTypeParameters(visited),
+      InterfaceType() => typeArguments.typeParameters(visited),
+      _ => [],
+    };
   }
 }
 
 extension on Element? {
   bool get declaresIndex {
-    var element = this;
-    if (element is! InterfaceElement) {
+    if (this is! InterfaceElement) {
       return false;
     }
-    var indexName = Name.forLibrary(element.library, TokenType.INDEX.lexeme);
-    var indexEqName = Name.forLibrary(
-      element.library,
-      TokenType.INDEX_EQ.lexeme,
-    );
+    var indexName = Name.forLibrary(library, TokenType.INDEX.lexeme);
+    var indexEqName = Name.forLibrary(library, TokenType.INDEX_EQ.lexeme);
     var member =
-        element.getInterfaceMember(indexName) ??
-        element.getInterfaceMember(indexEqName);
+        getInterfaceMember(indexName) ?? getInterfaceMember(indexEqName);
     return member != null;
   }
 }

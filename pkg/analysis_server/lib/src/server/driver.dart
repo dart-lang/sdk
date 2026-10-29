@@ -679,6 +679,7 @@ class Driver implements ServerStarter {
       dartVersion: dartSdk.sdkVersion,
       // flutterChannel: '',
       flutterVersion: flutterVersion,
+      agent: env.aiAgent,
     );
   }
 

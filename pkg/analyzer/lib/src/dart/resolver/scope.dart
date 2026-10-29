@@ -22,20 +22,18 @@ class BlockScope {
     for (int i = 0; i < statementCount; i++) {
       Statement statement = statements[i];
       if (statement is LabeledStatement) {
-        statement = statement.statement;
+        statement = statement.statement2;
       }
       if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
           yield variable;
         }
-      } else if (statement is VariableDeclarationStatement) {
-        NodeList<VariableDeclaration> variables = statement.variables.variables;
-        int variableCount = variables.length;
-        for (int j = 0; j < variableCount; j++) {
-          yield variables[j].declaredFragment!.element;
+      } else if (statement is LocalVariablesDeclarationStatement) {
+        for (var variable in statement.declaration.variables) {
+          yield variable.declaredFragment!.element;
         }
-      } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredFragment!.element;
+      } else if (statement is LocalFunctionDeclaration) {
+        yield statement.declaredFragment!.element;
       }
     }
   }
@@ -52,7 +50,7 @@ class LabelScope {
   /// The AST node that is the target of a jump.
   final AstNode node;
 
-  LabelScope(this._outerScope, this.element, this.node);
+  new(this._outerScope, this.element, this.node);
 
   /// Returns the scope that declares [targetLabel], searching this scope and
   /// enclosing scopes, or `null` if not found.
@@ -76,7 +74,7 @@ class Namespace {
   final Map<String, Element> _definedNames;
 
   /// Initialize a newly created namespace to have the [_definedNames].
-  Namespace(this._definedNames);
+  new(this._definedNames);
 
   /// Return a table containing the same mappings as those defined by this
   /// namespace.
@@ -256,7 +254,7 @@ class PrefixedNamespace implements Namespace {
   /// Initialize a newly created namespace to have the names resulting from
   /// prefixing each of the [_definedNames] with the given [_prefix] (and a
   /// period).
-  PrefixedNamespace(String prefix, this._definedNames)
+  new(String prefix, this._definedNames)
     : _prefix = prefix,
       _length = prefix.length;
 
@@ -288,7 +286,7 @@ class RecordingExportNamespace implements Namespace {
   final LibraryElementImpl owner;
   final Namespace base;
 
-  RecordingExportNamespace({required this.owner, required this.base});
+  new({required this.owner, required this.base});
 
   @override
   Map<String, Element> get definedNames2 {
@@ -327,7 +325,7 @@ class UnlabeledBreakContinueContext {
   /// The target statement, or `null` for a function body.
   final Statement? statement;
 
-  const UnlabeledBreakContinueContext._(this.previous, this.statement);
+  const new _(this.previous, this.statement);
 
   /// The target of an unlabeled `break`, or `null` if there is none.
   Statement? get breakTarget => statement;

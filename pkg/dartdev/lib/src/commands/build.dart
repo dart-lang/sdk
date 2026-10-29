@@ -226,7 +226,7 @@ then that is used instead.''',
 
       final targetBinaries = await resolveTargetBinaries(crossTarget);
       genSnapshotBinary = targetBinaries.genSnapshot;
-      dartAotRuntimeBinary = targetBinaries.dartAotRuntime;
+      dartAotRuntimeBinary = targetBinaries.dartAotRuntime!;
     }
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.

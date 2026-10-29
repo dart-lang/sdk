@@ -25,7 +25,8 @@ void main() {
 /// initializer, a switch expression case's result, an arrow function's
 /// body, or a `return` statement's value.
 @reflectiveTest
-class AddMissingClosureExpressionTest extends FixProcessorTest {
+class AddMissingClosureExpressionTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addClosure;
 
@@ -251,7 +252,7 @@ void g() {
 /// a missing expression for a named argument whose corresponding parameter
 /// is a function type, e.g. `f(callback: );`.
 @reflectiveTest
-class AddMissingClosureNamedTest extends FixProcessorTest {
+class AddMissingClosureNamedTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addClosureNamed;
 
@@ -380,7 +381,8 @@ void g() {
 /// Tests for [DartFixKind.addClosureParameters], produced when adding
 /// missing parameters to an already-written closure argument.
 @reflectiveTest
-class AddMissingClosureParametersTest extends FixProcessorTest {
+class AddMissingClosureParametersTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addClosureParameters;
 
@@ -937,7 +939,8 @@ void g() {
 }
 
 @reflectiveTest
-class AddMissingClosurePositionalTest extends FixProcessorTest {
+class AddMissingClosurePositionalTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addClosurePositional;
 

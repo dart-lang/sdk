@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class ImportLibrarySdkDocTest extends FixProcessorTest {
+class ImportLibrarySdkDocTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkDoc;
 
@@ -99,7 +98,8 @@ void f() {}
 }
 
 @reflectiveTest
-class ImportLibrarySdkPrefixedTest extends FixProcessorTest {
+class ImportLibrarySdkPrefixedTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkPrefixed;
 
@@ -122,7 +122,8 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibrarySdkPrefixedWithShowTest extends FixProcessorTest {
+class ImportLibrarySdkPrefixedWithShowTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkPrefixedShow;
 
@@ -199,7 +200,7 @@ void f() {}
 }
 
 @reflectiveTest
-class ImportLibrarySdkTest extends FixProcessorTest {
+class ImportLibrarySdkTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdk;
 
@@ -392,8 +393,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 void f() {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:async';
 
 class MyAnnotation {
@@ -401,11 +401,7 @@ class MyAnnotation {
 }
 @MyAnnotation(int, const [Completer])
 void f() {}
-''',
-      filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
-      },
-    );
+''');
   }
 
   Future<void> test_withClass_typeAnnotation() async {
@@ -495,10 +491,22 @@ import 'dart:math';
 void f() {}
 ''');
   }
+
+  Future<void> test_withTopLevelVariable_constant() async {
+    await resolveTestCode('''
+const x = pi;
+''');
+    await assertHasFix('''
+import 'dart:math';
+
+const x = pi;
+''');
+  }
 }
 
 @reflectiveTest
-class ImportLibrarySdkWithShowTest extends FixProcessorTest {
+class ImportLibrarySdkWithShowTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkShow;
 

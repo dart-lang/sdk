@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'static_type.dart';
+import 'shape.dart';
 
 /// A value that defines the key of an additional field.
 ///
@@ -16,7 +16,7 @@ class MapKey extends Key {
   final Object value;
   final String valueAsText;
 
-  MapKey(this.value, this.valueAsText);
+  new(this.value, this.valueAsText);
 
   @override
   String get name => '[$valueAsText]';
@@ -55,7 +55,7 @@ abstract class ListKey implements Key {}
 class HeadKey extends Key implements ListKey {
   final int index;
 
-  HeadKey(this.index);
+  new(this.index);
 
   @override
   String get name => '[$index]';
@@ -88,7 +88,7 @@ class HeadKey extends Key implements ListKey {
 class TailKey extends Key implements ListKey {
   final int index;
 
-  TailKey(this.index);
+  new(this.index);
 
   @override
   String get name => '[${-(index + 1)}]';
@@ -125,7 +125,7 @@ class RestKey extends Key implements ListKey {
   final int headSize;
   final int tailSize;
 
-  RestKey(this.headSize, this.tailSize);
+  new(this.headSize, this.tailSize);
 
   @override
   String get name => '[$headSize:${-tailSize}]';
@@ -167,7 +167,7 @@ class NameKey extends Key {
   @override
   final String name;
 
-  NameKey(this.name);
+  new(this.name);
 
   @override
   int get hashCode => name.hashCode;
@@ -206,7 +206,7 @@ abstract class RecordKey implements Key {}
 class RecordIndexKey extends NameKey implements RecordKey {
   final int index;
 
-  RecordIndexKey(this.index) : super('\$${index + 1}');
+  new(this.index) : super('\$${index + 1}');
 
   @override
   int compareTo(Key other) {
@@ -227,23 +227,24 @@ class RecordIndexKey extends NameKey implements RecordKey {
 
 /// Specialized [NameKey] for a named record field.
 class RecordNameKey extends NameKey implements RecordKey {
-  RecordNameKey(super.name);
+  new(super.name);
 }
 
+/// Specialized [Key] for an extension member.
 class ExtensionKey implements Key {
-  final StaticType receiverType;
+  final Shape receiverShape;
   @override
   final String name;
-  final StaticType type;
+  final Shape shape;
 
-  ExtensionKey(this.receiverType, this.name, this.type);
+  new(this.receiverShape, this.name, this.shape);
 
   @override
   int compareTo(Key other) {
     if (other is ExtensionKey) {
       // Sorting is only used for a stable choice of witness, so it's ok that in
-      // edge cases `receiverType.name` is not unique.
-      int result = receiverType.name.compareTo(other.receiverType.name);
+      // edge cases `receiverShape.name` is not unique.
+      int result = receiverShape.name.compareTo(other.receiverShape.name);
       if (result == 0) {
         result = name.compareTo(other.name);
       }
@@ -255,16 +256,16 @@ class ExtensionKey implements Key {
   }
 
   @override
-  int get hashCode => Object.hash(receiverType, name);
+  int get hashCode => Object.hash(receiverShape, name);
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ExtensionKey &&
-        receiverType == other.receiverType &&
+        receiverShape == other.receiverShape &&
         name == other.name;
   }
 
   @override
-  String toString() => 'ExtensionKey($receiverType.$name:$type)';
+  String toString() => 'ExtensionKey($receiverShape.$name:$shape)';
 }

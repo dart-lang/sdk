@@ -128,7 +128,7 @@ enum DirectiveUriKind {
   withNothing,
 }
 
-enum DotShorthandContextResolutionTag { valid, invalid }
+enum DotShorthandContextResolutionTag { missing, invalid, valid }
 
 enum ElementTag {
   null_,

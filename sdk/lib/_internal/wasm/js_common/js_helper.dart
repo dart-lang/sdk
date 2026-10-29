@@ -24,13 +24,10 @@ part 'regexp_helper.dart';
 /// This is the type that all JS interop types (`JSAny`, `JSNumber` etc.) are an
 /// extension of.
 class JSValue extends JSExternWrapper {
-  /// This reference is always non-null and it never points to a JS `undefined`.
-  /// We currently don't make it non-nullable as that makes it impossible to
-  /// dummy-initialize locals with `JSValue` type.
-  JSValue(WasmExternRef? ref) : assert(!isDartNull(ref)), super(ref);
+  JSValue(WasmExternRef ref) : assert(!isJSUndefined(ref)), super(ref);
 
   static JSValue? box(WasmExternRef? ref) =>
-      isDartNull(ref) ? null : JSValue(ref);
+      isDartNull(ref) ? null : JSValue(ref!);
 
   static T boxT<T>(WasmExternRef? ref) => unsafeCastOpaque<T>(box(ref));
 
@@ -75,12 +72,20 @@ extension StringToExternRef on String? {
       : jsStringFromDartString(this!).wrappedExternRef;
 }
 
-extension JSValueToExternRef on JSValue? {
+extension JSValueToExternRef on JSValue {
+  WasmExternRef get toExternRef => wrappedExternRef;
+}
+
+extension JSValueToExternRefNullable on JSValue? {
   WasmExternRef? get toExternRef => JSValue.unbox(this);
 }
 
-extension JSAnyToExternRef on JSAny? {
-  WasmExternRef? get toExternRef => JSValue.unbox(this as JSValue?);
+extension JSAnyToExternRef on JSAny {
+  WasmExternRef get toExternRef => (this as JSValue).toExternRef;
+}
+
+extension JSAnyToExternRefNullable on JSAny? {
+  WasmExternRef? get toExternRef => (this as JSValue?).toExternRef;
 }
 
 // For `dartify` and `jsify`, we match the conflation of `JSUndefined`, `JSNull`
@@ -88,68 +93,36 @@ extension JSAnyToExternRef on JSAny? {
 @pragma('wasm:entry-point')
 bool isDartNull(WasmExternRef? ref) => ref.isNull || isJSUndefined(ref);
 
-class JSArrayIteratorAdapter<T> implements Iterator<T> {
-  final JSArray array;
-  int index = -1;
-
-  JSArrayIteratorAdapter(this.array);
-
-  @override
-  bool moveNext() {
-    index++;
-    int length = array.length;
-    if (index > length) {
-      throw 'Iterator out of bounds';
-    }
-    return index < length;
-  }
-
-  @override
-  T get current => dartifyRaw(array[index].toExternRef) as T;
-}
-
-/// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]
-/// interface.
-class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T>
-    implements HideEfficientLengthIterable<T> {
-  final JSArray array;
-
-  JSArrayIterableAdapter(this.array);
-
-  @override
-  Iterator<T> get iterator => JSArrayIteratorAdapter<T>(array);
-
-  @override
-  int get length => array.length;
-}
-
 Object jsObjectToDartObject(WasmExternRef? ref) =>
     unsafeCastOpaque<Object>(ref.internalize());
 
 WasmExternRef jsObjectFromDartObject(Object object) =>
     unsafeCastOpaque<WasmAnyRef>(object).externalize();
 
-bool isJSUndefined(WasmExternRef? o) => JS<bool>('o => o === undefined', o);
+bool isJSUndefined(WasmExternRef? o) =>
+    JS<WasmI32>('o => o === undefined', o).toBool();
 
 bool isJSFunction(WasmExternRef? o) =>
-    JS<bool>("o => typeof o === 'function'", o);
+    JS<WasmI32>("o => typeof o === 'function'", o).toBool();
 
-bool isJSWrappedDartFunction(WasmExternRef? o) => JS<bool>(
+bool isJSWrappedDartFunction(WasmExternRef? o) => JS<WasmI32>(
   "o => typeof o === 'function' && o[jsWrappedDartFunctionSymbol] === true",
   o,
-);
+).toBool();
 
-bool isJSObject(WasmExternRef? o) => JS<bool>("o => o instanceof Object", o);
+bool isJSObject(WasmExternRef? o) =>
+    JS<WasmI32>("o => o instanceof Object", o).toBool();
 
-bool isJSSimpleObject(WasmExternRef? o) => JS<bool>("""o => {
+bool isJSSimpleObject(WasmExternRef? o) => JS<WasmI32>("""o => {
             const proto = Object.getPrototypeOf(o);
             return proto === Object.prototype || proto === null;
-          }""", o);
+          }""", o).toBool();
 
-bool isJSRegExp(WasmExternRef? o) => JS<bool>("o => o instanceof RegExp", o);
+bool isJSRegExp(WasmExternRef? o) =>
+    JS<WasmI32>("o => o instanceof RegExp", o).toBool();
 
 bool areEqualInJS(WasmExternRef? l, WasmExternRef? r) =>
-    JS<bool>("(l, r) => l === r", l, r);
+    JS<WasmI32>("(l, r) => l === r", l, r).toBool();
 
 @pragma('wasm:entry-point')
 double toDartDouble(WasmExternRef? ref) {
@@ -168,7 +141,8 @@ double? toDartNullableDouble(WasmExternRef? ref) {
   throw ArgumentError('JS value is not a number');
 }
 
-double _toDartDoubleUnchecked(WasmExternRef? ref) => JS<double>("o => o", ref);
+double _toDartDoubleUnchecked(WasmExternRef? ref) =>
+    JS<WasmF64>("o => o", ref).toDouble();
 
 int _checkNumberType(WasmExternRef? ref) {
   return JS<WasmI32>("""o => {
@@ -205,7 +179,8 @@ int? toDartNullableInt(WasmExternRef? ref) {
 }
 
 @pragma('wasm:entry-point')
-WasmExternRef? toJSNumber(double ref) => JS<WasmExternRef?>("o => o", ref);
+WasmExternRef toJSNumber(double ref) =>
+    JS<WasmExternRef>("o => o", ref.toWasmF64());
 
 int _checkBoolType(WasmExternRef? ref) {
   return JS<WasmI32>("""o => {
@@ -232,9 +207,11 @@ bool? toDartNullableBool(WasmExternRef? ref) {
   throw ArgumentError('JS value is not a boolean');
 }
 
-bool _toDartBoolUnchecked(WasmExternRef? ref) => JS<bool>("o => o", ref);
+bool _toDartBoolUnchecked(WasmExternRef? ref) =>
+    JS<WasmI32>("o => o", ref).toBool();
 
-WasmExternRef? toJSBoolean(bool b) => JS<WasmExternRef?>("b => !!b", b);
+WasmExternRef toJSBoolean(bool b) =>
+    JS<WasmExternRef>("b => !!b", WasmI32.fromBool(b));
 
 int objectLength(WasmExternRef? o) =>
     JS<WasmI32>("o => o.length", o).toIntSigned();
@@ -245,8 +222,9 @@ int byteLength(WasmExternRef? o) =>
 WasmExternRef? objectReadIndex(WasmExternRef? o, int index) =>
     JS<WasmExternRef?>("(o, i) => o[i]", o, index.toWasmI32());
 
-Function unwrapJSWrappedDartFunction(WasmExternRef? f) =>
-    JS<Function>("f => f.dartFunction", f);
+Function unwrapJSWrappedDartFunction(WasmExternRef? f) => unsafeCast<Function>(
+  jsObjectToDartObject(JS<WasmExternRef?>("f => f.dartFunction", f)),
+);
 
 external WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l);
 
@@ -281,14 +259,14 @@ WasmExternRef? _jsifyRawList(List<Object?> list) {
 
 external JSStringImpl jsStringFromDartString(String s);
 
-WasmExternRef? newObjectRaw() => JS<WasmExternRef?>('() => ({})');
+WasmExternRef newObjectRaw() => JS<WasmExternRef>('() => ({})');
 
-WasmExternRef? newArrayRaw() => JS<WasmExternRef?>('() => []');
+WasmExternRef newArrayRaw() => JS<WasmExternRef>('() => []');
 
-WasmExternRef? newArrayFromLengthRaw(int length) =>
-    JS<WasmExternRef?>('l => new Array(l)', length.toWasmI32());
+WasmExternRef newArrayFromLengthRaw(int length) =>
+    JS<WasmExternRef>('l => new Array(l)', length.toWasmI32());
 
-WasmExternRef? globalThisRaw() => JS<WasmExternRef?>('() => globalThis');
+WasmExternRef globalThisRaw() => JS<WasmExternRef>('() => globalThis');
 
 WasmExternRef? callConstructorVarArgsRaw(
   WasmExternRef? o,
@@ -308,7 +286,7 @@ WasmExternRef? callConstructorVarArgsRaw(
     );
 
 bool hasPropertyRaw(WasmExternRef? o, WasmExternRef? p) =>
-    JS<bool>("(o, p) => p in o", o, p);
+    JS<WasmI32>("(o, p) => p in o", o, p).toBool();
 
 WasmExternRef? getPropertyRaw(WasmExternRef? o, WasmExternRef? p) =>
     JS<WasmExternRef?>("(o, p) => o[p]", o, p);
@@ -326,10 +304,10 @@ WasmExternRef? callMethodVarArgsRaw(
 ) => JS<WasmExternRef?>("(o, m, a) => o[m].apply(o, a)", o, method, args);
 
 String typeof(WasmExternRef? object) =>
-    JSStringImpl.fromRefUnchecked(JS<WasmExternRef?>("o => typeof o", object));
+    JSStringImpl.fromRefUnchecked(JS<WasmExternRef>("o => typeof o", object));
 
 String stringify(WasmExternRef? object) =>
-    JSStringImpl.fromRefUnchecked(JS<WasmExternRef?>("o => String(o)", object));
+    JSStringImpl.fromRefUnchecked(JS<WasmExternRef>("o => String(o)", object));
 
 /// `Promise.then` call where [failureFunc] can be a JS function that expects
 /// two arguments, the first being the error, and the second being whether the
@@ -341,7 +319,7 @@ void promiseThenWithIsUndefined(
   WasmExternRef? promise,
   WasmExternRef? successFunc,
   WasmExternRef? failureFunc,
-) => JS<void>(
+) => JS<WasmVoid>(
   "(p, s, f) => p.then(s, (e) => f(e, e === undefined))",
   promise,
   successFunc,
@@ -383,13 +361,13 @@ Future<T> externPromiseToFuture<T>(WasmExternRef? jsPromise) {
 // NOTE: We are not currently replacing functions returned from JS.
 final Map<Function, JSValue> functionToJSWrapper = Map.identity();
 
-WasmExternRef? jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
+WasmExternRef jsArrayBufferFromDartByteBuffer(ByteBuffer buffer) {
   ByteData byteData = ByteData.view(buffer);
   WasmExternRef? dataView = jsDataViewFromDartByteData(
     byteData,
     byteData.lengthInBytes,
   );
-  return getPropertyRaw(dataView, 'buffer'.toExternRef);
+  return getPropertyRaw(dataView, 'buffer'.toExternRef)!;
 }
 
 WasmExternRef? jsifyRaw(Object? o) {
@@ -443,7 +421,7 @@ WasmExternRef? jsifyRaw(Object? o) {
   }
 }
 
-WasmExternRef? jsifyInt(int i) {
+WasmExternRef jsifyInt(int i) {
   const int minI31 = -(1 << 30);
   const int maxI31 = (1 << 30) - 1;
 
@@ -465,56 +443,56 @@ WasmExternRef? jsifyJSValue(JSValue o) => o.toExternRef;
 WasmExternRef? jsifyString(String o) => jsStringFromDartString(o).toExternRef;
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSInt8ArrayImpl(js_types.JSInt8ArrayImpl o) =>
+WasmExternRef jsifyJSInt8ArrayImpl(js_types.JSInt8ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSUint8ArrayImpl(js_types.JSUint8ArrayImpl o) =>
+WasmExternRef jsifyJSUint8ArrayImpl(js_types.JSUint8ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSUint8ClampedArrayImpl(
+WasmExternRef jsifyJSUint8ClampedArrayImpl(
   js_types.JSUint8ClampedArrayImpl o,
 ) => o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSInt16ArrayImpl(js_types.JSInt16ArrayImpl o) =>
+WasmExternRef jsifyJSInt16ArrayImpl(js_types.JSInt16ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSUint16ArrayImpl(js_types.JSUint16ArrayImpl o) =>
+WasmExternRef jsifyJSUint16ArrayImpl(js_types.JSUint16ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSInt32ArrayImpl(js_types.JSInt32ArrayImpl o) =>
+WasmExternRef jsifyJSInt32ArrayImpl(js_types.JSInt32ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSUint32ArrayImpl(js_types.JSUint32ArrayImpl o) =>
+WasmExternRef jsifyJSUint32ArrayImpl(js_types.JSUint32ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSFloat32ArrayImpl(js_types.JSFloat32ArrayImpl o) =>
+WasmExternRef jsifyJSFloat32ArrayImpl(js_types.JSFloat32ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSFloat64ArrayImpl(js_types.JSFloat64ArrayImpl o) =>
+WasmExternRef jsifyJSFloat64ArrayImpl(js_types.JSFloat64ArrayImpl o) =>
     o.toJSArrayExternRef();
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSDataViewImpl(js_types.JSDataViewImpl o) =>
+WasmExternRef jsifyJSDataViewImpl(js_types.JSDataViewImpl o) =>
     o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyJSArrayBufferImpl(js_types.JSArrayBufferImpl o) =>
+WasmExternRef jsifyJSArrayBufferImpl(js_types.JSArrayBufferImpl o) =>
     o.wrappedExternRef;
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyByteData(ByteData o) =>
+WasmExternRef jsifyByteData(ByteData o) =>
     jsDataViewFromDartByteData(o, o.lengthInBytes);
 
 @pragma('wasm:prefer-inline')
-WasmExternRef? jsifyFunction(Function o) {
+WasmExternRef jsifyFunction(Function o) {
   assert(
     functionToJSWrapper.containsKey(o),
     'Must call `allowInterop` on functions before they flow to JS',
@@ -593,16 +571,21 @@ int externRefType(WasmExternRef? ref) {
   return val;
 }
 
-/// Non-recursively converts [ref] from a JS value to a Dart value for some JS
-/// types.
+/// Non-recursively converts [refOrNull] from a JS value to a Dart value for
+/// some JS types.
 ///
 /// If [refType] is not null, it is treated as one of the values from
 /// [ExternRefType]. Otherwise, this method calls [externRefType] to determine
 /// the right [ExternRefType].
-Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
-  refType ??= externRefType(ref);
+Object? dartifyRaw(WasmExternRef? refOrNull, [int? refType]) {
+  refType ??= externRefType(refOrNull);
+
+  if (refType case ExternRefType.null_ || ExternRefType.undefined) {
+    return null;
+  }
+
+  final ref = refOrNull!;
   return switch (refType) {
-    ExternRefType.null_ || ExternRefType.undefined => null,
     ExternRefType.boolean => _toDartBoolUnchecked(ref),
     ExternRefType.number => _toDartDoubleUnchecked(ref),
     ExternRefType.string => JSStringImpl.fromRefUnchecked(ref),
@@ -638,7 +621,7 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     _ => () {
       // Assert that we've handled everything in the range.
       assert(refType! >= 0 && refType >= ExternRefType.unknown);
-      throw 'Unhandled dartifyRaw type case: $refType';
+      throwReachabilityError('Unhandled dartifyRaw type case');
     }(),
   };
 }
@@ -742,28 +725,28 @@ F _wrapDartFunction<F extends Function>(F f, WasmExternRef ref) {
 ///   2) The enclosing procedure has a body with a single statement, and that
 ///      statement is just the `StaticInvocation` of [JS] itself.
 ///   3) All of the arguments to [JS] are `VariableGet`s.
-external T JS<T>(
+external T JS<T extends WasmBase?>(
   String codeTemplate, [
-  arg0,
-  arg1,
-  arg2,
-  arg3,
-  arg4,
-  arg5,
-  arg6,
-  arg7,
-  arg8,
-  arg9,
-  arg10,
-  arg11,
-  arg12,
-  arg13,
-  arg14,
-  arg51,
-  arg16,
-  arg17,
-  arg18,
-  arg19,
+  WasmBase? arg0,
+  WasmBase? arg1,
+  WasmBase? arg2,
+  WasmBase? arg3,
+  WasmBase? arg4,
+  WasmBase? arg5,
+  WasmBase? arg6,
+  WasmBase? arg7,
+  WasmBase? arg8,
+  WasmBase? arg9,
+  WasmBase? arg10,
+  WasmBase? arg11,
+  WasmBase? arg12,
+  WasmBase? arg13,
+  WasmBase? arg14,
+  WasmBase? arg51,
+  WasmBase? arg16,
+  WasmBase? arg17,
+  WasmBase? arg18,
+  WasmBase? arg19,
 ]);
 
 /// Represents a JS `null` or `undefined` thrown from JS and caught in Wasm.
@@ -804,7 +787,7 @@ Object boxJsException(WasmExternRef? ref) {
   if (ref.isNull) return NullThrownFromJavaScriptException.fromNull();
   if (isJSUndefined(ref))
     return NullThrownFromJavaScriptException.fromUndefined();
-  return JSValue(ref);
+  return JSValue(ref!);
 }
 
 /// Get the stack trace of an exception value thrown in JS and caught in Wasm.
@@ -815,8 +798,8 @@ Object boxJsException(WasmExternRef? ref) {
 /// The return value will be assigned to the stack trace variables in `catch`
 /// blocks, so it needs to have type [StackTrace].
 @pragma('wasm:entry-point')
-StackTrace jsExceptionStackTrace(WasmExternRef? ref) => JavaScriptStack(
-  JS<WasmExternRef?>("""
+StackTrace jsExceptionStackTrace(WasmExternRef? ref) {
+  final jsStack = JS<WasmExternRef?>("""
       (exn) => {
         if (exn instanceof Error) {
           return exn.stack;
@@ -824,24 +807,35 @@ StackTrace jsExceptionStackTrace(WasmExternRef? ref) => JavaScriptStack(
           return null;
         }
       }
-    """, ref),
-);
+    """, ref);
+  if (!jsStack.isNull) {
+    return JavaScriptStack(jsStack!);
+  } else {
+    return JavaScriptStack.dummy();
+  }
+}
 
 class JavaScriptStack extends JSExternWrapper implements StackTrace {
+  final bool _isDummyStack;
   final bool _fromCurrent;
 
-  JavaScriptStack(WasmExternRef? ref) : _fromCurrent = false, super(ref);
+  JavaScriptStack(super.ref) : _isDummyStack = false, _fromCurrent = false;
+
+  JavaScriptStack.dummy()
+    : _isDummyStack = true,
+      _fromCurrent = false,
+      super(dummyExternRef);
 
   // Note: We remove the first four frames to prevent including
   // `StackTrace.current`, other current helpers and the JS interop function.
   // On Chrome, the first line is not a frame but a line with just "Error",
   // sometimes with details:
   // "Error: ...". Also remove that line.
-  late final String _stringified = wrappedExternRef.isNull
+  late final String _stringified = _isDummyStack
       ? ""
-      : JSStringImpl.fromRefUnchecked(
-          _fromCurrent
-              ? JS<WasmExternRef?>(r"""(exn) => {
+      : _fromCurrent
+      ? JSStringImpl.fromRefUnchecked(
+          JS<WasmExternRef>(r"""(exn) => {
             let stackString = exn.toString();
             let frames = stackString.split('\n');
             let drop = 4;
@@ -849,26 +843,27 @@ class JavaScriptStack extends JSExternWrapper implements StackTrace {
                 drop += 1;
             }
             return frames.slice(drop).join('\n');
-          }""", wrappedExternRef)
-              : wrappedExternRef,
-        );
+          }""", wrappedExternRef),
+        )
+      : stringify(wrappedExternRef);
 
   @pragma("wasm:never-inline")
   JavaScriptStack.current()
     : _fromCurrent = true,
-      super(JS<WasmExternRef?>("() => new Error().stack"));
+      _isDummyStack = false,
+      super(JS<WasmExternRef>("() => new Error().stack"));
 
   @override
   String toString() => _stringified;
 }
 
 base class JSExternWrapper {
-  final WasmExternRef? _externRef;
+  final WasmExternRef _externRef;
 
   JSExternWrapper(this._externRef);
 }
 
 extension JSExternWrapperExt on JSExternWrapper {
   @pragma("wasm:prefer-inline")
-  WasmExternRef? get wrappedExternRef => _externRef;
+  WasmExternRef get wrappedExternRef => _externRef;
 }

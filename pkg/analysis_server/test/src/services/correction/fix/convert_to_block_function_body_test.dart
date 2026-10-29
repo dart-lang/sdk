@@ -38,7 +38,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertToBlockFunctionBodyMultiTest extends FixProcessorTest {
+class ConvertToBlockFunctionBodyMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoBlockBodyMulti;
 
@@ -61,7 +62,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertToBlockFunctionBodyTest extends FixProcessorTest {
+class ConvertToBlockFunctionBodyTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoBlockBody;
 

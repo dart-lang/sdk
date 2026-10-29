@@ -116,7 +116,7 @@ Future<DartExecutableWithPackageConfig> generateKernel(
   await ensureCompilationServerIsRunning(serverInfoFile);
 
   final String? packageConfig;
-  if (args.packages case final packages?) {
+  if (args.packages ?? executable.packageConfig case final packages?) {
     packageConfig = p.absolute(packages);
   } else {
     final packageRoot = _packageRootFor(executable);

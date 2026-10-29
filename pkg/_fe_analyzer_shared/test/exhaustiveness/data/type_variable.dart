@@ -12,11 +12,11 @@ exhaustiveNullableTypeVariable<T>(o) => /*
 };
 
 nonExhaustiveNullableTypeVariable<T>(o) => /*
-         checkingOrder={Object?,Object,Null},
-         error=non-exhaustive:Object();null,
-         subtypes={Object,Null},
-         type=Object?
-        */ switch (o) {
+ checkingOrder={Object?,Object,Null},
+ error=non-exhaustive:Object();null,
+ subtypes={Object,Null},
+ type=Object?
+*/ switch (o) {
   T() /*space=Object?*/ => 0,
 };
 
@@ -30,17 +30,17 @@ exhaustiveNonNullableTypeVariable<T extends Object>(o) => /*
 };
 
 nonExhaustiveNonNullableTypeVariableOnObject<T extends Object>(Object o) => /*
-             error=non-exhaustive:Object(),
-             type=Object
-            */ switch (o) {
+ error=non-exhaustive:Object(),
+ type=Object
+*/ switch (o) {
   T() /*space=Object*/ => 0,
 };
 
 nonExhaustiveNonNullableTypeVariableOnDynamic<T extends Object>(o) => /*
-         checkingOrder={Object?,Object,Null},
-         error=non-exhaustive:Object();null,
-         subtypes={Object,Null},
-         type=Object?
-        */ switch (o) {
+ checkingOrder={Object?,Object,Null},
+ error=non-exhaustive:Object();null,
+ subtypes={Object,Null},
+ type=Object?
+*/ switch (o) {
   T() /*space=Object*/ => 0,
 };

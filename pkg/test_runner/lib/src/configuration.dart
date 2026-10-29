@@ -208,6 +208,7 @@ class TestConfiguration {
       Compiler.fasta,
       Compiler.dart2js,
       Compiler.dart2wasm,
+      Compiler.dart2wasmDev,
     ];
     return fastaCompilers.contains(compiler);
   }

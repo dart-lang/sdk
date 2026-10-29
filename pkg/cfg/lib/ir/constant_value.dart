@@ -184,25 +184,16 @@ class const ConstantFolding() {
   ) {
     final a = left.doubleValue;
     final b = right.doubleValue;
-    switch (op) {
-      case BinaryDoubleOpcode.add:
-        return ConstantValue.fromDouble(a + b);
-      case BinaryDoubleOpcode.sub:
-        return ConstantValue.fromDouble(a - b);
-      case BinaryDoubleOpcode.mul:
-        return ConstantValue.fromDouble(a * b);
-      case BinaryDoubleOpcode.mod:
-        return ConstantValue.fromDouble(a % b);
-      case BinaryDoubleOpcode.rem:
-        return ConstantValue.fromDouble(a.remainder(b));
-      case BinaryDoubleOpcode.div:
-        return ConstantValue.fromDouble(a / b);
-      case BinaryDoubleOpcode.truncatingDiv:
-        final doubleResult = a / b;
-        return doubleResult.isFinite
-            ? ConstantValue.fromInt(doubleResult.truncate())
-            : null;
-    }
+    return switch (op) {
+      .add => ConstantValue.fromDouble(a + b),
+      .sub => ConstantValue.fromDouble(a - b),
+      .mul => ConstantValue.fromDouble(a * b),
+      .mod => ConstantValue.fromDouble(a % b),
+      .rem => ConstantValue.fromDouble(a.remainder(b)),
+      .div => ConstantValue.fromDouble(a / b),
+      .pow => ConstantValue.fromDouble(math.pow(a, b) as double),
+      .atan2 => ConstantValue.fromDouble(math.atan2(a, b)),
+    };
   }
 
   ConstantValue? unaryDoubleOp(UnaryDoubleOpcode op, ConstantValue operand) {
@@ -211,7 +202,6 @@ class const ConstantFolding() {
       .neg => ConstantValue.fromDouble(-x),
       .abs => ConstantValue.fromDouble(x.abs()),
       .square => ConstantValue.fromDouble(x * x),
-      .sqrt => ConstantValue.fromDouble(math.sqrt(x)),
       .round => x.isFinite ? ConstantValue.fromInt(x.round()) : null,
       .floor => x.isFinite ? ConstantValue.fromInt(x.floor()) : null,
       .ceil => x.isFinite ? ConstantValue.fromInt(x.ceil()) : null,
@@ -222,6 +212,16 @@ class const ConstantFolding() {
       .truncateToDouble => ConstantValue.fromDouble(x.truncateToDouble()),
       .isNegative => ConstantValue.fromBool(x.isNegative),
       .isInfinite => ConstantValue.fromBool(x.isInfinite),
+      .hash => null, // hashCode is not guaranteed to be stable.
+      .sin => ConstantValue.fromDouble(math.sin(x)),
+      .cos => ConstantValue.fromDouble(math.cos(x)),
+      .tan => ConstantValue.fromDouble(math.tan(x)),
+      .asin => ConstantValue.fromDouble(math.asin(x)),
+      .acos => ConstantValue.fromDouble(math.acos(x)),
+      .atan => ConstantValue.fromDouble(math.atan(x)),
+      .sqrt => ConstantValue.fromDouble(math.sqrt(x)),
+      .exp => ConstantValue.fromDouble(math.exp(x)),
+      .log => ConstantValue.fromDouble(math.log(x)),
     };
   }
 

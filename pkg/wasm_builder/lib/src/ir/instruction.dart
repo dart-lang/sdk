@@ -2928,7 +2928,7 @@ class BrOnCast extends Instruction {
     final inputHeapType = HeapType.deserialize(d, types.defined);
     final targetHeapType = HeapType.deserialize(d, types.defined);
     final inputType = RefType(inputHeapType, nullable: (flags & 0x01) != 0);
-    final targetType = RefType(targetHeapType, nullable: (flags & 0x01) != 0);
+    final targetType = RefType(targetHeapType, nullable: (flags & 0x02) != 0);
     return BrOnCast(labelIndex, inputType, targetType);
   }
 
@@ -2977,7 +2977,7 @@ class BrOnCastFail extends Instruction {
     final targetHeapType = HeapType.deserialize(d, types.defined);
 
     final inputType = RefType(inputHeapType, nullable: (flags & 0x01) != 0);
-    final targetType = RefType(targetHeapType, nullable: (flags & 0x01) != 0);
+    final targetType = RefType(targetHeapType, nullable: (flags & 0x02) != 0);
 
     return BrOnCastFail(labelIndex, inputType, targetType);
   }
@@ -4723,7 +4723,11 @@ enum V128Instruction with Instruction {
   const V128Instruction(this.opcode, this.name);
 
   static List<V128Instruction?> _lookup = (() {
-    final lookup = List<V128Instruction?>.filled(256, null);
+    final maxOpcode = values.fold(
+      0,
+      (max, v) => v.opcode > max ? v.opcode : max,
+    );
+    final lookup = List<V128Instruction?>.filled(maxOpcode + 1, null);
     for (final v in values) {
       lookup[v.opcode] = v;
     }

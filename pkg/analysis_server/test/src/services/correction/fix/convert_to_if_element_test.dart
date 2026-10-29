@@ -44,7 +44,7 @@ String f2(bool b) {
 }
 
 @reflectiveTest
-class ConvertToIfElementTest extends FixProcessorLintTest {
+class ConvertToIfElementTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToIfElement;
 

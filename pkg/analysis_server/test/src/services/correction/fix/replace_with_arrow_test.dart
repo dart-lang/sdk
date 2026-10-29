@@ -38,7 +38,7 @@ int f(Object? x) {
 }
 
 @reflectiveTest
-class ReplaceWithArrowTest extends FixProcessorTest {
+class ReplaceWithArrowTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithArrow;
 

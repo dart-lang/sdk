@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnreachableFromMainTest extends FixProcessorLintTest {
+class RemoveUnreachableFromMainTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedElement;
 
@@ -54,7 +54,7 @@ class C {
 }
 
 @reflectiveTest
-class RemoveUnusedElementTest extends FixProcessorTest {
+class RemoveUnusedElementTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedElement;
 

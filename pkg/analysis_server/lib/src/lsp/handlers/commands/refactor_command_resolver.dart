@@ -44,6 +44,7 @@ class RefactorCommandResolver
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
+    ErrorOr<InteractiveExecuteCommandParams>? Function() checkAbort,
   ) async {
     var producer = generator(context);
 
@@ -60,7 +61,9 @@ class RefactorCommandResolver
     // Delegate to the refactoring producer so it can handle custom validation
     // etc.
     if (producer is ParameterizedRefactoringProducer) {
-      return await producer.resolve(command);
+      var resolved = await producer.resolve(command);
+      if (checkAbort() case var reason?) return reason;
+      return resolved;
     }
 
     // Otherwise, pass the original command back as-is.

@@ -24,7 +24,7 @@ main() {
   // Here, the `o is! num` check succeeds, but the length test failed.
   if ((o is! num && o.length == 4) || (nonInlinedNumTypeCheck(o))) {
     //                ^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'length' isn't defined for the type 'Object'.
     Expect.fail("Type-check failed");
   }

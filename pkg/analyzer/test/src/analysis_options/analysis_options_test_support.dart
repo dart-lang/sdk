@@ -203,11 +203,6 @@ final class _AnalysisOptionsTextWriter {
         options.contextFeatures,
         _defaultOptions.contextFeatures,
       );
-      _writeFeatureSet(
-        'nonPackageFeatureSet',
-        options.nonPackageFeatureSet,
-        _defaultOptions.nonPackageFeatureSet,
-      );
 
       _writeErrorProcessors(options.errorProcessors);
       _writeStringSet(

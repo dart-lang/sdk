@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddSuperConstructorInvocationTest extends FixProcessorTest
+class AddSuperConstructorInvocationTest
+    extends FixProcessorForBuiltInDiagnosticTest
     with AddSuperConstructorInvocationTestCases {
   Future<void> test_new() async {
     await resolveTestCode('''
@@ -210,7 +211,8 @@ class B extends A {
 }
 
 @reflectiveTest
-class AddSuperConstructorInvocationTest_language215 extends FixProcessorTest
+class AddSuperConstructorInvocationTest_language215
+    extends FixProcessorForBuiltInDiagnosticTest
     with AddSuperConstructorInvocationTestCases {
   @override
   void setUp() {
@@ -219,7 +221,8 @@ class AddSuperConstructorInvocationTest_language215 extends FixProcessorTest
   }
 }
 
-mixin AddSuperConstructorInvocationTestCases on FixProcessorTest {
+mixin AddSuperConstructorInvocationTestCases
+    on FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addSuperConstructorInvocation;
 

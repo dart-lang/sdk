@@ -60,7 +60,7 @@ class MicroContextObjects {
   final AnalysisOptionsImpl analysisOptions;
   final _MicroAnalysisSessionImpl analysisSession;
 
-  MicroContextObjects._({
+  new _({
     required this.declaredVariables,
     required this.analysisOptions,
     required this.analysisSession,
@@ -76,7 +76,7 @@ class _FakeAnalysisDriver implements AnalysisDriver {
 
   late _MicroAnalysisSessionImpl _currentSession;
 
-  _FakeAnalysisDriver(this.fileResolver);
+  new(this.fileResolver);
 
   @override
   AnalysisSessionImpl get currentSession {
@@ -138,7 +138,7 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
 
   final SourceFactory sourceFactory;
 
-  _MicroAnalysisContextImpl(
+  new(
     this.fileResolver,
     this.analysisOptions,
     this.contextRoot,
@@ -171,11 +171,8 @@ class _MicroAnalysisSessionImpl extends AnalysisSessionImpl {
   @override
   late final LinkedElementFactory elementFactory;
 
-  _MicroAnalysisSessionImpl(
-    this.fileResolver,
-    this.declaredVariables,
-    this.sourceFactory,
-  ) : super(_FakeAnalysisDriver(fileResolver));
+  new(this.fileResolver, this.declaredVariables, this.sourceFactory)
+    : super(_FakeAnalysisDriver(fileResolver));
 
   @override
   ResourceProvider get resourceProvider =>
@@ -215,7 +212,7 @@ class _UriConverterImpl implements UriConverter {
   final ResourceProvider resourceProvider;
   final SourceFactory sourceFactory;
 
-  _UriConverterImpl(this.resourceProvider, this.sourceFactory);
+  new(this.resourceProvider, this.sourceFactory);
 
   @override
   Uri? pathToUri(String path, {String? containingPath}) {

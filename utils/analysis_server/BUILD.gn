@@ -33,4 +33,5 @@ application_snapshot("analysis_server") {
     "--sdk=" + rebase_path("../../sdk/", root_build_dir),
     "--train-using=" + rebase_path("../../pkg/compiler/lib", root_build_dir),
   ]
+  training_inputs = [ "../../sdk/version" ]
 }

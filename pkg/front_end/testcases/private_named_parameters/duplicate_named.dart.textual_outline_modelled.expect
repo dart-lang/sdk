@@ -1,0 +1,1 @@
+class C({String? _foo, required final String _foo});

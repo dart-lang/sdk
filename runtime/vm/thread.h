@@ -1285,6 +1285,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   void UnwindScopes(uword stack_marker);
 
   void InitVMConstants();
+  void UpdateCachedVMStubs();
   void FixInitiallyNullFields();
 
   int64_t GetNextTaskId() { return next_task_id_++; }

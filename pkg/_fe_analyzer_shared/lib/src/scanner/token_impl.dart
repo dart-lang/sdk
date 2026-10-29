@@ -45,7 +45,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    * Creates a non-lazy string token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  StringTokenImpl.fromString(
+  new fromString(
     TokenType type,
     String value,
     int charOffset, {
@@ -59,7 +59,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    * is canonicalized before the token is created.
    */
   @pragma('vm:prefer-inline')
-  StringTokenImpl.fromSubstring(
+  new fromSubstring(
     TokenType type,
     String data,
     int start,
@@ -88,7 +88,7 @@ class StringTokenImpl extends SimpleToken implements StringToken {
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  StringTokenImpl.fromUtf8Bytes(
+  new fromUtf8Bytes(
     TokenType type,
     Uint8List data,
     int start,
@@ -132,7 +132,7 @@ class CommentTokenImpl extends StringTokenImpl implements CommentToken {
    * Creates a lazy comment token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  CommentTokenImpl.fromSubstring(
+  new fromSubstring(
     super.type,
     super.data,
     super.start,
@@ -144,14 +144,14 @@ class CommentTokenImpl extends StringTokenImpl implements CommentToken {
   /**
    * Creates a non-lazy comment token.
    */
-  CommentTokenImpl.fromString(super.type, super.lexeme, super.charOffset)
+  new fromString(super.type, super.lexeme, super.charOffset)
     : super.fromString();
 
   /**
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  CommentTokenImpl.fromUtf8Bytes(
+  new fromUtf8Bytes(
     super.type,
     super.data,
     super.start,
@@ -169,10 +169,10 @@ class LanguageVersionTokenImpl extends CommentTokenImpl
   @override
   int minor;
 
-  LanguageVersionTokenImpl.from(String text, int offset, this.major, this.minor)
+  new from(String text, int offset, this.major, this.minor)
     : super.fromString(TokenType.SINGLE_LINE_COMMENT, text, offset);
 
-  LanguageVersionTokenImpl.fromSubstring(
+  new fromSubstring(
     String string,
     int start,
     int end,
@@ -188,7 +188,7 @@ class LanguageVersionTokenImpl extends CommentTokenImpl
          tokenStart,
        );
 
-  LanguageVersionTokenImpl.fromUtf8Bytes(
+  new fromUtf8Bytes(
     Uint8List bytes,
     int start,
     int end,
@@ -211,7 +211,7 @@ class DartDocToken extends CommentTokenImpl
    * Creates a lazy comment token. If [canonicalize] is true, the string
    * is canonicalized before the token is created.
    */
-  DartDocToken.fromSubstring(
+  new fromSubstring(
     super.type,
     super.data,
     super.start,
@@ -224,7 +224,7 @@ class DartDocToken extends CommentTokenImpl
    * Creates a lazy string token. If [asciiOnly] is false, the byte array
    * is passed through a UTF-8 decoder.
    */
-  DartDocToken.fromUtf8Bytes(
+  new fromUtf8Bytes(
     super.type,
     super.data,
     super.start,
@@ -256,9 +256,9 @@ abstract class _LazySubstring {
    */
   bool get boolValue;
 
-  _LazySubstring.internal();
+  new internal();
 
-  factory _LazySubstring(Object data, int start, int length, bool b) {
+  factory(Object data, int start, int length, bool b) {
     // See comment on [CompactLazySubstring].
     if (start < 0x100000 && length < 0x200) {
       int fields = (start << 9);
@@ -303,7 +303,7 @@ class _CompactLazySubstring extends _LazySubstring {
   final Object data;
   final int fields;
 
-  _CompactLazySubstring(this.data, this.fields) : super.internal();
+  new(this.data, this.fields) : super.internal();
 
   @override
   int get start => fields >> 10;
@@ -322,8 +322,7 @@ class _FullLazySubstring extends _LazySubstring {
   final int length;
   @override
   final bool boolValue;
-  _FullLazySubstring(this.data, this.start, this.length, this.boolValue)
-    : super.internal();
+  new(this.data, this.start, this.length, this.boolValue) : super.internal();
 }
 
 bool isUserDefinableOperator(String value) {

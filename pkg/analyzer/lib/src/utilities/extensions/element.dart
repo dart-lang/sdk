@@ -14,8 +14,7 @@ import 'package:meta/meta.dart';
 class MockLibraryImportElement implements Element {
   final LibraryImportImpl import;
 
-  MockLibraryImportElement(LibraryImport import)
-    : import = import as LibraryImportImpl;
+  new(LibraryImport import) : import = import as LibraryImportImpl;
 
   @override
   Element get baseElement => this;

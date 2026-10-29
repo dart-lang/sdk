@@ -28,6 +28,12 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// The last compile, or `null` once it has been accepted or rejected.
   CompileResult? _lastResult;
 
+  /// URIs invalidated since the last accepted compile.
+  final _invalidatedUris = <Uri>{};
+
+  /// JS module paths updated by the last accepted compile.
+  var _updatedJsModules = const <String>[];
+
   /// The bootstrap js contents, provided in [_assets] at
   /// the path `${_entrypointModule}.js`.
   ///
@@ -61,7 +67,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     String entrypoint,
     String outputDillPath, {
     String dartdevcModuleFormat = 'amd',
+    bool canaryFeatures = false,
     bool debug = false,
+    List<String>? enabledExperiments,
     bool enableHttpUris = false,
     List<String> fileSystemRoots = const [], // For `fileSystemScheme` uris,
     String fileSystemScheme =
@@ -73,13 +81,17 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     String? sdkRoot, // Defaults to the current SDK root.
     bool verbose = false,
     bool printIncrementalDependencies = true,
+    List<String> additionalArgs = const [],
   }) async {
+    final usesDdcLibraryBundle =
+        dartdevcModuleFormat == 'ddc' && canaryFeatures;
     final feServer = await FrontendServerClient.start(
       entrypoint,
       outputDillPath,
-      platformKernel ?? _dartdevcPlatformKernel,
+      platformKernel ?? _dartdevcPlatformKernel(sdkRoot),
       dartdevcModuleFormat: dartdevcModuleFormat,
       debug: debug,
+      enabledExperiments: enabledExperiments,
       enableHttpUris: enableHttpUris,
       fileSystemRoots: fileSystemRoots,
       fileSystemScheme: fileSystemScheme,
@@ -89,6 +101,15 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
       sdkRoot: sdkRoot,
       target: 'dartdevc',
       verbose: verbose,
+      printIncrementalDependencies: printIncrementalDependencies,
+      additionalArgs: [
+        if (canaryFeatures) '--dartdevc-canary',
+        if (usesDdcLibraryBundle) ...[
+          '--no-js-strongly-connected-components',
+          '--experimental-emit-debug-metadata',
+        ],
+        ...additionalArgs,
+      ],
     );
     return DartDevcFrontendServerClient._(
       feServer,
@@ -100,14 +121,14 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// Returns the current bytes for the asset at [path].
   ///
   /// The [path] should be exactly as it appears in the
-  /// [CompileResult.jsManifestOutput] file.
+  /// [CompileResult.jsManifestOutput] file. Its source map is at
+  /// `<path>.map`, and its debug metadata, if emitted, is at
+  /// `<path>.metadata`.
   ///
   /// **Note**: Assets are not updated until `accept` is called after a
   /// successful compile. They are not updated if `reject` is called.
   ///
   /// Returns `null` if no asset exists at [path].
-  ///
-  /// In addition to any DDC compiled assets, this serves
   Uint8List? assetBytes(String path) => _assets[path];
 
   /// The contents of a JS file capable of bootstrapping the current app.
@@ -115,35 +136,93 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   /// TODO: implement
   String bootstrapJs() => throw UnimplementedError();
 
-  /// Updates [_assets] for [result].
-  void _updateAssets(CompileResult result) {
+  /// Merged debug metadata, with one JSON object per line.
+  ///
+  /// Empty if the frontend server doesn't pass:
+  /// `--experimental-emit-debug-metadata`
+  String get mergedMetadata => [
+    for (final MapEntry(:key, :value) in _assets.entries)
+      if (key.endsWith('.metadata')) utf8.decode(value),
+  ].join('\n');
+
+  /// `reloaded_sources.json` entries for the JS modules updated by the last
+  /// accepted compile.
+  ///
+  /// Format: `{"src": <path>, "module": <name>, "libraries": [<uri>]}`
+  List<Map<String, Object>> get reloadedSources => [
+    for (final path in _updatedJsModules)
+      if (_assets['$path.metadata'] case final metadata?)
+        _reloadedSourceEntry(path, metadata),
+  ];
+
+  /// Updates [_assets] with [result], and returns the paths of the updated JS
+  /// modules.
+  List<String> _updateAssets(CompileResult result) {
     if (result.dillOutput == null) {
-      return;
+      return const [];
     }
     final manifest =
         jsonDecode(File(result.jsManifestOutput!).readAsStringSync())
             as Map<String, dynamic>;
     final sourceBytes = File(result.jsSourcesOutput!).readAsBytesSync();
     final sourceMapBytes = File(result.jsSourceMapsOutput!).readAsBytesSync();
+    Uint8List? metadataBytes;
 
     for (final entry in manifest.entries) {
-      final metadata = entry.value as Map<String, dynamic>;
-      final sourceOffsets = metadata['code'] as List;
+      final offsets = entry.value as Map<String, dynamic>;
+      final sourceOffsets = offsets['code'] as List;
       _assets[entry.key] = sourceBytes.sublist(
         sourceOffsets[0] as int,
         sourceOffsets[1] as int,
       );
-      final sourceMapOffsets = metadata['sourcemap'] as List;
+      final sourceMapOffsets = offsets['sourcemap'] as List;
       _assets['${entry.key}.map'] = sourceMapBytes.sublist(
         sourceMapOffsets[0] as int,
         sourceMapOffsets[1] as int,
       );
+      final metadataOffsets = offsets['metadata'] as List?;
+      if (metadataOffsets != null) {
+        metadataBytes ??= File(result.jsMetadataOutput!).readAsBytesSync();
+        _assets['${entry.key}.metadata'] = metadataBytes.sublist(
+          metadataOffsets[0] as int,
+          metadataOffsets[1] as int,
+        );
+      }
     }
+    return manifest.keys.toList();
+  }
+
+  /// The `reloaded_sources.json` entry for the JS module at [path] with the
+  /// debug [metadata].
+  static Map<String, Object> _reloadedSourceEntry(
+    String path,
+    Uint8List metadata,
+  ) {
+    final json = jsonDecode(utf8.decode(metadata)) as Map<String, dynamic>;
+    return {
+      'src': path,
+      'module': json['name'] as String,
+      'libraries': [
+        for (final library in json['libraries'] as List)
+          (library as Map<String, dynamic>)['importUri'] as String,
+      ],
+    };
   }
 
   @override
   Future<CompileResult> compile([List<Uri>? invalidatedUris]) async {
-    return _lastResult = await _frontendServerClient.compile(invalidatedUris);
+    _invalidatedUris.addAll(invalidatedUris ?? const []);
+    return _lastResult = await _frontendServerClient.compile(
+      _invalidatedUris.toList(),
+    );
+  }
+
+  @override
+  Future<CompileResult> recompileRestart(List<Uri> invalidatedUris) async {
+    _invalidatedUris.addAll(invalidatedUris);
+    return _lastResult = await _frontendServerClient.recompileRestart(
+      _invalidatedUris.toList(),
+    );
   }
 
   @override
@@ -167,6 +246,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     required String libraryUri,
     required int line,
     required String moduleName,
+    String? scriptUri,
   }) => _frontendServerClient.compileExpressionToJs(
     expression: expression,
     column: column,
@@ -175,12 +255,14 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     libraryUri: libraryUri,
     line: line,
     moduleName: moduleName,
+    scriptUri: scriptUri,
   );
 
   @override
   void accept() {
     _frontendServerClient.accept();
-    if (_lastResult != null) _updateAssets(_lastResult!);
+    if (_lastResult != null) _updatedJsModules = _updateAssets(_lastResult!);
+    _invalidatedUris.clear();
     _lastResult = null;
   }
 
@@ -193,6 +275,7 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   @override
   void reset() {
     _frontendServerClient.reset();
+    _invalidatedUris.clear();
     _resetAssets();
   }
 
@@ -220,6 +303,6 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   }
 }
 
-final _dartdevcPlatformKernel = p
-    .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'))
+String _dartdevcPlatformKernel(String? sdkRoot) => p
+    .toUri(p.join(sdkRoot ?? sdkDir, 'lib', '_internal', 'ddc_outline.dill'))
     .toString();

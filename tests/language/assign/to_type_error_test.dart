@@ -9,7 +9,7 @@ class C<T> {
   f() {
     T = Null;
     // [error column 5, length 1]
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] Can't assign to a type literal.
   }
 }
@@ -24,14 +24,14 @@ main() {
   new C<D>().f();
   D = Null;
   // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
   E = Null;
   // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
   F = Null;
   // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
   // [cfe] Can't assign to a type literal.
 }

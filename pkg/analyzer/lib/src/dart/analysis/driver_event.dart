@@ -17,7 +17,7 @@ final class AnalyzedLibrary extends AnalysisDriverEvent {
   final LibraryFileKind library;
   final RequirementsManifest? requirements;
 
-  AnalyzedLibrary({required this.library, required this.requirements});
+  new({required this.library, required this.requirements});
 }
 
 /// The event that we wanted to analyze [file], so analyze [library].
@@ -25,7 +25,7 @@ final class AnalyzeFile extends AnalysisDriverEvent {
   final FileState file;
   final LibraryFileKind library;
 
-  AnalyzeFile({required this.file, required this.library});
+  new({required this.file, required this.library});
 }
 
 /// The event that we checked requirements of the library diagnostics.
@@ -34,10 +34,7 @@ final class CheckLibraryDiagnosticsRequirements extends AnalysisDriverEvent {
   final LibraryFileKind library;
   final RequirementFailure? failure;
 
-  CheckLibraryDiagnosticsRequirements({
-    required this.library,
-    required this.failure,
-  });
+  new({required this.library, required this.failure});
 }
 
 /// The event that we checked requirements of the linked bundle.
@@ -46,14 +43,24 @@ final class CheckLinkedBundleRequirements extends AnalysisDriverEvent {
   final LibraryCycle cycle;
   final RequirementFailure? failure;
 
-  CheckLinkedBundleRequirements({required this.cycle, required this.failure});
+  new({required this.cycle, required this.failure});
+}
+
+/// The event that [driver] discarded its memory-expensive data.
+final class DiscardMemoryExpensiveData extends AnalysisDriverEvent {
+  final AnalysisDriver driver;
+
+  /// The URIs of the libraries whose manifest IDs stay decoded.
+  final List<Uri> keptIds;
+
+  new({required this.driver, required this.keptIds});
 }
 
 final class GetErrorsFromBytes extends AnalysisDriverEvent {
   final FileState file;
   final LibraryFileKind library;
 
-  GetErrorsFromBytes({required this.file, required this.library});
+  new({required this.file, required this.library});
 }
 
 /// The event that libraries for [cycle] were linked, and accumulated the
@@ -63,7 +70,7 @@ final class LinkLibraryCycle extends AnalysisDriverEvent {
   final LibraryCycle cycle;
   final RequirementsManifest? requirements;
 
-  LinkLibraryCycle({
+  new({
     required this.elementFactory,
     required this.cycle,
     required this.requirements,
@@ -74,5 +81,5 @@ final class LinkLibraryCycle extends AnalysisDriverEvent {
 final class ReuseLinkedBundle extends AnalysisDriverEvent {
   final LibraryCycle cycle;
 
-  ReuseLinkedBundle({required this.cycle});
+  new({required this.cycle});
 }

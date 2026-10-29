@@ -304,9 +304,15 @@ abstract class InlineMethodRefactoring implements Refactoring {
   factory(
     SearchEngine searchEngine,
     ResolvedUnitResult resolveResult,
-    int offset,
-  ) {
-    return InlineMethodRefactoringImpl(searchEngine, resolveResult, offset);
+    int offset, {
+    ChangeBuilder? builder,
+  }) {
+    return InlineMethodRefactoringImpl(
+      searchEngine,
+      resolveResult,
+      offset,
+      builder: builder,
+    );
   }
 
   /// The name of the class enclosing the method being inlined.

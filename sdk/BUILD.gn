@@ -466,6 +466,7 @@ if (!using_sanitizer && current_os == "linux" &&
           [ "$src_dir/${dart_aotruntime_stripped_binary}${executable_suffix}" ]
       outputs = [ "$root_out_dir/$dart_sdk_output/bin/dartaotruntime_${sanitizer}${executable_suffix}" ]
     }
+
     copy("copy_dart_cliruntime_$sanitizer") {
       visibility = [ ":*" ]
       deps = [ "../runtime/bin:dartcliruntime_product(${current_toolchain}_${sanitizer})" ]
@@ -509,7 +510,10 @@ if (_has_dot_sym) {
 
 copy("copy_vm_platform_product") {
   visibility = [ ":*" ]
-  deps = [ "../runtime/vm:vm_platform_product" ]
+  deps = [
+    ":copy_libraries",
+    "../runtime/vm:vm_platform_product",
+  ]
   src_dir = get_label_info("../runtime/vm:vm_platform_product", "root_out_dir")
   sources = [ "$src_dir/vm_platform_product.dill" ]
   outputs =
@@ -562,6 +566,7 @@ foreach(snapshot, _sdk_snapshots) {
       snapshot[0] == "dart_runtime_service_vm_aot") {
     root = root_out_dir
   }
+
   copy("copy_${snapshot[0]}_snapshot") {
     visibility = [ ":*" ]
     deps = [ snapshot[1] ]

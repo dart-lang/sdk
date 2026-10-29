@@ -26,15 +26,13 @@ class ElementDisplayStringBuilder {
   /// Whether to write instantiated type alias when available.
   final bool preferTypeAlias;
 
-  ElementDisplayStringBuilder({
+  new({
     @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-    bool multiline = false,
-    bool includePositionalParameterNames = false,
+    this._withNullability = true,
+    this._multiline = false,
+    this._includePositionalParameterNames = false,
     required this.preferTypeAlias,
-  }) : _withNullability = withNullability,
-       _multiline = multiline,
-       _includePositionalParameterNames = includePositionalParameterNames;
+  });
 
   @override
   String toString() => _buffer.toString();

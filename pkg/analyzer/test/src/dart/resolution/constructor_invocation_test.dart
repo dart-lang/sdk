@@ -30,7 +30,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo();
 //        ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
 }
 
 extension E on Type {
@@ -105,7 +105,7 @@ import 'a.dart' as a;
 void bar() {
   a.Fn<int>.foo();
 //          ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'a.Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'a.Fn' doesn't have a static member named 'foo'.
 }
 
 extension E on Type {
@@ -872,7 +872,7 @@ const x = C<int>.();
 // [diag.missingIdentifier] Expected an identifier.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -1866,7 +1866,7 @@ const x = p.C<int>.();
 ''');
 
     assertResolvedNodeText(
-      result.findNode.singleVariableDeclaration.initializer2!,
+      result.findNode.singleTopLevelVariable.initializer!,
       r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -3291,8 +3291,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new Unresolved.named(0);
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'Unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'Unresolved'.
 }
 
 ''');
@@ -3348,8 +3348,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new unresolved.Foo.bar(0);
-//    ^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 
 ''');

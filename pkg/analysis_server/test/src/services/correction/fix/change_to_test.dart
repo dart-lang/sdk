@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ChangeToTest extends FixProcessorTest {
+class ChangeToTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.changeTo;
 
@@ -413,6 +412,21 @@ class BaseClass {}
 ''');
   }
 
+  Future<void> test_constant_staticConst() async {
+    await resolveTestCode('''
+class A {
+  static const value = 0;
+  static const x = vaule;
+}
+''');
+    await assertHasFix('''
+class A {
+  static const value = 0;
+  static const x = value;
+}
+''');
+  }
+
   Future<void> test_enum_constant() async {
     await resolveTestCode('''
 enum E { ONE }
@@ -444,6 +458,19 @@ enum E { ONE }
 E e() {
   return .ONE;
 }
+''');
+  }
+
+  Future<void> test_enum_constant_dotShorthand_constant() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+const E e = .OEN;
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+const E e = .ONE;
 ''');
   }
 
@@ -591,6 +618,46 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_function_prefixed_reference_fromImport() async {
+    await resolveTestCode('''
+import 'dart:core' as c;
+void f() {
+  c.prnt;
+}
+''');
+    await assertHasFix('''
+import 'dart:core' as c;
+void f() {
+  c.print;
+}
+''');
+  }
+
+  Future<void> test_function_prefixed_reference_ignoreLocal() async {
+    await resolveTestCode('''
+import 'dart:async' as c;
+void myFunction() {}
+void f() {
+  c.myFuntcion;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_function_prefixed_reference_ignoreUnprefixedImport() async {
+    newFile('$testPackageLibPath/a.dart', '''
+void myFunction() {}
+''');
+    await resolveTestCode('''
+import 'dart:async' as c;
+import 'a.dart';
+void f() {
+  c.myFuntcion;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_function_thisLibrary() async {
     await resolveTestCode('''
 myFunction() {}
@@ -602,6 +669,55 @@ void f() {
 myFunction() {}
 void f() {
   myFunction();
+}
+''');
+  }
+
+  Future<void> test_function_unqualified_annotation() async {
+    await resolveTestCode('''
+void myFunction() {}
+
+@myFuntcion
+void f() {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_function_unqualified_compoundAssignment() async {
+    await resolveTestCode('''
+void myFunction() {}
+
+void f() {
+  myFuntcion += 1;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_function_unqualified_postfixIncrement() async {
+    await resolveTestCode('''
+void myFunction() {}
+
+void f() {
+  myFuntcion++;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_function_unqualified_reference() async {
+    await resolveTestCode('''
+void myFunction() {}
+
+void f() {
+  myFuntcion;
+}
+''');
+    await assertHasFix('''
+void myFunction() {}
+
+void f() {
+  myFunction;
 }
 ''');
   }
@@ -663,6 +779,50 @@ void f(A a) {
   print(a.myField);
 }
 ''');
+  }
+
+  Future<void> test_getter_qualified_invoked_functionType() async {
+    await resolveTestCode('''
+class A {
+  void Function() callback = () {};
+}
+void f(A a) {
+  a.callbak();
+}
+''');
+    await assertHasFix('''
+class A {
+  void Function() callback = () {};
+}
+void f(A a) {
+  a.callback();
+}
+''');
+  }
+
+  Future<void> test_getter_qualified_invoked_notInvocable() async {
+    await resolveTestCode('''
+class A {
+  int count = 0;
+}
+void f(A a) {
+  a.coun();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_getter_qualified_invoked_targetIsNotThis() async {
+    await resolveTestCode('''
+class A {}
+class B {
+  void Function() callback = () {};
+  void f(A a) {
+    a.callbak();
+  }
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_getter_qualified_static() async {
@@ -741,6 +901,74 @@ class A {
 ''');
   }
 
+  Future<void> test_getter_unqualified_invoked_callMethod() async {
+    await resolveTestCode('''
+class A {
+  B handler = B();
+  void f() {
+    handlr();
+  }
+}
+class B {
+  void call() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  B handler = B();
+  void f() {
+    handler();
+  }
+}
+class B {
+  void call() {}
+}
+''');
+  }
+
+  Future<void> test_getter_unqualified_invoked_functionType() async {
+    await resolveTestCode('''
+class A {
+  void Function() get callback => () {};
+  void f() {
+    callbak();
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  void Function() get callback => () {};
+  void f() {
+    callback();
+  }
+}
+''');
+  }
+
+  Future<void> test_getter_unqualified_invoked_notInvocable() async {
+    await resolveTestCode('''
+class A {
+  int count = 0;
+  void f() {
+    coun();
+  }
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_getter_unqualified_invoked_nullableFunctionType() async {
+    await resolveTestCode('''
+class A {
+  void Function()? callback;
+  void f() {
+    callbak();
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_getterSetter_qualified() async {
     await resolveTestCode('''
 class A {
@@ -761,7 +989,7 @@ class A {
 void f(A a) {
   a.foo += 2;
 }
-''', filter: (e) => e.diagnosticCode == diag.undefinedGetter);
+''');
   }
 
   Future<void> test_getterSetter_qualified_static() async {
@@ -784,7 +1012,7 @@ class A {
 void f() {
   A.foo += 2;
 }
-''', filter: (e) => e.diagnosticCode == diag.undefinedGetter);
+''');
   }
 
   Future<void> test_getterSetter_unqualified() async {

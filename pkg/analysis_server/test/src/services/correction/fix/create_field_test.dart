@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateFieldEnumTest extends FixProcessorTest {
+class CreateFieldEnumTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
@@ -44,7 +44,8 @@ int f(E e) {
 ''',
       filter: (diagnostic) {
         // Filter to ignore enum_without_constants
-        return diagnostic.diagnosticCode == diag.undefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedInstanceMemberReadNotFound;
       },
     );
   }
@@ -259,7 +260,7 @@ void f(E e) {
 }
 
 @reflectiveTest
-class CreateFieldMixinTest extends FixProcessorTest {
+class CreateFieldMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
@@ -388,7 +389,7 @@ void f() {
 }
 
 @reflectiveTest
-class CreateFieldTest extends FixProcessorTest {
+class CreateFieldTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
@@ -431,6 +432,15 @@ class C {
     await assertNoFix();
   }
 
+  Future<void> test_constant() async {
+    await resolveTestCode('''
+class A {
+  static const x = foo;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_dotShorthand_class() async {
     await resolveTestCode('''
 class A {}
@@ -448,6 +458,14 @@ void f() {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_dotShorthand_constant() async {
+    await resolveTestCode('''
+class A {}
+const A v = .test;
+''');
+    await assertNoFix();
   }
 
   Future<void> test_dotShorthand_enum() async {
@@ -490,7 +508,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }
@@ -513,7 +532,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }

@@ -6,6 +6,7 @@
 library;
 
 // import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -23,7 +24,9 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
     String name,
     String type,
   ) {
-    var declaration = result.findNode.variableDeclaration(name);
+    var declaration = result.findNode
+        .any(name)
+        .thisOrAncestorOfType2<VariableBindingImpl>()!;
     var initializer = declaration.initializer2!;
     assertType(initializer.staticType, type);
   }

@@ -16,7 +16,7 @@ import 'package:analyzer/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 
 /// Algorithm for detecting usages of a set of elements.
-@ToBeDeprecated('Use ElementUsageDetectorV2 instead')
+@V1Ast('The V2 counterpart is ElementUsageDetectorV2.')
 class ElementUsageDetector<TagInfo extends Object> {
   /// Description of the current workspace.
   ///
@@ -30,10 +30,10 @@ class ElementUsageDetector<TagInfo extends Object> {
   final List<UsageSetAndReporter> usagesArbitrary = [];
   final List<UsageSetAndReporter> usagesMetadataOnly = [];
 
-  ElementUsageDetector({
-    required WorkspacePackage? workspacePackage,
+  new({
+    required this._workspacePackage,
     required List<UsageSetAndReporter> usagesAndReporters,
-  }) : _workspacePackage = workspacePackage {
+  }) {
     for (var usageSetAndReporter in usagesAndReporters) {
       if (usageSetAndReporter.elementUsageSet.reliesOnlyOnElementMetadata) {
         usagesMetadataOnly.add(usageSetAndReporter);
@@ -508,10 +508,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   final List<UsageSetAndReporter> usagesArbitrary = [];
   final List<UsageSetAndReporter> usagesMetadataOnly = [];
 
-  ElementUsageDetectorV2({
-    required WorkspacePackage? workspacePackage,
+  new({
+    required this._workspacePackage,
     required List<UsageSetAndReporter> usagesAndReporters,
-  }) : _workspacePackage = workspacePackage {
+  }) {
     for (var usageSetAndReporter in usagesAndReporters) {
       if (usageSetAndReporter.elementUsageSet.reliesOnlyOnElementMetadata) {
         usagesMetadataOnly.add(usageSetAndReporter);
@@ -628,7 +628,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
 
-  void constructorDeclaration(ConstructorDeclaration node) {
+  void constructorDeclaration(ConstructorDeclaration2 node) {
     // Check usage of any implicit super-constructor call.
     // There is only an implicit super-constructor if:
     // * this is not a factory constructor,
@@ -737,7 +737,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void formalParameter(FormalParameter node) {
     var parameterList = node.parentFormalParameterList2;
-    if (parameterList.parent2 case ConstructorDeclaration constructor) {
+    if (parameterList.parent2 case ConstructorDeclaration2 constructor) {
       if (constructor.factoryRedirectionTarget?.element
           case var redirectedConstructor?) {
         if (node.isNamed) {
@@ -958,24 +958,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is FormalParameterElement) {
       var definingFunction = element.enclosingElement;
-
+      if (definingFunction == null) {
+        return false;
+      }
       for (; node != null; node = node.parent2) {
-        if (node is ConstructorDeclaration) {
-          if (node.declaredFragment?.element == definingFunction) {
-            return true;
-          }
-        } else if (node is FunctionExpression) {
-          if (node.declaredFragment?.element == definingFunction) {
-            return true;
-          }
-        } else if (node is MethodDeclaration) {
-          if (node.declaredFragment?.element == definingFunction) {
-            return true;
-          }
-        } else if (node is PrimaryConstructorBody) {
-          if (node.declaration?.declaredFragment?.element == definingFunction) {
-            return true;
-          }
+        var declaredElement = switch (node) {
+          PrimaryConstructorBody2() =>
+            node.declaration?.declaredFragment?.element,
+          FragmentDeclaringNode() => node.declaredFragment?.element,
+          _ => null,
+        };
+        if (declaredElement == definingFunction) {
+          return true;
         }
       }
     }
@@ -1061,5 +1055,5 @@ class UsageSetAndReporter<TagInfo extends Object> {
   final ElementUsageSet<TagInfo> elementUsageSet;
   final ElementUsageReporter<TagInfo> elementUsageReporter;
 
-  UsageSetAndReporter(this.elementUsageSet, this.elementUsageReporter);
+  new(this.elementUsageSet, this.elementUsageReporter);
 }

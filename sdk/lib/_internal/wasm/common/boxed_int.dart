@@ -138,13 +138,14 @@ final class BoxedInt implements int {
   @pragma("wasm:prefer-inline")
   bool operator ==(Object other) {
     return other is int
-        ? this ==
-              other // Intrinsic ==
+        ? _equals(this, other)
         : other is double
-        ? this.toDouble() ==
-              other // Intrinsic ==
+        ? this.toDouble() == other
         : false;
   }
+
+  @pragma("wasm:intrinsic")
+  external static bool _equals(int a, int b);
 
   @pragma("wasm:prefer-inline")
   int abs() {

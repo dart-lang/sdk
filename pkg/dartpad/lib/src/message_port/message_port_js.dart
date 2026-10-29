@@ -331,5 +331,9 @@ StreamChannel<MessagePortMessage> _webMessagePortChannel(web.MessagePort port) {
     },
   );
 
-  return StreamChannel(input.stream, output.sink);
+  return StreamChannel.withGuarantees(
+    input.stream,
+    output.sink,
+    allowSinkErrors: false,
+  );
 }

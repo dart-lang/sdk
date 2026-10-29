@@ -7,15 +7,20 @@ const annotation1 = 1;
 const annotation2 = 2;
 
 class Class1 {
+  var field;
   new() {}
+  new withInitializers() : field = 0;
   new alias() : this();
   factory fact() {}
   factory redirect() = Class1;
 }
 
 class Class2 {
+  var field;
   @annotation1
   new();
+  @annotation1
+  new withInitializers();
   @annotation1
   new alias();
   @annotation1
@@ -25,8 +30,11 @@ class Class2 {
 }
 
 class Class3 {
+  var field;
   @annotation1
   new();
+  @annotation1
+  new withInitializers();
   @annotation1
   new alias();
   @annotation1
@@ -34,3 +42,7 @@ class Class3 {
   @annotation1
   factory redirect();
 }
+
+main() {}
+
+expect(expected, actual) {}

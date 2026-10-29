@@ -1529,7 +1529,6 @@ static void TryAllocateString(Assembler* assembler,
   __ ldr(TMP, Address(THR, target::Thread::end_offset()));
   __ cmp(R1, Operand(TMP));
   __ b(failure, CS);
-  __ CheckAllocationCanary(R0);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.

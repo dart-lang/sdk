@@ -4,14 +4,14 @@
   (type $JSExternWrapper (sub $Object (struct
     (field $#classId i32)
     (field $#identityHash (mut i32))
-    (field $_externRef externref))))
+    (field $_externRef (ref extern)))))
   (type $Object (sub $#Top (struct
     (field $#classId i32)
     (field $#identityHash (mut i32)))))
   (global $".hello world" (import "" "hello world") (ref extern))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 2 funcref)
   (global $"\"hello world\"" (ref $JSExternWrapper)
-    (i32.const 67)
+    (i32.const 66)
     (i32.const 0)
     (global.get $".hello world")
     (struct.new $JSExternWrapper))

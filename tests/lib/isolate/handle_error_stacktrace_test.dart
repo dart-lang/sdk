@@ -12,9 +12,9 @@ import "package:async_helper/async_helper.dart";
 const errorValue = "TEST_ERROR";
 const stackTraceValue = "TEST_STACKTRACE";
 
-void isolateMain() {
+final isolateMain = (_) {
   Error.throwWithStackTrace(errorValue, StackTrace.fromString(stackTraceValue));
-}
+};
 
 void main() async {
   asyncStart();
@@ -31,9 +31,9 @@ void main() async {
     }
   });
 
-  Isolate.spawn((_) => isolateMain(), null, onError: errorPort.sendPort);
+  Isolate.spawn(isolateMain, null, onError: errorPort.sendPort);
   Isolate.spawn(
-    (_) => isolateMain(),
+    isolateMain,
     null,
     onError: errorPort.sendPort,
     errorsAreFatal: false,

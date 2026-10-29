@@ -160,7 +160,7 @@ class A {
     _createRefactoring();
     // error
     return _assertConditionsFatal(
-      "Can't inline an 'async' method into a function that doesn't return a 'Future'.",
+      "Can't inline an 'async' method into a function that doesn't return a 'Future' or 'FutureOr'.",
     );
   }
 
@@ -689,6 +689,120 @@ void f() {
     return _assertSuccessfulRefactoring(r'''
 void f() {
   print(1 + 2);
+}
+''');
+  }
+
+  Future<void> test_function_expressionFunctionBody_introducesVariable() async {
+    await indexTestUnit(r'''
+int Function() ^task(int value) => () => value;
+class C {
+  final int _value;
+  const C(this._value);
+  int Function() make() => task(_value);
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+class C {
+  final int _value;
+  const C(this._value);
+  int Function() make() => ((int value) => () => value)(_value);
+}
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_awaitArgument() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+Future<int> next() async => 1;
+Future<int> f() async => twice(await next());
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+Future<int> next() async => 1;
+Future<int> f() async => ((int value) => value + value)(await next());
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_blockBody() async {
+    await indexTestUnit(r'''
+int ^twice(int value) {
+  return value + value;
+}
+int next() => 1;
+int f() => twice(next());
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+int f() => (int value) {
+  return value + value;
+}(next());
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_generic() async {
+    await indexTestUnit(r'''
+T ^identity<T>(T value) => value;
+int next() => 1;
+int f() => identity<int>(next());
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+int f() => (<T>(T value) => value)<int>(next());
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_nestedClosure() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+int next() => 1;
+int Function() f() {
+  return () => twice(next());
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+int Function() f() {
+  return () => ((int value) => value + value)(next());
+}
+''');
+  }
+
+  Future<void>
+  test_function_expressionFunctionBody_introducesVariable_shortCircuit() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+int next() => 1;
+bool f(bool enabled) => enabled && twice(next()) > 0;
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+bool f(bool enabled) => enabled && ((int value) => value + value)(next()) > 0;
+''');
+  }
+
+  Future<void> test_function_fieldInitializer_introducesVariable() async {
+    await indexTestUnit(r'''
+int ^twice(int value) => value + value;
+int next() => 1;
+class C {
+  final int value = twice(next());
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+int next() => 1;
+class C {
+  final int value = ((int value) => value + value)(next());
 }
 ''');
   }
@@ -1579,6 +1693,27 @@ class A {
 ''');
   }
 
+  Future<void> test_getter_async_targetIsSync_futureOr() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get ^test async => 42;
+  FutureOr<int> foo() {
+    return test;
+  }
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> foo() async {
+    return 42;
+  }
+}
+''');
+  }
+
   Future<void> test_getter_classMember_instance() async {
     await indexTestUnit(r'''
 class A {
@@ -2078,6 +2213,71 @@ class A {
   }
 
   Future<void> y(String s) async {}
+}
+''');
+  }
+
+  Future<void> test_method_async_futureOr() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> build() {
+    return _initialize();
+  }
+  static Future<int> ^_initialize() async {
+    var value = await Future.value(42);
+    return value;
+  }
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> build() async {
+    var value = await Future.value(42);
+    return value;
+  }
+}
+''');
+  }
+
+  Future<void> test_method_async_futureOr_expressionBody() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> foo() => test();
+  Future<int> ^test() async => 42;
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  FutureOr<int> foo() async => 42;
+}
+''');
+  }
+
+  Future<void> test_method_async_futureOr_typeAlias() async {
+    await indexTestUnit(r'''
+import 'dart:async';
+typedef Result<T> = FutureOr<T>;
+class A {
+  Result<int> foo() {
+    return test();
+  }
+  Future<int> ^test() async => 42;
+}
+''');
+    _createRefactoring();
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+typedef Result<T> = FutureOr<T>;
+class A {
+  Result<int> foo() async {
+    return 42;
+  }
 }
 ''');
   }

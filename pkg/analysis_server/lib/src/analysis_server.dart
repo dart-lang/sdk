@@ -30,6 +30,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show MessageType;
 import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
+import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
@@ -176,15 +177,14 @@ abstract class AnalysisServer {
   /// The optional [ByteStore] to use as [byteStore].
   final ByteStore? providedByteStore;
 
-  late ByteStore byteStore;
-
-  late FileContentCache fileContentCache;
+  late final ByteStore byteStore;
 
   final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
 
   late final analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
-  late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
+  @protected
+  StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -209,19 +209,11 @@ abstract class AnalysisServer {
   /// or `null` if the initial analysis is not yet complete
   ServerPerformance? performanceAfterStartup;
 
-  /// A client for making requests to the pub.dev API.
-  final PubApi pubApi;
-
   /// The performance logger.
   final PerformanceLogger? performanceLogger;
 
   /// A service for fetching pub.dev package details.
-  late final PubPackageService pubPackageService;
-
-  /// The class into which performance information is currently being recorded.
-  /// During startup, this will be the same as [performanceDuringStartup]
-  /// and after startup is complete, this switches to [performanceAfterStartup].
-  late ServerPerformance performance;
+  final PubPackageService pubPackageService;
 
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
@@ -245,9 +237,7 @@ abstract class AnalysisServer {
 
   /// The [ClientUriConverter] to use to convert between URIs/Paths when
   /// communicating with the client.
-  late ClientUriConverter _uriConverter = ClientUriConverter.noop(
-    resourceProvider.pathContext,
-  );
+  ClientUriConverter _uriConverter;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
   ///
@@ -343,11 +333,16 @@ abstract class AnalysisServer {
   }) : resourceProvider = OverlayResourceProvider(
          TimingResourceProvider(baseResourceProvider),
        ),
-       pubApi = PubApi(
-         instrumentationService,
-         sessionLogger,
-         httpClient,
-         platform.environment['PUB_HOSTED_URL'],
+       _uriConverter = ClientUriConverter.noop(
+         baseResourceProvider.pathContext,
+       ),
+       pubPackageService = _createPubPackageService(
+         baseResourceProvider: baseResourceProvider,
+         instrumentationService: instrumentationService,
+         sessionLogger: sessionLogger,
+         httpClient: httpClient,
+         processRunner: processRunner,
+         environment: environment,
        ),
        messageScheduler = MessageScheduler(
          listener:
@@ -355,36 +350,7 @@ abstract class AnalysisServer {
              SchedulerTrackingListener(analyticsManager, performanceLogger),
        ) {
     messageScheduler.server = this;
-    // Set the default URI converter. This uses the resource providers path
-    // context (unlike the initialized value) which allows tests to override it.
-    uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
-
-    // We can only spawn processes (eg. to run pub commands) when backed by
-    // a real file system, otherwise we may try to run commands in folders that
-    // don't really exist. If processRunner was supplied, it's likely a mock
-    // from a test in which case the pub command should still be created.
-    if (baseResourceProvider is PhysicalResourceProvider) {
-      processRunner ??= ProcessRunner(environment: environment);
-    }
-    var disablePubCommandVariable =
-        platform.environment[PubCommand.disablePubCommandEnvironmentKey];
-    var pubCommand = processRunner != null && disablePubCommandVariable == null
-        ? PubCommand(
-            instrumentationService,
-            sessionLogger,
-            resourceProvider.pathContext,
-            processRunner,
-          )
-        : null;
-
-    pubPackageService = PubPackageService(
-      instrumentationService,
-      sessionLogger,
-      baseResourceProvider,
-      pubApi,
-      pubCommand,
-    );
-    performance = performanceDuringStartup;
+    notificationManager.uriConverter = _uriConverter;
 
     this.pluginManager = pluginManager ??= PluginManager(
       resourceProvider,
@@ -419,7 +385,6 @@ abstract class AnalysisServer {
     }
 
     byteStore = createByteStore(resourceProvider);
-    fileContentCache = FileContentCache(resourceProvider);
 
     analysisDriverScheduler = analysis.AnalysisDriverScheduler(
       analysisPerformanceLogger,
@@ -432,7 +397,7 @@ abstract class AnalysisServer {
       options.packagesFile,
       options.enabledExperiments,
       byteStore,
-      fileContentCache,
+      FileContentCache(resourceProvider),
       unlinkedUnitStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
@@ -589,6 +554,37 @@ abstract class AnalysisServer {
   OwnedFiles get ownedFiles => contextManager.ownedFiles;
 
   path.Context get pathContext => resourceProvider.pathContext;
+
+  /// The class into which performance information is currently being recorded.
+  /// During startup, this will be the same as [performanceDuringStartup]
+  /// and after startup is complete, this switches to [performanceAfterStartup].
+  ServerPerformance get performance =>
+      performanceAfterStartup ?? performanceDuringStartup;
+
+  /// Whether the client prefers legacy refactors over self-describing refactors
+  /// that use Interactive Forms.
+  ///
+  /// The reason for this flag is to support versions of Dart-Code that do not
+  /// support Interactive Forms, but they do support prompting the user for
+  /// names for EXTRACT_METHOD and EXTRACT_WIDGET and injecting the response
+  /// into the command args.
+  ///
+  /// We don't need to prefer these for clients that don't support Interactive
+  /// Forms if they are _not_ injecting the names, because the behaviour would
+  /// be the same in both cases with no prompt (they would just get
+  /// server-computed names).
+  ///
+  bool get prefersLegacyRefactors =>
+      // TODO(dantup): When removing this (and the legacy version of the
+      //  refactors) once sufficient time has passed, we must add tests to
+      //  ensure that when a client doesn't support Interactive Forms, we
+      //  provide the new self-described version of the refactor using the
+      //  server-provided name (which is today handled by the legacy version).
+      editorClientCapabilities?.supportedInteractiveFormInputTypes.isEmpty ??
+      true;
+
+  /// A client for making requests to the pub.dev API.
+  PubApi get pubApi => pubPackageService.api;
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
@@ -1461,6 +1457,47 @@ abstract class AnalysisServer {
     }
     return null;
   }
+
+  static PubPackageService _createPubPackageService({
+    required ResourceProvider baseResourceProvider,
+    required InstrumentationService instrumentationService,
+    required SessionLogger sessionLogger,
+    required http.Client? httpClient,
+    required ProcessRunner? processRunner,
+    required Map<String, String>? environment,
+  }) {
+    var pubApi = PubApi(
+      instrumentationService,
+      sessionLogger,
+      httpClient,
+      platform.environment['PUB_HOSTED_URL'],
+    );
+    // We can only spawn processes (eg. to run pub commands) when backed by
+    // a real file system, otherwise we may try to run commands in folders that
+    // don't really exist. If processRunner was supplied, it's likely a mock
+    // from a test in which case the pub command should still be created.
+    if (baseResourceProvider is PhysicalResourceProvider) {
+      processRunner ??= ProcessRunner(environment: environment);
+    }
+    var disablePubCommandVariable =
+        platform.environment[PubCommand.disablePubCommandEnvironmentKey];
+    var pubCommand = processRunner != null && disablePubCommandVariable == null
+        ? PubCommand(
+            instrumentationService,
+            sessionLogger,
+            baseResourceProvider.pathContext,
+            processRunner,
+          )
+        : null;
+
+    return PubPackageService(
+      instrumentationService,
+      sessionLogger,
+      baseResourceProvider,
+      pubApi,
+      pubCommand,
+    );
+  }
 }
 
 /// A snapshot of the sizes and counters of the byte stores used by the
@@ -1543,6 +1580,9 @@ abstract class CommonServerContextManagerCallbacks
   final Set<String> filesToFlush = {};
 
   new(this.resourceProvider);
+
+  /// The analysis server that created this callback object.
+  AnalysisServer get analysisServer;
 
   @override
   @mustCallSuper
@@ -1641,6 +1681,11 @@ abstract class CommonServerContextManagerCallbacks
       path,
       errors,
     );
+  }
+
+  @override
+  void scheduleWatchEvent(WatchEvent event) {
+    analysisServer.messageScheduler.add(WatcherMessage(event));
   }
 }
 

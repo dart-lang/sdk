@@ -1439,7 +1439,6 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
     __ CompareWithMemoryValue(new_top_reg,
                               Address(THR, target::Thread::end_offset()));
     __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
-    __ CheckAllocationCanary(result_reg);
 
     // Successfully allocated the object, now update top to point to
     // next object start and initialize the object.
@@ -1487,20 +1486,17 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
       __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
 
       __ Bind(&loop);
-      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+      for (intptr_t offset = 0; offset < target::kWordSize;
            offset += target::kCompressedWordSize) {
         __ StoreCompressedIntoObjectNoBarrier(
             result_reg, FieldAddress(field_reg, offset), null_reg);
       }
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-      __ AddImmediate(field_reg, target::kObjectAlignment);
+      __ AddImmediate(field_reg, target::kWordSize);
       __ CompareRegisters(field_reg, new_top_reg);
       __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
       __ Bind(&done);
     }
 
-    __ WriteAllocationCanary(new_top_reg);  // Fix overshoot.
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1972,7 +1968,6 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
   __ CompareWithMemoryValue(temp_reg,
                             Address(THR, target::Thread::end_offset()));
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_case);
-  __ CheckAllocationCanary(result_reg);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -3337,14 +3332,10 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
 
   // Fill in all the STC input registers.
   Label initialized, not_closure;
-  if (n >= 3) {
-    __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
-  } else {
-    // If the type is fully instantiated, then it can be determined at compile
-    // time whether Smi is a subtype of the type or not. Thus, this code should
-    // never be called with a Smi instance.
-    __ LoadClassId(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
-  }
+  // Even for instantiated types (n < 3) we can't assume that the caller
+  // handles Smi inline because this code can be reached via the slow type
+  // test stub (e.g. for FutureOr<T> types).
+  __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
   __ CompareImmediate(instance_cid_or_sig_reg, kClosureCid);
   __ BranchIf(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 

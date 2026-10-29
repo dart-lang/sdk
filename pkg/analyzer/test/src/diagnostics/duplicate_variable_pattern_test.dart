@@ -65,9 +65,9 @@ IfStatement
           matchedValueType: int
         matchedValueType: int
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -121,7 +121,7 @@ SwitchPatternCase
         matchedValueType: int
       matchedValueType: int
   colon: :
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedNameExpression
         name: a
@@ -153,7 +153,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     PatternVariableDeclarationStatement
       declaration: PatternVariableDeclaration
         keyword: var

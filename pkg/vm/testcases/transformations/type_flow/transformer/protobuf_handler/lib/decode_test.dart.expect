@@ -9,6 +9,7 @@ import "dart:core" as core;
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
 import "package:matcher/src/expect/expect.dart";
 import "package:test_api/hooks.dart";
+import "package:matcher/src/async_matcher_restriction.dart";
 import "package:matcher/src/description.dart";
 import "package:matcher/src/interfaces.dart";
 import "package:matcher/src/util.dart";

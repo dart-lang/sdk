@@ -76,6 +76,7 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     expect(html, contains('Other Information'));
     expect(html, contains('Analysis Contexts'));
     expect(html, contains('Library Cycles'));
+    expect(html, contains('<h3>Symlinks</h3>'));
     expect(html, contains('pub workspaces'));
     expect(html, contains('href="contexts"'));
   }
@@ -334,6 +335,304 @@ analyzer:
     expect(html, contains('**/node_modules/**'));
   }
 
+  Future<void> test_symlinks_belowThreshold() async {
+    // Exactly 100 Dart files are analyzed through the symlink, which is not
+    // *more than* 100.
+    _newDartFiles('$testPackageLibPath/real', 100);
+    newLink('$testPackageLibPath/alias', '$testPackageLibPath/real');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, isNull);
+
+    var html = await _generate();
+    expect(html, contains('All Clear:'));
+    expect(
+      html,
+      contains(
+        'Detected <strong>1</strong> symlinked directory through which '
+        '<strong>100</strong> Dart files are analyzed, which is unlikely to '
+        'affect performance.',
+      ),
+    );
+  }
+
+  Future<void> test_symlinks_createsContext() async {
+    // `lib/up` points to the package root, which has a package configuration,
+    // so the analysis server creates an additional analysis context for it.
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newLink('$testPackageLibPath/up', testPackageRootPath);
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(server.driverMap, hasLength(2));
+    expect(page.navDetail, '1');
+    expect(page.navDetailClass, 'counter-red');
+
+    var html = await _generate();
+    var linkPath = pages.escape(convertPath('lib/up'));
+    var targetPath = pages.escape(convertPath(testPackageRootPath));
+    expect(html, contains('Potential Problems'));
+    expect(html, contains('<h3>Symlinks</h3>'));
+    expect(
+      html,
+      contains('<code>$linkPath</code> &rarr; <code>$targetPath</code>: '),
+    );
+    expect(
+      html,
+      contains(
+        '(creates an additional analysis context, '
+        'points to a parent directory, points into this context)',
+      ),
+    );
+    expect(html, contains("- '${pages.escape('lib/up/**')}'"));
+  }
+
+  Future<void> test_symlinks_createsContext_excluded() async {
+    // Excluding the symlink prevents the additional analysis context from being
+    // created.
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newLink('$testPackageLibPath/up', testPackageRootPath);
+    writeTestPackageAnalysisOptionsFile('''
+analyzer:
+  exclude:
+    - 'lib/up/**'
+''');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(server.driverMap, hasLength(1));
+    expect(page.navDetail, isNull);
+
+    var html = await _generate();
+    expect(html, contains('All Clear:'));
+    expect(html, contains('No symlinks to directories were detected'));
+  }
+
+  Future<void> test_symlinks_createsContext_otherPackage() async {
+    // `lib/other` points to another package, outside of this package.
+    newFile('$workspaceRootPath/other/lib/b.dart', 'class B {}');
+    newSinglePackageConfigJsonFile(
+      packagePath: '$workspaceRootPath/other',
+      name: 'other',
+    );
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newLink('$testPackageLibPath/other', '$workspaceRootPath/other');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(server.driverMap, hasLength(2));
+    expect(page.navDetail, '1');
+
+    var html = await _generate();
+    var linkPath = pages.escape(convertPath('lib/other'));
+    var targetPath = pages.escape(convertPath('$workspaceRootPath/other'));
+    expect(
+      html,
+      contains('<code>$linkPath</code> &rarr; <code>$targetPath</code>: '),
+    );
+    expect(html, contains('(creates an additional analysis context)'));
+    expect(html, isNot(contains('points into this context')));
+    expect(html, isNot(contains('points to a parent directory')));
+  }
+
+  Future<void> test_symlinks_excluded() async {
+    _newDartFiles('$testPackageLibPath/real', 101);
+    newLink('$testPackageLibPath/alias', '$testPackageLibPath/real');
+    writeTestPackageAnalysisOptionsFile('''
+analyzer:
+  exclude:
+    - 'lib/alias/**'
+''');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, isNull);
+
+    var html = await _generate();
+    expect(html, contains('All Clear:'));
+    expect(html, contains('No symlinks to directories were detected'));
+  }
+
+  Future<void> test_symlinks_hidden() async {
+    // Hidden directories are not walked, so a symlink in one is never followed.
+    _newDartFiles('$testPackageLibPath/real', 101);
+    newFolder('$testPackageRootPath/.symlinks');
+    newLink('$testPackageRootPath/.symlinks/real', '$testPackageLibPath/real');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, isNull);
+
+    var html = await _generate();
+    expect(html, contains('All Clear:'));
+    expect(html, contains('No symlinks to directories were detected'));
+  }
+
+  Future<void> test_symlinks_manyFiles() async {
+    _newDartFiles('$testPackageLibPath/real', 101);
+    newLink('$testPackageLibPath/alias', '$testPackageLibPath/real');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, '1');
+    expect(page.navDetailClass, 'counter-red');
+
+    var html = await _generate();
+    var linkPath = pages.escape(convertPath('lib/alias'));
+    var targetPath = pages.escape(convertPath('$testPackageLibPath/real'));
+    expect(html, contains('Potential Problems'));
+    expect(html, contains('<h3>Symlinks</h3>'));
+    expect(
+      html,
+      contains(
+        'Detected <strong>1</strong> symlinked directory through which '
+        '<strong>101</strong> Dart files',
+      ),
+    );
+    expect(html, contains('of the Dart files being analyzed'));
+    expect(
+      html,
+      contains(
+        '<code>$linkPath</code> &rarr; <code>$targetPath</code>: '
+        '<strong>101 Dart files</strong> in context',
+      ),
+    );
+    expect(html, contains('points into this context'));
+    expect(html, isNot(contains('points to a parent directory')));
+    expect(html, contains("- '${pages.escape('lib/alias/**')}'"));
+  }
+
+  Future<void> test_symlinks_moreThan20() async {
+    // 22 symlinks to a directory with 5 Dart files: 110 files in total.
+    _newDartFiles('$testPackageLibPath/real', 5);
+    for (var i = 0; i < 22; i++) {
+      newLink('$testPackageLibPath/alias$i', '$testPackageLibPath/real');
+    }
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, '1');
+
+    var html = await _generate();
+    expect(html, contains('Potential Problems'));
+    expect(
+      html,
+      contains(
+        'Detected <strong>22</strong> symlinked directories through which '
+        '<strong>110</strong> Dart files',
+      ),
+    );
+    expect(html, contains('plus 2 more symlinks.'));
+  }
+
+  Future<void> test_symlinks_nested() async {
+    // `lib/real/inner` is a symlink to `other`, and `lib/alias` is a symlink to
+    // `lib/real`. The files behind `lib/alias/inner` are reached through
+    // `lib/alias`, the outermost symlink, and are not reported separately.
+    _newDartFiles('$testPackageLibPath/real', 50);
+    _newDartFiles('$workspaceRootPath/other', 51);
+    newLink('$testPackageLibPath/real/inner', '$workspaceRootPath/other');
+    newLink('$testPackageLibPath/alias', '$testPackageLibPath/real');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, '1');
+
+    var html = await _generate();
+    expect(
+      html,
+      contains(
+        'Detected <strong>2</strong> symlinked directories through which '
+        '<strong>152</strong> Dart files',
+      ),
+    );
+    // 50 files in `lib/real`, and 51 files behind `lib/alias/inner`.
+    expect(html, contains('<strong>101 Dart files</strong>'));
+    expect(html, contains('<strong>51 Dart files</strong>'));
+    expect(html, isNot(contains(pages.escape(convertPath('lib/alias/inner')))));
+  }
+
+  Future<void> test_symlinks_nestedContext() async {
+    // A nested package that is not behind a symlink also gets its own analysis
+    // context, but that is not a concern of the symlinks.
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageRootPath/example/lib/b.dart', 'class B {}');
+    newFile('$testPackageRootPath/example/pubspec.yaml', 'name: example\n');
+    newSinglePackageConfigJsonFile(
+      packagePath: '$testPackageRootPath/example',
+      name: 'example',
+    );
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(server.driverMap, hasLength(2));
+    expect(page.navDetail, isNull);
+
+    var html = await _generate();
+    expect(html, contains('All Clear:'));
+    expect(html, contains('No symlinks to directories were detected'));
+  }
+
+  Future<void> test_symlinks_none() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, isNull);
+
+    var html = await _generate();
+    expect(html, contains('<h3>Symlinks</h3>'));
+    expect(html, contains('No symlinks to directories were detected'));
+  }
+
+  Future<void> test_symlinks_outsideContext() async {
+    _newDartFiles('$workspaceRootPath/shared', 101);
+    newFolder(testPackageLibPath);
+    newLink('$testPackageLibPath/shared', '$workspaceRootPath/shared');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, '1');
+
+    var html = await _generate();
+    var targetPath = pages.escape(convertPath('$workspaceRootPath/shared'));
+    expect(
+      html,
+      contains(
+        '&rarr; <code>$targetPath</code>: <strong>101 Dart files</strong>',
+      ),
+    );
+    expect(html, isNot(contains('points into this context')));
+    expect(html, isNot(contains('points to a parent directory')));
+  }
+
+  Future<void> test_symlinks_parentDirectory() async {
+    // `lib/up` points to the package root. The analysis server does not follow
+    // it back into `lib` (which is already being walked), but it does analyze
+    // the other directories again, through the symlink.
+    //
+    // Without a package configuration at the package root, the symlink does
+    // not create an additional analysis context.
+    deleteTestPackageConfigJsonFile();
+    _newDartFiles('$testPackageRootPath/bin', 101);
+    newFolder(testPackageLibPath);
+    newLink('$testPackageLibPath/up', testPackageRootPath);
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(server.driverMap, hasLength(1));
+    expect(page.navDetail, '1');
+
+    var html = await _generate();
+    expect(
+      html,
+      contains('points to a parent directory, points into this context'),
+    );
+    expect(html, isNot(contains('<em>(creates')));
+    expect(html, contains('<strong>101 Dart files</strong>'));
+  }
+
   Future<String> _generate([Map<String, String> params = const {}]) async {
     return await page.generate(params);
   }
@@ -345,6 +644,13 @@ analyzer:
       DiagnosticPageWithNav.navDetailParameter: '',
     });
     return jsonDecode(response);
+  }
+
+  /// Creates [count] Dart files in the directory at [directoryPath].
+  void _newDartFiles(String directoryPath, int count) {
+    for (var i = 0; i < count; i++) {
+      newFile('$directoryPath/f$i.dart', 'class C$i {}');
+    }
   }
 
   /// Replaces the Performance page of [site], which is what other pages link to

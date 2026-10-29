@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -20,6 +18,7 @@ import 'package:analysis_server/src/utilities/source_change_merger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
@@ -220,7 +219,7 @@ class MigrateHandler
         '(e.g., "3.12.0").',
       );
     }
-    var currentServerSdk = Version.parse(io.Platform.version.split(' ').first);
+    var currentServerSdk = Version.parse(platform.version.split(' ').first);
     if (targetSdk > currentServerSdk) {
       return error(
         ErrorCodes.InvalidParams,

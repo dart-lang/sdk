@@ -1994,7 +1994,6 @@ library
                   name: V @9
                   resolution: GetterInvocationResolution
                     element: <testLibrary>::@getter::V
-                    invokeType: dynamic Function()
                     type: dynamic
                   staticType: dynamic
         #F7 hasImplicitReturnType isComplete isOriginDeclaration isStatic V (nameOffset:16) (firstTokenOffset:16) (offset:16)

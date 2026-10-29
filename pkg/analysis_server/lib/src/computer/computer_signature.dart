@@ -95,7 +95,9 @@ class DartUnitSignatureComputer {
       }
     }
 
-    var dartdoc = _documentationComputer.compute(element)?.full;
+    var dartdoc = _documentationComputer
+        .compute(element, includeFull: true, includeSummary: false)
+        ?.full;
 
     return SignatureInformation(
       name: name,

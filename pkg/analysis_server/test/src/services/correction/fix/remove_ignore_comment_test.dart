@@ -47,7 +47,8 @@ class C {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryIgnoreCommentTest extends FixProcessorLintTest {
+class RemoveUnnecessaryIgnoreCommentTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryIgnoreComment;
   @override

@@ -27,6 +27,31 @@ f() => const;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: const
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: const
+          constructorName: ConstructorName
+            type: NamedType
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -35,15 +60,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: const
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: <empty> <synthetic>
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -66,6 +83,46 @@ f() => const A.b(;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: const
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
+            arguments(v1)
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: const
+          constructorName: ConstructorName
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -74,24 +131,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: const
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: A
-                  period: .
-                name: b
-            argumentList: ArgumentList
-              leftParenthesis: (
-              arguments2
-                ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-              arguments(v1)
-                SimpleIdentifier
-                  token: <empty> <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -120,6 +160,40 @@ f() => const A(;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: const
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
+            arguments(v1)
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: const
+          constructorName: ConstructorName
+            type: NamedType
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -128,21 +202,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: const
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A
-            argumentList: ArgumentList
-              leftParenthesis: (
-              arguments2
-                ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-              arguments(v1)
-                SimpleIdentifier
-                  token: <empty> <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -168,6 +228,37 @@ f() => const A.;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: const
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: const
+          constructorName: ConstructorName
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -176,18 +267,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: const
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: A
-                  period: .
-                name: <empty> <synthetic>
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -212,6 +292,37 @@ f() => const A.b;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: const
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: const
+          constructorName: ConstructorName
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -220,18 +331,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: const
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: A
-                  period: .
-                name: b
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -256,6 +356,31 @@ f() => const A;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: const
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: const
+          constructorName: ConstructorName
+            type: NamedType
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -264,15 +389,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: const
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: const
             constructorName: ConstructorName
               type: NamedType
@@ -295,6 +412,31 @@ f() => new;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: new
+          constructorName: ConstructorName
+            type: NamedType
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -303,15 +445,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: new
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: <empty> <synthetic>
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -334,6 +468,46 @@ f() => new A.b(;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
+            arguments(v1)
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: new
+          constructorName: ConstructorName
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -342,24 +516,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: new
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: A
-                  period: .
-                name: b
-            argumentList: ArgumentList
-              leftParenthesis: (
-              arguments2
-                ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-              arguments(v1)
-                SimpleIdentifier
-                  token: <empty> <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -388,6 +545,40 @@ f() => new A(;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedUnqualifiedName
+                name: <empty> <synthetic>
+            arguments(v1)
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: new
+          constructorName: ConstructorName
+            type: NamedType
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -396,21 +587,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: new
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A
-            argumentList: ArgumentList
-              leftParenthesis: (
-              arguments2
-                ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-              arguments(v1)
-                SimpleIdentifier
-                  token: <empty> <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -436,6 +613,37 @@ f() => new A.;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: new
+          constructorName: ConstructorName
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: <empty> <synthetic>
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -444,18 +652,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: new
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: A
-                  period: .
-                name: <empty> <synthetic>
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -480,6 +677,37 @@ f() => new A.b;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: new
+          constructorName: ConstructorName
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: A
+                period: .
+              name: b
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -488,18 +716,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: new
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                importPrefix: ImportPrefixReference
-                  name: A
-                  period: .
-                name: b
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType
@@ -524,6 +741,31 @@ f() => new A;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ConstructorInvocation
+          keyword: new
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        expression(v1): InstanceCreationExpression
+          keyword: new
+          constructorName: ConstructorName
+            type: NamedType
+              name: A
+          argumentList: ArgumentList
+            leftParenthesis: ( <synthetic>
+            rightParenthesis: ) <synthetic>
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -532,15 +774,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ConstructorInvocation
-            keyword: new
-            constructorReference: ConstructorReference2
-              typeReference: ConstructorTypeReference
-                name: A
-            argumentList: ArgumentList
-              leftParenthesis: ( <synthetic>
-              rightParenthesis: ) <synthetic>
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             keyword: new
             constructorName: ConstructorName
               type: NamedType

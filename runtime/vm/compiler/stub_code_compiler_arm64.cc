@@ -1505,7 +1505,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ LoadFromOffset(TMP, THR, target::Thread::end_offset());
     __ CompareRegisters(R7, TMP);
     __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
-    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1568,16 +1567,14 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
 #else
     const Register kWordOfNulls = NULL_REG;
 #endif
-    Label loop;
+    Label loop, done;
+    __ CompareRegisters(R3, R7);
+    __ b(&done, UNSIGNED_GREATER_EQUAL);
     __ Bind(&loop);
-    ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
-    __ stp(kWordOfNulls, kWordOfNulls,
-           Address(R3, 2 * target::kWordSize, Address::PairPostIndex));
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+    __ str(kWordOfNulls, Address(R3, target::kWordSize, Address::PostIndex));
     __ CompareRegisters(R3, R7);
     __ b(&loop, UNSIGNED_LESS);
-    __ WriteAllocationCanary(R7);  // Fix overshoot.
+    __ Bind(&done);
 
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
@@ -1981,7 +1978,6 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   __ ldr(TMP, Address(THR, target::Thread::end_offset()));
   __ CompareRegisters(R3, TMP);
   __ b(slow_case, CS);  // Branch if unsigned higher or equal.
-  __ CheckAllocationCanary(R0);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -2051,20 +2047,13 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
 #else
     const Register kWordOfNulls = NULL_REG;
 #endif
-    Label loop;
+    Label loop, done;
+    __ cbz(&done, R1);
     __ Bind(&loop);
-    ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
-    __ stp(kWordOfNulls, kWordOfNulls,
-           Address(R3, 2 * target::kWordSize, Address::PairPostIndex));
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ subs(R1, R1,
-            Operand(target::kObjectAlignment / target::kCompressedWordSize));
+    __ str(kWordOfNulls, Address(R3, target::kWordSize, Address::PostIndex));
+    __ subs(R1, R1, Operand(target::kWordSize / target::kCompressedWordSize));
     __ b(&loop, HI);
-#if defined(DEBUG)
-    __ ldr(TMP2, Address(THR, target::Thread::top_offset()));
-    __ WriteAllocationCanary(TMP2);  // Fix overshoot.
-#endif
+    __ Bind(&done);
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -2436,16 +2425,15 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 #else
       const Register kWordOfNulls = NULL_REG;
 #endif
-      Label loop;
+      Label loop, done;
+      __ CompareRegisters(kFieldReg, kNewTopReg);
+      __ b(&done, UNSIGNED_GREATER_EQUAL);
       __ Bind(&loop);
-      ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
-      __ stp(kWordOfNulls, kWordOfNulls,
-             Address(kFieldReg, 2 * target::kWordSize, Address::PairPostIndex));
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ str(kWordOfNulls,
+             Address(kFieldReg, target::kWordSize, Address::PostIndex));
       __ CompareRegisters(kFieldReg, kNewTopReg);
       __ b(&loop, UNSIGNED_LESS);
-      __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
+      __ Bind(&done);
     }  // kFieldReg = R4
 
     __ AddImmediate(AllocateObjectABI::kResultReg,
@@ -4031,7 +4019,6 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ ldr(R6, Address(THR, target::Thread::end_offset()));
     __ cmp(R1, Operand(R6));
     __ b(&call_runtime, CS);
-    __ CheckAllocationCanary(R0);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -4069,13 +4056,18 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ AddImmediate(R2, R0, target::TypedData::HeaderSize() - 1);
     __ StoreInternalPointer(
         R0, FieldAddress(R0, target::PointerBase::data_offset()), R2);
-    Label loop;
+
+    ASSERT(Utils::IsAligned(target::TypedData::HeaderSize() + target::kWordSize,
+                            target::kObjectAlignment));
+    __ str(ZR, Address(R2, 1 * target::kWordSize, Address::PostIndex));
+    Label loop, cmp;
+    __ b(&cmp);
     __ Bind(&loop);
     ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
     __ stp(ZR, ZR, Address(R2, 2 * target::kWordSize, Address::PairPostIndex));
+    __ Bind(&cmp);
     __ cmp(R2, Operand(R1));
     __ b(&loop, UNSIGNED_LESS);
-    __ WriteAllocationCanary(R1);  // Fix overshoot.
 
     InvokeAllocationProbePoint(assembler);
     __ Ret();

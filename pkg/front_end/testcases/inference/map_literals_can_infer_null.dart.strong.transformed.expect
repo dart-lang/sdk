@@ -2,11 +2,11 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:10:38: Error: A value of type 'int' can't be assigned to a variable of type 'Null'.
+// pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:10:38: Error: The argument type 'int' can't be assigned to the parameter type 'Null'.
 //       /*error:INVALID_CAST_LITERAL*/ 3] = /*error:INVALID_CAST_LITERAL*/
 //                                      ^
 //
-// pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:11:7: Error: A value of type 'String' can't be assigned to a variable of type 'Null'.
+// pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:11:7: Error: The argument type 'String' can't be assigned to the parameter type 'Null'.
 //       'z';
 //       ^
 //
@@ -15,9 +15,9 @@ import "dart:core" as core;
 
 static method test1() → dynamic {
   core::Map<Null, Null> x = <Null, Null>{null: null};
-  x.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:10:38: Error: A value of type 'int' can't be assigned to a variable of type 'Null'.
+  x.{core::Map::[]=}(invalid-expression "pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:10:38: Error: The argument type 'int' can't be assigned to the parameter type 'Null'.
       /*error:INVALID_CAST_LITERAL*/ 3] = /*error:INVALID_CAST_LITERAL*/
-                                     ^" in 3 as{TypeError} Null, invalid-expression "pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:11:7: Error: A value of type 'String' can't be assigned to a variable of type 'Null'.
+                                     ^" in 3 as{TypeError} Null, invalid-expression "pkg/front_end/testcases/inference/map_literals_can_infer_null.dart:11:7: Error: The argument type 'String' can't be assigned to the parameter type 'Null'.
       'z';
       ^" in "z" as{TypeError} Null){(Null, Null) → void};
 }

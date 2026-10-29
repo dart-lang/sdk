@@ -5,7 +5,9 @@
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
+import 'package:expect/expect.dart' show Expect;
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
+import 'package:expect/variations.dart';
 
 // Test exporting all vs. only some members.
 // Also test using a non-empty `@JSExport` annotation on a class, which should
@@ -21,6 +23,8 @@ class ExportAll {
   String get getSet => _getSetField;
   set getSet(String val) => _getSetField = val;
   String method() => 'method';
+  int intField = 0;
+  int intMethod(int val) => val;
 
   static String staticField = throw '';
   static void staticMethod() => throw '';
@@ -45,6 +49,8 @@ void testExportAll(WrapperCreator creator) {
   expect(all.has('_getSetField'), true);
   expect(all.has('getSet'), true);
   expect(all.has('method'), true);
+  expect(all.has('intField'), true);
+  expect(all.has('intMethod'), true);
   expect(all.has('staticField'), false);
   expect(all.has('staticMethod'), false);
   expect(all.has('extensionMethod'), false);
@@ -109,6 +115,18 @@ void testForwarding(WrapperCreator creator) {
   expect(dartInstance.getSet, 'modified');
 
   expect(all.callMethod('method'.toJS), dartInstance.method().toJS);
+
+  expect(all['intField'], dartInstance.intField.toJS);
+  all['intField'] = 42.toJS;
+  expect(dartInstance.intField, 42);
+  if (checkedImplicitDowncasts) {
+    Expect.throwsTypeError(() => all['intField'] = 2.5.toJS);
+  }
+
+  expect(all.callMethod('intMethod'.toJS, 42.toJS), 42.toJS);
+  if (checkedImplicitDowncasts) {
+    Expect.throwsTypeError(() => all.callMethod('intMethod'.toJS, 2.5.toJS));
+  }
 }
 
 // Test inheritance and overrides for every kind of member.

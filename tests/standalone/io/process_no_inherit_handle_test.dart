@@ -149,18 +149,14 @@ Future<void> testHandleNotInherited(ProcessStartMode mode) async {
       ...Platform.executableArguments,
       Platform.script.toFilePath(),
       '--child',
-      job.address.toString(),
     ], mode: mode);
-
-    // Not expecting to see more handles here.
-    Expect.equals(1, handleInfo(job)?.handleCount);
-
-    final exitCode = await child.exitCode;
-    Expect.equals(
-      0,
-      exitCode,
-      'Child process spawned with $mode inherited the job handle!',
-    );
+    try {
+      // Not expecting to see more handles here.
+      Expect.equals(1, handleInfo(job)?.handleCount);
+    } finally {
+      child.kill();
+      await child.exitCode;
+    }
   } finally {
     CloseHandle(job);
   }
@@ -172,9 +168,8 @@ void main(List<String> args) async {
   final _ = DynamicLibrary.open('kernel32.dll');
   final _ = DynamicLibrary.open('ntdll.dll');
 
-  if (args.length == 2 && args[0] == '--child') {
-    final handle = int.parse(args[1]);
-    Expect.equals(null, handleType(HANDLE.fromAddress(handle)));
+  if (args.length == 1 && args[0] == '--child') {
+    await Future<void>.delayed(const Duration(minutes: 5));
     return;
   }
 

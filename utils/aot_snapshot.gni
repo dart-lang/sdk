@@ -52,14 +52,11 @@ template("aot_snapshot") {
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   kernel_label = target_name + "_dill"
+
   action(kernel_label) {
     mnemonic = "GEN_KERNEL"
     if (defined(invoker.pool)) {
       pool = invoker.pool
-    } else if (_is_dart) {
-      pool = "//build/toolchain:local_action_pool($host_toolchain)"
-    } else {
-      pool = "$_dart_root/build/dart:dart_action_pool($default_toolchain)"
     }
 
     gen_kernel_tool =
@@ -119,6 +116,7 @@ template("aot_snapshot") {
 
   # Create a snapshot from kernel built above.
   gen_snapshot_label = "${target_name}_gen_snapshot"
+
   gen_snapshot_action(gen_snapshot_label) {
     if (defined(invoker.pool)) {
       pool = invoker.pool

@@ -5,17 +5,16 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:shelf/shelf.dart';
 
 import 'clients.dart';
 import 'dart_runtime_service.dart';
+import 'dart_runtime_service_options.dart';
 import 'dart_runtime_service_rpcs.dart';
 import 'event_streams.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
-
-typedef OptionalHandler = FutureOr<Response?> Function(Request);
 
 /// A backend implementation of a service used to inject non-common
 /// functionality into a [DartRuntimeService].
@@ -69,11 +68,14 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// This is always invoked immediately before [shutdown].
   Future<void> clearState();
 
-  /// Invoked by the [DartRuntimeService] when the service's HTTP server has
+  /// Invoked by the [DartRuntimeService] when the service's server has
   /// started.
-  Future<void> onServerStarted({required Uri httpUri, required Uri wsUri});
+  ///
+  /// When [startServer] returns a non-null [Uri], [DartRuntimeService.uri] and
+  /// [DartRuntimeService.httpUri] are populated before this method is invoked.
+  Future<void> onServerStarted();
 
-  /// Invoked by the [DartRuntimeService] when the service's HTTP server has
+  /// Invoked by the [DartRuntimeService] when the service's server has
   /// shutdown.
   Future<void> onServerShutdown();
 
@@ -112,12 +114,25 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   UnmodifiableListView<RpcHandlerWithParameters> get fallbacks =>
       UnmodifiableListView(const []);
 
-  /// A custom handler for handling HTTP requests.
+  /// Writes a [LogRecord] emitted by [DartRuntimeService] when
+  /// [DartRuntimeServiceOptions.enableLogging] is enabled.
+  void writeLogRecord(LogRecord record) {
+    Zone.current.print('$record');
+  }
+
+  /// Starts the server for this [DartRuntimeService], returning the base
+  /// [Uri] if the backend binds an addressable server, or `null` if the
+  /// backend does not expose a server URI (e.g., when clients connect via
+  /// [DartRuntimeService.addArtificialClient]).
   ///
-  /// This handler is invoked before attempting to execute the HTTP request as
-  /// an RPC invocation or performing a redirection to a developer tool (e.g.,
-  /// DevTools). Returning null from the handler indicates that the request was
-  /// not handled by the custom handler.
-  OptionalHandler get httpHandler =>
-      (_) => null;
+  /// Backends running on `dart:io` can mix in `DartRuntimeServiceIoBackend`
+  /// from `package:dart_runtime_service/dart_runtime_service_io.dart` to bind
+  /// a local HTTP server by default.
+  Future<Uri?> startServer({
+    required DartRuntimeServiceOptions config,
+    required Logger logger,
+  }) async => null;
+
+  /// Shuts down the server started by [startServer].
+  Future<void> shutdownServer() async {}
 }

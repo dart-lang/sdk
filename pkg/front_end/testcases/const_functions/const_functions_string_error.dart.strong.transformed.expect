@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
 //   return str[1.1];
 //              ^
 //
@@ -44,7 +44,7 @@ static const field core::String var1 = invalid-expression "Unhandled core except
 static const field core::String var2 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index should be less than 3: 3";
 static const field dynamic var3 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index must not be negative: -1";
 static const field dynamic var4 = invalid-expression "Unhandled core exception: RangeError: Index out of range: index should be less than 3: 3";
-static const field dynamic var5 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+static const field dynamic var5 = invalid-expression "pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
   return str[1.1];
              ^";
 static method fn() → dynamic {
@@ -57,7 +57,7 @@ static method fn2() → dynamic {
 }
 static method fn3() → dynamic {
   core::String s = "str";
-  return #C1.{core::String::[]}(invalid-expression "pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
+  return #C1.{core::String::[]}(invalid-expression "pkg/front_end/testcases/const_functions/const_functions_string_error.dart:28:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
   return str[1.1];
              ^" in 1.1 as{TypeError} core::int){(core::int) → core::String};
 }

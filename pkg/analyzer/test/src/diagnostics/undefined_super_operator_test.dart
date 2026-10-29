@@ -70,7 +70,6 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: InvalidIndexWriteResolution
       recoveryElement: <null>

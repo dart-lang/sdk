@@ -6,20 +6,14 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid using braces in interpolation when not needed.';
-
-final RegExp identifierPart = RegExp('[a-zA-Z0-9_]');
-
-bool isIdentifierPart(Token? token) =>
-    token is StringToken && token.lexeme.startsWith(identifierPart);
 
 class UnnecessaryBraceInStringInterps extends AnalysisRule {
   new()
@@ -47,29 +41,19 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
     var expressions = node.elements.whereType<InterpolationExpression>();
     for (var expression in expressions) {
       var exp = expression.expression;
-      if (exp is SimpleIdentifier) {
-        var identifier = exp;
-        if (!identifier.name.contains('\$')) {
-          _check(expression);
-        }
-      } else if (exp is ThisExpression) {
-        _check(expression);
-      } else if (exp is TypeLiteral) {
-        var type = exp.type;
-        if (type.typeArguments == null &&
-            type.importPrefix == null &&
-            type.question == null &&
-            !type.name.lexeme.contains('\$')) {
-          _check(expression);
-        }
+      var name = switch (exp) {
+        SimpleIdentifier() => exp.name,
+        ThisExpression() => 'this',
+        TypeLiteral(:var type)
+            when type.typeArguments == null &&
+                type.importPrefix == null &&
+                type.question == null =>
+          type.name.lexeme,
+        _ => null,
+      };
+      if (name != null && expression.canRemoveBracesAround(name)) {
+        rule.reportAtNode(expression);
       }
-    }
-  }
-
-  void _check(InterpolationExpression expression) {
-    var bracket = expression.rightBracket;
-    if (bracket != null && !isIdentifierPart(bracket.next)) {
-      rule.reportAtNode(expression);
     }
   }
 }

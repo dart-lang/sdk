@@ -311,31 +311,30 @@ const LinterLintWithoutArguments analyzerPublicApiImplInPublicApi =
       expectedTypes: [],
     );
 
-/// Lint issued if an element annotated with `@ToBeDeprecated` is used from
-/// a declaration that is not itself annotated with `@ToBeDeprecated`.
+/// Lint issued if an element annotated with `@V1Ast` is used from
+/// a declaration that is not itself annotated with `@V1Ast`.
 ///
-/// `@ToBeDeprecated` marks the API, such as the V1 AST, that will become
-/// deprecated once its replacement is stable. Such API should be used only
-/// to implement other API that will be deprecated too, like
+/// `@V1Ast` marks the V1 AST API, which remains supported for clients, but
+/// should be used by the analyzer only to implement other V1 AST API, like
 /// `@Deprecated` with `deprecated_member_use_from_same_package`.
 ///
 /// Parameters:
 /// String name: the name of the used element
-/// String details: the message of the `@ToBeDeprecated` annotation, preceded
-///                 by a space; or empty if there is no message
+/// String details: the message of the `@V1Ast` annotation, preceded by a
+///                 space; or empty if there is no message
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name, required String details})
 >
-analyzerToBeDeprecatedUse = LinterLintTemplate(
-  name: 'analyzer_to_be_deprecated_use',
+analyzerV1AstUse = LinterLintTemplate(
+  name: 'analyzer_v1_ast_use',
   problemMessage:
-      "'{0}' is to be deprecated, and should be used only by declarations that "
-      "are also to be deprecated.{1}",
+      "'{0}' is part of the V1 AST API, and should be used only from other V1 "
+      "AST API.{1}",
   correctionMessage:
-      "Try using the replacement, or annotating the enclosing declaration "
-      "with '@ToBeDeprecated'.",
-  uniqueName: 'analyzer_to_be_deprecated_use',
-  withArguments: _withArgumentsAnalyzerToBeDeprecatedUse,
+      "Try using the V2 counterpart, or annotating the enclosing declaration "
+      "with '@V1Ast'.",
+  uniqueName: 'analyzer_v1_ast_use',
+  withArguments: _withArgumentsAnalyzerV1AstUse,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -1389,6 +1388,7 @@ const LinterLintWithoutArguments eolAtEndOfFileMissing =
       name: 'eol_at_end_of_file',
       problemMessage: "Missing a newline at the end of the file.",
       correctionMessage: "Try adding a newline at the end of the file.",
+      hasPublishedDocs: true,
       uniqueName: 'eol_at_end_of_file_missing',
       expectedTypes: [],
     );
@@ -1614,6 +1614,28 @@ invalidRuntimeCheckWithJsInteropTypesDartIsJs = LinterLintTemplate(
       "a JS interop type.",
   uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_is_js',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: undocumented
+/// Object p1: undocumented
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
+invalidRuntimeCheckWithJsInteropTypesJsAndDartJs = LinterLintTemplate(
+  name: 'invalid_runtime_check_with_js_interop_types',
+  problemMessage:
+      "Runtime check or cast between '{0}' and '{1}' involves both a "
+      "'dart:js_interop' type and a 'dart:js' type, which are unrelated. "
+      "'dart:js' types are Dart wrappers around JS values and aren't JS "
+      "values themselves.",
+  correctionMessage:
+      "Try using 'JsObject.fromBrowserObject' to convert a 'dart:js_interop' "
+      "value to a 'dart:js' value, or the 'rawJSObject' member on 'JsObject' "
+      "to convert a 'dart:js' value to a 'dart:js_interop' value.",
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_js_and_dart_js',
+  withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAndDartJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
 
@@ -3635,6 +3657,7 @@ const LinterLintWithoutArguments unnecessaryThisAlias =
       name: 'unnecessary_this_alias',
       problemMessage: "Unnecessary 'this' alias.",
       correctionMessage: "Try removing the variable and using 'this' directly.",
+      hasPublishedDocs: true,
       uniqueName: 'unnecessary_this_alias',
       expectedTypes: [],
     );
@@ -4200,14 +4223,11 @@ LocatableDiagnostic _withArgumentsAnalyzerPublicApiExportsNonPublicName({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsAnalyzerToBeDeprecatedUse({
+LocatableDiagnostic _withArgumentsAnalyzerV1AstUse({
   required String name,
   required String details,
 }) {
-  return LocatableDiagnosticImpl(diag.analyzerToBeDeprecatedUse, [
-    name,
-    details,
-  ]);
+  return LocatableDiagnosticImpl(diag.analyzerV1AstUse, [name, details]);
 }
 
 LocatableDiagnostic _withArgumentsAnnotateOverrides({required Object p0}) {
@@ -4423,6 +4443,17 @@ _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs({
 }) {
   return LocatableDiagnosticImpl(
     diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    [p0, p1],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAndDartJs({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs,
     [p0, p1],
   );
 }

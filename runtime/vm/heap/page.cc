@@ -87,17 +87,6 @@ Page* Page::Allocate(Cage* cage, intptr_t size, uword flags) {
     return nullptr;  // Out of memory.
   }
 
-#if defined(DEBUG)
-  if ((flags & kNew) != 0) {
-    // Allocation stubs check that the TLAB hasn't been corrupted.
-    uword* cursor = reinterpret_cast<uword*>(memory->address());
-    uword* end = reinterpret_cast<uword*>(memory->end());
-    while (cursor < end) {
-      *cursor++ = kAllocationCanary;
-    }
-  }
-#endif
-
   Page* result = reinterpret_cast<Page*>(memory->address());
   ASSERT(result != nullptr);
   result->flags_ = flags;
@@ -106,18 +95,15 @@ Page* Page::Allocate(Cage* cage, intptr_t size, uword flags) {
   result->forwarding_page_ = nullptr;
   result->card_table_ = nullptr;
   result->progress_bar_ = 0;
-  result->owner_ = nullptr;
   result->top_ = 0;
   result->end_ = 0;
   result->survivor_end_ = 0;
   result->resolved_top_ = 0;
   result->live_bytes_ = 0;
-  result->free_next_ = nullptr;
 
   if ((flags & kNew) != 0) {
     uword top = result->object_start();
-    uword end =
-        memory->end() - kNewObjectAlignmentOffset - kAllocationRedZoneSize;
+    uword end = memory->end() - kNewObjectAlignmentOffset;
     result->top_ = top;
     result->end_ = end;
     result->survivor_end_ = top;

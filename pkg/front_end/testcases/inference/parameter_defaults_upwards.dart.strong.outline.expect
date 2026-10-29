@@ -8,9 +8,15 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   constructor named(({x: self::C::T%}) → void func) → self::C<self::C::T%>
     ;
 }
-static method optional_toplevel([has-declared-initializer dynamic x]) → void
+static method optional_toplevel([dynamic x = const <core::int>[0]]) → void
   ;
-static method named_toplevel({has-declared-initializer dynamic x}) → void
+static method named_toplevel({dynamic x = const <core::int>[0]}) → void
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_defaults_upwards.dart:12:29 -> ListConstant(const <int>[0])
+Evaluated: ListLiteral @ org-dartlang-testcase:///parameter_defaults_upwards.dart:14:26 -> ListConstant(const <int>[0])
+Extra constant evaluation: evaluated: 2, effectively constant: 2

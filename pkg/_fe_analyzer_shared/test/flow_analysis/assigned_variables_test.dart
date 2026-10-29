@@ -639,7 +639,7 @@ class _Node {}
 class _Variable {
   final String name;
 
-  _Variable(this.name);
+  new(this.name);
 
   @override
   String toString() => name;

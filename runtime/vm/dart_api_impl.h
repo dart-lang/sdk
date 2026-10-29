@@ -317,8 +317,6 @@ class Api : AllStatic {
  private:
   static Dart_Handle InitNewHandle(Thread* thread, ObjectPtr raw);
 
-  static StringPtr CallEnvironmentCallback(Thread* thread, const String& name);
-
   friend class ApiNativeScope;
 };
 

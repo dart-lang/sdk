@@ -139,6 +139,7 @@ sealed class GetterEncoding implements InferredTypeListener {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   });
 
   void buildOutlineNode({
@@ -245,6 +246,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -268,6 +270,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override
@@ -512,6 +515,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     required BodyBuilderContext bodyBuilderContext,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {
     buildMetadataForOutlineExpressions(
       libraryBuilder: libraryBuilder,
@@ -549,6 +553,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
       extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
       scope: _fragment.typeParameterScope,
     );
+    _fragment.buildBodyForOutline(libraryBuilder, includeBody: includeBody);
   }
 
   @override

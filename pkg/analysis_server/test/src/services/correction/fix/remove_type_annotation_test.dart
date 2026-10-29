@@ -313,7 +313,7 @@ void f2(List<int> list) {
 }
 
 @reflectiveTest
-class OmitLocaVariableTypesLintTest extends FixProcessorLintTest {
+class OmitLocaVariableTypesLintTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeTypeAnnotation;
 
@@ -754,7 +754,8 @@ void f2() {
 }
 
 @reflectiveTest
-class OmitObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
+class OmitObviousLocalVariableTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeTypeAnnotation;
 
@@ -878,7 +879,8 @@ class A {
 }
 
 @reflectiveTest
-class OmitObviousPropertyTypesLintLintTest extends FixProcessorLintTest {
+class OmitObviousPropertyTypesLintLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeTypeAnnotation;
 
@@ -954,7 +956,8 @@ final list = <String>['a'];
 }
 
 @reflectiveTest
-abstract class RemoveTypeAnnotationTest extends FixProcessorLintTest {
+abstract class RemoveTypeAnnotationTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeTypeAnnotation;
 }
@@ -986,7 +989,7 @@ class D extends C {
 
 @reflectiveTest
 class SuperFormalParameterTypeIsNotSubtypeOfAssociatedTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeTypeAnnotation;
 
@@ -1195,7 +1198,7 @@ class D extends C {
 }
 
 @reflectiveTest
-class VarAndTypeTest extends FixProcessorTest {
+class VarAndTypeTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeTypeAnnotation;
 

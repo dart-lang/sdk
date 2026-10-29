@@ -222,7 +222,6 @@ DirectAssignment
       name: instance
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instance
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
@@ -511,13 +510,11 @@ CompoundAssignment
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]
         substitution: {E: int}
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: SubstitutedMethodElementImpl
         baseElement: dart:core::@class::List::@method::[]=
         substitution: {E: int}
-      invokeType: void Function(int, int)
       acceptedType: int
   operator: +=
   value: UnqualifiedFunctionInvocation
@@ -968,7 +965,6 @@ CompoundAssignment
     name: value
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::value
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::value
@@ -1058,7 +1054,6 @@ IfNullAssignment
     name: value
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::value
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::value
@@ -1117,7 +1112,7 @@ extension E on Type {
 void f() {
   Fn<int>.foo += 1;
 //        ^^^
-// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
 }
 ''');
 
@@ -1200,7 +1195,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo = 7;
 //        ^^^
-// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'Fn' doesn't have a static setter named 'foo'.
 }
 
 extension E on Type {
@@ -1379,7 +1374,7 @@ extension E on Type {
 void f() {
   a.Fn<int>.foo = 1;
 //          ^^^
-// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'a.Fn' function type.
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'a.Fn' doesn't have a static setter named 'foo'.
 }
 ''');
 
@@ -1690,11 +1685,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -1814,11 +1807,9 @@ CascadeSection
       rightBracket: ]
       read: MethodIndexReadResolution
         element: <testLibrary>::@class::A::@method::[]
-        invokeType: int? Function(int)
         type: int?
       write: MethodIndexWriteResolution
         element: <testLibrary>::@class::A::@method::[]=
-        invokeType: void Function(int, num)
         acceptedType: num
     operator: ??=
     value: IntegerLiteral
@@ -1923,11 +1914,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -1996,11 +1985,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: num Function(int)
       type: num
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: DoubleLiteral
@@ -2072,7 +2059,6 @@ CompoundAssignment
       recoveryElement: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2142,7 +2128,6 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: InvalidIndexWriteResolution
       recoveryElement: <null>
@@ -2418,11 +2403,9 @@ IfNullAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int? Function(int?)
       type: int?
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int?, num?)
       acceptedType: num?
   operator: ??=
   value: IntegerLiteral
@@ -2486,7 +2469,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     leftBracket: [
@@ -2501,7 +2483,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::B::@method::[]=
-      invokeType: void Function(String, int)
       acceptedType: int
   operator: =
   value: IntegerLiteral
@@ -2556,7 +2537,7 @@ abstract class B {
 test(A? a, String s) {
   a?.b[s] = null;
 //          ^^^^
-// [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'int'.
+// [diag.argumentTypeNotAssignable] The argument type 'Null' can't be assigned to the parameter type 'int'.
 }
 ''');
 
@@ -2575,7 +2556,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     leftBracket: [
@@ -2590,7 +2570,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::B::@method::[]=
-      invokeType: void Function(String, int)
       acceptedType: int
   operator: =
   value: NullLiteral
@@ -2662,11 +2641,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2731,11 +2708,9 @@ CompoundAssignment
     rightBracket: ]
     read: MethodIndexReadResolution
       element: <testLibrary>::@class::A::@method::[]
-      invokeType: int Function(int)
       type: int
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: +=
   value: IntegerLiteral
@@ -2778,9 +2753,9 @@ V1: AssignmentExpression
 void f(int c) {
   a[b] = c;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 }
 ''');
 
@@ -2850,7 +2825,7 @@ void f(int a, int c) {
 // ^^^
 // [diag.undefinedOperator] The operator '[]=' isn't defined for the type 'int'.
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 }
 ''');
 
@@ -2923,7 +2898,7 @@ class A {
 void f(A a, int c) {
   a[b] = c;
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 }
 ''');
 
@@ -2948,7 +2923,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: UnqualifiedNameExpression
@@ -3009,7 +2983,7 @@ void f(A a) {
 void f() {
   a[0] += 1;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -3275,7 +3249,6 @@ DirectAssignment
         rightBracket: ]
         resolution: MethodIndexReadResolution
           element: <testLibrary>::@class::A::@method::[]
-          invokeType: void Function() Function(int)
           type: void Function()
         staticType: void Function()
       argumentList: ArgumentList
@@ -4052,7 +4025,7 @@ class C {}
 void f() {
   C = 0;
 //^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'C' can't be assigned to.
 }
 ''');
 
@@ -4177,7 +4150,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4244,7 +4216,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4351,7 +4322,7 @@ class A {
 void f(A a) {
   a.x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'x' for the type 'A', but no setter.
 }
 ''');
 
@@ -4469,7 +4440,7 @@ class A {
 void f() {
   A.x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
+// [diag.undefinedStaticMemberWriteGetterOnly] There's a static getter 'x' in the class 'A', but no setter.
 }
 ''');
 
@@ -4542,7 +4513,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::x
@@ -4608,7 +4578,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4654,7 +4623,7 @@ V1: AssignmentExpression
 void f(int c) {
   a.b = c;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -4714,8 +4683,7 @@ V1: AssignmentExpression
 void f(int a, int c) {
   a.b += c;
 //  ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'int'.
-// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'int'.
 }
 ''');
 
@@ -4794,7 +4762,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -4897,7 +4864,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -5103,14 +5069,12 @@ CompoundAssignment
       rightBracket: ]
       resolution: MethodIndexReadResolution
         element: <testLibrary>::@class::A::@method::[]
-        invokeType: B Function(int)
         type: B
       staticType: B
     operator: .
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::B::@setter::x
@@ -5189,7 +5153,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -5271,7 +5234,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@setter::x
@@ -5345,7 +5307,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -5546,7 +5507,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     operator: .
@@ -5624,7 +5584,6 @@ DirectAssignment
       name: b
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::b
-        invokeType: B Function()
         type: B
       staticType: B
     operator: .
@@ -5681,7 +5640,7 @@ class A {
 void f(A a) {
   (a).x += 2;
 //    ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'x' for the type 'A', but no setter.
 }
 ''');
 
@@ -5703,7 +5662,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@class::A::@getter::x
@@ -5755,7 +5713,7 @@ class A {
 void f(A a) {
   (a).x += 2;
 //    ^
-// [diag.undefinedGetter] The getter 'x' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'x' for the type 'A', but no getter.
 }
 ''');
 
@@ -5952,6 +5910,8 @@ V1: AssignmentExpression
     var result = await resolveTestCodeWithDiagnostics('''
 void f(void Function() a) {
   (a).call ??= () {};
+//    ^^^^
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'call' isn't defined for the type 'void Function()'.
 //             ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
@@ -6042,10 +6002,7 @@ class A {
 void f(A a) {
   (a).foo ??= () {};
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
-//            ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 }
 ''');
 
@@ -6081,10 +6038,10 @@ IfNullAssignment
         rightBracket: }
     declaredFragment: <testLibraryFragment> null@null
       element: null@null
-        type: Never Function()
+        type: Null Function()
     correspondingParameter: <null>
-    staticType: Never Function()
-  staticType: void Function()
+    staticType: Null Function()
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -6112,15 +6069,15 @@ V1: AssignmentExpression
         rightBracket: }
     declaredFragment: <testLibraryFragment> null@null
       element: null@null
-        type: Never Function()
+        type: Null Function()
     correspondingParameter: <null>
-    staticType: Never Function()
+    staticType: Null Function()
   readElement: <testLibrary>::@class::A::@method::foo
   readType: void Function()
   writeElement: <testLibrary>::@class::A::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: void Function()
+  staticType: InvalidType
 ''');
   }
 
@@ -6165,7 +6122,7 @@ IfNullAssignment
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -6196,7 +6153,7 @@ V1: AssignmentExpression
     substitution: {T: int}
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
@@ -6359,7 +6316,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: num Function()
       type: num
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -6420,7 +6376,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::B::@getter::x
-      invokeType: num? Function()
       type: num?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::B::@setter::x
@@ -6667,7 +6622,6 @@ DirectAssignment
       name: x
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::x
-        invokeType: B Function()
         type: B
       staticType: B
     operator: .
@@ -6724,7 +6678,7 @@ V1: AssignmentExpression
 void f(({int x}) r) {
   (r).x ??= 0;
 //    ^
-// [diag.undefinedSetter] The setter 'x' isn't defined for the type '({int x})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'x' for the type '({int x})', but no setter.
 //          ^^
 // [diag.deadCode] Dead code.
 //          ^
@@ -6793,8 +6747,7 @@ V1: AssignmentExpression
 void f(int a, int c) {
   (a).b += c;
 //    ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'int'.
-// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'int'.
 }
 ''');
 
@@ -6870,8 +6823,7 @@ V1: AssignmentExpression
 void f(({int bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '({int bar})'.
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({int bar})'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type '({int bar})'.
 }
 ''');
 
@@ -6935,7 +6887,7 @@ V1: AssignmentExpression
 void f(({int bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({int bar})'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'foo' isn't defined for the type '({int bar})'.
 }
 ''');
 
@@ -6999,7 +6951,7 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '({int bar})'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type '({int bar})', but no getter.
 }
 ''');
 
@@ -7131,7 +7083,7 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({int bar})', but no setter.
 }
 ''');
 
@@ -7149,7 +7101,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::foo
@@ -7201,7 +7152,7 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({int bar})', but no setter.
 }
 ''');
 
@@ -7282,7 +7233,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@extension::E::@setter::foo
@@ -7395,7 +7345,7 @@ V1: AssignmentExpression
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7459,7 +7409,7 @@ V1: AssignmentExpression
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7523,7 +7473,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7591,7 +7541,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7655,7 +7605,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7723,7 +7673,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7788,7 +7738,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7857,7 +7807,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7917,8 +7867,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$4 += 0;
 //  ^^
-// [diag.undefinedGetter] The getter '$4' isn't defined for the type '(int, String)'.
-// [diag.undefinedSetter] The setter '$4' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$4' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -7982,7 +7931,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$4 = 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$4' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter '$4' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -8046,7 +7995,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 += 0;
 //  ^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named '$3' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$3' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8064,7 +8013,6 @@ CompoundAssignment
     name: $3
     read: GetterInvocationResolution
       element: <testLibrary>::@extension::E::@getter::$3
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: <testLibrary>::@extension::E::@getter::$3
@@ -8116,7 +8064,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 = 0;
 //  ^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named '$3' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$3' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8176,7 +8124,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$1 += 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8240,7 +8188,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$1 = 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8304,7 +8252,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 += 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8372,7 +8320,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 = 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8450,7 +8398,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -8513,7 +8460,6 @@ IfNullAssignment
       element: SubstitutedGetterElementImpl
         baseElement: <testLibrary>::@class::A::@getter::x
         substitution: {T: int}
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: SubstitutedSetterElementImpl
@@ -8585,14 +8531,12 @@ CompoundAssignment
       name: x
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::A::@getter::x
-        invokeType: C Function()
         type: C
       staticType: C
     operator: .
     name: y
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::y
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::y
@@ -8661,7 +8605,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -8723,7 +8666,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::A::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::A::@setter::x
@@ -8819,7 +8761,7 @@ V1: AssignmentExpression
 void f(int c) {
   (a).b = c;
 // ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -8886,7 +8828,7 @@ V1: AssignmentExpression
 void f(int a, int c) {
   (a).b = c;
 //    ^
-// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'b' isn't defined for the type 'int'.
 }
 ''');
 
@@ -9288,7 +9230,6 @@ DirectAssignment
     read: <null>
     write: MethodIndexWriteResolution
       element: <testLibrary>::@class::A::@method::[]=
-      invokeType: void Function(int, num)
       acceptedType: num
   operator: =
   value: IntegerLiteral
@@ -9521,7 +9462,7 @@ class C {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'C'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -9567,7 +9508,7 @@ class C {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'C'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -9612,7 +9553,7 @@ int get x => 0;
 void f() {
   x = 2;
 //^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
 }
 ''');
 
@@ -9841,7 +9782,7 @@ void f() {
   const num x = 1;
   x = 2;
 //^
-// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
+// [diag.undefinedUnqualifiedNameWriteConst] The constant 'x' can't be assigned to.
 }
 ''');
 
@@ -10306,7 +10247,7 @@ class B extends A {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'B'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -10358,11 +10299,7 @@ class B extends A {
   void f() {
     x ??= 2;
 //  ^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
-//        ^^
-// [diag.deadCode] Dead code.
-//        ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The method 'x' can't be assigned to.
   }
 }
 ''');
@@ -10382,7 +10319,7 @@ IfNullAssignment
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -10398,7 +10335,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::B::@method::x
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
@@ -10416,7 +10353,7 @@ class B extends A {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The method 'x' can't be assigned to.
   }
 }
 ''');
@@ -10615,7 +10552,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x
@@ -10669,7 +10605,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x
@@ -10746,7 +10681,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@mixin::M2::@setter::x
@@ -10798,7 +10732,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::x
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: <testLibrary>::@class::C::@setter::x
@@ -10841,7 +10774,7 @@ class B extends A {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -10896,7 +10829,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x
@@ -10952,7 +10884,6 @@ IfNullAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: B? Function()
       type: B?
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x
@@ -11017,7 +10948,6 @@ CompoundAssignment
     name: x
     read: GetterInvocationResolution
       element: <testLibrary>::@getter::x
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: <testLibrary>::@setter::x
@@ -11057,9 +10987,7 @@ void foo(int value) {}
 void f() {
   foo += 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
-//    ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function(int)'.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
 
@@ -11108,7 +11036,7 @@ void foo(int value) {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
 
@@ -11240,7 +11168,7 @@ final num x = 0;
 void f() {
   x = 2;
 //^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteFinal] 'x' is final, so it can't be assigned to.
 }
 ''');
 
@@ -11282,7 +11210,7 @@ V1: AssignmentExpression
 void f() {
   int += 3;
 //^^^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'int' can't be assigned to.
 }
 ''');
 
@@ -11328,7 +11256,7 @@ V1: AssignmentExpression
 void f() {
   int = 0;
 //^^^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'int' can't be assigned to.
 }
 ''');
 
@@ -11370,7 +11298,7 @@ V1: AssignmentExpression
 void f() {
   x += 1;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 }
 ''');
 
@@ -11416,7 +11344,7 @@ V1: AssignmentExpression
 void f(int a) {
   x = a;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
 }
 ''');
 

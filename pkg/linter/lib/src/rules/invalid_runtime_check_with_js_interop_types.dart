@@ -38,6 +38,13 @@ const Set<String> _sdkWebLibraries = {
   'dart:web_gl',
 };
 
+/// Whether [type] is a type declared in `dart:js` or a type parameter that is
+/// bound to one.
+bool _isDartJsType(DartType type) {
+  if (type is TypeParameterType) return _isDartJsType(type.bound);
+  return type is InterfaceType && type.element.isFromLibrary(_dartJsUri);
+}
+
 /// Given a [type], determine if it is a JS interop type that corresponds to
 /// [kind].
 bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
@@ -80,6 +87,9 @@ bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
 /// Since dart2wasm doesn't support these libraries, users can't come across
 /// platform-inconsistent type tests, and therefore we should not lint for these
 /// types.
+///
+/// Note that type tests between `dart:js` types and `dart:js_interop` types are
+/// still linted separately in [_Visitor.getInvalidJsInteropTypeTest].
 bool _isWasmIncompatibleJsInterop(DartType type) {
   if (type is TypeParameterType) {
     return _isWasmIncompatibleJsInterop(type.bound);
@@ -96,9 +106,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
     }
   }
   return _sdkWebLibraries.any((uri) => element.isFromLibrary(uri)) ||
-      // While a type test with types from this library is very rare, we should
-      // still ignore it for consistency.
-      element.isFromLibrary(_dartJsUri);
+      _isDartJsType(type);
 }
 
 /// If [type] is a type declared using `@staticInterop` through
@@ -239,6 +247,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
     diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
     diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
     diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs,
     diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
     diag.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
     diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
@@ -313,6 +322,13 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
   /// Types that belong to JS interop libraries that are not available when
   /// compiling to Wasm are ignored. Nullability is also ignored for the purpose
   /// of this test.
+  ///
+  /// The exception to the above is when `le` or `re` is a `dart:js_interop`
+  /// type and the other is a `dart:js` type. Such a test is always invalid, as
+  /// `dart:js` types are Dart wrapper classes that are unrelated to JS interop
+  /// types, and users often mistakenly conflate the two. While we could treat
+  /// `dart:js` types are non-JS interop types to make that work, a more helpful
+  /// lint is better.
   DiagnosticCode? getInvalidJsInteropTypeTest(
     DartType leftType,
     DartType rightType, {
@@ -338,62 +354,70 @@ class _Visitor(final MultiAnalysisRule rule, final TypeSystemImpl typeSystem)
       // If there's already an invalid check in this `canBeSubtypeOf` check, we
       // are already going to lint, so only continue checking if we haven't
       // found an issue.
-      if (lintCode == null && leftIsInteropType || rightIsInteropType) {
-        if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
-            !_isWasmIncompatibleJsInterop(erasedRight)) {
-          var erasedLeftIsSubtype = typeSystem.isSubtypeOf(
-            erasedLeft,
-            erasedRight,
-          );
-          var erasedRightIsSubtype = typeSystem.isSubtypeOf(
-            erasedRight,
-            erasedLeft,
-          );
-          var erasedLeftIsDynamic = erasedLeft is DynamicType;
-          var erasedRightIsDynamic = erasedRight is DynamicType;
-          if (check) {
-            if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
-              if (leftIsInteropType && rightIsInteropType) {
-                lintCode = diag
-                    .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
-              } else if (leftIsInteropType) {
-                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart;
-              } else {
-                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs;
-              }
-            } else if (erasedLeftIsSubtype &&
-                leftIsInteropType &&
-                rightIsInteropType) {
-              // Only report if the right type is a user JS interop type.
-              // Checks like `window is JSAny` are not confusing and not worth
-              // linting.
-              if (_isJsInteropType(right, _InteropTypeKind.userJsInteropType) &&
-                  !typeSystem.isSubtypeOf(
-                    eraseNonJsInteropTypes.perform(
-                      left,
-                      keepUserInteropTypes: true,
-                    ),
-                    eraseNonJsInteropTypes.perform(
+      if (lintCode == null) {
+        if (leftIsInteropType && _isDartJsType(erasedRight) ||
+            rightIsInteropType && _isDartJsType(erasedLeft)) {
+          lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs;
+        } else if (leftIsInteropType || rightIsInteropType) {
+          if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
+              !_isWasmIncompatibleJsInterop(erasedRight)) {
+            var erasedLeftIsSubtype = typeSystem.isSubtypeOf(
+              erasedLeft,
+              erasedRight,
+            );
+            var erasedRightIsSubtype = typeSystem.isSubtypeOf(
+              erasedRight,
+              erasedLeft,
+            );
+            var erasedLeftIsDynamic = erasedLeft is DynamicType;
+            var erasedRightIsDynamic = erasedRight is DynamicType;
+            if (check) {
+              if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
+                if (leftIsInteropType && rightIsInteropType) {
+                  lintCode = diag
+                      .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
+                } else if (leftIsInteropType) {
+                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart;
+                } else {
+                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs;
+                }
+              } else if (erasedLeftIsSubtype &&
+                  leftIsInteropType &&
+                  rightIsInteropType) {
+                // Only report if the right type is a user JS interop type.
+                // Checks like `window is JSAny` are not confusing and not worth
+                // linting.
+                if (_isJsInteropType(
                       right,
-                      keepUserInteropTypes: true,
-                    ),
-                  )) {
-                lintCode =
-                    diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
+                      _InteropTypeKind.userJsInteropType,
+                    ) &&
+                    !typeSystem.isSubtypeOf(
+                      eraseNonJsInteropTypes.perform(
+                        left,
+                        keepUserInteropTypes: true,
+                      ),
+                      eraseNonJsInteropTypes.perform(
+                        right,
+                        keepUserInteropTypes: true,
+                      ),
+                    )) {
+                  lintCode =
+                      diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
+                }
               }
-            }
-          } else {
-            if (!erasedLeftIsSubtype &&
-                !erasedRightIsSubtype &&
-                !erasedLeftIsDynamic &&
-                !erasedRightIsDynamic) {
-              if (leftIsInteropType && rightIsInteropType) {
-                lintCode = diag
-                    .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
-              } else if (leftIsInteropType) {
-                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart;
-              } else {
-                lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs;
+            } else {
+              if (!erasedLeftIsSubtype &&
+                  !erasedRightIsSubtype &&
+                  !erasedLeftIsDynamic &&
+                  !erasedRightIsDynamic) {
+                if (leftIsInteropType && rightIsInteropType) {
+                  lintCode = diag
+                      .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
+                } else if (leftIsInteropType) {
+                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart;
+                } else {
+                  lintCode = diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs;
+                }
               }
             }
           }

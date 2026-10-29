@@ -252,39 +252,29 @@ Future<TestResult> _runTestScript(
       ]);
       active.process = process;
 
-      final streams = _streamProcessOutput(process, testName, options);
+      final processOutput = _ProcessOutput.collect(process, testName, options);
 
       // An individual script may run multiple tests and includes compiler /
       // browser startup overhead, so we buffer the overall process timeout
       // beyond the per-test timeout passed to package:test.
       final scriptTimeout = timeout + const Duration(seconds: 20);
 
-      var exitCodeFuture = process.exitCode;
-      exitCodeFuture = exitCodeFuture.timeout(
+      final exitCode = await process.exitCode.timeout(
         scriptTimeout,
-        onTimeout: () {
-          print(
-            '  [TIMEOUT] $testName exceeded overall script timeout '
-            '(${scriptTimeout.inSeconds}s). Force killing process.',
-          );
-          process.kill(ProcessSignal.sigkill);
+        onTimeout: () async {
+          final message =
+              '[TIMEOUT] $testName exceeded overall script timeout '
+              '(${scriptTimeout.inSeconds}s). Force killing process.';
+          print('  $message');
+          processOutput.stderr.writeln(message);
+          await _killProcessTree(process);
           return -1;
         },
       );
 
-      final exitCode = await exitCodeFuture;
-      final stdoutText = await streams.stdout.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => '<stdout timed out after process kill>',
-      );
-      final stderrText = await streams.stderr.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () => '<stderr timed out after process kill>',
-      );
+      final output = await processOutput.finish();
       active.stopwatch.stop();
       _activeTests.remove(active);
-
-      final output = '$stdoutText\n$stderrText'.trim();
 
       if (exitCode == 0) {
         return TestResult(
@@ -331,39 +321,126 @@ Future<TestResult> _runTestScript(
   throw StateError('Unreachable');
 }
 
-({Future<String> stdout, Future<String> stderr}) _streamProcessOutput(
-  Process process,
-  String testName,
-  _SuiteOptions options,
-) {
-  final stdoutBuf = StringBuffer();
-  final stderrBuf = StringBuffer();
+/// Kills [process] along with any child processes it spawned.
+///
+/// [Process.kill] only terminates the process itself, so child processes
+/// (ChromeDriver, Chrome, the frontend server, ...) would keep running and
+/// slow down the tests that follow.
+Future<void> _killProcessTree(Process process) async {
+  try {
+    if (Platform.isWindows) {
+      await _killWindowsProcessTree(process.pid);
+    } else {
+      await _killPosixProcessTree(process.pid);
+    }
+  } on Exception catch (e) {
+    print('  [WARNING] Failed to kill process tree of PID ${process.pid}: $e');
+  }
+  // Make sure the process itself is gone even if killing the tree failed.
+  process.kill(ProcessSignal.sigkill);
+}
 
-  final stdoutFuture = process.stdout
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .map((line) {
-        if (options.verbose) {
-          stdoutBuf.writeln(line);
-          print('  [LIVE | $testName] $line');
-        }
-      })
-      .drain<void>()
-      .then((_) => stdoutBuf.toString());
+/// Kills the process [pid] and its descendants with `taskkill /T`.
+Future<void> _killWindowsProcessTree(int pid) async {
+  final args = [
+    // Terminate the process tree: the process and all of its descendants.
+    '/T',
+    // Forcefully terminate the processes, instead of asking them to close.
+    '/F',
+    // Select the process to terminate by its process ID.
+    '/PID', '$pid',
+  ];
+  final result = await Process.run('taskkill', args);
+  if (result.exitCode != 0) {
+    throw ProcessException(
+      'taskkill',
+      args,
+      '${result.stderr}'.trim(),
+      result.exitCode,
+    );
+  }
+}
 
-  final stderrFuture = process.stderr
-      .transform(utf8.decoder)
-      .transform(const LineSplitter())
-      .map((line) {
-        if (options.verbose) {
-          stderrBuf.writeln(line);
-          print('  [STDERR LIVE | $testName] $line');
-        }
-      })
-      .drain<void>()
-      .then((_) => stderrBuf.toString());
+/// Kills the process [pid] and its descendants with SIGKILL.
+///
+/// The descendants are collected before anything is killed, since orphaned
+/// processes are reparented and can no longer be found from [pid].
+Future<void> _killPosixProcessTree(int pid) async {
+  final pids = [pid, ...await _descendantPids(pid)];
+  for (final target in pids) {
+    Process.killPid(target, ProcessSignal.sigkill);
+  }
+}
 
-  return (stdout: stdoutFuture, stderr: stderrFuture);
+/// Returns the PIDs of all descendants of the process [pid], using
+/// `pgrep -P` (available on both Linux and macOS).
+Future<List<int>> _descendantPids(int pid) async {
+  // pgrep exits with 1 when there are no matching processes.
+  final result = await Process.run('pgrep', ['-P', '$pid']);
+  final children = LineSplitter.split(result.stdout as String)
+      .map(int.tryParse)
+      .nonNulls;
+  return [
+    for (final child in children) ...[child, ...await _descendantPids(child)],
+  ];
+}
+
+/// Collects the stdout and stderr of a test process so that it can be
+/// included in the test result, echoing it live when running verbosely.
+class _ProcessOutput {
+  /// How long to wait for the output streams to close after the process
+  /// exits.
+  ///
+  /// Orphaned child processes may keep the pipes open indefinitely, in which
+  /// case the output collected so far is used.
+  static const _drainTimeout = Duration(seconds: 5);
+
+  final StringBuffer stdout;
+  final StringBuffer stderr;
+  final Future<void> _done;
+
+  _ProcessOutput._(this.stdout, this.stderr, this._done);
+
+  factory _ProcessOutput.collect(
+    Process process,
+    String testName,
+    _SuiteOptions options,
+  ) {
+    Future<void> record(
+      Stream<List<int>> stream,
+      StringBuffer buffer,
+      String livePrefix,
+    ) {
+      return stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .forEach((line) {
+            buffer.writeln(line);
+            if (options.verbose) print('  [$livePrefix | $testName] $line');
+          });
+    }
+
+    final stdout = StringBuffer();
+    final stderr = StringBuffer();
+    final done = Future.wait([
+      record(process.stdout, stdout, 'LIVE'),
+      record(process.stderr, stderr, 'STDERR LIVE'),
+    ]).then<void>((_) {});
+    return _ProcessOutput._(stdout, stderr, done);
+  }
+
+  /// Waits briefly for the output streams to close and returns the combined
+  /// output collected so far.
+  Future<String> finish() async {
+    await _done.timeout(
+      _drainTimeout,
+      onTimeout: () => stderr.writeln(
+        '<output streams still open ${_drainTimeout.inSeconds}s after the '
+        'process exited; output may be incomplete>',
+      ),
+    );
+    return '$stdout\n$stderr'.trim();
+  }
 }
 
 void _printTestResult(TestResult result, _SuiteOptions options) {

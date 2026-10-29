@@ -9,11 +9,11 @@ class Combinator {
   final bool isShow;
   final Set<String> names;
 
-  Combinator(this.isShow, this.names);
+  new(this.isShow, this.names);
 
-  Combinator.hide(Iterable<String> names) : this(false, names.toSet());
+  new hide(Iterable<String> names) : this(false, names.toSet());
 
-  Combinator.show(Iterable<String> names) : this(true, names.toSet());
+  new show(Iterable<String> names) : this(true, names.toSet());
 
   bool get isHide => !isShow;
 

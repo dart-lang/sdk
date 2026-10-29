@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=3.12
+// @dart=3.14
 
 // Confirm that `this` does not get promoted when the feature isn't
 // enabled. This test specifically covers switch statements, switch expressions,

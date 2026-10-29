@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateConstructorSuperTest extends FixProcessorTest {
+class CreateConstructorSuperTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createConstructorSuper;
 
@@ -352,7 +352,7 @@ class B extends A {
 
 @reflectiveTest
 class CreateConstructorSuperWithoutSuperParametersTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createConstructorSuper;
 

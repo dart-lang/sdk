@@ -108,7 +108,6 @@ SetOrMapLiteral
         lookupType: E
       resolution: GetterInvocationResolution
         element: <testLibrary>::@enum::E::@getter::one
-        invokeType: E Function()
         type: E
       staticType: E
   elements(v1)

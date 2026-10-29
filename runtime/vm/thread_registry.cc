@@ -70,6 +70,17 @@ void ThreadRegistry::ForEachThread(
   }
 }
 
+void ThreadRegistry::AbandonRemainingTLABs(Scavenger* new_space) {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != nullptr) {
+    if (!thread->BypassSafepoints()) {
+      new_space->AbandonRemainingTLAB(thread);
+    }
+    thread = thread->next_;
+  }
+}
+
 void ThreadRegistry::ReleaseStoreBuffers() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;

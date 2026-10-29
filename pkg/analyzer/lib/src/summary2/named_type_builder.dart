@@ -45,7 +45,7 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   TypeImpl? _type;
 
-  NamedTypeBuilder({
+  new({
     required this.linker,
     required this.typeSystem,
     required this.element,
@@ -54,7 +54,7 @@ class NamedTypeBuilder extends TypeBuilder {
     this.node,
   });
 
-  factory NamedTypeBuilder.of({
+  factory of({
     required Linker linker,
     required TypeSystemImpl typeSystem,
     required NamedTypeImpl node,
@@ -280,7 +280,7 @@ class NamedTypeBuilder extends TypeBuilder {
       element.aliasedType = _dynamicType;
     }
 
-    if (typedefNode is FunctionTypeAliasImpl) {
+    if (typedefNode is FunctionTypeAlias2Impl) {
       var result = _buildFunctionType(
         typeParameterList: null,
         returnTypeNode: typedefNode.returnType,
@@ -289,7 +289,7 @@ class NamedTypeBuilder extends TypeBuilder {
       );
       element.aliasedType = result;
       return result;
-    } else if (typedefNode is GenericTypeAlias) {
+    } else if (typedefNode is GenericTypeAlias2) {
       var aliasedTypeNode = typedefNode.type;
       var aliasedType = _buildAliasedType(aliasedTypeNode);
       element.aliasedType = aliasedType;

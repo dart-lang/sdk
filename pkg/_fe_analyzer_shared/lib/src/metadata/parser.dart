@@ -36,7 +36,7 @@ class AnnotationsListener extends StackListener {
 
   final bool delayLookup;
 
-  AnnotationsListener(
+  new(
     this.uri,
     this._initialScope,
     this._references, {
@@ -821,9 +821,9 @@ class AnnotationsListener extends StackListener {
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     push(
-      new VoidProto(
-        _references.voidReference,
-      ).instantiate(typeArguments).toTypeAnnotation(),
+      new VoidProto(_references.voidReference)
+          .instantiate(typeArguments)
+          .toTypeAnnotation(),
     );
   }
 
@@ -1477,7 +1477,7 @@ class FunctionTypeParameterScope implements Scope {
   final Scope parentScope;
   final Map<String, FunctionTypeParameter> functionTypeParameterMap = {};
 
-  FunctionTypeParameterScope(this.parentScope);
+  new(this.parentScope);
 
   FunctionTypeParameter declareTypeParameter(String name) {
     return functionTypeParameterMap[name] = new FunctionTypeParameter(name);

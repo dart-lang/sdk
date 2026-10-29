@@ -6,6 +6,7 @@ import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast show Class;
 import 'package:native_compiler/back_end/arm64/assembler.dart';
+import 'package:native_compiler/back_end/arm64/stack_frame.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/code_metadata.dart';
@@ -355,6 +356,361 @@ final class DynamicInvocationForwarderStub extends Arm64StubCodeGenerator {
       ),
     );
     _asm.br(tempReg);
+  }
+}
+
+/// Called when invoking Dart code from C++ (VM code) or from bytecode.
+/// Input parameters:
+///   LR : points to return address.
+///   R0 : target code.
+///   R1 : arguments descriptor array.
+///   R2 : arguments array (if [!fromBytecode]) or address of the first argument
+///        (if [fromBytecode]).
+///   R3 : current thread.
+final class InvokeDartCodeStub extends Arm64StubCodeGenerator {
+  static const codeParamReg = R0;
+  static const argumentsDescriptorParamReg = R1;
+  static const argumentsParamReg = R2;
+  static const threadParamReg = R3;
+  // R4 is reserved for [argumentsDescriptorReg].
+  static const scratch1Reg = R5;
+  static const scratch2Reg = R6;
+  static const argCountReg = R7;
+  static const argumentsDestReg = R8;
+
+  /// Fixed size of the entry frame.
+  ///
+  /// Layout of the entry frame (stack grows down):
+  /// ```
+  ///        -------------------------------------------------------------+
+  ///        [saved LR]                                                   |
+  /// FP ->  [saved FP]                                                   |
+  ///        -------------------------------------------------------------+
+  ///        [Code]                                                       |
+  ///        [saved CPU and FPU registers (10 + 8 slots) ]                | Fixed frame
+  ///        [saved Thread.vm_tag ]                                       | (entryFrameFixedSize words)
+  ///        [saved Thread.top_resource ]                                 |
+  ///        [saved Thread.exit_through_ffi ]                             |
+  ///        [saved Thread.top_exit_frame_info ]                          |
+  ///        -------------------------------------------------------------+
+  ///        [zero padding (if needed)]                                   |
+  ///        [arguments]                                                  |
+  ///        -------------------------------------------------------------+
+  ///        (callee frame)
+  /// ```
+  /// Keep in sync with code of this stub and kExitLinkSlotFromEntryFp VM constant.
+  static const int entryFrameFixedSize = 23;
+
+  final bool fromBytecode;
+
+  InvokeDartCodeStub(
+    super.vmOffsets,
+    super.objectLayout, {
+    required this.fromBytecode,
+  });
+
+  int _saveAbiCalleeSaveRegisters(int offsetFromFp) {
+    assert(abiCalleeSaveRegisters.length.isEven);
+    for (var i = 0; i < abiCalleeSaveRegisters.length; i += 2) {
+      offsetFromFp += 2;
+      _asm.stp(
+        abiCalleeSaveRegisters[i + 1],
+        abiCalleeSaveRegisters[i],
+        RegOffsetAddress(FP, -offsetFromFp * wordSize),
+      );
+    }
+    assert(abiCalleeSaveFPRegisters.length.isEven);
+    for (var i = 0; i < abiCalleeSaveFPRegisters.length; i += 2) {
+      offsetFromFp += 2;
+      _asm.fstp(
+        abiCalleeSaveFPRegisters[i + 1],
+        abiCalleeSaveFPRegisters[i],
+        RegOffsetAddress(FP, -offsetFromFp * wordSize),
+      );
+    }
+    return offsetFromFp;
+  }
+
+  int _restoreAbiCalleeSaveRegisters(int offsetFromFp) {
+    assert(abiCalleeSaveFPRegisters.length.isEven);
+    for (var i = abiCalleeSaveFPRegisters.length - 2; i >= 0; i -= 2) {
+      _asm.fldp(
+        abiCalleeSaveFPRegisters[i + 1],
+        abiCalleeSaveFPRegisters[i],
+        RegOffsetAddress(FP, -offsetFromFp * wordSize),
+      );
+      offsetFromFp -= 2;
+    }
+    assert(abiCalleeSaveRegisters.length.isEven);
+    for (var i = abiCalleeSaveRegisters.length - 2; i >= 0; i -= 2) {
+      _asm.ldp(
+        abiCalleeSaveRegisters[i + 1],
+        abiCalleeSaveRegisters[i],
+        RegOffsetAddress(FP, -offsetFromFp * wordSize),
+      );
+      offsetFromFp -= 2;
+    }
+    return offsetFromFp;
+  }
+
+  /// Refresh pinned registers (write barrier mask, null, etc).
+  void _restorePinnedRegisters() {
+    if (threadReg != threadParamReg) {
+      _asm.mov(threadReg, threadParamReg);
+    }
+    _asm.ldr(
+      heapBitsReg,
+      _asm.address(threadReg, vmOffsets.Thread_write_barrier_mask_offset),
+    );
+    _asm.lsl(heapBitsReg, heapBitsReg, 32);
+    _asm.ldr(
+      nullReg,
+      _asm.address(threadReg, vmOffsets.Thread_object_null_offset),
+    );
+    // TODO: compressed pointers.
+  }
+
+  /// Save vm_tag, top_resource, exit_through_ffi and top_exit_frame_info.
+  int _saveThreadFields(int offsetFromFp) {
+    _asm.ldr(
+      scratch1Reg,
+      _asm.address(threadReg, vmOffsets.Thread_vm_tag_offset),
+    );
+    _asm.ldr(
+      scratch2Reg,
+      _asm.address(threadReg, vmOffsets.Thread_top_resource_offset),
+    );
+    _asm.str(ZR, _asm.address(threadReg, vmOffsets.Thread_top_resource_offset));
+    offsetFromFp += 2;
+    _asm.stp(
+      scratch2Reg,
+      scratch1Reg,
+      RegOffsetAddress(FP, -offsetFromFp * wordSize),
+    );
+
+    _asm.ldr(
+      scratch1Reg,
+      _asm.address(threadReg, vmOffsets.Thread_exit_through_ffi_offset),
+    );
+    _asm.str(
+      ZR,
+      _asm.address(threadReg, vmOffsets.Thread_exit_through_ffi_offset),
+    );
+    _asm.ldr(
+      scratch2Reg,
+      _asm.address(threadReg, vmOffsets.Thread_top_exit_frame_info_offset),
+    );
+    _asm.str(
+      ZR,
+      _asm.address(threadReg, vmOffsets.Thread_top_exit_frame_info_offset),
+    );
+    offsetFromFp += 2;
+    _asm.stp(
+      scratch2Reg,
+      scratch1Reg,
+      RegOffsetAddress(FP, -offsetFromFp * wordSize),
+    );
+    return offsetFromFp;
+  }
+
+  /// Restore vm_tag, top_resource, exit_through_ffi and top_exit_frame_info.
+  int _restoreThreadFields(int offsetFromFp) {
+    _asm.ldp(
+      scratch2Reg,
+      scratch1Reg,
+      RegOffsetAddress(FP, -offsetFromFp * wordSize),
+    );
+    offsetFromFp -= 2;
+    _asm.str(
+      scratch2Reg,
+      _asm.address(threadReg, vmOffsets.Thread_top_exit_frame_info_offset),
+    );
+    _asm.str(
+      scratch1Reg,
+      _asm.address(threadReg, vmOffsets.Thread_exit_through_ffi_offset),
+    );
+
+    _asm.ldp(
+      scratch2Reg,
+      scratch1Reg,
+      RegOffsetAddress(FP, -offsetFromFp * wordSize),
+    );
+    offsetFromFp -= 2;
+    _asm.str(
+      scratch2Reg,
+      _asm.address(threadReg, vmOffsets.Thread_top_resource_offset),
+    );
+    _asm.str(
+      scratch1Reg,
+      _asm.address(threadReg, vmOffsets.Thread_vm_tag_offset),
+    );
+    return offsetFromFp;
+  }
+
+  @override
+  void _generate() {
+    // Copy the C stack pointer (SP/R31) into the stack pointer we'll actually
+    // use to access the stack (stackPointerReg/R15) and set the C stack pointer
+    // to near the stack limit, loaded from the Thread held in R3, to prevent
+    // signal handlers from over-writing Dart frames.
+    _asm.mov(stackPointerReg, SP);
+    _asm.ldr(
+      tempReg,
+      _asm.address(threadParamReg, vmOffsets.Thread_saved_stack_limit_offset),
+    );
+    // Thread::saved_stack_limit_ is OSThread::overflow_stack_limit(), which is
+    // OSThread::stack_limit() with some headroom. Set CSP a bit below this value
+    // so that signal handlers won't stomp on the stack of Dart code that pushs a
+    // bit past overflow_stack_limit before its next overflow check. (We build
+    // frames before doing an overflow check.)
+    _asm.subImmediate(SP, tempReg, 4096);
+
+    _asm.pushPair(FP, LR);
+    _asm.mov(FP, stackPointerReg);
+
+    // Load number of arguments and adjust count for type arguments.
+    // TODO: compressed pointers.
+    _asm.ldr(
+      argCountReg,
+      _asm.fieldAddress(
+        argumentsDescriptorParamReg,
+        vmOffsets.ArgumentsDescriptor_count_offset,
+      ),
+    );
+    _asm.ldr(
+      scratch1Reg,
+      _asm.fieldAddress(
+        argumentsDescriptorParamReg,
+        vmOffsets.ArgumentsDescriptor_type_args_len_offset,
+      ),
+    );
+    _asm.smiUntag(argCountReg);
+    // Include the type arguments.
+    _asm.cmp(scratch1Reg, Immediate(0));
+    // argCount <- (typeArgsLen == 0) ? argCount : argCount + 1
+    _asm.csinc(argCountReg, argCountReg, argCountReg, .equal);
+
+    // Allocate entry frame.
+    const int frameSizeAlignment = Arm64StackFrame.frameSizeAlignmentInSlots;
+    _asm.add(
+      scratch1Reg,
+      argCountReg,
+      Immediate(entryFrameFixedSize + frameSizeAlignment - 1),
+    );
+    _asm.and(scratch1Reg, scratch1Reg, Immediate(~(frameSizeAlignment - 1)));
+    _asm.sub(
+      stackPointerReg,
+      stackPointerReg,
+      ShiftedRegOperand(scratch1Reg, .LSL, log2wordSize),
+    );
+
+    // Fill entry frame.
+    var offsetFromFp = 0;
+
+    // Set up PC marker slot.
+    _asm.ldr(
+      tempReg,
+      _asm.address(
+        threadParamReg,
+        fromBytecode
+            ? vmOffsets.Thread_invoke_dart_code_from_bytecode_stub_offset
+            : vmOffsets.Thread_invoke_dart_code_stub_offset,
+      ),
+    );
+    ++offsetFromFp;
+    _asm.str(tempReg, RegOffsetAddress(FP, -offsetFromFp * wordSize));
+
+    offsetFromFp = _saveAbiCalleeSaveRegisters(offsetFromFp);
+
+    _restorePinnedRegisters();
+
+    offsetFromFp = _saveThreadFields(offsetFromFp);
+
+    assert(offsetFromFp == entryFrameFixedSize);
+
+    // Store GC-safe zero padding.
+    assert(
+      roundUp(entryFrameFixedSize, frameSizeAlignment) ==
+          entryFrameFixedSize + 1,
+    );
+    ++offsetFromFp;
+    _asm.str(ZR, RegOffsetAddress(FP, -offsetFromFp * wordSize));
+
+    // Mark that the thread is executing Dart code. Do this after initializing the
+    // exit link for the profiler.
+    _asm.loadImmediate(scratch1Reg, vmOffsets.VMTag_kDartTagId);
+    _asm.str(
+      scratch1Reg,
+      _asm.address(threadReg, vmOffsets.Thread_vm_tag_offset),
+    );
+
+    // Load arguments descriptor array into R4, which is passed to Dart code.
+    _asm.mov(argumentsDescriptorReg, argumentsDescriptorParamReg);
+
+    _asm.add(
+      argumentsDestReg,
+      stackPointerReg,
+      ShiftedRegOperand(argCountReg, .LSL, log2wordSize),
+    );
+
+    if (!fromBytecode) {
+      // Compute address of 'arguments array' data area into [argumentsParamReg].
+      _asm.addImmediate(
+        argumentsParamReg,
+        argumentsParamReg,
+        vmOffsets.Array_data_offset - heapObjectTag,
+      );
+    }
+
+    // Copy arguments.
+    final done = Label();
+    final loop = Label();
+    _asm.cbz(argCountReg, done);
+    _asm.bind(loop);
+    // TODO: compressed pointers
+    _asm.ldr(
+      scratch1Reg,
+      WritebackRegOffsetAddress(
+        argumentsParamReg,
+        fromBytecode ? wordSize : compressedWordSize,
+        isPostIndexed: true,
+      ),
+    );
+    _asm.str(
+      scratch1Reg,
+      WritebackRegOffsetAddress(
+        argumentsDestReg,
+        -wordSize,
+        isPostIndexed: false,
+      ),
+    );
+    _asm.subImmediate(argCountReg, argCountReg, 1);
+    _asm.cbnz(argCountReg, loop);
+    _asm.bind(done);
+
+    // We now load the pool pointer(PP) with a GC safe value as we are about to
+    // invoke dart code. We don't need a real object pool here.
+    // Smi zero does not work because ARM64 assumes PP to be untagged.
+    _asm.mov(poolPointerReg, nullReg);
+    _asm.mov(codeReg, codeParamReg);
+    _asm.ldr(
+      LR,
+      _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
+    );
+
+    // Call the Dart code entrypoint.
+    _asm.blr(LR);
+
+    offsetFromFp = _restoreThreadFields(entryFrameFixedSize);
+    offsetFromFp = _restoreAbiCalleeSaveRegisters(offsetFromFp);
+    --offsetFromFp; // Drop PC marker slot.
+    assert(offsetFromFp == 0);
+
+    // Restore the frame pointer and C stack pointer and return.
+    _asm.mov(stackPointerReg, FP);
+    _asm.popPair(FP, LR);
+    _asm.mov(SP, stackPointerReg);
+    _asm.ret();
   }
 }
 
@@ -921,6 +1277,14 @@ final class Arm64StubFactory extends StubFactory {
   @override
   StubCodeGenerator dynamicInvocationForwarderStubGenerator() =>
       DynamicInvocationForwarderStub(vmOffsets, objectLayout);
+
+  @override
+  StubCodeGenerator invokeDartCodeStubGenerator() =>
+      InvokeDartCodeStub(vmOffsets, objectLayout, fromBytecode: false);
+
+  @override
+  StubCodeGenerator invokeDartCodeFromBytecodeStubGenerator() =>
+      InvokeDartCodeStub(vmOffsets, objectLayout, fromBytecode: true);
 
   @override
   StubCodeGenerator subtypeTestCacheStubGenerator(int n) =>

@@ -26,14 +26,14 @@ class C { @ @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -45,6 +45,30 @@ CompilationUnit
                 atSign: @
                 expression: ParsedUnqualifiedName
                   name: annotation
+                name: SimpleIdentifier
+                  token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -68,6 +92,14 @@ class C { @ }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -88,6 +120,28 @@ class C { @ var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -99,8 +153,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -123,6 +175,31 @@ class C { @ const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            constFinalOrVarKeyword: const
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -134,8 +211,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -144,7 +219,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -161,6 +236,31 @@ class C { @ final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          FieldsDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -172,8 +272,6 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -182,7 +280,7 @@ CompilationUnit
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -197,6 +295,30 @@ class C { @ int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          GetterDeclaration
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: int
+                name: SimpleIdentifier
+                  token: int
+            getKeyword: get
+            name: a
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -208,15 +330,13 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: int
                 name: SimpleIdentifier
                   token: int
             propertyKeyword: get
             name: a
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -231,6 +351,35 @@ class C { @ int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          MethodDeclaration2
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: int
+                name: SimpleIdentifier
+                  token: int
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -242,25 +391,17 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: int
                 name: SimpleIdentifier
                   token: int
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
               rightParenthesis: )
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: IntegerLiteral
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -277,6 +418,36 @@ class C { @ void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          MethodDeclaration2
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                name: SimpleIdentifier
+                  token: <empty> <synthetic>
+            returnType: NamedType
+              name: void
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -288,20 +459,12 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             returnType: NamedType
               name: void
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -322,6 +485,34 @@ class C { @ set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        members
+          MethodDeclaration2
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: set
+                name: SimpleIdentifier
+                  token: set
+            name: a
+            formalParameters: FormalParameterList
+              leftParenthesis: (
+              requiredPositionalFormalParameters
+                RegularFormalParameter
+                  name: b
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -333,18 +524,10 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
-                expression: ParsedUnqualifiedName
-                  name: set
                 name: SimpleIdentifier
                   token: set
             name: a
             parameters: FormalParameterList
-              leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  name: b
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
               leftParenthesis: (
               parameter: RegularFormalParameter
                 name: b
@@ -368,14 +551,14 @@ class C { @a( @annotation var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -406,6 +589,36 @@ CompilationUnit
                   name: annotation
                 name: SimpleIdentifier
                   token: annotation
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: annotation
             fields: VariableDeclarationList
               keyword: var
               variables
@@ -427,6 +640,14 @@ class C { @a( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -449,14 +670,14 @@ class C { @a( var f; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -473,6 +694,32 @@ CompilationUnit
                       SimpleIdentifier
                         token: <empty> <synthetic>
                     rightParenthesis: ) <synthetic>
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+            constFinalOrVarKeyword: var
+            fields
+              Field
+                name: f
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
@@ -506,6 +753,14 @@ class C { @a( const f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -528,14 +783,14 @@ class C { @a( final f = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          FieldDeclaration
+          FieldsDeclaration
             metadata
               Annotation
                 atSign: @
@@ -560,13 +815,42 @@ CompilationUnit
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
+            constFinalOrVarKeyword: final
+            fields
+              Field
+                name: f
+                equals: =
+                initializer: IntegerLiteral
+                  literal: 0
+            semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
             fields: VariableDeclarationList
               keyword: final
               variables
                 VariableDeclaration
                   name: f
                   equals: =
-                  initializer2: IntegerLiteral
+                  initializer: IntegerLiteral
                     literal: 0
             semicolon: ;
         rightBracket: }
@@ -590,14 +874,14 @@ class C { @a( int get a => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       classKeyword: class
       namePart: NameWithTypeParameters
         typeName: C
-      body: BlockClassBody
+      body: BlockInstanceDeclarationBody
         leftBracket: {
         members
-          MethodDeclaration
+          MethodDeclaration2
             metadata
               Annotation
                 atSign: @
@@ -635,12 +919,46 @@ CompilationUnit
                       token: a
                   rightParenthesis: ) <synthetic>
             name: <empty> <synthetic>
-            parameters: FormalParameterList
+            formalParameters: FormalParameterList
               leftParenthesis: ( <synthetic>
               rightParenthesis: ) <synthetic>
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: a
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: int
+                    SimpleIdentifier
+                      token: get
+                    SimpleIdentifier
+                      token: a
+                  rightParenthesis: ) <synthetic>
+            name: <empty> <synthetic>
+            parameters: FormalParameterList
+              leftParenthesis: ( <synthetic>
+              rightParenthesis: ) <synthetic>
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
                 literal: 0
               semicolon: ;
         rightBracket: }
@@ -660,6 +978,14 @@ class C { @a( int a(b) => 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -683,6 +1009,14 @@ class C { @a( void a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -707,6 +1041,14 @@ class C { @a( set a(b) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -729,6 +1071,56 @@ f() { @ assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -744,8 +1136,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -755,7 +1145,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -775,6 +1165,48 @@ f() { @ {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -790,8 +1222,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -818,6 +1248,48 @@ f() { @ break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -833,8 +1305,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -861,6 +1331,48 @@ f() { @ continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -876,8 +1388,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -903,6 +1413,64 @@ f() { @ do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -918,8 +1486,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -933,7 +1499,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -953,6 +1519,42 @@ f() { @ }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -968,8 +1570,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -992,6 +1592,72 @@ f() { @ for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1007,8 +1673,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1023,9 +1687,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: y
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1047,6 +1709,60 @@ f() { @ if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1062,8 +1778,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1073,7 +1787,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1094,6 +1808,48 @@ f() { @ l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: l
+                    name: SimpleIdentifier
+                      token: l
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: l
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1109,8 +1865,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: l
                       name: SimpleIdentifier
                         token: l
                   variables
@@ -1132,6 +1886,50 @@ f() { @ int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalFunctionDeclaration
+              metadata
+                Annotation
+                  atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: int
+                  name: SimpleIdentifier
+                    token: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1147,8 +1945,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: int
                       name: SimpleIdentifier
                         token: int
                   name: f
@@ -1174,6 +1970,54 @@ f() { @ void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalFunctionDeclaration
+              metadata
+                Annotation
+                  atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  name: SimpleIdentifier
+                    token: <empty> <synthetic>
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1189,8 +2033,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   returnType: NamedType
@@ -1218,6 +2060,44 @@ f() { @ var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1233,8 +2113,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   keyword: var
@@ -1258,6 +2136,48 @@ f() { @ return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1273,8 +2193,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1300,6 +2218,60 @@ f() { @ switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression: SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1315,8 +2287,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1326,9 +2296,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: x
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1349,6 +2317,60 @@ f() { @ try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1364,8 +2386,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1397,6 +2417,60 @@ f() { @ while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ParsedUnqualifiedName
+                      name: <empty> <synthetic>
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: <empty> <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1412,8 +2486,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ParsedUnqualifiedName
-                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1423,7 +2495,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1444,6 +2516,93 @@ f() { @a( assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          CallInvocation
+                            receiver: ParsedUnqualifiedName
+                              name: assert
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              arguments2
+                                BooleanLiteral
+                                  literal: true
+                              rightParenthesis: )
+                        arguments(v1)
+                          FunctionExpressionInvocation
+                            function: SimpleIdentifier
+                              token: assert
+                            argumentList: ArgumentList
+                              leftParenthesis: (
+                              arguments
+                                BooleanLiteral
+                                  literal: true
+                              rightParenthesis: )
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpressionInvocation
+                          function: SimpleIdentifier
+                            token: assert
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            arguments
+                              BooleanLiteral
+                                literal: true
+                            rightParenthesis: )
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpressionInvocation
+                          function: SimpleIdentifier
+                            token: assert
+                          argumentList: ArgumentList
+                            leftParenthesis: (
+                            arguments
+                              BooleanLiteral
+                                literal: true
+                            rightParenthesis: )
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1459,33 +2618,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            CallInvocation
-                              receiver: ParsedUnqualifiedName
-                                name: assert
-                              argumentList: ArgumentList
-                                leftParenthesis: (
-                                arguments2
-                                  BooleanLiteral
-                                    literal: true
-                                rightParenthesis: )
-                          arguments(v1)
-                            FunctionExpressionInvocation
-                              function: SimpleIdentifier
-                                token: assert
-                              argumentList: ArgumentList
-                                leftParenthesis: (
-                                arguments
-                                  BooleanLiteral
-                                    literal: true
-                                rightParenthesis: )
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1522,6 +2654,68 @@ f() { @a( {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          SetOrMapLiteral
+                            leftBracket: {
+                            rightBracket: }
+                            isMap: false
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SetOrMapLiteral
+                          leftBracket: {
+                          rightBracket: }
+                          isMap: false
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SetOrMapLiteral
+                          leftBracket: {
+                          rightBracket: }
+                          isMap: false
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1537,18 +2731,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            SetOrMapLiteral
-                              leftBracket: {
-                              rightBracket: }
-                              isMap: false
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1582,6 +2764,71 @@ f() { @a( break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1597,19 +2844,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1644,6 +2878,71 @@ f() { @a( continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1659,19 +2958,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1705,6 +2991,87 @@ f() { @a( do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1720,19 +3087,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1752,7 +3106,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1773,6 +3127,53 @@ f() { @a( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1788,13 +3189,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1822,6 +3216,95 @@ f() { @a( for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable: SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1837,19 +3320,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1870,9 +3340,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: ParsedUnqualifiedName
-                    name: y
-                  iterable(v1): SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1896,6 +3364,83 @@ f() { @a( if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1911,19 +3456,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1939,7 +3471,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1962,6 +3494,77 @@ f() { @a( l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          NamedArgument
+                            name: l
+                            colon: :
+                            argumentExpression2: SetOrMapLiteral
+                              leftBracket: {
+                              rightBracket: }
+                              isMap: false
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        NamedArgument
+                          name: l
+                          colon: :
+                          argumentExpression: SetOrMapLiteral
+                            leftBracket: {
+                            rightBracket: }
+                            isMap: false
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        NamedArgument
+                          name: l
+                          colon: :
+                          argumentExpression: SetOrMapLiteral
+                            leftBracket: {
+                            rightBracket: }
+                            isMap: false
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1977,21 +3580,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            NamedArgument
-                              name: l
-                              colon: :
-                              argumentExpression2: SetOrMapLiteral
-                                leftBracket: {
-                                rightBracket: }
-                                isMap: false
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2028,6 +3616,80 @@ f() { @a( int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          FunctionExpression
+                            parameters: FormalParameterList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                            body: BlockFunctionBody
+                              block: Block
+                                leftBracket: {
+                                rightBracket: }
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpression
+                          parameters: FormalParameterList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                          body: BlockFunctionBody
+                            block: Block
+                              leftBracket: {
+                              rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpression
+                          parameters: FormalParameterList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                          body: BlockFunctionBody
+                            block: Block
+                              leftBracket: {
+                              rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2043,22 +3705,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            FunctionExpression
-                              parameters: FormalParameterList
-                                leftParenthesis: (
-                                rightParenthesis: )
-                              body: BlockFunctionBody
-                                block: Block
-                                  leftBracket: {
-                                  rightBracket: }
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2096,6 +3742,80 @@ f() { @a( void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          FunctionExpression
+                            parameters: FormalParameterList
+                              leftParenthesis: (
+                              rightParenthesis: )
+                            body: BlockFunctionBody
+                              block: Block
+                                leftBracket: {
+                                rightBracket: }
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpression
+                          parameters: FormalParameterList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                          body: BlockFunctionBody
+                            block: Block
+                              leftBracket: {
+                              rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        FunctionExpression
+                          parameters: FormalParameterList
+                            leftParenthesis: (
+                            rightParenthesis: )
+                          body: BlockFunctionBody
+                            block: Block
+                              leftBracket: {
+                              rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2111,22 +3831,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            FunctionExpression
-                              parameters: FormalParameterList
-                                leftParenthesis: (
-                                rightParenthesis: )
-                              body: BlockFunctionBody
-                                block: Block
-                                  leftBracket: {
-                                  rightBracket: }
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2161,6 +3865,67 @@ f() { @a( var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2176,19 +3941,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2219,6 +3971,65 @@ f() { @a( return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2234,19 +4045,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2276,6 +4074,82 @@ f() { @a( switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          SwitchExpression
+                            switchKeyword: switch
+                            leftParenthesis: (
+                            expression2: ParsedUnqualifiedName
+                              name: x
+                            expression(v1): SimpleIdentifier
+                              token: x
+                            rightParenthesis: )
+                            leftBracket: {
+                            rightBracket: }
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SwitchExpression
+                          switchKeyword: switch
+                          leftParenthesis: (
+                          expression: SimpleIdentifier
+                            token: x
+                          rightParenthesis: )
+                          leftBracket: {
+                          rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SwitchExpression
+                          switchKeyword: switch
+                          leftParenthesis: (
+                          expression: SimpleIdentifier
+                            token: x
+                          rightParenthesis: )
+                          leftBracket: {
+                          rightBracket: }
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2291,24 +4165,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            SwitchExpression
-                              switchKeyword: switch
-                              leftParenthesis: (
-                              expression2: ParsedUnqualifiedName
-                                name: x
-                              expression(v1): SimpleIdentifier
-                                token: x
-                              rightParenthesis: )
-                              leftBracket: {
-                              rightBracket: }
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2345,6 +4201,83 @@ f() { @a( try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2360,19 +4293,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2412,6 +4332,83 @@ f() { @a( while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                metadata
+                  Annotation
+                    atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: a
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          ParsedUnqualifiedName
+                            name: <empty> <synthetic>
+                        arguments(v1)
+                          SimpleIdentifier
+                            token: <empty> <synthetic>
+                        rightParenthesis: ) <synthetic>
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  LocalVariable
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                metadata
+                  Annotation
+                    atSign: @
+                    name: SimpleIdentifier
+                      token: a
+                    arguments: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        SimpleIdentifier
+                          token: <empty> <synthetic>
+                      rightParenthesis: ) <synthetic>
+                variables
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2427,19 +4424,6 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
-                      expression: ConstructorInvocation
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: a
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          arguments2
-                            ParsedUnqualifiedName
-                              name: <empty> <synthetic>
-                          arguments(v1)
-                            SimpleIdentifier
-                              token: <empty> <synthetic>
-                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -2455,7 +4439,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -2475,12 +4459,25 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    ClassDeclaration
+    ClassDeclaration2
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       classKeyword: class
@@ -2502,12 +4499,27 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2516,7 +4528,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2532,12 +4544,28 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    EnumDeclaration
+    EnumDeclaration2
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumDeclarationBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration2
+            name: v
+        rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       enumKeyword: enum
@@ -2574,12 +4602,27 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2588,7 +4631,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2602,12 +4645,27 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: int
+          name: SimpleIdentifier
+            token: int
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: int
       name: f
@@ -2632,12 +4690,29 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       returnType: NamedType
@@ -2705,12 +4780,27 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: mixin
+          name: SimpleIdentifier
+            token: mixin
+      name: M
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: mixin
       name: M
@@ -2733,7 +4823,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       metadata
         Annotation
           atSign: @
@@ -2742,14 +4832,26 @@ CompilationUnit
           name: SimpleIdentifier
             token: set
       name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: set
+      name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2773,7 +4875,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
@@ -2781,28 +4883,44 @@ CompilationUnit
             name: typedef
           name: SimpleIdentifier
             token: typedef
+      variables
+        TopLevelVariable
+          name: A
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: B
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: Function
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: C
+          RegularFormalParameter
+            name: D
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: typedef
       variables: VariableDeclarationList
         variables
           VariableDeclaration
             name: A
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: B
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: B
       semicolon: ; <synthetic>
     FunctionDeclaration
       name: Function
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: C
-            RegularFormalParameter
-              name: D
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: C
@@ -2824,12 +4942,24 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2921,7 +5051,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
@@ -2946,13 +5076,34 @@ CompilationUnit
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: a
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
       variables: VariableDeclarationList
         keyword: final
         variables
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3072,7 +5223,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
@@ -3089,6 +5240,24 @@ CompilationUnit
                 SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
+          name: SimpleIdentifier
+            token: a
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: a
           arguments: ArgumentList

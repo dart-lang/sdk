@@ -371,7 +371,7 @@ mixin ErrorDetectionHelpers {
 /// Concrete derived classes exist for handling the different varieties of
 /// non-assignability errors.
 abstract class NonAssignabilityReporter {
-  const NonAssignabilityReporter();
+  const new();
 
   /// Creates the appropriate [LocatableDiagnostic] to report that the user has
   /// tried to assign [actualStaticType] to [expectedStaticType].
@@ -383,7 +383,7 @@ abstract class NonAssignabilityReporter {
 
 /// Helper class for reporting the error [diag.argumentTypeNotAssignable].
 class NonAssignabilityReporterForArgument extends NonAssignabilityReporter {
-  const NonAssignabilityReporterForArgument();
+  const new();
 
   @override
   LocatableDiagnostic createDiagnostic({
@@ -433,7 +433,7 @@ class NonAssignabilityReporterForArgument extends NonAssignabilityReporter {
 
 /// Helper class for reporting the error [diag.invalidAssignment].
 class NonAssignabilityReporterForAssignment extends NonAssignabilityReporter {
-  const NonAssignabilityReporterForAssignment();
+  const new();
 
   @override
   LocatableDiagnostic createDiagnostic({

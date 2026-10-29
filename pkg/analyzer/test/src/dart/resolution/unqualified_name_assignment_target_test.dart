@@ -417,7 +417,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -474,7 +473,6 @@ CompoundAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -511,7 +509,6 @@ V1: AssignmentExpression
   }
 
   test_compound_topLevelSetter_ambiguous_missingGetter() async {
-    // TODO(scheglov): Report a missing getter instead of an undefined name.
     newFile('$testPackageLibPath/a.dart', 'set foo(int value) {}');
     newFile('$testPackageLibPath/b.dart', 'set foo(int value) {}');
 
@@ -522,7 +519,7 @@ import 'b.dart';
 void f() {
   foo += 1;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
 // [diag.ambiguousImport] The setter 'foo' is defined in the libraries 'package:test/a.dart' and 'package:test/b.dart'.
 }
 ''');
@@ -1011,7 +1008,7 @@ import 'a.dart';
 void f() {
   foo = 1;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteFinal] 'foo' is final, so it can't be assigned to.
 }
 ''');
 
@@ -1055,7 +1052,7 @@ import 'a.dart';
 void f() {
   foo = 1;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -1210,14 +1207,13 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelGetter_missingSetter() async {
-    // TODO(scheglov): Report a missing setter instead of a final variable.
     newFile('$testPackageLibPath/a.dart', 'int? get foo => null;');
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void f() {
   foo ??= 1;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
 
@@ -1228,7 +1224,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: package:test/a.dart::@getter::foo
@@ -1402,7 +1397,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -1456,7 +1450,6 @@ IfNullAssignment
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int? Function()
       type: int?
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -1490,14 +1483,13 @@ V1: AssignmentExpression
   }
 
   test_ifNull_topLevelSetter_missingGetter() async {
-    // TODO(scheglov): Report a missing getter instead of an undefined name.
     newFile('$testPackageLibPath/a.dart', 'set foo(int value) {}');
     var result = await resolveTestCodeWithDiagnostics(r'''
 import 'a.dart';
 void f() {
   foo ??= 1;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
 }
 ''');
 
@@ -1555,7 +1547,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -1832,7 +1823,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement
@@ -2162,7 +2152,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: SetterInvocationResolution
       element: package:test/a.dart::@setter::foo
@@ -2212,7 +2201,6 @@ IncrementOrDecrementExpression
     name: foo
     read: GetterInvocationResolution
       element: package:test/a.dart::@getter::foo
-      invokeType: int Function()
       type: int
     write: InvalidNamedWriteResolution
       recoveryElement: multiplyDefinedElement

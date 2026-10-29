@@ -25,7 +25,7 @@ class AnalysisDriverUnlinkedUnit {
   /// Unlinked information for the unit.
   final UnlinkedUnit unit;
 
-  AnalysisDriverUnlinkedUnit({
+  new({
     required this.definedClassMemberNames,
     required this.definedTopLevelNames,
     required this.referencedNames,
@@ -33,11 +33,11 @@ class AnalysisDriverUnlinkedUnit {
     required this.unit,
   });
 
-  factory AnalysisDriverUnlinkedUnit.fromBytes(Uint8List bytes) {
+  factory fromBytes(Uint8List bytes) {
     return AnalysisDriverUnlinkedUnit.read(BinaryReader(bytes));
   }
 
-  factory AnalysisDriverUnlinkedUnit.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return AnalysisDriverUnlinkedUnit(
       definedClassMemberNames: reader.readStringUtf8Set(),
       definedTopLevelNames: reader.readStringUtf8Set(),
@@ -68,14 +68,14 @@ class UnlinkedCombinator {
   final bool isShow;
   final List<String> names;
 
-  UnlinkedCombinator({
+  new({
     required this.keywordOffset,
     required this.endOffset,
     required this.isShow,
     required this.names,
   });
 
-  factory UnlinkedCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedCombinator(
       keywordOffset: reader.readUint30(),
       endOffset: reader.readUint30(),
@@ -96,19 +96,16 @@ abstract class UnlinkedConfigurableUriDirective {
   final List<UnlinkedNamespaceDirectiveConfiguration> configurations;
   final String? uri;
 
-  UnlinkedConfigurableUriDirective({
-    required this.configurations,
-    required this.uri,
-  });
+  new({required this.configurations, required this.uri});
 }
 
 class UnlinkedDartdocTemplate {
   final String name;
   final String value;
 
-  UnlinkedDartdocTemplate({required this.name, required this.value});
+  new({required this.name, required this.value});
 
-  factory UnlinkedDartdocTemplate.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedDartdocTemplate(
       name: reader.readStringUtf8(),
       value: reader.readStringUtf8(),
@@ -127,9 +124,9 @@ class UnlinkedLibraryDirective {
 
   final String? name;
 
-  UnlinkedLibraryDirective({required this.docImports, required this.name});
+  new({required this.docImports, required this.name});
 
-  factory UnlinkedLibraryDirective.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedLibraryDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -150,14 +147,14 @@ class UnlinkedLibraryDirective {
 class UnlinkedLibraryExportDirective extends UnlinkedNamespaceDirective {
   final int exportKeywordOffset;
 
-  UnlinkedLibraryExportDirective({
+  new({
     required super.combinators,
     required super.configurations,
     required this.exportKeywordOffset,
     required super.uri,
   });
 
-  factory UnlinkedLibraryExportDirective.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedLibraryExportDirective(
       combinators: reader.readTypedList(() => UnlinkedCombinator.read(reader)),
       configurations: reader.readTypedList(
@@ -187,7 +184,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
   final bool isSyntheticDartCore;
   final UnlinkedLibraryImportPrefix? prefix;
 
-  UnlinkedLibraryImportDirective({
+  new({
     required super.combinators,
     required super.configurations,
     required this.importKeywordOffset,
@@ -197,7 +194,7 @@ class UnlinkedLibraryImportDirective extends UnlinkedNamespaceDirective {
     required super.uri,
   });
 
-  factory UnlinkedLibraryImportDirective.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedLibraryImportDirective(
       combinators: reader.readTypedList(() => UnlinkedCombinator.read(reader)),
       configurations: reader.readTypedList(
@@ -237,14 +234,14 @@ class UnlinkedLibraryImportPrefix {
   final int nameOffset;
   final UnlinkedLibraryImportPrefixName? name;
 
-  UnlinkedLibraryImportPrefix({
+  new({
     required this.deferredOffset,
     required this.asOffset,
     required this.nameOffset,
     required this.name,
   });
 
-  factory UnlinkedLibraryImportPrefix.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedLibraryImportPrefix(
       deferredOffset: reader.readOptionalUint30(),
       asOffset: reader.readUint30(),
@@ -269,12 +266,9 @@ class UnlinkedLibraryImportPrefixName {
   final String name;
   final int nameOffset;
 
-  UnlinkedLibraryImportPrefixName({
-    required this.name,
-    required this.nameOffset,
-  });
+  new({required this.name, required this.nameOffset});
 
-  factory UnlinkedLibraryImportPrefixName.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedLibraryImportPrefixName(
       name: reader.readStringUtf8(),
       nameOffset: reader.readUint30(),
@@ -291,7 +285,7 @@ abstract class UnlinkedNamespaceDirective
     extends UnlinkedConfigurableUriDirective {
   final List<UnlinkedCombinator> combinators;
 
-  UnlinkedNamespaceDirective({
+  new({
     required this.combinators,
     required super.configurations,
     required super.uri,
@@ -310,13 +304,9 @@ class UnlinkedNamespaceDirectiveConfiguration {
   /// or the empty string if the condition does not include an equality test.
   final String value;
 
-  UnlinkedNamespaceDirectiveConfiguration({
-    required this.name,
-    required this.uri,
-    required this.value,
-  });
+  new({required this.name, required this.uri, required this.value});
 
-  factory UnlinkedNamespaceDirectiveConfiguration.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedNamespaceDirectiveConfiguration(
       name: reader.readStringUtf8(),
       uri: reader.readOptionalStringUtf8(),
@@ -342,13 +332,13 @@ class UnlinkedNamespaceDirectiveConfiguration {
 class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
   final int partKeywordOffset;
 
-  UnlinkedPartDirective({
+  new({
     required super.configurations,
     required this.partKeywordOffset,
     required super.uri,
   });
 
-  factory UnlinkedPartDirective.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedPartDirective(
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
@@ -376,13 +366,9 @@ class UnlinkedPartOfNameDirective {
   final String name;
   final UnlinkedSourceRange nameRange;
 
-  UnlinkedPartOfNameDirective({
-    required this.docImports,
-    required this.name,
-    required this.nameRange,
-  });
+  new({required this.docImports, required this.name, required this.nameRange});
 
-  factory UnlinkedPartOfNameDirective.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedPartOfNameDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -408,13 +394,9 @@ class UnlinkedPartOfUriDirective {
   final String? uri;
   final UnlinkedSourceRange uriRange;
 
-  UnlinkedPartOfUriDirective({
-    required this.docImports,
-    required this.uri,
-    required this.uriRange,
-  });
+  new({required this.docImports, required this.uri, required this.uriRange});
 
-  factory UnlinkedPartOfUriDirective.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedPartOfUriDirective(
       docImports: reader.readTypedList(
         () => UnlinkedLibraryImportDirective.read(reader),
@@ -437,12 +419,12 @@ class UnlinkedSourceRange {
   final int offset;
   final int length;
 
-  UnlinkedSourceRange({required this.offset, required this.length}) {
+  new({required this.offset, required this.length}) {
     RangeError.checkNotNegative(offset);
     RangeError.checkNotNegative(length);
   }
 
-  factory UnlinkedSourceRange.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedSourceRange(
       offset: reader.readUint30(),
       length: reader.readUint30(),
@@ -498,7 +480,7 @@ class UnlinkedUnit {
   /// The Dartdoc templates of the unit.
   final List<UnlinkedDartdocTemplate> dartdocTemplates;
 
-  UnlinkedUnit({
+  new({
     required this.apiSignature,
     required this.exports,
     required this.hasDartCoreImport,
@@ -514,7 +496,7 @@ class UnlinkedUnit {
     required this.dartdocTemplates,
   });
 
-  factory UnlinkedUnit.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return UnlinkedUnit(
       apiSignature: reader.readUint8List(),
       exports: reader.readTypedList(

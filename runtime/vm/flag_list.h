@@ -155,7 +155,7 @@ constexpr bool FLAG_support_il_printer = false;
   P(modular_aot_mode, bool, false, "Modular AOT compiler mode")                \
   P(new_gen_semi_max_size, int, kDefaultNewGenSemiMaxSize,                     \
     "Max size of new gen semi space in MB")                                    \
-  P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 1 : 2,                  \
+  P(new_gen_semi_initial_size, int, (kWordSize <= 4) ? 2 : 4,                  \
     "Initial size of new gen semi space in MB")                                \
   P(optimization_counter_threshold, int, kDefaultOptimizationCounterThreshold, \
     "Function's usage-counter value before it is optimized, -1 means never")   \

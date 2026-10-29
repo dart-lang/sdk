@@ -78,10 +78,7 @@ class _AnalyzerDiagnosticGenerator {
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 ''');
 
-  _AnalyzerDiagnosticGenerator({
-    required this.package,
-    required this.parentLibrary,
-  });
+  new({required this.package, required this.parentLibrary});
 
   void generate() {
     package.writeIgnoresTo(out);

@@ -23,7 +23,7 @@ class NormalizeHelper {
 
   final Set<TypeParameterElement> _typeParameters = {};
 
-  NormalizeHelper(this.typeSystem) : typeProvider = typeSystem.typeProvider;
+  new(this.typeSystem) : typeProvider = typeSystem.typeProvider;
 
   TypeImpl normalize(TypeImpl T) {
     return _normalize(T);

@@ -14,13 +14,19 @@ final class BoxedBool extends bool {
 
   @override
   bool operator ==(Object other) {
-    return other is bool
-        ? this ==
-              other // Intrinsic ==
-        : false;
+    return other is bool ? _equals(this, other) : false;
   }
 
-  bool operator &(bool other) => this & other; // Intrinsic &
-  bool operator ^(bool other) => this ^ other; // Intrinsic ^
-  bool operator |(bool other) => this | other; // Intrinsic |
+  bool operator &(bool other) => _and(this, other);
+  bool operator ^(bool other) => _xor(this, other);
+  bool operator |(bool other) => _or(this, other);
+
+  @pragma("wasm:intrinsic")
+  external static bool _equals(bool a, bool b);
+  @pragma("wasm:intrinsic")
+  external static bool _and(bool a, bool b);
+  @pragma("wasm:intrinsic")
+  external static bool _xor(bool a, bool b);
+  @pragma("wasm:intrinsic")
+  external static bool _or(bool a, bool b);
 }

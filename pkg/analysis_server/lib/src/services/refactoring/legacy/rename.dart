@@ -208,7 +208,10 @@ class RenameProcessor2 {
         continue;
       }
       await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
-        builder.addSimpleReplacement(reference.range, newName);
+        builder.addSimpleReplacement(
+          reference.range,
+          referenceReplacement(sessionHelper.session, reference, newName),
+        );
       });
     }
   }

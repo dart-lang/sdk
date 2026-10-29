@@ -102,9 +102,8 @@ abstract class LegacyHandler {
 
 extension SomeResolvedLibraryResultExtension on SomeResolvedLibraryResult? {
   Version get effectiveFormatterVersion {
-    var self = this;
-    if (self is ResolvedLibraryResult) {
-      return self.element.languageVersion.effective;
+    if (this is ResolvedLibraryResult) {
+      return element.languageVersion.effective;
     }
     return defaultFormatterVersion;
   }

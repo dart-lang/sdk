@@ -24,12 +24,7 @@ class DartFixesRequestImpl implements DartFixesRequest {
   final ResolvedUnitResult result;
 
   /// Initialize a newly create request with the given data.
-  DartFixesRequestImpl(
-    this.resourceProvider,
-    this.offset,
-    this.errorsToFix,
-    this.result,
-  );
+  new(this.resourceProvider, this.offset, this.errorsToFix, this.result);
 }
 
 /// A concrete implementation of [FixCollector].

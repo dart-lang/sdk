@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math';
+
 void constantFoldInt() {
   var x = 100;
   var y = 24;
@@ -98,6 +100,10 @@ void arithmeticPatterns(int x, double y) {
   print(x ^ x);
   print(y * 1.0);
   print(y * y);
+  print(pow(y, -0.0));
+  print(pow(y, 1.0));
+  print(pow(y, 2));
+  print(pow(1.0, y));
 }
 
 void redundantPhi(int x) {

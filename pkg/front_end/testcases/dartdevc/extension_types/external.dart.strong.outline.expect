@@ -125,7 +125,7 @@ static extension-type-member method B|get#genericMethod(lowered final self::B /*
   return <T extends self::B /* erasure=dart._interceptors::JSObject */>(T t) → T => self::B|genericMethod<T>(#this, t);
 static extension-type-member method B|get#methodWithOptionalArgument(lowered final self::B /* erasure=dart._interceptors::JSObject */ #this) → ([self::B? /* erasure=dart._interceptors::JSObject? */]) → self::B /* erasure=dart._interceptors::JSObject */
   return ([self::B? /* erasure=dart._interceptors::JSObject? */ b]) → self::B /* erasure=dart._interceptors::JSObject */ => self::B|methodWithOptionalArgument(#this, b);
-external static extension-type-member method B|methodWithOptionalArgument(lowered final self::B /* erasure=dart._interceptors::JSObject */ #this, [self::B? /* erasure=dart._interceptors::JSObject? */ b]) → self::B /* erasure=dart._interceptors::JSObject */;
+external static extension-type-member method B|methodWithOptionalArgument(lowered final self::B /* erasure=dart._interceptors::JSObject */ #this, [self::B? /* erasure=dart._interceptors::JSObject? */ b = null]) → self::B /* erasure=dart._interceptors::JSObject */;
 external static extension-type-member method B|get#getter(lowered final self::B /* erasure=dart._interceptors::JSObject */ #this) → self::B /* erasure=dart._interceptors::JSObject */;
 external static extension-type-member method B|set#setter(lowered final self::B /* erasure=dart._interceptors::JSObject */ #this, self::B /* erasure=dart._interceptors::JSObject */ b) → void;
 external static extension-type-member method B|get#property(lowered final self::B /* erasure=dart._interceptors::JSObject */ #this) → self::B /* erasure=dart._interceptors::JSObject */;

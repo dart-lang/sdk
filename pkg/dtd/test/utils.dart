@@ -15,11 +15,21 @@ import 'package:test_process/test_process.dart';
 /// Helper class for starting a Dart Tooling Daemon instance, and extracting
 /// it's [trustedSecret] and [uri] from stdout.
 class ToolingDaemonTestProcess {
-  ToolingDaemonTestProcess({this.unrestricted = false});
+  ToolingDaemonTestProcess({
+    this.unrestricted = false,
+    this.suppressAnalytics = false,
+  });
   late final String? trustedSecret;
   late final Uri uri;
   late final Process? process;
   final bool unrestricted;
+
+  /// The value to use for the `DASH__SUPPRESS_ANALYTICS` environment variable
+  /// in the DTD process.
+  ///
+  /// This is always set explicitly so that tests are not affected by the
+  /// environment they are run in.
+  final bool suppressAnalytics;
 
   Future<Process> start() async {
     final completer = Completer<void>();
@@ -31,6 +41,7 @@ class ToolingDaemonTestProcess {
         if (unrestricted) '--unrestricted',
         '--fakeAnalytics',
       ],
+      environment: {'DASH__SUPPRESS_ANALYTICS': '$suppressAnalytics'},
     );
     process!.handle(
       stdoutLines: (line) {

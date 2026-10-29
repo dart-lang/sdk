@@ -30,7 +30,7 @@ class SdkConstraintExtractor {
 
   /// Initialize a newly created extractor to extract the SDK version constraint
   /// from the given `pubspec.yaml` file.
-  SdkConstraintExtractor(this.pubspecFile);
+  new(this.pubspecFile);
 
   /// Return the range of supported versions, or `null` if the range could not
   /// be computed.

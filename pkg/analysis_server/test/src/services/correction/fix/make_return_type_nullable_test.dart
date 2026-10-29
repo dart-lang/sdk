@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class MakeReturnTypeNullableTest extends FixProcessorTest {
+class MakeReturnTypeNullableTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.makeReturnTypeNullable;
 

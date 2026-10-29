@@ -67,6 +67,14 @@ mixin main on A {}
 ''');
   }
 
+  test_setter() async {
+    await resolveTestCodeWithDiagnostics('''
+set main(_) {}
+//  ^^^^
+// [diag.mainIsNotFunction] The declaration named 'main' must be a function.
+''');
+  }
+
   test_typedef() async {
     await resolveTestCodeWithDiagnostics('''
 typedef main = void Function();

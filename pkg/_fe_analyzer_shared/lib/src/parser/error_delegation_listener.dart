@@ -13,7 +13,7 @@ import 'listener.dart' show Listener;
 class ErrorDelegationListener extends Listener {
   Listener delegate;
 
-  ErrorDelegationListener(this.delegate);
+  new(this.delegate);
 
   @override
   void handleRecoverableError(

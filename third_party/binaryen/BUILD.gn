@@ -148,26 +148,38 @@ template("wasm_tool") {
 
 wasm_tool("wasm2js") {
 }
+
 wasm_tool("wasm-as") {
 }
+
 wasm_tool("wasm-ctor-eval") {
 }
+
 wasm_tool("wasm-dis") {
 }
+
 wasm_tool("wasm-emscripten-finalize") {
 }
+
 wasm_tool("wasm-fuzz-types") {
 }
+
 wasm_tool("wasm-merge") {
 }
+
 wasm_tool("wasm-metadce") {
 }
+
 wasm_tool("wasm-opt") {
 }
+
 wasm_tool("wasm-reduce") {
+  is_subdir = true
 }
+
 wasm_tool("wasm-shell") {
 }
+
 wasm_tool("wasm-split") {
   is_subdir = true
 }

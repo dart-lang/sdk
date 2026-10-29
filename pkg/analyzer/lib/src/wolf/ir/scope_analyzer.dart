@@ -90,7 +90,7 @@ class Scopes {
   final List<int> _lastDescendants;
   final List<int> _parents;
 
-  Scopes._(_ScopeAnalyzer analyzer)
+  new _(_ScopeAnalyzer analyzer)
     : stateVarCount = analyzer.stateVarToPendingEffectsIndex.length,
       _allocIndexToStateVar = analyzer.allocIndexToStateVar,
       _beginAddresses = analyzer.beginAddresses,
@@ -212,7 +212,7 @@ class Scopes {
 class StateVar {
   final int index;
 
-  StateVar(this.index);
+  new(this.index);
 
   @override
   int get hashCode => index.hashCode;
@@ -300,7 +300,7 @@ base class _ScopeAnalyzer {
   /// Index into [pendingEffects] representing the start of the current scope.
   var scopeStart = 0;
 
-  _ScopeAnalyzer(this.ir, this.eventListener);
+  new(this.ir, this.eventListener);
 
   bool checkState() {
     if (enableDebugPrints) dumpState();

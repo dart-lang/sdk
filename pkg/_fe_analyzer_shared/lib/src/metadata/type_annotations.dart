@@ -28,7 +28,7 @@ class NamedTypeAnnotation extends TypeAnnotation {
   final Reference reference;
   final List<TypeAnnotation> typeArguments;
 
-  NamedTypeAnnotation(this.reference, [this.typeArguments = const []]);
+  new(this.reference, [this.typeArguments = const []]);
 
   @override
   String toString() => 'NamedTypeAnnotation($reference,$typeArguments)';
@@ -49,7 +49,7 @@ class NamedTypeAnnotation extends TypeAnnotation {
 class NullableTypeAnnotation extends TypeAnnotation {
   final TypeAnnotation typeAnnotation;
 
-  NullableTypeAnnotation(this.typeAnnotation);
+  new(this.typeAnnotation);
 
   @override
   String toString() => 'NullableTypeAnnotation($typeAnnotation)';
@@ -68,7 +68,7 @@ class NullableTypeAnnotation extends TypeAnnotation {
 class VoidTypeAnnotation extends TypeAnnotation {
   final Reference reference;
 
-  VoidTypeAnnotation(this.reference);
+  new(this.reference);
 
   @override
   String toString() => 'VoidTypeAnnotation()';
@@ -82,7 +82,7 @@ class VoidTypeAnnotation extends TypeAnnotation {
 class DynamicTypeAnnotation extends TypeAnnotation {
   final Reference reference;
 
-  DynamicTypeAnnotation(this.reference);
+  new(this.reference);
 
   @override
   String toString() => 'DynamicTypeAnnotation()';
@@ -94,7 +94,7 @@ class DynamicTypeAnnotation extends TypeAnnotation {
 }
 
 class InvalidTypeAnnotation extends TypeAnnotation {
-  InvalidTypeAnnotation();
+  new();
 
   @override
   String toString() => 'InvalidTypeAnnotation()';
@@ -108,7 +108,7 @@ class InvalidTypeAnnotation extends TypeAnnotation {
 class UnresolvedTypeAnnotation extends TypeAnnotation {
   final Unresolved unresolved;
 
-  UnresolvedTypeAnnotation(this.unresolved);
+  new(this.unresolved);
 
   @override
   String toString() => 'UnresolvedTypeAnnotation($unresolved)';
@@ -126,11 +126,7 @@ class FunctionTypeAnnotation extends TypeAnnotation {
   final List<FunctionTypeParameter> typeParameters;
   final List<FormalParameter> formalParameters;
 
-  FunctionTypeAnnotation(
-    this.returnType,
-    this.typeParameters,
-    this.formalParameters,
-  );
+  new(this.returnType, this.typeParameters, this.formalParameters);
 
   @override
   String toString() =>
@@ -193,7 +189,7 @@ class FunctionTypeParameter {
   TypeAnnotation? bound;
   List<Expression>? metadata;
 
-  FunctionTypeParameter(this.name);
+  new(this.name);
 
   @override
   String toString() => 'FunctionTypeParameter($metadata,$name,$bound)';
@@ -202,7 +198,7 @@ class FunctionTypeParameter {
 class FunctionTypeParameterType extends TypeAnnotation {
   final FunctionTypeParameter functionTypeParameter;
 
-  FunctionTypeParameterType(this.functionTypeParameter);
+  new(this.functionTypeParameter);
 
   @override
   String toString() => 'FunctionTypeParameterType($functionTypeParameter)';
@@ -223,7 +219,7 @@ class RecordTypeAnnotation extends TypeAnnotation {
   final List<RecordTypeEntry> positional;
   final List<RecordTypeEntry> named;
 
-  RecordTypeAnnotation(this.positional, this.named);
+  new(this.positional, this.named);
 
   @override
   String toString() => 'FunctionTypeParameterType($positional,$named)';
@@ -252,7 +248,7 @@ class RecordTypeEntry {
   final TypeAnnotation typeAnnotation;
   final String? name;
 
-  RecordTypeEntry(this.metadata, this.typeAnnotation, this.name);
+  new(this.metadata, this.typeAnnotation, this.name);
 
   RecordTypeEntry? resolve({
     Map<FunctionTypeParameter, FunctionTypeParameter> env = const {},

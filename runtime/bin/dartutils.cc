@@ -22,8 +22,6 @@ namespace bin {
 
 const char* DartUtils::original_working_directory = nullptr;
 
-dart::SimpleHashMap* DartUtils::environment_ = nullptr;
-
 MagicNumberData appjit_magic_number = {8, {0xdc, 0xdc, 0xf6, 0xf6, 0, 0, 0, 0}};
 MagicNumberData aotelf_magic_number = {4, {0x7F, 0x45, 0x4C, 0x46, 0x0}};
 MagicNumberData aotpe_magic_number = {2, {0x4d, 0x5a}};
@@ -761,43 +759,6 @@ bool DartUtils::SetOriginalWorkingDirectory() {
   }
   original_working_directory = Directory::CurrentNoScope();
   return original_working_directory != nullptr;
-}
-
-void DartUtils::SetEnvironment(dart::SimpleHashMap* environment) {
-  environment_ = environment;
-}
-
-Dart_Handle DartUtils::EnvironmentCallback(Dart_Handle name) {
-  uint8_t* utf8_array;
-  intptr_t utf8_len;
-  Dart_Handle result = Dart_Null();
-  Dart_Handle handle = Dart_StringToUTF8(name, &utf8_array, &utf8_len);
-  if (Dart_IsError(handle)) {
-    handle = Dart_ThrowException(
-        DartUtils::NewDartArgumentError(Dart_GetError(handle)));
-  } else {
-    char* name_chars = reinterpret_cast<char*>(malloc(utf8_len + 1));
-    memmove(name_chars, utf8_array, utf8_len);
-    name_chars[utf8_len] = '\0';
-    const char* value = nullptr;
-    if (environment_ != nullptr) {
-      SimpleHashMap::Entry* entry =
-          environment_->Lookup(GetHashmapKeyFromString(name_chars),
-                               SimpleHashMap::StringHash(name_chars), false);
-      if (entry != nullptr) {
-        value = reinterpret_cast<char*>(entry->value);
-      }
-    }
-    if (value != nullptr) {
-      result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(value),
-                                      strlen(value));
-      if (Dart_IsError(result)) {
-        result = Dart_Null();
-      }
-    }
-    free(name_chars);
-  }
-  return result;
 }
 
 // Statically allocated Dart_CObject instances for immutable

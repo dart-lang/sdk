@@ -24,7 +24,7 @@ class MissingDependencyData {
   final List<String> addDevDeps;
   final List<String> removeDevDeps;
 
-  MissingDependencyData(this.addDeps, this.addDevDeps, this.removeDevDeps);
+  new(this.addDeps, this.addDevDeps, this.removeDevDeps);
 }
 
 /// A validator that computes missing dependencies and dev_dependencies based on
@@ -52,7 +52,7 @@ class MissingDependencyValidator {
   /// `pubspec.yaml` file and not as part of the `dependencies` section.
   final Set noDepsPackages = <String>{'flutter_gen'};
 
-  MissingDependencyValidator(this.contents, this.source, this.provider)
+  new(this.contents, this.source, this.provider)
     : recorder = RecordingDiagnosticListener() {
     reporter = DiagnosticReporter(recorder, source);
   }

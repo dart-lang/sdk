@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 typedef b = core::int;
 typedef c = core::String;
-static method f(dynamic a, [dynamic b]) → core::String
+static method f(dynamic a, [dynamic b = null]) → core::String
   ;
 static method a<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(core::int x) → core::String
   ;

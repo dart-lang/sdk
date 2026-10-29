@@ -46,7 +46,7 @@ abstract class _Timer implements Timer {
   @override
   void cancel() {
     if (!_handle.isNull) {
-      embedder.clearSchedule(_handle);
+      embedder.clearSchedule(_handle!);
       _handle = WasmExternRef.nullRef;
     }
   }

@@ -66,7 +66,7 @@ V1: InstanceCreationExpression
     rightParenthesis: )
   staticType: M
 invalidNodes
-  ConstructorDeclarationImpl [12, 24)
+  ConstructorDeclaration2Impl [12, 24)
 ''');
   }
 

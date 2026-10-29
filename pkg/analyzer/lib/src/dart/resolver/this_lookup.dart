@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 /// property gets/sets on the type of `this`.
 class ThisLookup {
   /// Do not construct
-  ThisLookup._() {
+  new _() {
     assert(false, 'Do not construct instances of LexicalLookup');
   }
 

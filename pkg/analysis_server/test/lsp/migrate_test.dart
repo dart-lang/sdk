@@ -28,6 +28,7 @@ void main() {
     defineReflectiveTests(MigratePackageValidationTest);
     defineReflectiveTests(MigrateProgressTest);
     defineReflectiveTests(MigrateStepsTest);
+    defineReflectiveTests(MigrateThisPromotionTest);
   });
 }
 
@@ -3422,6 +3423,695 @@ name: test_project
 environment:
   sdk: '^3.13.0'
 ''',
+    );
+  }
+}
+
+/// End-to-end tests of migrating to Dart 3.15, which enables `this-promotion`,
+/// using simplified versions of patterns that came up when migrating the SDK's
+/// own packages.
+///
+/// These tests don't pass a target SDK version: migrating to the next version
+/// is the default, and an explicit `targetSdk: '3.15.0'` is rejected while the
+/// SDK running the tests is itself a 3.15 prerelease.
+@reflectiveTest
+class MigrateThisPromotionTest extends AbstractMigrateTest {
+  /// All steps, for an alias of `this` that only existed to allow promotion.
+  ///
+  /// The registered `unnecessary_this_alias` lint removes the alias.
+  Future<void> test_alias_all() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  int get _c => 0;
+}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  int f() {
+    var self = this;
+    if (self is D) return self._d;
+    return _c;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.14.0 -> ^3.15.0
+
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_this_alias • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  int get _c => 0;
+}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  int f() {
+    if (this is D) return _d;
+    return _c;
+  }
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''',
+    );
+  }
+
+  /// The cleanup step on its own, for a package that is already at 3.15, for an
+  /// alias of `this` that only existed to allow promotion.
+  Future<void> test_alias_cleanup() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  int get _c => 0;
+}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  int f() {
+    var self = this;
+    if (self is D) return self._d;
+    return _c;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.15.0:
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_this_alias • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {
+  int get _c => 0;
+}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  int f() {
+    if (this is D) return _d;
+    return _c;
+  }
+}
+''',
+    );
+  }
+
+  /// The default steps (prepare and bump), for an alias of `this` that only
+  /// existed to allow promotion. There's nothing to prepare for 3.15, so only
+  /// the SDK constraint changes, and the summary lists the cleanup fix that's
+  /// available.
+  Future<void> test_alias_defaultSteps() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  int get _c => 0;
+}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  int f() {
+    var self = this;
+    if (self is D) return self._d;
+    return _c;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.14.0 -> ^3.15.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    unnecessary_this_alias • 1 change
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''',
+    );
+  }
+
+  /// A dry run of the default steps, for an alias of `this` that only existed
+  /// to allow promotion.
+  Future<void> test_alias_defaultSteps_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+class C {
+  int get _c => 0;
+}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  int f() {
+    var self = this;
+    if (self is D) return self._d;
+    return _c;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes would be made in 0 files.
+
+    SDK constraint:
+      Would bump ^3.14.0 -> ^3.15.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    unnecessary_this_alias • 1 change
+
+To preview them, apply this migration, run 'dart pub get', and then run 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+    );
+  }
+
+  /// All steps, for a cast that is no longer needed once `this is D` promotes
+  /// `this`.
+  ///
+  /// `unnecessary_cast` is a warning, not a lint, so it isn't registered as a
+  /// cleanup, but the cleanup step fixes it anyway, since the bulk fix applies
+  /// fixes for other diagnostics too. Fixing is a single pass, so this leaves
+  /// `this._d`; see [test_cast_cleanup_secondPass].
+  Future<void> test_cast_all() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && (this as D)._d > 0;
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.14.0 -> ^3.15.0
+
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_cast • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && this._d > 0;
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''',
+    );
+  }
+
+  /// The cleanup step on its own, for a package that is already at 3.15, for a
+  /// cast that is no longer needed once `this is D` promotes `this`.
+  Future<void> test_cast_cleanup() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && (this as D)._d > 0;
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.15.0:
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_cast • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && this._d > 0;
+}
+''',
+    );
+  }
+
+  /// The cleanup step on its own, for a package that is already at 3.15, whose
+  /// code has already had a cast of `this` removed by a previous cleanup pass
+  /// (see [test_cast_all]). That left an unnecessary `this.` in `this._d`,
+  /// which this second pass removes.
+  Future<void> test_cast_cleanup_secondPass() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && this._d > 0;
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.15.0:
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_this • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && _d > 0;
+}
+''',
+    );
+  }
+
+  /// The default steps (prepare and bump), for a cast that is no longer needed
+  /// once `this is D` promotes `this`. There's nothing to prepare for 3.15, so
+  /// only the SDK constraint changes, and the summary lists the cleanup fix
+  /// that's available.
+  Future<void> test_cast_defaultSteps() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && (this as D)._d > 0;
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.14.0 -> ^3.15.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    unnecessary_cast • 1 change
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''',
+    );
+  }
+
+  /// A dry run of the default steps, for a cast that is no longer needed once
+  /// `this is D` promotes `this`.
+  Future<void> test_cast_defaultSteps_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+
+class D extends C {
+  int get _d => 1;
+}
+
+extension E on C {
+  bool f() => this is D && (this as D)._d > 0;
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes would be made in 0 files.
+
+    SDK constraint:
+      Would bump ^3.14.0 -> ^3.15.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    unnecessary_cast • 1 change
+
+To preview them, apply this migration, run 'dart pub get', and then run 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+    );
+  }
+
+  /// All steps, for a `!` that is no longer needed once `this != null` promotes
+  /// `this`.
+  ///
+  /// `unnecessary_non_null_assertion` is a warning, not a lint, so it isn't
+  /// registered as a cleanup, but the cleanup step fixes it anyway, since the
+  /// bulk fix applies fixes for other diagnostics too.
+  Future<void> test_nullAssertion_all() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+extension E on int? {
+  int? operator +(int? other) {
+    if (this != null && other != null) {
+      return this! + other;
+    }
+    return null;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.14.0 -> ^3.15.0
+
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_non_null_assertion • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+extension E on int? {
+  int? operator +(int? other) {
+    if (this != null && other != null) {
+      return this + other;
+    }
+    return null;
+  }
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''',
+    );
+  }
+
+  /// The cleanup step on its own, for a package that is already at 3.15, for a
+  /// `!` that is no longer needed once `this != null` promotes `this`.
+  Future<void> test_nullAssertion_cleanup() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''');
+    newFile(mainFilePath, '''
+extension E on int? {
+  int? operator +(int? other) {
+    if (this != null && other != null) {
+      return this! + other;
+    }
+    return null;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.15.0:
+    Cleanup changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        unnecessary_non_null_assertion • 1 change''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+extension E on int? {
+  int? operator +(int? other) {
+    if (this != null && other != null) {
+      return this + other;
+    }
+    return null;
+  }
+}
+''',
+    );
+  }
+
+  /// The default steps (prepare and bump), for a `!` that is no longer needed
+  /// once `this != null` promotes `this`. There's nothing to prepare for 3.15,
+  /// so only the SDK constraint changes, and the summary lists the cleanup fix
+  /// that's available.
+  Future<void> test_nullAssertion_defaultSteps() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+extension E on int? {
+  int? operator +(int? other) {
+    if (this != null && other != null) {
+      return this! + other;
+    }
+    return null;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.14.0 -> ^3.15.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    unnecessary_non_null_assertion • 1 change
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.15.0'
+''',
+    );
+  }
+
+  /// A dry run of the default steps, for a `!` that is no longer needed once
+  /// `this != null` promotes `this`.
+  Future<void> test_nullAssertion_defaultSteps_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.14.0'
+''');
+    newFile(mainFilePath, '''
+extension E on int? {
+  int? operator +(int? other) {
+    if (this != null && other != null) {
+      return this! + other;
+    }
+    return null;
+  }
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      expectedSummary: '''
+test_project:
+  3.14.0 -> 3.15.0:
+    Preparatory changes:
+      0 changes would be made in 0 files.
+
+    SDK constraint:
+      Would bump ^3.14.0 -> ^3.15.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    unnecessary_non_null_assertion • 1 change
+
+To preview them, apply this migration, run 'dart pub get', and then run 'dart migrate --dry-run --step=cleanup' on the same packages.''',
     );
   }
 }

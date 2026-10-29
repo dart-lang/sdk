@@ -137,6 +137,10 @@ abstract base class const Constraints()
   );
 
   @override
+  InstructionConstraints? visitReachabilityFence(ReachabilityFence instr) =>
+      InstructionConstraints(null, [anyLocation(instr.value)]);
+
+  @override
   InstructionConstraints? visitParallelMove(ParallelMove instr) => null;
 
   @override

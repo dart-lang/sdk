@@ -21,7 +21,7 @@ import 'package:analyzer/src/error/listener.dart';
 class AnnotationResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  AnnotationResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   void resolve(AnnotationImpl node) {
     _typeAnalyzer.analyzeExpression(
@@ -53,9 +53,9 @@ class AnnotationResolver {
       case NameExpressionImpl expression:
         // A read from a receiver that couldn't be resolved, such as
         // `@undefined.foo`, was reported with the receiver.
-        if (expression case ReceiverPropertyExtractionImpl(
-          :NameExpressionImpl receiver,
-        ) when receiver.resolution?.element == null) {
+        if (expression
+            case ReceiverPropertyExtractionImpl(:NameExpressionImpl receiver)
+            when receiver.resolution?.element == null) {
           return;
         }
         // Only a valid read is checked; the resolution of the expression

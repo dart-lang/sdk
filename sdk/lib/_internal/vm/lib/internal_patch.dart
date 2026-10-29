@@ -20,16 +20,6 @@ part "print_patch.dart";
 part "symbol_patch.dart";
 
 @patch
-@pragma("vm:external-name", "Internal_makeListFixedLength")
-@pragma("vm:exact-result-type", "dart:core#_List")
-external List<T> makeListFixedLength<T>(List<T> growableList);
-
-@patch
-@pragma("vm:external-name", "Internal_makeFixedListUnmodifiable")
-@pragma("vm:exact-result-type", "dart:core#_ImmutableList")
-external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);
-
-@patch
 @pragma("vm:external-name", "Internal_extractTypeArguments")
 external Object? extractTypeArguments<T>(T instance, Function extract);
 
@@ -118,6 +108,10 @@ external bool get has63BitSmis;
 class Lists {
   @pragma("vm:prefer-inline")
   static void copy(List src, int srcStart, List dst, int dstStart, int count) {
+    if (srcStart + count > src.length) {
+      throw IterableElementError.tooFew();
+    }
+
     if (srcStart < dstStart) {
       for (
         int i = srcStart + count - 1, j = dstStart + count - 1;

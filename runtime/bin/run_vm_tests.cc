@@ -252,8 +252,6 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
     *error = Utils::StrDup(bin::VmService::GetErrorMessage());
     return nullptr;
   }
-  result = Dart_SetEnvironmentCallback(bin::DartUtils::EnvironmentCallback);
-  CHECK_RESULT(result);
   Dart_ExitScope();
   Dart_ExitIsolate();
   return isolate;

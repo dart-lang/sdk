@@ -25,6 +25,9 @@ abstract class EntryPointsListener {
   /// Add instantiation of the given class.
   ConcreteType addAllocatedClass(Class c);
 
+  /// Add instantiation of the given record shape.
+  RecordConcreteType addAllocatedRecord(RecordShape shape);
+
   /// Returns Field representing positional field of a record with given shape.
   Field getRecordPositionalField(RecordShape shape, int pos);
 
@@ -453,14 +456,27 @@ class NativeCodeOracle {
       if (pragma is ParsedResultTypeByTypePragma) {
         var type = pragma.type;
         if (type is InterfaceType) {
-          returnType = entryPointsListener.addAllocatedClass(type.classNode);
-          if (pragma.resultTypeUsesPassedTypeArguments) {
+          final concreteClass = entryPointsListener.addAllocatedClass(
+            type.classNode,
+          );
+          if (pragma.resultTypeUsesPassedTypeArguments ||
+              pragma.resultTypeUsesReceiverTypeArguments) {
+            assert(
+              pragma.resultTypeUsesReceiverTypeArguments
+                  ? member.isInstanceMember
+                  : member is Procedure && member.isFactory,
+            );
+            final typeParameters = pragma.resultTypeUsesReceiverTypeArguments
+                ? member.enclosingClass!.typeParameters
+                : member.function!.typeParameters;
             returnType = translator.instantiateConcreteType(
-              returnType as ConcreteType,
-              member.function!.typeParameters
+              concreteClass,
+              typeParameters
                   .map((t) => TypeParameterType.withDefaultNullability(t))
                   .toList(),
             );
+          } else {
+            returnType = concreteClass;
           }
           continue;
         }

@@ -448,7 +448,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
-        performance = performanceAfterStartup = ServerPerformance();
+        performanceAfterStartup = ServerPerformance();
       });
     });
     channel.sendNotification(

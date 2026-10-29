@@ -10,9 +10,9 @@ import 'resolve_input_uri.dart';
 class CommandLineProblem {
   final Message message;
 
-  CommandLineProblem(this.message);
+  new(this.message);
 
-  CommandLineProblem.deprecated(String message)
+  new deprecated(String message)
     : this(diag.unspecified.withArguments(message: message));
 
   @override
@@ -154,7 +154,7 @@ class ParsedOptions {
 }
 
 abstract class ValueSpecification<T> {
-  const ValueSpecification();
+  const new();
 
   String? get alias => null;
 
@@ -174,7 +174,7 @@ class AliasValue<T> extends ValueSpecification<T> {
   @override
   final String alias;
 
-  const AliasValue(this.alias);
+  const new(this.alias);
 
   @override
   bool get requiresValue =>
@@ -192,7 +192,7 @@ class AliasValue<T> extends ValueSpecification<T> {
 }
 
 class UriValue extends ValueSpecification<Uri?> {
-  const UriValue();
+  const new();
 
   @override
   void processValue(
@@ -217,7 +217,7 @@ class StringValue extends ValueSpecification<String?> {
   @override
   final String? defaultValue;
 
-  const StringValue({this.defaultValue});
+  const new({this.defaultValue});
 
   @override
   void processValue(
@@ -240,7 +240,7 @@ class BoolValue extends ValueSpecification<bool?> {
   @override
   final bool? defaultValue;
 
-  const BoolValue(this.defaultValue);
+  const new(this.defaultValue);
 
   @override
   bool get requiresValue => false;
@@ -278,7 +278,7 @@ class IntValue extends ValueSpecification<int?> {
   final int? defaultValue;
   final int? noArgValue;
 
-  const IntValue({this.defaultValue, this.noArgValue});
+  const new({this.defaultValue, this.noArgValue});
 
   @override
   bool get requiresValue => noArgValue == null;
@@ -310,7 +310,7 @@ class IntValue extends ValueSpecification<int?> {
 }
 
 class DefineValue extends ValueSpecification<Map<String, String>> {
-  const DefineValue();
+  const new();
 
   @override
   void processValue(
@@ -334,7 +334,7 @@ class DefineValue extends ValueSpecification<Map<String, String>> {
 }
 
 class StringListValue extends ValueSpecification<List<String>?> {
-  const StringListValue();
+  const new();
 
   @override
   void processValue(
@@ -349,7 +349,7 @@ class StringListValue extends ValueSpecification<List<String>?> {
 }
 
 class UriListValue extends ValueSpecification<List<Uri>?> {
-  const UriListValue();
+  const new();
 
   @override
   void processValue(
@@ -372,7 +372,7 @@ class Option<T> {
 
   final List<String> aliases;
 
-  const Option(
+  const new(
     this.flag,
     this.spec, {
     this.isDefines = false,

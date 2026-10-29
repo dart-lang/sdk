@@ -301,14 +301,17 @@ void main() {
       required bool hasTerminal,
       List<String> args = const [],
       Map<String, String> environment = const {},
+      bool isAnalyticsTest = true,
     }) async {
       final runner = DartdevRunner(
         args,
         analyticsOverride: analytics,
-        // Keep `isBot()` from affecting whether the message is printed.
-        isAnalyticsTest: true,
+        // When true, keeps `isBot()` from affecting whether the message is
+        // printed.
+        isAnalyticsTest: isAnalyticsTest,
         stdoutHasTerminal: hasTerminal,
-        // Don't inherit analytics variables from the test process.
+        // Don't inherit analytics variables (or bot / agent variables) from
+        // the test process.
         environment: environment,
       );
       // With no command, `CommandRunner` prints usage; keep test output quiet.
@@ -493,19 +496,61 @@ void main() {
         expect(value, 'true');
       });
     });
+
+    group('bot and AI agent detection', () {
+      // These runs don't set `isAnalyticsTest`, so bot detection applies. It
+      // reads the `environment` override rather than the test process's
+      // environment, so results don't depend on where the tests run.
+      Future<String?> run(Map<String, String> environment) =>
+          runAndGetPropagatedValue(
+            createConsentedFake(),
+            hasTerminal: true,
+            environment: environment,
+            isAnalyticsTest: false,
+          );
+
+      test('not a bot, no agent: not suppressed', () async {
+        expect(await run(const {}), 'false');
+      });
+
+      test('bot, no agent: suppressed', () async {
+        expect(await run(const {'BOT': 'true'}), 'true');
+      });
+
+      test('CI=false, no agent: not suppressed', () async {
+        expect(await run(const {'CI': 'false'}), 'false');
+      });
+
+      test('BOT=false overrides CI variables: not suppressed', () async {
+        expect(await run(const {'BOT': 'false', 'CI': 'true'}), 'false');
+      });
+
+      test('bot with an AI agent: not suppressed', () async {
+        expect(await run(const {'CI': 'true', 'CLAUDECODE': '1'}), 'false');
+      });
+
+      test('bot with a generic AGENT variable: not suppressed', () async {
+        expect(await run(const {'BOT': 'true', 'AGENT': 'my-agent'}), 'false');
+      });
+
+      test('AI agent, not a bot: not suppressed', () async {
+        expect(await run(const {'GEMINI_CLI': '1'}), 'false');
+      });
+
+      test('AI agent with --suppress-analytics: suppressed', () async {
+        final value = await runAndGetPropagatedValue(
+          createConsentedFake(),
+          hasTerminal: true,
+          args: const ['--suppress-analytics'],
+          environment: const {'BOT': 'true', 'CLAUDECODE': '1'},
+          isAnalyticsTest: false,
+        );
+        expect(value, 'true');
+      });
+    });
   });
 
   group('unified analytics helpers:', () {
-    test('sanitizeStacktrace strips file paths and compresses whitespace', () {
-      const rawStack =
-          '#0  main (file:///Users/username/project/bin/main.dart:10:5)\n'
-          '#1  helper   (file:///home/user/app/lib/helper.dart:2:1)';
-      final sanitized = sanitizeStacktrace(rawStack, shorten: true);
-      expect(sanitized, isNot(contains('/Users/username/project/bin/')));
-      expect(sanitized, contains('main.dart'));
-      expect(sanitized, contains('helper.dart'));
-    });
-
     test('getDartStorageDirectory resolves user .dart directory', () {
       final dir = getDartStorageDirectory();
       expect(dir, isNotNull);
@@ -518,6 +563,34 @@ void main() {
     test('isBot function executes without error', () {
       // isBot should execute synchronously without throwing
       expect(() => isBot(), returnsNormally);
+    });
+
+    test('empty environment is not a bot', () {
+      expect(isBot(environment: const {}), isFalse);
+    });
+
+    test('CI variables are detected', () {
+      expect(isBot(environment: const {'BOT': 'true'}), isTrue);
+      expect(isBot(environment: const {'CI': 'true'}), isTrue);
+      expect(isBot(environment: const {'GITHUB_ACTIONS': 'true'}), isTrue);
+      expect(isBot(environment: const {'SWARMING_TASK_ID': 'x'}), isTrue);
+    });
+
+    test('falsy CI and BOT values are not detected as a bot', () {
+      expect(isBot(environment: const {'CI': 'false'}), isFalse);
+      expect(isBot(environment: const {'CI': '0'}), isFalse);
+      expect(isBot(environment: const {'CI': ''}), isFalse);
+      expect(isBot(environment: const {'BOT': 'false'}), isFalse);
+      expect(isBot(environment: const {'BOT': '0'}), isFalse);
+      expect(isBot(environment: const {'BOT': ''}), isFalse);
+    });
+
+    test('explicit non-bot signals take precedence', () {
+      expect(isBot(environment: const {'BOT': 'false', 'CI': 'true'}), isFalse);
+      expect(
+        isBot(environment: const {'FLUTTER_HOST': 'vscode', 'CI': 'true'}),
+        isFalse,
+      );
     });
   });
 }

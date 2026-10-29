@@ -353,14 +353,14 @@ class RecursiveDeleter {
     if (error == ERROR_ACCESS_DENIED) {
       DWORD attributes = GetFileAttributesW(path());
       if (attributes == INVALID_FILE_ATTRIBUTES) {
-        return false;
+        return !fail_on_missing && IsDoesNotExistError(GetLastError());
       }
 
       if ((attributes & FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY) {
         attributes &= ~FILE_ATTRIBUTE_READONLY;
 
         if (SetFileAttributesW(path(), attributes) == 0) {
-          return false;
+          return !fail_on_missing && IsDoesNotExistError(GetLastError());
         }
 
         if (DeleteFileW(path()) != 0) {

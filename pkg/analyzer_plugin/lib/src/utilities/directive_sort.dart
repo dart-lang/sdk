@@ -114,7 +114,7 @@ class DirectiveSortPriority {
   final String name;
   final int ordinal;
 
-  factory DirectiveSortPriority(String uri, DirectiveSortKind kind) {
+  factory(String uri, DirectiveSortKind kind) {
     switch (kind) {
       case DirectiveSortKind.import:
         if (uri.startsWith('dart:')) {
@@ -141,7 +141,7 @@ class DirectiveSortPriority {
     }
   }
 
-  const DirectiveSortPriority._(this.name, this.ordinal);
+  const new _(this.name, this.ordinal);
 
   @override
   String toString() => name;
@@ -163,7 +163,7 @@ final class DocCommentLine {
   /// terminator, if any).
   final int end;
 
-  const DocCommentLine(this.offset, this.end);
+  const new(this.offset, this.end);
 
   @override
   int get hashCode => Object.hash(offset, end);

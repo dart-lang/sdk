@@ -41,7 +41,7 @@ f(List<MyClass> list) {
 }
 
 class TestVisitor extends LocalDeclarationVisitor {
-  TestVisitor(super.offset);
+  new(super.offset);
 
   @override
   void declaredLocalVar(

@@ -686,7 +686,7 @@ void f(x) {
   switch (x) {
     case A(foo: 0):
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
       break;
   }
 }
@@ -723,7 +723,7 @@ void f(x) {
   switch (x) {
     case A(: var foo):
 //               ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
       break;
   }
@@ -839,7 +839,7 @@ void f(x) {
   switch (x) {
     case A(foo: 0):
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
       break;
   }
 }
@@ -1094,7 +1094,7 @@ void f(Object? x) {
   switch (x) {
     case A(foo: var y):
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 //                  ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;

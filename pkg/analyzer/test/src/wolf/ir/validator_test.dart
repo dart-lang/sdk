@@ -253,9 +253,8 @@ class ValidatorTest {
         ..end()
         ..end(),
     );
-    _checkInvalidMessageAt(
-      'bad',
-    ).equals('Cannot branch outside of enclosing function');
+    _checkInvalidMessageAt('bad')
+        .equals('Cannot branch outside of enclosing function');
   }
 
   test_brIf_controlFlowStackUnderflow() {
@@ -368,9 +367,8 @@ class ValidatorTest {
         ..end()
         ..end(),
     );
-    _checkInvalidMessageAt(
-      'bad',
-    ).equals('Cannot branch outside of enclosing function');
+    _checkInvalidMessageAt('bad')
+        .equals('Cannot branch outside of enclosing function');
   }
 
   test_call_ok() {
@@ -727,9 +725,8 @@ class ValidatorTest {
         ..end()
         ..end(),
     );
-    _checkInvalidMessageAt(
-      'bad',
-    ).equals('Instance function may only be used at instruction address 0');
+    _checkInvalidMessageAt('bad')
+        .equals('Instance function may only be used at instruction address 0');
   }
 
   test_function_nested_notInstanceFunction_ok() {
@@ -1180,7 +1177,7 @@ class ValidatorTest {
 base class _ValidationEventListener extends ValidationEventListener {
   final ValidatorTest test;
 
-  _ValidationEventListener(this.test);
+  new(this.test);
 
   @override
   void onFinished() => _onAddress(test.ir.endAddress);
@@ -1206,7 +1203,7 @@ class _ValidationTestIRWriter extends TestIRWriter {
   final Map<int, List<void Function(ValidationEventListener)>>
   _addressToOnValidateCallbacks;
 
-  _ValidationTestIRWriter(this._addressToOnValidateCallbacks);
+  new(this._addressToOnValidateCallbacks);
 
   void onValidate(void Function(ValidationEventListener) callback) {
     _addressToOnValidateCallbacks

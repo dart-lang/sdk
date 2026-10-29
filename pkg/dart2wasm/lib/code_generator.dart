@@ -13,13 +13,13 @@ import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'async.dart';
-import 'cfg/code_generator.dart';
 import 'class_info.dart';
 import 'closures.dart';
 import 'functions.dart';
 import 'globals.dart';
 import 'intrinsics.dart';
 import 'param_info.dart';
+import 'prod/cfg/code_generator.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
 import 'sync_star.dart';
@@ -2049,8 +2049,21 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    translateExpression(node.expression, const w.RefType.any(nullable: true));
-    b.ref_is_null();
+    final expressionType = translator.translateType(
+      dartTypeOf(node.expression),
+    );
+    translateExpression(node.expression, expressionType);
+
+    if (expressionType.nullable) {
+      b.ref_is_null();
+    } else {
+      // In rare cases the operand is non-nullable but TFA doesn't optimize away
+      // the null check. If the operand is an unboxed type, the ref_is_null
+      // would fail to compile.
+      b.drop();
+      b.i32_const(0);
+    }
+
     return w.NumType.i32;
   }
 

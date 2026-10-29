@@ -5,17 +5,16 @@
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
-import 'package:test/fake.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 
-/// Fake implementation of [DartRuntimeServiceBackend] that throws when
-/// accessed.
+/// Minimal [DartRuntimeServiceBackend] implementation with no-op lifecycle
+/// hooks and `dart:io` HTTP server support.
 ///
 /// Use when testing functionality of [DartRuntimeService] that does not require
-/// a backend implementation.
-base class FakeDartRuntimeServiceBackend extends Fake
-    implements DartRuntimeServiceBackend {
-  FakeDartRuntimeServiceBackend({required this.frontend});
+/// a full backend implementation.
+base class FakeDartRuntimeServiceBackend extends DartRuntimeServiceBackend
+    with DartRuntimeServiceIoBackend {
+  FakeDartRuntimeServiceBackend({required super.frontend});
 
   @override
   Future<void> initialize() async {}
@@ -30,10 +29,7 @@ base class FakeDartRuntimeServiceBackend extends Fake
   Future<void> clearState() async {}
 
   @override
-  Future<void> onServerStarted({
-    required Uri httpUri,
-    required Uri wsUri,
-  }) async {}
+  Future<void> onServerStarted() async {}
 
   @override
   Future<void> onServerShutdown() async {}
@@ -45,9 +41,6 @@ base class FakeDartRuntimeServiceBackend extends Fake
   @override
   UnmodifiableListView<RpcHandlerWithParameters> get fallbacks =>
       UnmodifiableListView(const []);
-
-  @override
-  final DartRuntimeService frontend;
 
   @override
   IsolateManager get isolateManager => throw UnimplementedError();

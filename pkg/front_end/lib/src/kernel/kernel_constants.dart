@@ -27,7 +27,7 @@ class KernelConstantErrorReporter extends ErrorReporter {
     compilationUnit ??= loader.lookupCompilationUnitByFileUri(uri);
     if (compilationUnit == null) {
       // TODO(jensj): Probably a part or something.
-      loader.addProblem(
+      loader.addComponentProblem(
         message.messageObject,
         message.charOffset,
         message.length,

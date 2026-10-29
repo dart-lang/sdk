@@ -145,7 +145,8 @@ class D extends Widget with Diagnosticable {
 }
 
 @reflectiveTest
-class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
+class AddDiagnosticPropertyReferenceTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 

@@ -85,7 +85,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
   ///
   /// If the builder will be used to create changes for Dart files, then either
   /// a [session] or a [workspace] must be provided (but not both).
-  ChangeBuilderImpl({
+  new({
     AnalysisSession? session,
     ChangeWorkspace? workspace,
     String? defaultEol,
@@ -511,12 +511,7 @@ class EditBuilderImpl implements EditBuilder {
   bool _isWritingEditGroup = false;
 
   /// Initialize a newly created builder to build a source edit.
-  EditBuilderImpl(
-    this.fileEditBuilder,
-    this.offset,
-    this.length, {
-    this.description,
-  });
+  new(this.fileEditBuilder, this.offset, this.length, {this.description});
 
   /// The end-of-line marker used in the file being edited.
   String get eol => fileEditBuilder.eol;
@@ -654,12 +649,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given absolute [path] and [timeStamp].
-  FileEditBuilderImpl(
-    this.changeBuilder,
-    String path,
-    int timeStamp, {
-    required this.eol,
-  }) : fileEdit = SourceFileEdit(path, timeStamp);
+  new(this.changeBuilder, String path, int timeStamp, {required this.eol})
+    : fileEdit = SourceFileEdit(path, timeStamp);
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits => fileEdit.edits.isNotEmpty;
@@ -882,7 +873,7 @@ class LinkedEditBuilderImpl implements LinkedEditBuilder {
 
   final List<LinkedEditSuggestion> suggestions = <LinkedEditSuggestion>[];
 
-  LinkedEditBuilderImpl(this.editBuilder);
+  new(this.editBuilder);
 
   @override
   void addSuggestion(LinkedEditSuggestionKind kind, String value) {
@@ -990,18 +981,14 @@ class _PendingPosition {
   /// position within the replacement text of the [editBuilder].
   final int offset;
 
-  _PendingPosition({
-    required this.position,
-    this.editBuilder,
-    required this.offset,
-  });
+  new({required this.position, this.editBuilder, required this.offset});
 }
 
 /// Workspace that wraps a single [AnalysisSession].
 class _SingleSessionWorkspace extends ChangeWorkspace {
   final AnalysisSession session;
 
-  _SingleSessionWorkspace(this.session);
+  new(this.session);
 
   @override
   ResourceProvider get resourceProvider => session.resourceProvider;

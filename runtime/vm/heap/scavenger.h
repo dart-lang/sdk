@@ -32,6 +32,7 @@ class GCMarker;
 template <typename Type, typename PtrType>
 class GCLinkedList;
 struct GCLinkedLists;
+class FreeListElement;
 
 class SemiSpace : public MallocAllocated {
  public:
@@ -39,6 +40,9 @@ class SemiSpace : public MallocAllocated {
   ~SemiSpace();
 
   Page* TryAllocatePageLocked(bool link);
+  void TryAllocateNewTLABLocked(Thread* thread, intptr_t alloc_size);
+  intptr_t AbandonRemainingTLABLocked(Thread* thread);
+  void AddFreeLocked(uword start, intptr_t size);
 
   bool Contains(uword addr) const;
   void WriteProtect(bool read_only);
@@ -48,19 +52,27 @@ class SemiSpace : public MallocAllocated {
     for (const Page* p = head_; p != nullptr; p = p->next()) {
       size += p->used();
     }
-    return size >> kWordSizeLog2;
+    return (size >> kWordSizeLog2) - freed_in_words_;
   }
   intptr_t capacity_in_words() const { return capacity_in_words_; }
   intptr_t gc_threshold_in_words() const { return gc_threshold_in_words_; }
 
   Page* head() const { return head_; }
-  Page* free_head() const { return free_head_; }
-  void set_free_head(Page* head) { free_head_ = head; }
 
   void AddList(Page* head, Page* tail);
-  void AddFree(Page* page);
+
+  void ResetForSweep() {
+    freed_in_words_ = 0;
+    free_ = nullptr;
+  }
+  void AddSweepResultsLocked(intptr_t size,
+                             FreeListElement* head,
+                             FreeListElement* tail);
 
  private:
+  // Size sitting in the free list.
+  intptr_t freed_in_words_ = 0;
+
   // Size of Pages in this semi-space.
   intptr_t capacity_in_words_ = 0;
 
@@ -70,7 +82,7 @@ class SemiSpace : public MallocAllocated {
 
   Page* head_ = nullptr;
   Page* tail_ = nullptr;
-  Page* free_head_ = nullptr;
+  FreeListElement* free_ = nullptr;
 
   Cage* const cage_;
 };
@@ -127,10 +139,11 @@ class ScavengeStats {
 };
 
 class Scavenger {
- private:
-  static constexpr intptr_t kTLABSize = 512 * KB;
-
  public:
+  static constexpr intptr_t kTlabSize = 64 * KB;
+  // Avoid spending time looking through a list of small sizes.
+  static constexpr intptr_t kMinTlabReuseSize = KB;
+
   Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
   ~Scavenger();
 
@@ -164,7 +177,7 @@ class Scavenger {
 
   intptr_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
-    return to_->used_in_words() - freed_in_words_;
+    return to_->used_in_words();
   }
   intptr_t CapacityInWords() const {
     MutexLocker ml(&space_lock_);
@@ -180,6 +193,7 @@ class Scavenger {
   }
   intptr_t ThresholdInWords() const { return to_->gc_threshold_in_words(); }
 
+  void MakeIterable() const;
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
@@ -226,8 +240,16 @@ class Scavenger {
     ASSERT(external_size_ >= 0);
   }
 
-  void set_freed_in_words(intptr_t value) { freed_in_words_ = value; }
-  void add_freed_in_words(intptr_t value) { freed_in_words_.fetch_add(value); }
+  void ResetForSweep() {
+    MakeIterable();
+    to_->ResetForSweep();
+  }
+  void AddSweepResults(intptr_t size,
+                       FreeListElement* head,
+                       FreeListElement* tail) {
+    MutexLocker ml(&space_lock_);
+    to_->AddSweepResultsLocked(size, head, tail);
+  }
 
   // The maximum number of Dart mutator threads we allow to execute at the same
   // time.
@@ -235,7 +257,7 @@ class Scavenger {
     // With a max new-space of 16 MB and 512kb TLABs we would allow up to 8
     // mutator threads to run at the same time.
     const intptr_t max_parallel_tlab_usage =
-        (FLAG_new_gen_semi_max_size * MB) / Scavenger::kTLABSize;
+        (FLAG_new_gen_semi_max_size * MB) / Scavenger::kTlabSize;
     const intptr_t max_pool_size = max_parallel_tlab_usage / 4;
     return max_pool_size > 0 ? max_pool_size : 1;
   }
@@ -324,7 +346,6 @@ class Scavenger {
 
   // The total size of external data associated with objects in this scavenger.
   RelaxedAtomic<intptr_t> external_size_ = {0};
-  RelaxedAtomic<intptr_t> freed_in_words_ = 0;
 
   RelaxedAtomic<bool> failed_to_promote_ = {false};
   RelaxedAtomic<bool> abort_ = {false};

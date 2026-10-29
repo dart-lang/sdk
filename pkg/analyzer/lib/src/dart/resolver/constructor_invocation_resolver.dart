@@ -18,7 +18,7 @@ class ConstructorInvocationResolver {
   /// The type analyzer driving this participant.
   final TypeAnalyzer _typeAnalyzer;
 
-  ConstructorInvocationResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   void resolve(
     ConstructorInvocationImpl node, {
@@ -34,8 +34,9 @@ class ConstructorInvocationResolver {
     required DotShorthandContextResolutionImpl shorthandContext,
   }) {
     var dotShorthandContextType = switch (shorthandContext) {
-      ValidDotShorthandContextResolutionImpl(:var lookupType) => lookupType,
+      MissingDotShorthandContextResolutionImpl() => InvalidTypeImpl.instance,
       InvalidDotShorthandContextResolutionImpl() => InvalidTypeImpl.instance,
+      ValidDotShorthandContextResolutionImpl(:var lookupType) => lookupType,
     };
 
     if (shorthandContext case ValidDotShorthandContextResolutionImpl(
@@ -108,7 +109,6 @@ class ConstructorInvocationResolver {
           name: typeReference.name,
         ),
         name: selector.name2,
-        syntax: ReadSyntax.invocation,
         foundInstead: null,
       );
     }

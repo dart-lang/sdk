@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithPartOfUriNestedTest extends FixProcessorLintTest {
+class ReplaceWithPartOfUriNestedTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithPartOfUri;
 
@@ -60,7 +61,8 @@ class A {}
 }
 
 @reflectiveTest
-class ReplaceWithPartOfUriSecondTest extends FixProcessorLintTest {
+class ReplaceWithPartOfUriSecondTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithPartOfUri;
 
@@ -103,7 +105,7 @@ class A {}
 }
 
 @reflectiveTest
-class ReplaceWithPartOfUriTest extends FixProcessorLintTest {
+class ReplaceWithPartOfUriTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithPartOfUri;
 

@@ -63,7 +63,7 @@ class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
   final List<AstNode> resolvedNodes;
 
-  AnalysisForCompletionResult({
+  new({
     required this.fileState,
     required this.parsedUnit,
     required this.resolvedNodes,
@@ -91,21 +91,19 @@ class LibraryAnalyzer {
   /// Whether timing data should be gathered during lint rule execution.
   final bool _enableLintRuleTiming;
 
-  LibraryAnalyzer(
+  new(
     this._analysisOptions,
     this._declaredVariables,
     this._libraryElement,
     this._inheritance,
     this._library, {
     required this.performance,
-    TestingData? testingData,
-    bool enableLintRuleTiming = false,
-  }) : _testingData = testingData,
-       _typeSystemOperations = TypeSystemOperations(
+    this._testingData,
+    this._enableLintRuleTiming = false,
+  }) : _typeSystemOperations = TypeSystemOperations(
          _libraryElement.typeSystem,
          strictCasts: _analysisOptions.strictCasts,
-       ),
-       _enableLintRuleTiming = enableLintRuleTiming {
+       ) {
     _libraryVerificationContext = LibraryVerificationContext(
       libraryKind: _library,
       constructorFieldsVerifier: ConstructorFieldsVerifier(
@@ -158,12 +156,11 @@ class LibraryAnalyzer {
     // Resolution can replace the node at the completion offset. Select the
     // stable enclosing resolution root while the parsed tree still owns it.
     var nodeToResolve = node?.thisOrAncestorMatching2((e) {
-      return e.parent2 is ClassBody ||
-          e.parent2 is ClassDeclaration ||
+      return e.parent2 is ClassDeclaration2 ||
           e.parent2 is CompilationUnit ||
-          e.parent2 is EnumBody ||
-          e.parent2 is ExtensionDeclaration ||
-          e.parent2 is MixinDeclaration;
+          e.parent2 is InstanceDeclarationBody ||
+          e.parent2 is ExtensionDeclaration2 ||
+          e.parent2 is MixinDeclaration2;
     });
 
     return performance.run('resolve', (performance) {
@@ -373,7 +370,7 @@ class LibraryAnalyzer {
       workspacePackage,
     );
 
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     _computeLintsV1(context, analysesToContextUnits);
 
     var nodeRegistry = RuleVisitorRegistryImpl2(
@@ -398,7 +395,7 @@ class LibraryAnalyzer {
     visitor.afterLibrary();
   }
 
-  @ToBeDeprecated('Use V2 node processors in _computeLints() instead.')
+  @V1Ast('The V2 counterpart is the V2 node processors in _computeLints().')
   void _computeLintsV1(
     RuleContextWithResolvedResults context,
     Map<FileAnalysis, RuleContextUnit> analysesToContextUnits,
@@ -471,9 +468,8 @@ class LibraryAnalyzer {
     var diagnosticReporter = fileAnalysis.diagnosticReporter;
     var unit = fileAnalysis.unit;
 
-    UnicodeTextVerifier(
-      diagnosticReporter,
-    ).verify(unit, fileAnalysis.file.content);
+    UnicodeTextVerifier(diagnosticReporter)
+        .verify(unit, fileAnalysis.file.content);
 
     unit.accept2(DeadCodeVerifier(diagnosticReporter, _libraryElement));
 
@@ -620,9 +616,16 @@ class LibraryAnalyzer {
         diag.notAType,
         diag.prefixIdentifierNotFollowedByDot,
         diag.undefinedClass,
-        diag.undefinedFunction,
-        diag.undefinedIdentifier,
-        diag.undefinedPrefixedName,
+        diag.undefinedPrefixedNameReadNotFound,
+        diag.undefinedPrefixedNameReadNotFoundAnnotation,
+        diag.undefinedPrefixedNameReadNotFoundConstant,
+        diag.undefinedPrefixedNameReadPrivate,
+        diag.undefinedPrefixedNameWriteNotFound,
+        diag.undefinedPrefixedNameWritePrivate,
+        diag.undefinedUnqualifiedNameReadNotFound,
+        diag.undefinedUnqualifiedNameReadNotFoundAnnotation,
+        diag.undefinedUnqualifiedNameReadNotFoundConstant,
+        diag.undefinedUnqualifiedNameWriteNotFound,
         diag.deprecatedExportUse,
       }.contains(errorCode)) {
         return true;
@@ -885,10 +888,6 @@ class LibraryAnalyzer {
           prefix = DocImportPrefixElementImpl(
             localId: id,
             firstFragment: prefixFragment,
-            enclosingPrefix: switch (prefixFragment.name) {
-              var name? => parent?.lookupPrefix(name),
-              null => null,
-            },
           );
           prefixes[id] = prefix;
         } else {
@@ -1138,7 +1137,7 @@ class UnitAnalysisResult {
   final CompilationUnitImpl unit;
   final List<Diagnostic> diagnostics;
 
-  UnitAnalysisResult(this.file, this.unit, this.diagnostics);
+  new(this.file, this.unit, this.diagnostics);
 }
 
 extension on file_state.DirectiveUri {

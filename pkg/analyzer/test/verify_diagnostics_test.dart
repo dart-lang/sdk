@@ -148,7 +148,7 @@ class DocumentationValidator {
     // yield_each_in_non_generator (analyzer)
     // - No error range in example
     // - Expected no errors but found 2 (example 0):
-    //   - undefined_identifier (29, 5) Undefined name 'yield'.
+    //   - undefined_unqualified_name_read (29, 5) Undefined name 'yield'.
     //   - body_might_complete_normally (18, 6) The body might complete
     //     normally, causing 'null' to be returned, but the return type,
     //     'Iterable<int>', is a potentially non-nullable type.
@@ -286,7 +286,7 @@ class DocumentationValidator {
   bool hasWrittenVariableName = false;
 
   /// Initialize a newly created documentation validator.
-  DocumentationValidator();
+  new();
 
   /// Validate the documentation.
   Future<void> validate() async {
@@ -726,7 +726,7 @@ class _SnippetData {
   final String? languageVersion;
   String? lintCode;
 
-  _SnippetData(
+  new(
     this.content,
     this.offset,
     this.length,
@@ -897,7 +897,7 @@ class _SnippetTest extends PubPackageResolutionTest {
   final _SnippetData snippet;
 
   /// Initialize a newly created test to test the given [snippet].
-  _SnippetTest(this.snippet) {
+  new(this.snippet) {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(
         experimentalFeatures: snippet.experimentalFeatures,

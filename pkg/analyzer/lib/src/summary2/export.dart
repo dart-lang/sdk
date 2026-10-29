@@ -13,7 +13,7 @@ class Export {
   final ExportLocation location;
   final List<Combinator> combinators;
 
-  Export({
+  new({
     required this.exporter,
     required this.location,
     required this.combinators,
@@ -32,11 +32,7 @@ final class ExportEntry {
   final ExportableReference reference;
   final List<ExportLocation> locations;
 
-  ExportEntry({
-    required this.name,
-    required this.reference,
-    required this.locations,
-  });
+  new({required this.name, required this.reference, required this.locations});
 
   bool get isDeclared => locations.isEmpty;
 
@@ -75,7 +71,7 @@ class ExportLocation {
   /// The index in [LibraryFragmentImpl.libraryExports].
   final int exportIndex;
 
-  ExportLocation({required this.fragmentIndex, required this.exportIndex});
+  new({required this.fragmentIndex, required this.exportIndex});
 
   @override
   bool operator ==(Object other) {

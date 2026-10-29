@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// An object used to locate the [Element] associated with a given V1 [AstNode].
-@ToBeDeprecated('Use ElementLocatorV2 instead')
+@V1Ast('The V2 counterpart is ElementLocatorV2.')
 class ElementLocator {
   /// Return the element associated with the given [node], or `null` if there
   /// is no element associated with the node.
@@ -35,7 +35,7 @@ class ElementLocatorV2 {
 }
 
 /// V1 visitor that maps nodes to elements.
-@ToBeDeprecated('Use _ElementMapperV2 instead.')
+@V1Ast('The V2 counterpart is _ElementMapperV2.')
 class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
@@ -334,12 +334,12 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitClassDeclaration(ClassDeclaration node) {
+  Element? visitClassDeclaration2(ClassDeclaration2 node) {
     return node.declaredFragment?.element;
   }
 
   @override
-  Element? visitClassTypeAlias(ClassTypeAlias node) {
+  Element? visitClassTypeAlias2(ClassTypeAlias2 node) {
     return node.declaredFragment?.element;
   }
 
@@ -379,7 +379,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       return parent.element;
     } else if (parent is EnumConstantArguments) {
       var parent2 = parent.parent2;
-      if (parent2 is EnumConstantDeclaration) {
+      if (parent2 is EnumConstantDeclaration2) {
         return parent2.constructorElement;
       }
     } else if (parent is RedirectingConstructorInvocation) {
@@ -524,7 +524,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+  Element? visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
     return node.declaration?.declaredFragment?.element;
   }
 
@@ -532,7 +532,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitPrimaryConstructorDeclaration(
     PrimaryConstructorDeclaration node,
   ) {
-    if (node.parent2 case Declaration declaration) {
+    if (node.parent2 case FragmentDeclaringNode declaration) {
       return declaration.declaredFragment?.element;
     }
     return null;

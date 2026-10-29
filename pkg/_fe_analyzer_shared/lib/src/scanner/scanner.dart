@@ -50,7 +50,7 @@ class ScannerResult {
   final LineStarts lineStarts;
   final bool hasErrors;
 
-  ScannerResult(this.tokens, this.lineStarts, this.hasErrors);
+  new(this.tokens, this.lineStarts, this.hasErrors);
 }
 
 /// Scan/tokenize that start of the given UTF8 [bytes]. Attempts to only scan

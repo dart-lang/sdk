@@ -430,6 +430,12 @@ class UntaggedObject : public AllStatic {
   static bool IsTypedDataClassId(intptr_t cid);
 };
 
+class UntaggedClass : public AllStatic {
+ public:
+  static const word kFinalized;
+  static const word kTypeFinalized;
+};
+
 class UntaggedClosure : public AllStatic {
   static const word kInstantiatorTypeArgumentsIndexBitsPos;
   static const word kInstantiatorTypeArgumentsIndexBitsSize;
@@ -441,6 +447,26 @@ class UntaggedClosure : public AllStatic {
   static const word kFunctionTypeArgumentsIndexBitsSize;
   static const word kLengthBitsPos;
   static const word kLengthBitsSize;
+};
+
+class UntaggedFunction : public AllStatic {
+  static const word kAsync;
+  static const word kSyncGen;
+  static const word kAsyncGen;
+};
+
+class UntaggedFunctionType : public AllStatic {
+  static const word kPackedNumParentTypeArgumentsPos;
+  static const word kPackedNumParentTypeArgumentsSize;
+  static const word kPackedNumTypeParametersPos;
+  static const word kPackedNumTypeParametersSize;
+  static const word kPackedNumImplicitParametersPos;
+  static const word kPackedNumImplicitParametersSize;
+  static const word kPackedHasNamedOptionalParametersPos;
+  static const word kPackedNumFixedParametersPos;
+  static const word kPackedNumFixedParametersSize;
+  static const word kPackedNumOptionalParametersPos;
+  static const word kPackedNumOptionalParametersSize;
 };
 
 class UntaggedPcDescriptors : public AllStatic {
@@ -527,6 +553,25 @@ class Class : public AllStatic {
 
   // Whether to trace allocation for this klass.
   static bool TraceAllocation(const dart::Class& klass);
+
+  static const word kConstBitPos;
+  static const word kImplementedBitPos;
+  static const word kClassFinalizedBitsPos;
+  static const word kClassFinalizedBitsSize;
+  static const word kClassLoadingBitsPos;
+  static const word kClassLoadingBitsSize;
+  static const word kAbstractBitPos;
+  static const word kEnumBitPos;
+  static const word kTransformedMixinApplicationBitPos;
+  static const word kIsLoadedBitPos;
+  static const word kHasPragmaBitPos;
+  static const word kSealedBitPos;
+  static const word kMixinClassBitPos;
+  static const word kBaseClassBitPos;
+  static const word kInterfaceClassBitPos;
+  static const word kFinalBitPos;
+  static const word kIsIsolateUnsendableBitPos;
+  static const word kIsDeeplyImmutableBitPos;
 };
 
 class Instance : public AllStatic {
@@ -1621,6 +1666,20 @@ class Field : public AllStatic {
   static word host_offset_or_field_id_offset();
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kConstBitPos;
+  static const word kStaticBitPos;
+  static const word kFinalBitPos;
+  static const word kHasNontrivialInitializerBitPos;
+  static const word kUnboxedBitPos;
+  static const word kHasPragmaBitPos;
+  static const word kCovariantBitPos;
+  static const word kGenericCovariantImplBitPos;
+  static const word kIsLateBitPos;
+  static const word kIsExtensionMemberBitPos;
+  static const word kIsExtensionTypeMemberBitPos;
+  static const word kHasInitializerBitPos;
+  static const word kSharedBitPos;
 };
 
 class TypeParameters : public AllStatic {

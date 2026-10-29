@@ -33,9 +33,9 @@ class C extends core::Object {
   constructor •({initializing-formal core::int _ = 0}) → self::C
     ;
 }
-static method f1({has-declared-initializer core::int _}) → void
+static method f1({core::int _ = 0}) → void
   ;
-static method f2({has-declared-initializer core::int _, has-declared-initializer core::String _##1}) → void
+static method f2({core::int _ = 0, core::String _##1 = ""}) → void
   ;
 static method test() → dynamic
   ;

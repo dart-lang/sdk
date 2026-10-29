@@ -202,7 +202,6 @@ class Location {
 }
 
 class Source {
-  static final Uint8List _emptySource = new Uint8List(0);
   final List<int>? lineStarts;
 
   /// A UTF8 encoding of the original source file.
@@ -219,7 +218,7 @@ class Source {
   new(this.lineStarts, this.source, this.importUri, this.fileUri);
 
   new emptySource(this.lineStarts, this.importUri, this.fileUri)
-    : source = _emptySource;
+    : source = emptyUint8List;
 
   /// Return the text corresponding to [line] which is a 1-based line
   /// number. The returned line contains no line separators.

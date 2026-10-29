@@ -85,7 +85,7 @@ class ElementNameComponents {
   final String? classMemberName;
   final String? unitMemberName;
 
-  factory ElementNameComponents(Element element) {
+  factory(Element element) {
     String? parameterName;
     if (element.firstFragment case FormalParameterFragment fragment) {
       parameterName = fragment.name;
@@ -121,7 +121,7 @@ class ElementNameComponents {
     );
   }
 
-  ElementNameComponents._({
+  new _({
     required this.parameterName,
     required this.classMemberName,
     required this.unitMemberName,
@@ -136,7 +136,7 @@ class IndexElementInfo {
   final Element element;
   final IndexSyntheticElementKind kind;
 
-  factory IndexElementInfo(Element element) {
+  factory(Element element) {
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
     if (element is GetterElement) {
       kind = IndexSyntheticElementKind.getter;
@@ -149,7 +149,7 @@ class IndexElementInfo {
     return IndexElementInfo._(element, kind);
   }
 
-  IndexElementInfo._(this.element, this.kind);
+  new _(this.element, this.kind);
 }
 
 /// The identifier of an interface element in the subtype index.
@@ -161,7 +161,7 @@ class SubtypeIndexElementId {
   final String name;
   final String id;
 
-  SubtypeIndexElementId({
+  new({
     required Source librarySource,
     required Source declarationSource,
     required this.name,
@@ -209,7 +209,7 @@ class _ElementInfo {
   /// package is done and we are assembling the full package index.
   late int id;
 
-  _ElementInfo(
+  new(
     this.unitId,
     this.nameIdUnitMember,
     this.nameIdClassMember,
@@ -226,13 +226,7 @@ class _ElementRelationInfo {
   final int length;
   final bool isQualified;
 
-  _ElementRelationInfo(
-    this.elementInfo,
-    this.kind,
-    this.offset,
-    this.length,
-    this.isQualified,
-  );
+  new(this.elementInfo, this.kind, this.offset, this.length, this.isQualified);
 }
 
 /// Assembler of a single [CompilationUnit] index.
@@ -285,7 +279,7 @@ class _IndexAssembler {
   /// The [_StringInfo] to use for `null` strings.
   late final _StringInfo nullString;
 
-  _IndexAssembler() {
+  new() {
     nullString = _getStringInfo(_nullString);
   }
 
@@ -531,7 +525,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   late final LibraryElementImpl? _analyzerDiagnosticLibrary =
       _findAnalyzerDiagnosticLibrary();
 
-  _IndexContributor(this.assembler, this.unit);
+  new(this.assembler, this.unit);
 
   /// Record reference to the given operator [Element].
   void recordOperatorReference(Token operator, Element? element) {
@@ -660,7 +654,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
@@ -692,14 +686,14 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    super.visitClassDeclaration(node);
+    super.visitClassDeclaration2(node);
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    _addSubtypeForClassTypeAlis(node);
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
+    _addSubtypeForClassTypeAlias(node);
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
-    super.visitClassTypeAlias(node);
+    super.visitClassTypeAlias2(node);
   }
 
   @override
@@ -768,10 +762,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  visitConstructorDeclaration2(covariant ConstructorDeclaration2Impl node) {
     // TODO(fshcheglov): Consider removing the index entry.
     var element = node.declaredFragment!.element;
-    if (node.typeName2 case var typeName?
+    if (node.typeName case var typeName?
         when typeName.lexeme == element.enclosingElement.name) {
       recordRelation(
         element.enclosingElement,
@@ -797,7 +791,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    super.visitConstructorDeclaration(node);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -817,7 +811,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
 
     var kind = switch (node.parent2) {
       ConstructorInvocation() => IndexRelationKind.IS_INVOKED_BY,
-      ConstructorDeclaration() => IndexRelationKind.IS_REFERENCED_BY,
+      ConstructorDeclaration2() => IndexRelationKind.IS_REFERENCED_BY,
       _ => throw StateError('Unexpected ConstructorReference2 parent'),
     };
 
@@ -918,7 +912,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
     var constructorElement = node.constructorElement;
     if (constructorElement != null) {
       int offset;
@@ -942,11 +936,11 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       );
     }
 
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
   }
 
   @override
-  void visitEnumDeclaration(EnumDeclaration node) {
+  void visitEnumDeclaration2(EnumDeclaration2 node) {
     _addSubtype(
       node.namePart.typeName.lexeme,
       withClause: node.withClause,
@@ -954,7 +948,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       memberNodes: node.body.members,
     );
 
-    super.visitEnumDeclaration(node);
+    super.visitEnumDeclaration2(node);
   }
 
   @override
@@ -991,8 +985,8 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     _addSubtype(
       node.namePart.typeName.lexeme,
@@ -1000,7 +994,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       memberNodes: node.body.members,
     );
 
-    super.visitExtensionTypeDeclaration(node);
+    super.visitExtensionTypeDeclaration2(node);
   }
 
   @override
@@ -1129,9 +1123,9 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
     _addSubtypeForMixinDeclaration(node);
-    super.visitMixinDeclaration(node);
+    super.visitMixinDeclaration2(node);
   }
 
   @override
@@ -1355,7 +1349,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
     WithClause? withClause,
     MixinOnClause? onClause,
     ImplementsClause? implementsClause,
-    required List<ClassMember> memberNodes,
+    required List<AnnotatedNode> memberNodes,
   }) {
     List<String> supertypes = [];
     List<String> members = [];
@@ -1382,11 +1376,12 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
 
-    for (ClassMember member in memberNodes) {
-      if (member is MethodDeclaration && !member.isStatic) {
-        addMemberName(member.name);
-      } else if (member is FieldDeclaration && !member.isStatic) {
-        for (var field in member.fields.variables) {
+    for (var member in memberNodes) {
+      if (member is MethodDeclarationV1OriginImpl &&
+          member.staticKeyword == null) {
+        addMemberName(member.nameToken);
+      } else if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var field in member.fields) {
           addMemberName(field.name);
         }
       }
@@ -1399,7 +1394,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassDeclaration(ClassDeclarationImpl node) {
+  void _addSubtypeForClassDeclaration(ClassDeclaration2Impl node) {
     _addSubtype(
       node.namePart.typeName.lexeme,
       superclass: node.extendsClause?.superclass,
@@ -1410,7 +1405,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassTypeAlis(ClassTypeAlias node) {
+  void _addSubtypeForClassTypeAlias(ClassTypeAlias2 node) {
     _addSubtype(
       node.name.lexeme,
       superclass: node.superclass,
@@ -1421,7 +1416,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   /// Record the given mixin as a subclass of its direct superclasses.
-  void _addSubtypeForMixinDeclaration(MixinDeclarationImpl node) {
+  void _addSubtypeForMixinDeclaration(MixinDeclaration2Impl node) {
     _addSubtype(
       node.name.lexeme,
       onClause: node.onClause,
@@ -1691,7 +1686,7 @@ class _LibraryFragmentReference {
   final int uriOffset;
   final int uriLength;
 
-  _LibraryFragmentReference({
+  new({
     required this.targetId,
     required this.uriOffset,
     required this.uriLength,
@@ -1705,7 +1700,7 @@ class _NameRelationInfo {
   final int offset;
   final bool isQualified;
 
-  _NameRelationInfo(this.nameInfo, this.kind, this.offset, this.isQualified);
+  new(this.nameInfo, this.kind, this.offset, this.isQualified);
 }
 
 /// Information about a string referenced in the index.
@@ -1717,7 +1712,7 @@ class _StringInfo {
   /// package is done and we are assembling the full package index.
   late int id;
 
-  _StringInfo(this.value);
+  new(this.value);
 }
 
 /// Information about a subtype in the index.
@@ -1731,7 +1726,7 @@ class _SubtypeInfo {
   /// The names of defined instance members.
   final List<_StringInfo> members;
 
-  _SubtypeInfo(this.supertype, this.name, this.members);
+  new(this.supertype, this.name, this.members);
 }
 
 extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {

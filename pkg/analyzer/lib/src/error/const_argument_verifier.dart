@@ -16,7 +16,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
-  ConstArgumentsVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   void checkNameExpression(NameExpression node) {
     if (node.resolution?.element case var element?) {

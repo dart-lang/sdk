@@ -324,6 +324,16 @@ class _SummaryNormalizer implements StatementVisitor {
   }
 
   @override
+  void visitCreateRecordType(CreateRecordType expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
+    for (int i = 0; i < expr.fieldTypes.length; ++i) {
+      expr.fieldTypes[i] = _normalizeExpr(expr.fieldTypes[i], true);
+      if (_inLoop) return;
+    }
+  }
+
+  @override
   void visitCreateRuntimeType(CreateRuntimeType expr) {
     visitStatement(expr);
     if (_inLoop) return;
@@ -1122,7 +1132,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         break;
     }
 
-    return new Args<Type>(args, names: names);
+    return new Args<Type>(
+      List.of(args, growable: false),
+      names: names.isEmpty ? const <String>[] : List.of(names, growable: false),
+    );
   }
 
   TypeExpr _visit(Expression node) => node.accept(this)!;
@@ -1143,29 +1156,40 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     Arguments arguments, {
     bool passTypeArguments = false,
   }) {
-    final List<TypeExpr> args = <TypeExpr>[];
+    final int typeArgsCount = passTypeArguments ? arguments.types.length : 0;
+    final int receiverCount = receiver != null ? 1 : 0;
+    final int positionalCount = arguments.positional.length;
+    final int namedCount = arguments.named.length;
+    final int totalCount =
+        typeArgsCount + receiverCount + positionalCount + namedCount;
+    if (totalCount == 0) {
+      return Args.empty;
+    }
+    final args = List<TypeExpr>.filled(totalCount, emptyType);
+    int out = 0;
     if (passTypeArguments) {
       for (var type in arguments.types) {
-        args.add(_translator.translate(type));
+        args[out++] = _translator.translate(type);
       }
     }
     if (receiver != null) {
-      args.add(receiver);
+      args[out++] = receiver;
     }
     for (Expression arg in arguments.positional) {
-      args.add(_visit(arg));
+      args[out++] = _visit(arg);
     }
-    if (arguments.named.isNotEmpty) {
-      final names = <String>[];
+    if (namedCount != 0) {
+      final names = List<String>.filled(namedCount, '');
       final map = <String, TypeExpr>{};
-      for (NamedExpression arg in arguments.named) {
+      for (int i = 0; i < namedCount; i++) {
+        final NamedExpression arg = arguments.named[i];
         final name = arg.name;
-        names.add(name);
+        names[i] = name;
         map[name] = _visit(arg.value);
       }
       names.sort();
       for (var name in names) {
-        args.add(map[name]!);
+        args[out++] = map[name]!;
       }
       return new Args<TypeExpr>(args, names: names);
     } else {
@@ -1585,7 +1609,12 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _addUse(arg.arg1);
       _addUse(arg.arg2);
     } else {
-      assert(arg is Type || arg is Parameter);
+      assert(
+        arg is Type ||
+            arg is Parameter ||
+            arg is CreateConcreteType ||
+            arg is CreateRecordType,
+      );
     }
   }
 
@@ -1840,7 +1869,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _makeCall(
         node,
         DirectSelector(_environment.coreTypes.objectEquals),
-        Args<TypeExpr>([expr, _nullType]),
+        Args.two(expr, _nullType),
       );
       final narrowedNotNull = _makeNarrowNotNull(node, expr);
       final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
@@ -2110,27 +2139,31 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitRecordLiteral(RecordLiteral node) {
     final recordShape = RecordShape(node.recordType);
-    final Type receiver = _typesBuilder.getRecordType(recordShape, true);
+    final receiver = _entryPointsListener.addAllocatedRecord(recordShape);
+    final fieldValues = List<TypeExpr>.filled(recordShape.numFields, emptyType);
     for (int i = 0; i < node.positional.length; ++i) {
       final Field f = _entryPointsListener.getRecordPositionalField(
         recordShape,
         i,
       );
       final TypeExpr value = _visit(node.positional[i]);
-      final args = Args<TypeExpr>([receiver, value]);
+      fieldValues[i] = value;
+      final args = Args.two(receiver, value);
       _makeCall(
         node,
         DirectSelector(f, callKind: CallKind.SetFieldInConstructor),
         args,
       );
     }
-    for (var expr in node.named) {
+    for (int i = 0; i < node.named.length; ++i) {
+      final expr = node.named[i];
       final Field f = _entryPointsListener.getRecordNamedField(
         recordShape,
         expr.name,
       );
       final TypeExpr value = _visit(expr.value);
-      final args = Args<TypeExpr>([receiver, value]);
+      fieldValues[recordShape.numPositionalFields + i] = value;
+      final args = Args.two(receiver, value);
       _makeCall(
         node,
         DirectSelector(f, callKind: CallKind.SetFieldInConstructor),
@@ -2138,7 +2171,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       );
     }
     callSites.remove(node);
-    return receiver;
+    return _summary.add(
+      CreateRecordType(receiver.cls, fieldValues)
+        ..condition = _currentCondition,
+    );
   }
 
   @override
@@ -2148,7 +2184,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       RecordShape(node.receiverType),
       node.index,
     );
-    final args = Args<TypeExpr>([receiver]);
+    final args = Args.one(receiver);
     return _makeCall(
       node,
       DirectSelector(field, callKind: CallKind.PropertyGet),
@@ -2163,7 +2199,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       RecordShape(node.receiverType),
       node.name,
     );
-    final args = Args<TypeExpr>([receiver]);
+    final args = Args.one(receiver);
     return _makeCall(
       node,
       DirectSelector(field, callKind: CallKind.PropertyGet),
@@ -2263,7 +2299,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       (node.left is ThisExpression)
           ? new VirtualSelector(target)
           : new InterfaceSelector(target),
-      Args<TypeExpr>([_staticType(node.left), _staticType(node.right)]),
+      Args.two(_staticType(node.left), _staticType(node.right)),
     );
   }
 
@@ -2280,7 +2316,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _makeCall(
       node,
       DirectSelector(_environment.coreTypes.objectEquals),
-      Args<TypeExpr>([_staticType(node.expression), _nullType]),
+      Args.two(_staticType(node.expression), _nullType),
     );
     return _makeUnaryOperation(UnaryOp.IsNull, arg);
   }
@@ -2292,7 +2328,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     Name selector,
   ) {
     var receiver = _visit(receiverNode);
-    var args = new Args<TypeExpr>([receiver]);
+    var args = Args.one(receiver);
     TypeExpr result;
     if (target == null) {
       result = _makeCall(
@@ -2342,7 +2378,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitInstanceSet(InstanceSet node) {
     var receiver = _visit(node.receiver);
     var value = _visit(node.value);
-    var args = new Args<TypeExpr>([receiver, value]);
+    var args = Args.two(receiver, value);
     final target = node.interfaceTarget;
     assert((target is Field) || ((target is Procedure) && target.isSetter));
     _makeCall(
@@ -2365,7 +2401,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitDynamicSet(DynamicSet node) {
     var receiver = _visit(node.receiver);
     var value = _visit(node.value);
-    var args = new Args<TypeExpr>([receiver, value]);
+    var args = Args.two(receiver, value);
     _makeCall(node, new DynamicSelector(CallKind.PropertySet, node.name), args);
     _updateReceiverAfterCall(
       node.receiver,
@@ -2394,7 +2430,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitSuperPropertyGet(SuperPropertyGet node) {
     assert(kPartialMixinResolution);
-    final args = new Args<TypeExpr>([_readReceiver()]);
+    final args = Args.one(_readReceiver());
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
@@ -2412,7 +2448,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   TypeExpr visitSuperPropertySet(SuperPropertySet node) {
     assert(kPartialMixinResolution);
     final value = _visit(node.value);
-    final args = new Args<TypeExpr>([_readReceiver(), value]);
+    final args = Args.two(_readReceiver(), value);
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(
       _superclass,
@@ -2452,12 +2488,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitStaticGet(StaticGet node) {
-    final args = new Args<TypeExpr>(const <TypeExpr>[]);
     final target = node.target;
     return _makeCall(
       node,
       new DirectSelector(target, callKind: CallKind.PropertyGet),
-      args,
+      Args.empty,
     );
   }
 
@@ -2486,7 +2521,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       _makeCall(
         node,
         new DirectSelector(target),
-        Args<TypeExpr>([nullableAnyType, nullableAnyType]),
+        Args.two(nullableAnyType, nullableAnyType),
       );
       return _boolType;
     }
@@ -2508,7 +2543,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitStaticSet(StaticSet node) {
     final value = _visit(node.value);
-    final args = new Args<TypeExpr>([value]);
+    final args = Args.one(value);
     final target = node.target;
     assert((target is Field) || (target is Procedure) && target.isSetter);
     _makeCall(
@@ -2939,7 +2974,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr? visitFieldInitializer(FieldInitializer node) {
     final value = _visit(node.value);
-    final args = new Args<TypeExpr>([_readReceiver(), value]);
+    final args = Args.two(_readReceiver(), value);
     _makeCall(
       node,
       new DirectSelector(node.field, callKind: CallKind.SetFieldInConstructor),
@@ -3039,6 +3074,7 @@ class RuntimeTypeTranslatorImpl
       functionTypeVariables = null {}
 
   TypeExpr instantiateConcreteType(ConcreteType type, List<DartType> typeArgs) {
+    assert(!type.cls.isRecord);
     if (typeArgs.isEmpty) return type;
 
     // This function is very similar to 'visitInterfaceType', but with
@@ -3064,7 +3100,7 @@ class RuntimeTypeTranslatorImpl
     if (allUnknown) return type;
 
     if (createConcreteType) {
-      return ConcreteType(type.cls, List<Type>.from(flattenedTypeExprs));
+      return ClassConcreteType(type.cls, List<Type>.from(flattenedTypeExprs));
     } else {
       final instantiate = new CreateConcreteType(type.cls, flattenedTypeExprs);
       summary!.add(instantiate);
@@ -3218,6 +3254,8 @@ class RuntimeTypeTranslatorImpl
   TypeExpr visitFunctionType(FunctionType type) => unknownType;
 
   @override
+  // TODO: Translate RecordType to RuntimeType to allow eliding type checks
+  // against record types.
   TypeExpr visitRecordType(RecordType type) => unknownType;
 
   @override
@@ -3263,7 +3301,7 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
               ),
               typeArgs,
             )
-            as ConcreteType;
+            as ClassConcreteType;
     return concreteType.cls.constantConcreteType(
       constant,
       concreteType.typeArgs,
@@ -3358,23 +3396,29 @@ class ConstantAllocationCollector implements ConstantVisitor<Type> {
   Type visitRecordConstant(RecordConstant constant) {
     final epl = summaryCollector._entryPointsListener;
     final recordShape = RecordShape(constant.recordType);
-    final Type receiver = summaryCollector._typesBuilder.getRecordType(
-      recordShape,
-      true,
-    );
+    final receiver = epl.addAllocatedRecord(recordShape);
+    final fieldTypes = List<Type>.filled(recordShape.numFields, emptyType);
     for (int i = 0; i < constant.positional.length; ++i) {
       final Field f = epl.getRecordPositionalField(recordShape, i);
       final Type value = typeFor(constant.positional[i]);
+      // All [ConcreteType]s must be specialized, including
+      // [RecordConcreteType].
+      fieldTypes[i] = value.isSpecialized ? value : anyInstanceType;
       assert(!f.isCovariantByClass);
       epl.addFieldUsedInConstant(f, receiver, value);
     }
+    int namedIndex = constant.positional.length;
     constant.named.forEach((String fieldName, Constant fieldValue) {
       final Field f = epl.getRecordNamedField(recordShape, fieldName);
       final Type value = typeFor(fieldValue);
+      // All [ConcreteType]s must be specialized, including
+      // [RecordConcreteType].
+      fieldTypes[namedIndex++] = value.isSpecialized ? value : anyInstanceType;
       assert(!f.isCovariantByClass);
       epl.addFieldUsedInConstant(f, receiver, value);
     });
-    return receiver;
+    // TODO: Preserve constant value in TypeAttributes on RecordConcreteType.
+    return receiver.cls.recordConcreteType(fieldTypes);
   }
 
   @override

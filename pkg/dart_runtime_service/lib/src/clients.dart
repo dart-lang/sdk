@@ -88,7 +88,11 @@ base class Client<BE extends DartRuntimeServiceBackend> {
     logger.info('Initializing...');
     this.namespace = namespace;
     registerRpcHandlers();
-    done = _listen().then((_) => cleanup());
+    done = _listen()
+        .catchError((Object e, StackTrace st) {
+          logger.warning('Client peer closed with error: $e', e, st);
+        })
+        .whenComplete(cleanup);
     logger.info('Initialization complete.');
     return done;
   }

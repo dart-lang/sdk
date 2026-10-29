@@ -210,7 +210,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         // fix it.)
         reference.addEdit(change, correspondingPublicName(newName) ?? newName);
       } else {
-        reference.addEdit(change, newName);
+        reference.addEdit(
+          change,
+          referenceReplacement(sessionHelper.session, reference, newName),
+        );
       }
     }
   }

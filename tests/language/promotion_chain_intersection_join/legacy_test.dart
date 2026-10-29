@@ -6,7 +6,7 @@
 // (https://github.com/dart-lang/language/issues/4757) does not take effect when
 // the `promotion-chain-intersection-join` feature flag is disabled.
 
-// @dart=3.13
+// @dart=3.14
 
 import 'package:expect/static_type_helper.dart';
 

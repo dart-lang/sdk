@@ -43,7 +43,7 @@ bool f2(List<int> list, int value) {
 }
 
 @reflectiveTest
-class ConvertToContainsTest extends FixProcessorLintTest {
+class ConvertToContainsTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToContains;
 

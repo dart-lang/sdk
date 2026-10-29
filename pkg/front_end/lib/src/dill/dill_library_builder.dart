@@ -66,7 +66,6 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
   }) {
     _dillLibraryBuilder.addProblem(
       message,
@@ -76,7 +75,6 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
       wasHandled: wasHandled,
       context: context,
       severity: severity,
-      problemOnLibrary: problemOnLibrary,
     );
   }
 

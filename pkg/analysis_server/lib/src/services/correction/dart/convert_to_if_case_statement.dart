@@ -217,12 +217,11 @@ class _StatementLocation {
 
 extension on Statement {
   _DeclaredVariable? get asSingleVariableDeclaration {
-    var self = this;
-    if (self is! VariableDeclarationStatement) {
+    if (this is! VariableDeclarationStatement) {
       return null;
     }
 
-    var declarations = self.variables.variables;
+    var declarations = variables.variables;
     var declaration = declarations.singleOrNull;
     if (declaration == null) {
       return null;
@@ -239,7 +238,7 @@ extension on Statement {
     }
 
     return _DeclaredVariable(
-      statement: self,
+      statement: this,
       declaration: declaration,
       element: declaredElement,
       initializer: initializer,

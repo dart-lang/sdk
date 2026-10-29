@@ -21,7 +21,7 @@ class IRNode {
   /// The kind of entity represented by this [IRNode].
   final Kind kind;
 
-  IRNode({required this.ir, required this.location, required this.kind});
+  new({required this.ir, required this.location, required this.kind});
 
   @override
   String toString() => '$kind $ir ($location)';
@@ -423,7 +423,7 @@ class MiniIRLabel {
   /// The name of the label, or `null` if no name has been assigned yet.
   String? _name;
 
-  MiniIRLabel._();
+  new _();
 }
 
 /// Representation of a temporary variable used by [MiniIRBuilder] when building
@@ -439,5 +439,5 @@ class MiniIRTmp {
   /// temporary variable to be created (see [computeLocation]).
   final String location;
 
-  MiniIRTmp._(this._name, this._value, {required this.location});
+  new _(this._name, this._value, {required this.location});
 }

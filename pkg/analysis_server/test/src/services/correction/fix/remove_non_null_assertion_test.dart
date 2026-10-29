@@ -33,7 +33,7 @@ void f(String a) {
 }
 
 @reflectiveTest
-class RemoveNonNullAssertionTest extends FixProcessorTest {
+class RemoveNonNullAssertionTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeNonNullAssertion;
 
@@ -105,7 +105,7 @@ void f() {
 }
 
 @reflectiveTest
-class UnnecessaryNullChecksTest extends FixProcessorLintTest {
+class UnnecessaryNullChecksTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeNonNullAssertion;
 

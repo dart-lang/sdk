@@ -15,7 +15,7 @@ library;
 class Id {
   final int value;
 
-  const Id(this.value);
+  const new(this.value);
 }
 
 /// Instances of this class represent data that has been read from a summary.
@@ -43,5 +43,5 @@ class TopLevel {
   /// prior all other file data.  Must be exactly 4 Latin1 characters.
   final String? fileIdentifier;
 
-  const TopLevel([this.fileIdentifier]);
+  const new([this.fileIdentifier]);
 }

@@ -463,11 +463,11 @@ import 'package:foo/a.dart' as p;
 void f() {
   p.foo = 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteGetterOnly] There's a getter 'foo' in the libraries imported with the prefix 'p', but no setter.
 // [diag.invalidUseOfInternalMember] The member 'foo' can only be used within its package.
   p.foo += 1;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteGetterOnly] There's a getter 'foo' in the libraries imported with the prefix 'p', but no setter.
 // [diag.invalidUseOfInternalMember] The member 'foo' can only be used within its package.
 }
 ''');

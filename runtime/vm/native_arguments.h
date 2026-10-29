@@ -40,17 +40,9 @@ class Thread;
   }
 #endif
 
-#define DEOPTIMIZE_ALOT                                                        \
-  if (FLAG_deoptimize_alot) {                                                  \
-    DeoptimizeFunctionsOnStack();                                              \
-  }
-
 #else
 
 #define CHECK_STACK_ALIGNMENT                                                  \
-  {                                                                            \
-  }
-#define DEOPTIMIZE_ALOT                                                        \
   {                                                                            \
   }
 

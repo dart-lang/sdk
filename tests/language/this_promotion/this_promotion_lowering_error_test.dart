@@ -58,12 +58,12 @@ class ClassTest extends A {
     // 3. Accessing B-only member without promotion
     bOnly();
     // [error column 5, length 5]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'ClassTest'.
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'ClassTest'.
   }
 }
@@ -97,12 +97,12 @@ mixin M on A {
     // 3. Accessing B-only member without promotion
     bOnly();
     // [error column 5, length 5]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'M'.
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'M'.
   }
 }
@@ -136,12 +136,12 @@ extension Ext on A {
     // 3. Accessing B-only member without promotion
     bOnly();
     // [error column 5, length 5]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'A'.
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'A'.
   }
 }
@@ -194,12 +194,12 @@ extension type E(ClassTest r) implements C {
     // 3. Accessing B-only member without promotion
     bOnly();
     // [error column 5, length 5]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'E'.
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'E'.
   }
 }
@@ -233,12 +233,12 @@ extension type F(M r) implements C {
     // 3. Accessing B-only member without promotion
     bOnly();
     // [error column 5, length 5]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'F'.
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'F'.
   }
 }

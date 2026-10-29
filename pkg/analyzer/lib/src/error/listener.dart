@@ -170,7 +170,7 @@ class DiagnosticReporter {
   ///
   /// Diagnostics are reported against the [_source] unless another source is
   /// provided later.
-  DiagnosticReporter(this._diagnosticListener, this._source);
+  new(this._diagnosticListener, this._source);
 
   Source get source => _source;
 
@@ -180,6 +180,7 @@ class DiagnosticReporter {
   ///
   /// The reported [Diagnostic] is returned so that the caller may attach
   /// additional information to it (for example, using an expando).
+  @V1Ast()
   Diagnostic atConstructorDeclaration(
     ConstructorDeclaration node,
     DiagnosticCode diagnosticCode, {
@@ -407,14 +408,10 @@ class _DiagnosticLocation {
   final int length;
   final String? sourcePath;
 
-  _DiagnosticLocation(
-    this.sourcePath, {
-    required this.offset,
-    required this.length,
-  });
+  new(this.sourcePath, {required this.offset, required this.length});
 
   /// Computes the diagnostic location for a given element.
-  factory _DiagnosticLocation.forElement(Element element) {
+  factory forElement(Element element) {
     var location = (element.nonSynthetic as ElementImpl).firstFragmentLocation;
 
     var sourcePath = location.libraryFragment?.source.fullName;
@@ -456,8 +453,7 @@ class _ElementToConvert implements _ToConvert {
   @override
   final Iterable<Element> allElements;
 
-  _ElementToConvert(this.index, Element element, this.displayName)
-    : allElements = [element];
+  new(this.index, Element element, this.displayName) : allElements = [element];
 }
 
 /// Used by [convertTypeNames] to keep track of an argument that is being
@@ -516,7 +512,7 @@ class _TypeToConvert implements _ToConvert {
     });
   }();
 
-  _TypeToConvert(this.index, this._type, this.displayName);
+  new(this.index, this._type, this.displayName);
 }
 
 /// Code that will be added to [DiagnosticReporter] when the new literate API
