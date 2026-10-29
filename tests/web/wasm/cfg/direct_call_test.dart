@@ -240,6 +240,71 @@ bool isNullNamed({int? x}) => x == null;
 @pragma('wasm:cfg')
 bool callIsNullNamed() => isNullNamed();
 
+// Not compiled via CFG (generic functions are unsupported). The type argument
+// determines the result.
+@pragma('wasm:never-inline')
+bool isA<T>(Object? o) => o is T;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsAInt(Object? o) => isA<int>(o);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsANullableInt(Object? o) => isA<int?>(o);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsAListOfString(Object? o) => isA<List<String>>(o);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool callIsAFunction(Object? o) => isA<int Function(String)>(o);
+
+@pragma('wasm:never-inline')
+T identity<T>(T x) => x;
+
+// The type argument is inferred.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int callIdentity(int x) => identity(x);
+
+@pragma('wasm:never-inline')
+String typeNames<A, B>() => '$A, $B';
+
+// Type arguments are passed in order.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callTypeNames() => typeNames<int, String>();
+
+@pragma('wasm:never-inline')
+String describeGenericOptional<T>(T value, [String prefix = 'p']) =>
+    '$prefix $T $value';
+
+@pragma('wasm:never-inline')
+String describeGenericNamed<T>(
+  T value, {
+  String prefix = 'p',
+  String suffix = 's',
+}) => '$prefix $T $value $suffix';
+
+// Type arguments combined with optional positional arguments.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callDescribeGenericOptional(int x, String s) =>
+    describeGenericOptional<int>(x, s);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callDescribeGenericOptionalDefault(int x) =>
+    describeGenericOptional<num>(x);
+
+// Type arguments combined with named arguments.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String callDescribeGenericNamed(int x, String s) =>
+    describeGenericNamed<int>(x, suffix: s);
+
 void main() {
   final int0 = int.parse('0');
   final int1 = int.parse('1');
@@ -326,4 +391,30 @@ void main() {
   Expect.equals('b', callPickNamedA(int0, 's'));
   Expect.isTrue(callIsNullNamed());
   Expect.isFalse(isNullNamed(x: int1));
+
+  // Type arguments.
+  final Object? nullValue = int0 > 0 ? int0 : null;
+  final Object stringValue = int0.toString();
+  Expect.isTrue(callIsAInt(int1));
+  Expect.isFalse(callIsAInt(stringValue));
+  Expect.isFalse(callIsAInt(nullValue));
+  Expect.isTrue(callIsANullableInt(nullValue));
+  Expect.isTrue(callIsAListOfString([stringValue as String]));
+  Expect.isFalse(callIsAListOfString([int1]));
+  Expect.isTrue(callIsAFunction((String s) => s.length));
+  Expect.isFalse(callIsAFunction((int i) => i));
+  Expect.isTrue(isA<String>(stringValue));
+  Expect.equals(5, callIdentity(int5));
+  Expect.equals('s', identity<String>('s'));
+  // Type names may be minified, so compute the expected names at runtime.
+  Expect.equals('$int, $String', callTypeNames());
+  Expect.equals('$Object, $bool', typeNames<Object, bool>());
+  Expect.equals('a $int 1', callDescribeGenericOptional(int1, 'a'));
+  Expect.equals('p $num 1', callDescribeGenericOptionalDefault(int1));
+  Expect.equals('x $String y', describeGenericOptional<String>('y', 'x'));
+  Expect.equals('p $int 1 a', callDescribeGenericNamed(int1, 'a'));
+  Expect.equals(
+    'x $String y z',
+    describeGenericNamed<String>('y', suffix: 'z', prefix: 'x'),
+  );
 }

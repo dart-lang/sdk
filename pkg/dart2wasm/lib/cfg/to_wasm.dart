@@ -227,6 +227,14 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
   @nonVirtual
   void visitConstant(Constant instr) {
     if (!instr.hasUses) return;
+    if (instr.value.isTypeArgumentsConstant) {
+      // Any use of of a [TypeArgumentsConstant] in the SSA graph will need to
+      // handle it there, for example passing the individual type arguments
+      // to a generic function invocation.
+      // => So there's no need to try to materialize an object in a wasm local
+      // for a [TypeArgumentsConstant] here.
+      return;
+    }
     final local = gen.getLocal(instr);
     instantiateConstant(instr, local.type);
     b.local_set(local);
