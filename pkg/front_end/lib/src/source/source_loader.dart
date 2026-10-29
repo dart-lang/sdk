@@ -718,7 +718,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     );
     if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
         !accessor.isAugmenting) {
-      accessor.addProblem(
+      accessor.problemReporting.addProblem(
         diag.platformPrivateLibraryAccess,
         charOffset,
         noLength,
@@ -793,7 +793,12 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       return;
     }
 
-    accessor.addProblem(diagnostic, charOffset, length, accessor.fileUri);
+    accessor.problemReporting.addProblem(
+      diagnostic,
+      charOffset,
+      length,
+      accessor.fileUri,
+    );
   }
 
   /// Reads the library [uri] as an entry point. This is used for reading the
@@ -831,7 +836,7 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
     if (!_hasLibraryAccess(imported: uri, importer: firstLibrary?.importUri)) {
       // Coverage-ignore-block(suite): Not run.
       if (firstLibrary != null) {
-        firstLibrary.addProblem(
+        firstLibrary.problemReporting.addProblem(
           diag.platformPrivateLibraryAccess,
           -1,
           noLength,
@@ -1290,7 +1295,7 @@ severity: $severity
     while (token is ErrorToken) {
       if (!suppressLexicalErrors) {
         ErrorToken error = token;
-        compilationUnit.addProblem(
+        compilationUnit.problemReporting.addProblem(
           error.assertionMessage,
           offsetForToken(token),
           lengthForToken(token),
@@ -1413,7 +1418,7 @@ severity: $severity
           addComponentProblem(message, -1, 1, null, context: context);
         } else {
           LibraryAccess access = compilationUnit.accessors.first;
-          access.accessor.addProblem(
+          access.accessor.problemReporting.addProblem(
             message,
             access.charOffset,
             access.length,
@@ -1432,7 +1437,7 @@ severity: $severity
 
         if (compilationUnit.accessors.length > 1) {
           for (LibraryAccess access in compilationUnit.accessors) {
-            access.accessor.addProblem(
+            access.accessor.problemReporting.addProblem(
               message,
               access.charOffset,
               access.length,

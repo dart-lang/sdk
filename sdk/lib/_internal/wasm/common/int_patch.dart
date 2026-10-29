@@ -146,9 +146,7 @@ class int {
     }
 
     // Check overflows on the next digits. We can scan at most two digits before an overflow.
-    start += parseBlockLength;
-
-    for (int i = start; i < end; i++) {
+    for (int i = start + parseBlockLength; i < end; i++) {
       int char = source.codeUnitAtUnchecked(i);
       int digit = char ^ 0x30;
       final isDecimalDigit = digit <= 9;
@@ -161,8 +159,14 @@ class int {
 
       if (sign > 0) {
         const max = 9223372036854775807;
+        assert(!allowOverflow || (radix == 16 && parseBlockLength == 15));
 
-        if (!allowOverflow && (result > (max - digit) ~/ radix)) {
+        // Positive `0x` hex literals (`allowOverflow`) allow unsigned 64-bit
+        // values (up to 16 significant hex digits).
+        final overflows = allowOverflow
+            ? i >= start + 16
+            : result > (max - digit) ~/ radix;
+        if (overflows) {
           return _handleFormatError(
             onError,
             source,

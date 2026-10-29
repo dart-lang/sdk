@@ -145,7 +145,7 @@ class DillLoader extends Loader {
             uri,
           )) {
         // Coverage-ignore-block(suite): Not run.
-        accessor.addProblem(
+        accessor.problemReporting.addProblem(
           diag.platformPrivateLibraryAccess,
           charOffset,
           noLength,

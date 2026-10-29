@@ -1882,6 +1882,11 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
+    if (start != 0) {
+      chunk = chunk.substring(start, end);
+      end -= start;
+      start = 0;
+    }
     final parser = _stringParser;
     parser.setNewChunk(chunk, end);
     parser.parse(start);

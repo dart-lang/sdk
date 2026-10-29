@@ -57,7 +57,8 @@ final class Unboxing extends Pass {
       Box() ||
       IndexCheck() ||
       LoadExternalField() ||
-      LoadExternalArrayElement() => true,
+      LoadExternalArrayElement() ||
+      SimdOp() => true,
       LoadArrayElement() => inputIndex == 1,
       StoreArrayElement() =>
         inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
@@ -82,7 +83,8 @@ final class Unboxing extends Pass {
       UnaryIntOp() ||
       BinaryDoubleOp() ||
       Unbox() ||
-      IndexCheck() => true,
+      IndexCheck() ||
+      SimdOp() => true,
       UnaryDoubleOp() => instr.type is! BoolType,
       LoadArrayElement() => instr.kind != .fixedLengthList,
       LoadExternalArrayElement() => instr.type is IntType,
@@ -117,7 +119,7 @@ final class Unboxing extends Pass {
 
   bool _canBeUnboxed(Phi instr) {
     final type = instr.type;
-    return type is IntType || type is DoubleType;
+    return type is IntType || type is DoubleType || type is SimdType;
   }
 
   /// Find at least one unboxed input while transitively traversing phis.
@@ -158,6 +160,8 @@ final class Unboxing extends Pass {
         ConstantValue(switch (type) {
           IntType() => UnboxedIntConstant(def.value.intValue),
           DoubleType() => UnboxedDoubleConstant(def.value.doubleValue),
+          SimdType() =>
+            throw 'Unimplemented SIMD constant', // TODO: SIMD constants
           _ => throw 'Unexpected unboxed type $type',
         }),
       );
@@ -165,23 +169,18 @@ final class Unboxing extends Pass {
       final insertionPoint = (instr is Phi)
           ? instr.block!.predecessors[inputIndex].lastInstruction
           : instr;
+      final sourcePosition = insertionPoint.sourcePosition;
       replacement = isDefUnboxed
           ? switch (type) {
-              IntType() => BoxInt(graph, insertionPoint.sourcePosition, def),
-              DoubleType() => BoxDouble(
-                graph,
-                insertionPoint.sourcePosition,
-                def,
-              ),
+              IntType() => BoxInt(graph, sourcePosition, def),
+              DoubleType() => BoxDouble(graph, sourcePosition, def),
+              SimdType() => BoxSimd(graph, sourcePosition, def, type),
               _ => throw 'Unexpected unboxed type $type',
             }
           : switch (type) {
-              IntType() => UnboxInt(graph, insertionPoint.sourcePosition, def),
-              DoubleType() => UnboxDouble(
-                graph,
-                insertionPoint.sourcePosition,
-                def,
-              ),
+              IntType() => UnboxInt(graph, sourcePosition, def),
+              DoubleType() => UnboxDouble(graph, sourcePosition, def),
+              SimdType() => UnboxSimd(graph, sourcePosition, def, type),
               _ => throw 'Unexpected unboxed type $type',
             };
       replacement.insertBefore(insertionPoint);

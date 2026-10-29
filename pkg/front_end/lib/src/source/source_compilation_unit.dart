@@ -345,6 +345,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
+  ProblemReporting get problemReporting => _problemReporting;
+
+  @override
   LibraryFeatures get libraryFeatures =>
       _libraryFeatures ??= new LibraryFeatures(
         loader.target.globalFeatures,
@@ -399,27 +402,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
-  void addProblem(
-    Message message,
-    int charOffset,
-    int length,
-    Uri? fileUri, {
-    bool wasHandled = false,
-    List<LocatedMessage>? context,
-    CfeSeverity? severity,
-  }) {
-    _problemReporting.addProblem(
-      message,
-      charOffset,
-      length,
-      fileUri,
-      wasHandled: wasHandled,
-      context: context,
-      severity: severity,
-    );
-  }
-
-  @override
   final List<LibraryAccess> accessors = [];
 
   @override
@@ -438,7 +420,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       for (int i = 0; i < accessors.length; i++) {
         LibraryAccess access = accessors[i];
-        access.accessor.addProblem(
+        access.accessor.problemReporting.addProblem(
           message,
           access.charOffset,
           access.length,
@@ -543,7 +525,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   ) {
     if (_postponedProblemsIssued) {
       // Coverage-ignore-block(suite): Not run.
-      addProblem(message, charOffset, length, fileUri);
+      _problemReporting.addProblem(message, charOffset, length, fileUri);
     } else {
       _postponedProblems ??= <PostponedProblem>[];
       _postponedProblems!.add(
@@ -558,7 +540,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (_postponedProblems == null) return;
     for (int i = 0; i < _postponedProblems!.length; ++i) {
       PostponedProblem postponedProblem = _postponedProblems![i];
-      addProblem(
+      _problemReporting.addProblem(
         postponedProblem.message,
         postponedProblem.charOffset,
         postponedProblem.length,
@@ -600,7 +582,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
     if (accessProblem != null) {
       // Coverage-ignore-block(suite): Not run.
-      addProblem(accessProblem!, charOffset, length, fileUri);
+      _problemReporting.addProblem(accessProblem!, charOffset, length, fileUri);
     }
   }
 
@@ -676,7 +658,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _problemReporting.registerLibrary(libraryBuilder.library);
     if (isPart) {
       // This is a part with no enclosing library.
-      addProblem(diag.partOrphan, 0, 1, fileUri);
+      _problemReporting.addProblem(diag.partOrphan, 0, 1, fileUri);
       _compilationUnitData.parts.clear();
       _reportExporters();
     }
@@ -833,10 +815,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required bool forPatch,
   }) {
     if (compilationUnit == this) {
-      addProblem(diag.partOfSelf, partFileOffset, noLength, partFileUri);
+      _problemReporting.addProblem(
+        diag.partOfSelf,
+        partFileOffset,
+        noLength,
+        partFileUri,
+      );
     } else if (seenParts.add(compilationUnit.fileUri)) {
       if (compilationUnit.partOfLibrary != null) {
-        addProblem(
+        _problemReporting.addProblem(
           diag.partOfTwoLibraries.withArguments(uri: compilationUnit.fileUri),
           partFileOffset,
           noLength,
@@ -865,7 +852,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         );
       }
     } else {
-      addProblem(
+      _problemReporting.addProblem(
         diag.partTwice.withArguments(uri: compilationUnit.fileUri),
         partFileOffset,
         noLength,
@@ -932,7 +919,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             if (partOfUri != null) {
               if (isNotMalformedUriScheme(partOfUri) &&
                   partOfUri != parentCompilationUnit.importUri) {
-                parentCompilationUnit.addProblem(
+                parentCompilationUnit.problemReporting.addProblem(
                   diag.partOfUriMismatch.withArguments(
                     partUri: part.fileUri,
                     libraryUri: parentCompilationUnit.importUri,
@@ -950,7 +937,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                   parentCompilationUnit.libraryDirective?.name;
               if (libraryName != null) {
                 if (partOfName != libraryName) {
-                  parentCompilationUnit.addProblem(
+                  parentCompilationUnit.problemReporting.addProblem(
                     diag.partOfLibraryNameMismatch.withArguments(
                       uri: part.fileUri,
                       libraryName: libraryName,
@@ -963,7 +950,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                   return;
                 }
               } else {
-                parentCompilationUnit.addProblem(
+                parentCompilationUnit.problemReporting.addProblem(
                   diag.partOfUseUri.withArguments(
                     partFileUri: part.fileUri,
                     libraryUri: parentCompilationUnit.fileUri,
@@ -978,7 +965,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             }
             LibraryDirective? libraryDirective = part.libraryDirective;
             if (libraryDirective != null) {
-              part.addProblem(
+              part.problemReporting.addProblem(
                 diag.partWithLibraryDirective,
                 libraryDirective.fileOffset,
                 noLength,
@@ -988,7 +975,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           } else {
             assert(!part.isPart);
             if (isNotMalformedUriScheme(part.fileUri)) {
-              parentCompilationUnit.addProblem(
+              parentCompilationUnit.problemReporting.addProblem(
                 diag.missingPartOf.withArguments(uri: part.fileUri),
                 partOffset,
                 noLength,
@@ -1020,7 +1007,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // declaration (i.e. as it was a SourceLibraryBuilder without a
         // "part of" declaration).
         if (isNotMalformedUriScheme(part.fileUri)) {
-          parentCompilationUnit.addProblem(
+          parentCompilationUnit.problemReporting.addProblem(
             diag.missingPartOf.withArguments(uri: part.fileUri),
             partOffset,
             noLength,
@@ -1074,7 +1061,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             ),
           );
         }
-        parentCompilationUnit.addProblem(
+        parentCompilationUnit.problemReporting.addProblem(
           diag.languageVersionMismatchInPatch,
           partOffset,
           noLength,
@@ -1091,7 +1078,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             ),
           );
         }
-        parentCompilationUnit.addProblem(
+        parentCompilationUnit.problemReporting.addProblem(
           diag.languageVersionMismatchInPart,
           partOffset,
           noLength,
@@ -1148,7 +1135,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         diag.partExportContext.withLocation(fileUri, -1, 1),
       ];
       for (Export export in exporters) {
-        export.exporter.addProblem(
+        export.exporter.problemReporting.addProblem(
           diag.partExport,
           export.charOffset,
           "export".length,
@@ -1186,7 +1173,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ),
         ];
         for (Part part in _compilationUnitData.parts) {
-          addProblem(
+          _problemReporting.addProblem(
             diag.partInPart,
             part.fileOffset,
             noLength,
@@ -1278,7 +1265,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         !forPatchLibrary;
     for (Import import in _compilationUnitData.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
-        addProblem(
+        _problemReporting.addProblem(
           diag.partOfInLibrary.withArguments(
             uri: import.importedCompilationUnit!.fileUri,
           ),
@@ -1474,7 +1461,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           featureName: feature.flag.name,
           enabledVersion: enabledVersionText,
         );
-        addProblem(
+        _problemReporting.addProblem(
           message,
           charOffset,
           length,
@@ -1494,7 +1481,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           featureName: feature.flag.name,
           enabledVersion: enabledVersionText,
         );
-        addProblem(message, charOffset, length, fileUri);
+        _problemReporting.addProblem(message, charOffset, length, fileUri);
       }
     } else {
       if (feature.flag.isEnabledByDefault) {
@@ -1504,18 +1491,18 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             featureName: feature.flag.name,
             requiredLanguageVersion: feature.enabledVersion.toText(),
           );
-          addProblem(message, charOffset, length, fileUri);
+          _problemReporting.addProblem(message, charOffset, length, fileUri);
         } else {
           message = diag.experimentDisabled.withArguments(
             featureName: feature.flag.name,
           );
-          addProblem(message, charOffset, length, fileUri);
+          _problemReporting.addProblem(message, charOffset, length, fileUri);
         }
       } else {
         message = diag.experimentNotEnabledOffByDefault.withArguments(
           featureName: feature.flag.name,
         );
-        addProblem(message, charOffset, length, fileUri);
+        _problemReporting.addProblem(message, charOffset, length, fileUri);
       }
     }
     return message;

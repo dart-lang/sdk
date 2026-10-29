@@ -31,10 +31,10 @@ abstract base class StackFrame {
   }
 
   /// Size of the spill slot with given [registerClass].
-  int spillSlotSizeInWords(RegisterClass registerClass);
+  int spillSlotSizeInWords(RegisterClass registerClass, bool isSimdValue);
 
   /// Alignment of the spill slot with given [registerClass].
-  int spillSlotAlignmentInWords(RegisterClass registerClass);
+  int spillSlotAlignmentInWords(RegisterClass registerClass, bool isSimdValue);
 
   /// Number of arguments stack slots required for [instr].
   int argumentsStackSlots(Instruction instr);
@@ -70,12 +70,14 @@ abstract base class StackFrame {
   void recordReservedLocations(Safepoint safepoint);
 
   /// Allocate a new spill slot.
-  SpillSlot allocateSpillSlot(RegisterClass registerClass) {
+  SpillSlot allocateSpillSlot(RegisterClass registerClass, bool isSimdValue) {
     assert(!_finalized);
-    final size = spillSlotSizeInWords(registerClass);
-    final alignment = spillSlotAlignmentInWords(registerClass);
+    final size = spillSlotSizeInWords(registerClass, isSimdValue);
+    final alignment = spillSlotAlignmentInWords(registerClass, isSimdValue);
     _usedSpillSlots = roundUp(_usedSpillSlots, alignment);
-    final slot = SpillSlot(_usedSpillSlots);
+    final slot = isSimdValue
+        ? SimdSpillSlot(_usedSpillSlots)
+        : SpillSlot(_usedSpillSlots);
     _usedSpillSlots += size;
     return slot;
   }

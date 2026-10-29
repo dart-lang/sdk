@@ -83,6 +83,11 @@ void buildComparisonOp(FlowGraphBuilder builder, ComparisonOpcode op) {
   builder.addComparison(op);
 }
 
+/// Build IR for SIMD operations
+void buildSimdOp(FlowGraphBuilder builder, SimdOpcode op) {
+  builder.addSimdOp(op);
+}
+
 void buildDoubleIsNaN(FlowGraphBuilder builder) {
   final x = builder.pop();
   builder.push(x);
@@ -731,13 +736,11 @@ extension on ArrayKind {
     .float64ByteData => const DoubleType(),
     .float32x4List ||
     .float32x4ListView ||
-    .float32x4ByteData ||
+    .float32x4ByteData => const Float32x4Type(),
     .float64x2List ||
     .float64x2ListView ||
-    .float64x2ByteData ||
-    .int32x4List ||
-    .int32x4ListView ||
-    .int32x4ByteData ||
+    .float64x2ByteData => const Float64x2Type(),
+    .int32x4List || .int32x4ListView || .int32x4ByteData => const Int32x4Type(),
     .fixedLengthList ||
     .oneByteString ||
     .twoByteString => throw 'ArrayKind.elementType is not defined for $this',
@@ -747,8 +750,29 @@ extension on ArrayKind {
     .uint16List => 2,
     .uint32List => 4,
     .uint64List => 8,
-    // TODO: .int32x4List => 16,
+    .int32x4List => 16,
     _ => throw 'ArrayKind.elementSizeInBytes is not defined for $this',
+  };
+}
+
+extension on SimdOpcode {
+  String get className => switch (this) {
+    .float32x4Factory => 'Float32x4',
+    .float64x2Factory => 'Float64x2',
+    .int32x4Factory => 'Int32x4',
+    .float32x4GetX ||
+    .float32x4GetY ||
+    .float32x4GetZ ||
+    .float32x4GetW => '_Float32x4',
+    .float64x2GetX || .float64x2GetY => '_Float64x2',
+    .int32x4GetX || .int32x4GetY || .int32x4GetZ || .int32x4GetW => '_Int32x4',
+  };
+  String get memberName => switch (this) {
+    .float32x4Factory || .float64x2Factory || .int32x4Factory => '',
+    .float32x4GetX || .float64x2GetX || .int32x4GetX => 'get:x',
+    .float32x4GetY || .float64x2GetY || .int32x4GetY => 'get:y',
+    .float32x4GetZ || .int32x4GetZ => 'get:z',
+    .float32x4GetW || .int32x4GetW => 'get:w',
   };
 }
 
@@ -1689,6 +1713,9 @@ final class VmRecognizedMethods(
       .uint64List,
       .float32List,
       .float64List,
+      .float32x4List,
+      .float64x2List,
+      .int32x4List,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1714,6 +1741,9 @@ final class VmRecognizedMethods(
       .uint64ListView,
       .float32ListView,
       .float64ListView,
+      .float32x4ListView,
+      .float64x2ListView,
+      .int32x4ListView,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1739,6 +1769,9 @@ final class VmRecognizedMethods(
       .uint64ListView,
       .float32ListView,
       .float64ListView,
+      .float32x4ListView,
+      .float64x2ListView,
+      .int32x4ListView,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1765,6 +1798,9 @@ final class VmRecognizedMethods(
       .uint64List,
       .float32List,
       .float64List,
+      .float32x4List,
+      .float64x2List,
+      .int32x4List,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1789,6 +1825,9 @@ final class VmRecognizedMethods(
       .uint64ByteData,
       .float32ByteData,
       .float64ByteData,
+      .float32x4ByteData,
+      .float64x2ByteData,
+      .int32x4ByteData,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1815,6 +1854,9 @@ final class VmRecognizedMethods(
       .uint64ByteData,
       .float32ByteData,
       .float64ByteData,
+      .float32x4ByteData,
+      .float64x2ByteData,
+      .int32x4ByteData,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1904,7 +1946,7 @@ final class VmRecognizedMethods(
       .uint16List,
       .uint32List,
       .uint64List,
-      // TODO: .int32x4List
+      .int32x4List,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1912,6 +1954,29 @@ final class VmRecognizedMethods(
         '_memMove${arrayKind.elementSize}',
       ): (FlowGraphBuilder builder) {
         buildTypedDataMemMove(builder, arrayKind);
+      },
+
+    for (SimdOpcode op in const [
+      .float32x4Factory,
+      .float64x2Factory,
+      .int32x4Factory,
+      .float32x4GetX,
+      .float32x4GetY,
+      .float32x4GetZ,
+      .float32x4GetW,
+      .float64x2GetX,
+      .float64x2GetY,
+      .int32x4GetX,
+      .int32x4GetY,
+      .int32x4GetZ,
+      .int32x4GetW,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '${op.className}',
+        '${op.memberName}',
+      ): (FlowGraphBuilder builder) {
+        buildSimdOp(builder, op);
       },
 
     // dart:developer

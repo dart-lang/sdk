@@ -331,6 +331,15 @@ class WritebackRegOffsetAddress(
   required final bool isPostIndexed,
 }) implements Address;
 
+/// `<Vreg>.<Tsz>[<index>]` vector element operand.
+class VectorElement(final FPRegister reg, final int index, final OperandSize sz)
+    implements Operand {
+  this
+    : assert(
+        index >= 0 && index < (16 >> sz.log2sizeInBytes) && sz != .simd128,
+      );
+}
+
 // Bits to simplify encoding of the instructions.
 const int B0 = (1 << 0);
 const int B1 = (1 << 1);
@@ -411,6 +420,13 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       return RegOffsetAddress(scratch, low);
     }
   }
+
+  @override
+  Address fieldAddress(
+    Register obj,
+    int offset, [
+    OperandSize sz = OperandSize.s64,
+  ]) => address(obj, offset - heapObjectTag, sz);
 
   /// Create a [base + offset] address for arbitrary offset,
   /// generating extra code if necessary.
@@ -2575,6 +2591,93 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
   }
 
+  void smov(Register rd, VectorElement vn, [OperandSize sz = .s64]) {
+    assert(sz.is32or64);
+    assert(vn.sz.sizeInBytes < sz.sizeInBytes);
+    emit(
+      B10 |
+          B11 |
+          B13 |
+          B25 |
+          B26 |
+          B27 |
+          rd.encodingRd() |
+          vn.reg.encodingRn |
+          (vn.encodingImm5 << 16) |
+          (sz.is64 ? B30 : 0),
+    );
+  }
+
+  void ins(VectorElement vd, Operand o) {
+    final sz = vd.sz;
+    switch (o) {
+      case VectorElement():
+        assert(sz == o.sz);
+        emit(
+          B10 |
+              B25 |
+              B26 |
+              B27 |
+              B29 |
+              B30 |
+              vd.reg.encodingRd |
+              o.reg.encodingRn |
+              (o.encodingImm4 << 11) |
+              (vd.encodingImm5 << 16),
+        );
+      case Register():
+        emit(
+          B10 |
+              B11 |
+              B12 |
+              B25 |
+              B26 |
+              B27 |
+              B30 |
+              vd.reg.encodingRd |
+              o.encodingRn() |
+              (vd.encodingImm5 << 16),
+        );
+      default:
+        throw 'Unexpected operand ${o.runtimeType}';
+    }
+  }
+
+  void vorr(
+    FPRegister vd,
+    FPRegister vn,
+    FPRegister vm, [
+    OperandSize sz = .simd128,
+  ]) {
+    _emitAdvancedSIMDThreeSame(B11 | B12 | B23, vd, vn, vm, sz);
+  }
+
+  void vmov(FPRegister vd, FPRegister vn, [OperandSize sz = .simd128]) {
+    vorr(vd, vn, vn, sz);
+  }
+
+  void _emitAdvancedSIMDThreeSame(
+    int opcode,
+    FPRegister vd,
+    FPRegister vn,
+    FPRegister vm,
+    OperandSize sz,
+  ) {
+    assert(sz.is64or128);
+    emit(
+      B10 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          opcode |
+          vd.encodingRd |
+          vn.encodingRn |
+          vm.encodingRm |
+          (sz.is128 ? B30 : 0),
+    );
+  }
+
   void fabs(FPRegister rd, FPRegister rn, [OperandSize sz = OperandSize.s64]) {
     _emitFPDataProcessing1(B15, rd, rn, sz);
   }
@@ -2979,6 +3082,11 @@ extension on RegExtRegAddress {
         (ext.index << 13) |
         reg.encodingRm();
   }
+}
+
+extension on VectorElement {
+  int get encodingImm4 => index << sz.log2sizeInBytes;
+  int get encodingImm5 => ((index << 1) | 1) << sz.log2sizeInBytes;
 }
 
 extension on Label {

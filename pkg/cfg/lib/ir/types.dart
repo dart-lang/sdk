@@ -38,6 +38,9 @@ enum TypeKind {
   doubleType,
   boolType,
   stringType,
+  float32x4Type,
+  float64x2Type,
+  int32x4Type,
   recordType,
   objectType,
   nullType,
@@ -229,6 +232,78 @@ final class const StringType([final ast.DartType? _dartType]) extends CType {
 
   @override
   String toString() => 'String';
+}
+
+/// Base class for Dart SIMD types.
+sealed class const SimdType() extends CType {
+  @override
+  bool get canBeNull => false;
+
+  @override
+  bool get isNullable => false;
+
+  @override
+  CType get toNonNullableType => this;
+
+  @override
+  bool get canBeInt => false;
+
+  @override
+  bool get canBeDouble => false;
+
+  @override
+  bool get canBeFuture => false;
+}
+
+/// Dart `Float32x4` type.
+final class const Float32x4Type([final ast.DartType? _dartType])
+    extends SimdType {
+  @override
+  TypeKind get kind => TypeKind.float32x4Type;
+
+  @override
+  ast.DartType get dartType =>
+      _dartType ??
+      GlobalContext.instance.coreTypes.nonNullableRawType(
+        GlobalContext.instance.astToIrTypes.float32x4Class!,
+      );
+
+  @override
+  String toString() => 'Float32x4';
+}
+
+/// Dart `Float64x2` type.
+final class const Float64x2Type([final ast.DartType? _dartType])
+    extends SimdType {
+  @override
+  TypeKind get kind => TypeKind.float64x2Type;
+
+  @override
+  ast.DartType get dartType =>
+      _dartType ??
+      GlobalContext.instance.coreTypes.nonNullableRawType(
+        GlobalContext.instance.astToIrTypes.float64x2Class!,
+      );
+
+  @override
+  String toString() => 'Float64x2';
+}
+
+/// Dart `Int32x4` type.
+final class const Int32x4Type([final ast.DartType? _dartType])
+    extends SimdType {
+  @override
+  TypeKind get kind => TypeKind.int32x4Type;
+
+  @override
+  ast.DartType get dartType =>
+      _dartType ??
+      GlobalContext.instance.coreTypes.nonNullableRawType(
+        GlobalContext.instance.astToIrTypes.int32x4Class!,
+      );
+
+  @override
+  String toString() => 'Int32x4';
 }
 
 /// Shape of the Dart record.

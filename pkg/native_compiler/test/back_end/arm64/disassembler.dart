@@ -942,9 +942,6 @@ class ARM64Decoder {
   }
 
   int formatOption(Instr instr, String option) {
-    if (option.startsWith('r')) return formatRegister(instr, option);
-    if (option.startsWith('v')) return formatVRegister(instr, option);
-
     switch (option[0]) {
       case 'b':
         if (option.startsWith('bitimm')) {
@@ -1027,7 +1024,30 @@ class ARM64Decoder {
         }
         break;
       case 'i':
-        if (option.startsWith('imm12s')) {
+        if (option.startsWith('idx')) {
+          final imm4 = instr.bits(11, 4);
+          final imm5 = instr.bits(16, 5);
+          var shift = 0;
+          var imm = -1;
+          if (option.startsWith('idx4')) {
+            imm = imm4;
+          } else if (option.startsWith('idx5')) {
+            imm = imm5;
+            shift = 1;
+          }
+          var idx = -1;
+          if ((imm5 & 0x1) != 0) {
+            idx = imm >> shift;
+          } else if ((imm5 & 0x2) != 0) {
+            idx = imm >> (shift + 1);
+          } else if ((imm5 & 0x4) != 0) {
+            idx = imm >> (shift + 2);
+          } else if ((imm5 & 0x8) != 0) {
+            idx = imm >> (shift + 3);
+          }
+          print("[$idx]");
+          return 4;
+        } else if (option.startsWith('imm12s')) {
           int imm = instr.imm12Field();
           if (instr.imm12ShiftField() == 1) imm <<= 12;
           print("#0x${imm.toRadixString(16)}");
@@ -1094,6 +1114,9 @@ class ARM64Decoder {
           return 6;
         }
         break;
+      case 'r':
+        if (option.startsWith('r')) return formatRegister(instr, option);
+        break;
       case 's':
         if (option.startsWith('shift_op')) {
           printShiftExtendRm(instr);
@@ -1114,6 +1137,16 @@ class ARM64Decoder {
         } else {
           if (instr.hasS()) print("s");
           return 1;
+        }
+      case 'v':
+        if (option.startsWith('vsz')) {
+          // Floating-point (opcode<4:3> == 0b11) or integer element size.
+          final isFP = instr.bits(14, 2) == 3;
+          final isDouble = instr.bit(22) == 1;
+          print(isFP ? (isDouble ? 'd' : 's') : (isDouble ? 'x' : 'w'));
+          return 3;
+        } else {
+          return formatVRegister(instr, option);
         }
     }
     throw 'Unexpected format option $option';
@@ -1816,8 +1849,103 @@ class ARM64Decoder {
     }
   }
 
-  void decodeSIMDCopy(Instr instr) => unknown(instr);
-  void decodeSIMDThreeSame(Instr instr) => unknown(instr);
+  void decodeSIMDCopy(Instr instr) {
+    final bitQ = instr.bit(30);
+    final op = instr.bit(29);
+    final imm4 = instr.bits(11, 4);
+
+    if ((op == 0) && (imm4 == 7)) {
+      if (bitQ == 0) {
+        format(instr, "vmovrs 'rd, 'vn'idx5");
+      } else {
+        format(instr, "vmovrd 'rd, 'vn'idx5");
+      }
+    } else if ((op == 0) && (imm4 == 5)) {
+      if (bitQ == 0) {
+        format(instr, "smovrs 'rd, 'vn'idx5");
+      } else {
+        format(instr, "smovrd 'rd, 'vn'idx5");
+      }
+    } else if ((bitQ == 1) && (op == 0) && (imm4 == 0)) {
+      format(instr, "vdup'csz 'vd, 'vn'idx5");
+    } else if ((bitQ == 1) && (op == 0) && (imm4 == 3)) {
+      format(instr, "vins'csz 'vd'idx5, 'rn");
+    } else if ((bitQ == 1) && (op == 0) && (imm4 == 1)) {
+      format(instr, "vdup'csz 'vd, 'rn");
+    } else if ((bitQ == 1) && (op == 1)) {
+      format(instr, "vins'csz 'vd'idx5, 'vn'idx4");
+    } else {
+      unknown(instr);
+    }
+  }
+
+  void decodeSIMDThreeSame(Instr instr) {
+    final bitQ = instr.bit(30);
+    final bitU = instr.bit(29);
+    final opcode = instr.bits(11, 5);
+
+    if (bitQ == 0) {
+      unknown(instr);
+      return;
+    }
+
+    if ((bitU == 0) && (opcode == 0x3)) {
+      if (instr.bit(23) == 0) {
+        if (instr.bit(22) == 0) {
+          format(instr, "vand 'vd, 'vn, 'vm");
+        } else {
+          format(instr, "vbic 'vd, 'vn, 'vm");
+        }
+      } else {
+        format(instr, "vorr 'vd, 'vn, 'vm");
+      }
+    } else if ((bitU == 1) && (opcode == 0x3)) {
+      format(instr, "veor 'vd, 'vn, 'vm");
+    } else if ((bitU == 1) && (opcode == 0x11)) {
+      format(instr, "vceq'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 0) && (opcode == 0x8)) {
+      format(instr, "vsshl'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 1) && (opcode == 0x8)) {
+      format(instr, "vushl'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 0) && (opcode == 0x10)) {
+      format(instr, "vadd'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 1) && (opcode == 0x10)) {
+      format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 0) && (opcode == 0x1a)) {
+      if (instr.bit(23) == 0) {
+        format(instr, "vadd'vsz 'vd, 'vn, 'vm");
+      } else {
+        format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+      }
+    } else if ((bitU == 1) && (opcode == 0x1b)) {
+      format(instr, "vmul'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 1) && (opcode == 0x1f)) {
+      format(instr, "vdiv'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 0) && (opcode == 0x1c)) {
+      format(instr, "vceq'vsz 'vd, 'vn, 'vm");
+    } else if ((bitU == 1) && (opcode == 0x1c)) {
+      if (instr.bit(23) == 1) {
+        format(instr, "vcgt'vsz 'vd, 'vn, 'vm");
+      } else {
+        format(instr, "vcge'vsz 'vd, 'vn, 'vm");
+      }
+    } else if ((bitU == 0) && (opcode == 0x1e)) {
+      if (instr.bit(23) == 1) {
+        format(instr, "vmin'vsz 'vd, 'vn, 'vm");
+      } else {
+        format(instr, "vmax'vsz 'vd, 'vn, 'vm");
+      }
+    } else if ((bitU == 0) && (opcode == 0x1f)) {
+      if (instr.bit(23) == 1) {
+        format(instr, "vrsqrt'vsz 'vd, 'vn, 'vm");
+      } else {
+        format(instr, "vrecps'vsz 'vd, 'vn, 'vm");
+      }
+    } else {
+      unknown(instr);
+    }
+  }
+
   void decodeSIMDTwoReg(Instr instr) => unknown(instr);
 
   void decodeFP(Instr instr) {

@@ -127,6 +127,15 @@ class MockVmService {
     }
   }
 
+  void sendStreamNotify(String streamId, Map<String, Object?> event) {
+    for (final client in clients) {
+      client.sendNotification('streamNotify', <String, Object?>{
+        'streamId': streamId,
+        'event': event,
+      });
+    }
+  }
+
   Future<void> shutdown() async {
     for (final client in clients) {
       await client.close();
@@ -230,6 +239,112 @@ void main() {
       expect(timeline.timeOriginMicros, 1);
       expect(timeline.timeExtentMicros, 1000);
       expect(utf8.decode(base64Decode(timeline.trace!)), 'vm-timeline');
+    });
+
+    test(
+      'getAvailableCachedCpuSamples and getCachedCpuSamples return deprecated '
+      'placeholder values',
+      () async {
+        final serialized = CachedCpuSamples(
+          userTag: 'customTag',
+          truncated: false,
+          samplePeriod: -1,
+          maxStackDepth: -1,
+          sampleCount: -1,
+          timeOriginMicros: -1,
+          timeExtentMicros: -1,
+          pid: -1,
+          functions: <vm.ProfileFunction>[],
+          samples: <vm.CpuSample>[],
+        ).toJson();
+        final parsed = CachedCpuSamples.parse(serialized);
+        expect(parsed, isNotNull);
+        expect(parsed!.type, 'CachedCpuSamples');
+        expect(parsed.userTag, 'customTag');
+        expect(parsed.truncated, isFalse);
+
+        // ignore: deprecated_member_use
+        final available = await ddsClient!.getAvailableCachedCpuSamples();
+        expect(available.cacheNames, isEmpty);
+
+        // ignore: deprecated_member_use
+        final samples = await ddsClient!.getCachedCpuSamples(
+          'isolates/1',
+          'fakeTag',
+        );
+        expect(samples.type, 'CachedCpuSamples');
+        expect(samples.userTag, '');
+        expect(samples.truncated, isNull);
+        expect(samples.toJson().containsKey('truncated'), isFalse);
+        expect(samples.samplePeriod, -1);
+        expect(samples.maxStackDepth, -1);
+        expect(samples.sampleCount, -1);
+        expect(samples.timeOriginMicros, -1);
+        expect(samples.timeExtentMicros, -1);
+        expect(samples.pid, -1);
+        expect(samples.functions, isEmpty);
+        expect(samples.samples, isEmpty);
+      },
+    );
+
+    test('getStreamHistory returns buffered raw events and rejects unsupported '
+        'streams', () async {
+      final nullInstanceRef = vm.InstanceRef(
+        kind: vm.InstanceKind.kNull,
+        id: 'objects/null',
+        valueAsString: 'null',
+      );
+      final messageRef = vm.InstanceRef(
+        kind: vm.InstanceKind.kString,
+        id: 'objects/1',
+        valueAsString: 'hello history',
+      );
+      final event = vm.Event(
+        kind: vm.EventKind.kLogging,
+        timestamp: 123456,
+        logRecord: vm.LogRecord(
+          sequenceNumber: 1,
+          time: 123456,
+          level: 800,
+          loggerName: nullInstanceRef,
+          message: messageRef,
+          zone: nullInstanceRef,
+          error: nullInstanceRef,
+          stackTrace: nullInstanceRef,
+        ),
+      );
+      final eventFuture = ddsClient!.onLoggingEvent.first;
+      await ddsClient!.streamListen(vm.EventStreams.kLogging);
+      mockVmService!.sendStreamNotify(vm.EventStreams.kLogging, event.toJson());
+      await eventFuture;
+
+      final streamHistory = await ddsClient!.getStreamHistory(
+        vm.EventStreams.kLogging,
+      );
+      expect(streamHistory.history, hasLength(1));
+      final recordedEvent = streamHistory.history.single;
+      expect(recordedEvent.kind, vm.EventKind.kLogging);
+      expect(recordedEvent.timestamp, 123456);
+      final recordedLog = recordedEvent.logRecord!;
+      expect(recordedLog.sequenceNumber, 1);
+      expect(recordedLog.time, 123456);
+      expect(recordedLog.level, 800);
+      expect(recordedLog.message, messageRef);
+      expect(recordedLog.loggerName, nullInstanceRef);
+      expect(recordedLog.zone, nullInstanceRef);
+      expect(recordedLog.error, nullInstanceRef);
+      expect(recordedLog.stackTrace, nullInstanceRef);
+
+      await expectLater(
+        ddsClient!.getStreamHistory(vm.EventStreams.kIsolate),
+        throwsA(
+          isA<vm.RPCError>().having(
+            (e) => e.code,
+            'code',
+            vm.RPCErrorKind.kInvalidParams.code,
+          ),
+        ),
+      );
     });
 
     test('does not start DTD when serveDevTools is false', () async {
