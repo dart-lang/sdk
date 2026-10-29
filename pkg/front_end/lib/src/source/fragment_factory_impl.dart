@@ -2225,6 +2225,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool hasSuper,
     required int nameOffset,
     required Token? initializerToken,
+    required UriOffsetLength uriOffset,
   }) {
     assert(
       !hasThis || !hasSuper,
@@ -2251,8 +2252,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       type: type,
       name: name,
       nameOffset: nameOffset,
-      fileOffset: nameOffset,
-      fileUri: _compilationUnit.fileUri,
+      uriOffset: uriOffset,
       defaultValueToken: initializerToken,
       hasImmediatelyDeclaredDefaultValue: initializerToken != null,
       wildcardIndex: wildcardIndex,

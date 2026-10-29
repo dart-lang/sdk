@@ -1022,8 +1022,7 @@ class const _ExtensionInstanceMethodStrategy()
           fragment.enclosingDeclaration!.typeParameters,
       typeParameterFactory: typeParameterFactory,
       onTypeBuilder: declarationBuilder.onType,
-      fileUri: fragment.fileUri,
-      fileOffset: fragment.nameOffset,
+      uriOffset: fragment.uriOffset,
       isClosureContextLoweringEnabled:
           builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
     );
@@ -1148,8 +1147,7 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
           extensionTypeTypeParameters:
               fragment.enclosingDeclaration!.typeParameters,
           typeParameterFactory: typeParameterFactory,
-          fileUri: fragment.fileUri,
-          fileOffset: fragment.nameOffset,
+          uriOffset: fragment.uriOffset,
           isClosureContextLoweringEnabled:
               builder.libraryBuilder.loader.isClosureContextLoweringEnabled,
         );

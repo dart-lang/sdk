@@ -997,8 +997,7 @@ class RegularConstructorDeclaration
     _formals = encodingStrategy.createFormals(
       loader: loader,
       formals: _fragment.formals,
-      fileUri: _fragment.fileUri,
-      fileOffset: _fragment.fullNameOffset,
+      uriOffset: _fragment.uriOffset,
     );
     parameters.registerParameters(_formals, isImplementation: isImplementation);
     _encoding = encodingStrategy.createEncoding(
@@ -1336,8 +1335,7 @@ class PrimaryConstructorDeclaration
     _formals = encodingStrategy.createFormals(
       loader: loader,
       formals: _fragment.formals,
-      fileUri: _fragment.fileUri,
-      fileOffset: _fragment.fileOffset,
+      uriOffset: _fragment.uriOffset,
     );
     parameters.registerParameters(_formals, isImplementation: isImplementation);
     _encoding = encodingStrategy.createEncoding(
