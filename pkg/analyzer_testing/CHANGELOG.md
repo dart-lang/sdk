@@ -1,3 +1,9 @@
+## 0.4.6-dev
+
+- Require version `14.8.0-dev` of the `analyzer` package.
+- Require version `0.14.21-dev` of the `analyzer_plugin` package.
+- Require version `0.3.27-dev` of the `analysis_server_plugin` package.
+
 ## 0.4.5
 
 - Require version `14.7.0` of the `analyzer` package.
