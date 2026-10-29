@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -33,7 +34,9 @@ class WorkspaceDidChangeConfigurationMessageHandler
     // they can be resource-scoped, so this is used only as a notification and
     // to keep settings up-to-date we must re-request them from the client
     // whenever we are told they may have changed.
-    await server.fetchClientConfiguration();
+    await server.fetchClientConfiguration(
+      ContextRebuildReasons.clientConfigurationChanged,
+    );
 
     return success(null);
   }

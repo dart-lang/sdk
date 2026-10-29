@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closing_labels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
@@ -315,7 +316,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await refreshAnalysisRoots();
+        await refreshAnalysisRoots(ContextRebuildReasons.priorityFileAdded);
       }
     }
   }
@@ -327,8 +328,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// register/unregister requests for any supported/enabled dynamic
   /// registrations.
   @override
-  Future<void> fetchClientConfiguration() async {
-    await super.fetchClientConfiguration();
+  Future<void> fetchClientConfiguration(String reason) async {
+    await super.fetchClientConfiguration(reason);
 
     // Client config can affect capabilities, so this should only be done after
     // we have the initial/updated config.
@@ -702,7 +703,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   @override
   @protected
-  Future<void> refreshAnalysisRoots() async {
+  Future<void> refreshAnalysisRoots(String reason) async {
     // When there are open folders, they are always the roots. If there are no
     // open workspace folders, then we use the open (priority) files to compute
     // roots.
@@ -737,7 +738,7 @@ class LspAnalysisServer extends AnalysisServer {
     } else {
       var completer = analysisContextRebuildCompleter = Completer();
       try {
-        await contextManager.setRoots(includedPaths, excludedPaths);
+        await contextManager.setRoots(includedPaths, excludedPaths, reason);
       } finally {
         completer.complete();
       }
@@ -765,7 +766,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await refreshAnalysisRoots();
+        await refreshAnalysisRoots(ContextRebuildReasons.priorityFileRemoved);
       }
     }
   }
@@ -1052,6 +1053,7 @@ class LspAnalysisServer extends AnalysisServer {
   Future<void> updateWorkspaceFolders(
     List<String> addedPaths,
     List<String> removedPaths,
+    String reason,
   ) async {
     // TODO(dantup): This is currently case-sensitive!
 
@@ -1082,9 +1084,9 @@ class LspAnalysisServer extends AnalysisServer {
     try {
       // This async request is why we need to prevent this code running
       // concurrently because they could overlap with each other.
-      await fetchClientConfiguration();
+      await fetchClientConfiguration(reason);
 
-      await refreshAnalysisRoots();
+      await refreshAnalysisRoots(reason);
     } finally {
       completer.complete();
     }

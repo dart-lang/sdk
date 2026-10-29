@@ -18,6 +18,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
@@ -143,6 +144,9 @@ class AnalysisServerOptions {
 
   String? clientId;
   String? clientVersion;
+
+  /// An string describing why the server was started/restarted.
+  String startReason = ContextRebuildReasons.unknown;
 
   /// Base path where to cache data.
   String? cacheFolder;
@@ -394,6 +398,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// This is set once the client sends any LSP request or client capability
   /// that depends on LSP functionality.
   bool sendLspNotifications = false;
+
+  /// Whether the next call to [setAnalysisRoots] is the first one since the
+  /// server started.
+  bool _isFirstAnalysisRoots = true;
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
@@ -1012,8 +1020,17 @@ class LegacyAnalysisServer extends AnalysisServer {
     var completer = analysisContextRebuildCompleter = Completer();
     try {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+      // For legacy server, there's no difference between the first
+      // setAnalysisRoots call after starting the server and a subsequent call
+      // because of a change in the IDE workspace. Therefore we use a flag
+      // to count the first one as the servers start reason, otherwise an
+      // analysis root change.
+      var reason = _isFirstAnalysisRoots
+          ? options.startReason
+          : ContextRebuildReasons.analysisRootsChanged;
+      _isFirstAnalysisRoots = false;
       try {
-        await contextManager.setRoots(includedPaths, excludedPaths);
+        await contextManager.setRoots(includedPaths, excludedPaths, reason);
       } on UnimplementedError catch (e) {
         throw RequestFailure(
           Response.unsupportedFeature(

@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart' as lsp;
 import 'package:analyzer/exception/exception.dart';
@@ -84,7 +85,9 @@ class ServerSetClientCapabilitiesHandler extends LegacyHandler {
   /// `LegacyAnalysisServer.handleRequest` as a second (failed) response to it.
   Future<void> _fetchClientConfiguration() async {
     try {
-      await server.fetchClientConfiguration();
+      await server.fetchClientConfiguration(
+        ContextRebuildReasons.clientCapabilitiesChanged,
+      );
     } catch (exception, stackTrace) {
       server.instrumentationService.logException(
         CaughtException.withMessage(
