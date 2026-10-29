@@ -8,6 +8,7 @@ import("../aot_snapshot.gni")
 aot_snapshot("gen_kernel") {
   main_dart = "../../pkg/vm/bin/gen_kernel.dart"
   deps = [ "../../runtime/vm:vm_platform" ]
+  dill = "$target_gen_dir/gen_kernel.aot.dill"
   output = "$root_gen_dir/gen_kernel_aot.dart.snapshot"
 
   # dartaotruntime has dart_product_config applied to it,

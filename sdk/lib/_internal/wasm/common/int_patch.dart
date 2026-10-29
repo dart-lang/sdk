@@ -151,11 +151,12 @@ class int {
     for (int i = start; i < end; i++) {
       int char = source.codeUnitAtUnchecked(i);
       int digit = char ^ 0x30;
-      if (digit > 9) {
+      final isDecimalDigit = digit <= 9;
+      if (!isDecimalDigit) {
         digit = (char | 0x20) - (0x61 - 10);
-        if (digit < 10 || digit >= radix) {
-          return _handleFormatError(onError, source, start, radix, null);
-        }
+      }
+      if ((!isDecimalDigit && digit < 10) || digit >= radix) {
+        return _handleFormatError(onError, source, start, radix, null);
       }
 
       if (sign > 0) {

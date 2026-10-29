@@ -85,6 +85,7 @@ aot_snapshot("frontend_server_aot") {
 aot_snapshot("frontend_server_aot_product") {
   main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
   name = "frontend_server_aot_product"
+  dill = "$target_gen_dir/frontend_server_aot_product.aot.dill"
   output = "$root_out_dir/frontend_server_aot_product.dart.snapshot"
 
   # dartaotruntime in the dart sdk has dart_product_config applied to it,

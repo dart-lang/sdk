@@ -25,6 +25,7 @@ aot_snapshot("dartdevc_aot") {
 aot_snapshot("dartdevc_aot_product") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
   name = "dartdevc_aot_product"
+  dill = "$target_gen_dir/dartdevc_aot_product.aot.dill"
   output = "$root_gen_dir/dartdevc_aot_product.dart.snapshot"
 
   # dartaotruntime in the dart sdk has dart_product_config applied to it,
