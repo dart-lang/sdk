@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -45,7 +46,22 @@ class ImportAddShow extends ResolvedCorrectionProducer {
     var namespace = getImportNamespace(importElement);
     // prepare names of referenced elements (from this import)
     var visitor = _ReferenceFinder(namespace);
-    unit.accept(visitor);
+    var unitFragment = unit.declaredFragment;
+    if (unitFragment == null) {
+      // We can't compute the tree of parts, so we visit the one part we have.
+      unit.accept(visitor);
+    } else {
+      // Find all of the units for all of the parts that are nested under the
+      // part that contains the import, and visit all of them.
+      var nestedFragments = unitFragment.withAllNestedFragments;
+      var nestedUnitResults = libraryResult.units.where(
+        (result) => nestedFragments.contains(result.libraryFragment),
+      );
+      for (var unitResults in nestedUnitResults) {
+        unitResults.unit.accept(visitor);
+      }
+    }
+
     var referencedNames = visitor.referencedNames;
     // ignore if unused
     if (referencedNames.isEmpty) {
