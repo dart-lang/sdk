@@ -144,7 +144,7 @@ vars = {
   "native_rev": "e0ca7c60ffa6fe7377b26712569e9535c28f90ed",
   "protobuf_rev": "1d52301b3dd61be159c55143c048a745175fead3",
   "pub_rev": "9df389a76385f82c1165c7cf93b78807b5ea8890", # rolled manually
-  "shelf_rev": "73b23828d7d8d4ffbb8fec62022bd48b48583250",
+  "shelf_rev": "62d3e4ee2503c3c497f749276e86b2331c18fd6a",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "201952a191be34a993f4ae182612c891ea4ef0a2",
   "test_rev": "6d747209b2565e648f1c8d36ecb99d206a3f1e0e",
