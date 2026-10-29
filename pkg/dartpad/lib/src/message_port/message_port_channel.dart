@@ -236,9 +236,15 @@ void _decodeJsonRpcMessage(
 void _encodeJsonRpcMessage(Object? m, EventSink<MessagePortMessage> sink) {
   MessagePort? port;
   Uint8List? bytes;
-  if (m is Map) {
+  if (m case Map map) {
     for (final prop in ['params', 'result']) {
-      if (m[prop] case final Map v) {
+      if (map[prop] case Map v) {
+        if (v['port'] is MessagePort || v['bytes'] is Uint8List) {
+          m = map = {
+            ...map,
+            prop: v = {...v},
+          };
+        }
         if (v['port'] case final MessagePort p) {
           port = p;
           v.remove('port');
@@ -252,7 +258,7 @@ void _encodeJsonRpcMessage(Object? m, EventSink<MessagePortMessage> sink) {
 
     // package:json_rpc_2 will automatically add error.data.request.params
     // to error messages; if they contain port or bytes we strip them.
-    if (m['error'] case {'data': {'request': {'params': final Map params}}}) {
+    if (map['error'] case {'data': {'request': {'params': final Map params}}}) {
       if (params['port'] is MessagePort) {
         params.remove('port');
       }
