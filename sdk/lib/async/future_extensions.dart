@@ -56,7 +56,7 @@ extension FutureIterable<T> on Iterable<Future<T>> {
 
 bool _notNull(Object? object) => object != null;
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 ///
 /// {@template record-parallel-wait}
 /// Waits for futures concurrently.
@@ -103,7 +103,7 @@ extension FutureRecord2<T1, T2> on (Future<T1>, Future<T2>) {
   }
 }
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 @Since("3.0")
 extension FutureRecord3<T1, T2, T3> on (Future<T1>, Future<T2>, Future<T3>) {
   /// {@macro record-parallel-wait}
@@ -132,7 +132,7 @@ extension FutureRecord3<T1, T2, T3> on (Future<T1>, Future<T2>, Future<T3>) {
   }
 }
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 @Since("3.0")
 extension FutureRecord4<T1, T2, T3, T4>
     on (Future<T1>, Future<T2>, Future<T3>, Future<T4>) {
@@ -167,7 +167,7 @@ extension FutureRecord4<T1, T2, T3, T4>
   }
 }
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 @Since("3.0")
 extension FutureRecord5<T1, T2, T3, T4, T5>
     on (Future<T1>, Future<T2>, Future<T3>, Future<T4>, Future<T5>) {
@@ -216,7 +216,7 @@ extension FutureRecord5<T1, T2, T3, T4, T5>
   }
 }
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 @Since("3.0")
 extension FutureRecord6<T1, T2, T3, T4, T5, T6>
     on
@@ -284,7 +284,7 @@ extension FutureRecord6<T1, T2, T3, T4, T5, T6>
   }
 }
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 @Since("3.0")
 extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7>
     on
@@ -358,7 +358,7 @@ extension FutureRecord7<T1, T2, T3, T4, T5, T6, T7>
   }
 }
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 @Since("3.0")
 extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8>
     on
@@ -438,7 +438,7 @@ extension FutureRecord8<T1, T2, T3, T4, T5, T6, T7, T8>
   }
 }
 
-/// Parallel operations on a record of futures.
+/// Concurrent operations on a record of futures.
 @Since("3.0")
 extension FutureRecord9<T1, T2, T3, T4, T5, T6, T7, T8, T9>
     on
