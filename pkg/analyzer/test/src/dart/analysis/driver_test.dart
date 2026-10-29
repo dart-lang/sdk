@@ -632,6 +632,66 @@ void f() {
 ''');
   }
 
+  test_cachedPriorityResults_flush_onClearLibraryContext() async {
+    var a = newFile('$testPackageLibPath/a.dart', '');
+
+    var driver = driverFor(testFile);
+    var collector = DriverEventCollector(driver);
+
+    driver.priorityFiles2 = [a];
+
+    collector.getResolvedUnit('A1', a);
+    collector.getResolvedLibrary('L1', a);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
+[future] getResolvedUnit A1
+  ResolvedUnitResult #0
+[future] getResolvedLibrary L1
+  ResolvedLibraryResult #1
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #0
+''');
+
+    // Clear the library context.
+    // The cache is flushed, so we get new results.
+    driver.clearLibraryContext();
+    expect(driver.getCachedResolvedUnit2(a), isNull);
+    collector.getResolvedUnit('A2', a);
+    collector.getResolvedLibrary('L2', a);
+    await assertEventsText(collector, r'''
+[status] working
+[operation] analyzeFile
+  file: /home/test/lib/a.dart
+  library: /home/test/lib/a.dart
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[status] idle
+[future] getResolvedUnit A2
+  ResolvedUnitResult #2
+[future] getResolvedLibrary L2
+  ResolvedLibraryResult #3
+    element: package:test/a.dart
+    units
+      ResolvedUnitResult #2
+''');
+  }
+
   test_cachedPriorityResults_flush_onPrioritySetChange() async {
     var a = newFile('$testPackageLibPath/a.dart', '');
     var b = newFile('$testPackageLibPath/b.dart', '');
