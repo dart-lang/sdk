@@ -887,7 +887,8 @@ class FileState {
   }
 
   /// Invalidate any data that depends on the current unlinked data of the file,
-  /// because [refresh] is going to recompute the unlinked data.
+  /// because [refresh] is going to recompute the unlinked data, or because the
+  /// file is removed from [FileSystemState].
   void _invalidateCurrentUnresolvedData() {
     if (_driverUnlinkedUnit != null) {
       for (var name in _driverUnlinkedUnit!.subtypedNames) {
@@ -1360,6 +1361,8 @@ class FileSystemState {
 
     // The removed file does not reference other files anymore.
     file._kind?.dispose();
+
+    file._invalidateCurrentUnresolvedData();
 
     // Release this unlinked data.
     unlinkedUnitStore.release(file.unlinkedKey);
