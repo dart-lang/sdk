@@ -17224,6 +17224,33 @@ LinterLintCode:
       }
       ```
 
+      The analyzer also produces this diagnostic, with a message saying the use
+      is guarded by an unrelated `mounted` check, when the `mounted` property
+      that was checked doesn't match the `BuildContext` being used. A use of a
+      `State`'s `context` property must be guarded by the `State`'s `mounted`
+      property. Any other `BuildContext`, like a parameter or local variable,
+      must be guarded by that `BuildContext`'s `mounted` property.
+
+      The following code produces this diagnostic because `context` is the
+      `State`'s `context` property, but the code checks `context.mounted`
+      rather than the `State`'s `mounted` property:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyState extends State<StatefulWidget> {
+        void onButtonTapped() async {
+          await Future.delayed(const Duration(seconds: 1));
+          if (context.mounted) {
+            Navigator.of([!context!]).pop();
+          }
+        }
+
+        @override
+        Widget build(BuildContext context) => const SizedBox();
+      }
+      ```
+
       #### Common fixes
 
       If you can remove the asynchronous gap, do so:
@@ -17251,6 +17278,26 @@ LinterLintCode:
             Navigator.of(context).pop();
           }
         }
+      }
+      ```
+
+      If the diagnostic says the `mounted` check is unrelated, then check the
+      `mounted` property that matches the `BuildContext` being used. For the
+      `State`'s `context` property, check the `State`'s `mounted` property:
+
+      ```dart
+      import 'package:flutter/material.dart';
+
+      class MyState extends State<StatefulWidget> {
+        void onButtonTapped() async {
+          await Future.delayed(const Duration(seconds: 1));
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+
+        @override
+        Widget build(BuildContext context) => const SizedBox();
       }
       ```
     deprecatedDetails: |-
