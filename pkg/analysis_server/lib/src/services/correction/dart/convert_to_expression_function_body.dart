@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -142,21 +143,20 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
   /// An expression body extends as far to the right as possible, so if the
   /// function expression is followed by anything that could continue an
   /// expression (an argument list, a selector, a cascade section, an operator,
-  /// etc.), then that code would be absorbed into the new body.
+  /// etc.), then that code would be absorbed into the new body. Such tokens
+  /// are exactly those with a non-trivial [Precedence], so that's used here
+  /// rather than enumerating the terminator tokens (`,`, `)`, `]`, `}`, `;`,
+  /// `:`, EOF) that are safe, which would be fragile in the face of new or
+  /// uncommon token types.
   FunctionExpression? _closureNeedingParentheses(AstNode? node) {
     if (node is! FunctionExpression || node.parent is FunctionDeclaration) {
       return null;
     }
-    return switch (node.endToken.next?.type) {
-      TokenType.COMMA ||
-      TokenType.CLOSE_PAREN ||
-      TokenType.CLOSE_SQUARE_BRACKET ||
-      TokenType.CLOSE_CURLY_BRACKET ||
-      TokenType.SEMICOLON ||
-      TokenType.COLON ||
-      TokenType.EOF ||
-      null => null,
-      _ => node,
-    };
+    var nextType = node.endToken.next?.type;
+    if (nextType == null ||
+        Precedence.forTokenType(nextType) == Precedence.none) {
+      return null;
+    }
+    return node;
   }
 }
