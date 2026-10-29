@@ -155,8 +155,8 @@ vars = {
   "webkit_inspection_protocol_rev": "2c255f2a153239d009385774f12eb57e1c3056eb",
 
   # Windows deps
-  "crashpad_rev": "d256de317164c0eb362bdd9cbb4d259fe6d086f3",
-  "minichromium_rev": "203a01130fac64bfdcc8cab2e1798c7b2c0619bf",
+  "crashpad_rev": "86aed0d4e037f9af6347b8b21daa37ea779234b2",
+  "minichromium_rev": "c029983310e7b806aa4c75463d3a013c9558abde",
   "googletest_rev": "f854f1d27488996dc8a6db3c9453f80b02585e12",
 
   # Pinned browser versions used by the testing infrastructure. These are not
