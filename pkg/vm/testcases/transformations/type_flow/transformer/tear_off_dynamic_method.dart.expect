@@ -13,11 +13,12 @@ class B extends self::A {
     : super self::A::•()
     ;
 
-  [@vm.inferred-return-type.metadata=int]
+  [@vm.inferred-return-type.metadata=!]
   [@vm.procedure-attributes.metadata=hasThisUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
-  [@vm.unboxing-info.metadata=()->i]
   method foo() → core::int
-    return _in::unsafeCast<core::int>([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] 1.{core::num::+}(_in::unsafeCast<core::num>([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=int (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo())){(core::num) → core::num});
+    return _in::unsafeCast<core::int>( block {
+      _in::unsafeCast<core::num>([@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=! (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult(){dynamic}.foo());
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)");
 }
 class TearOffDynamicMethod extends core::Object {
 
