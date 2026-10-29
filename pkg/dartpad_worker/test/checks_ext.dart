@@ -17,40 +17,41 @@ import 'package:vm_service/vm_service.dart';
 export 'package:checks/checks.dart';
 
 extension FileChangeEventChecks on Subject<FileChangeEvent> {
-  Subject<String> get path => has((e) => e.path, 'path');
+  Subject<String> get path => has2('path', (e) => e.path);
 }
 
 extension ResourceChecks on Subject<Resource> {
-  void get exists => has((r) => r.exists, 'exists').isTrue;
-  void get doesNotExist => has((r) => r.exists, 'exists').isFalse;
+  void get exists => has2('exists', (r) => r.exists).isTrue;
+  void get doesNotExist => has2('exists', (r) => r.exists).isFalse;
 }
 
 extension FolderChecks on Subject<Folder> {
   Subject<File> file(String path) =>
-      has((f) => f.getFile(path), 'file ($path)');
+      has2('file ($path)', (f) => f.getFile(path));
 
   Subject<Folder> folder(String path) =>
-      has((f) => f.getFolder(path), 'folder ($path)');
+      has2('folder ($path)', (f) => f.getFolder(path));
 }
 
 extension FileChecks on Subject<File> {
-  Subject<String> get contents => has((f) => f.readAsStringSync(), 'contents');
+  Subject<String> get contents => has2('contents', (f) => f.readAsStringSync());
 }
 
 extension DartPadExceptionChecks on Subject<DartPadException> {
-  Subject<String> get message => has((e) => e.message, 'message');
+  Subject<String> get message => has2('message', (e) => e.message);
 }
 
 extension CompiledModuleChecks on Subject<CompiledModule> {
-  Subject<String> get moduleName => has((m) => m.moduleName, 'moduleName');
-  Subject<String> get code => has((m) => m.code, 'code');
-  Subject<List<String>> get libraries => has((m) => m.libraries, 'libraries');
+  Subject<String> get moduleName => has2('moduleName', (m) => m.moduleName);
+  Subject<String> get code => has2('code', (m) => m.code);
+  Subject<List<String>> get libraries => has2('libraries', (m) => m.libraries);
 }
 
 extension CompileResultChecks on Subject<CompileResult> {
-  Subject<List<CompiledModule>> get modules => has((s) => s.modules, 'modules');
+  Subject<List<CompiledModule>> get modules =>
+      has2('modules', (s) => s.modules);
 
-  Subject<String> get log => has((s) => s.log, 'log');
+  Subject<String> get log => has2('log', (s) => s.log);
 
   /// Some bundle contains [pattern].
   void anyModuleContains(Pattern pattern) =>
@@ -77,45 +78,45 @@ extension RpcServerChecks on Subject<rpc.Server> {
 }
 
 extension VmServiceEventChecks on Subject<Event> {
-  Subject<String?> get kind => has((e) => e.kind, 'kind');
-  Subject<String?> get service => has((e) => e.service, 'service');
+  Subject<String?> get kind => has2('kind', (e) => e.kind);
+  Subject<String?> get service => has2('service', (e) => e.service);
   Subject<String?> get extensionRPC =>
-      has((e) => e.extensionRPC, 'extensionRPC');
+      has2('extensionRPC', (e) => e.extensionRPC);
   Subject<String?> get extensionKind =>
-      has((e) => e.extensionKind, 'extensionKind');
+      has2('extensionKind', (e) => e.extensionKind);
   Subject<ExtensionData?> get extensionData =>
-      has((e) => e.extensionData, 'extensionData');
-  Subject<IsolateRef?> get isolate => has((e) => e.isolate, 'isolate');
-  Subject<LogRecord?> get logRecord => has((e) => e.logRecord, 'logRecord');
-  Subject<String?> get bytes => has((e) => e.bytes, 'bytes');
+      has2('extensionData', (e) => e.extensionData);
+  Subject<IsolateRef?> get isolate => has2('isolate', (e) => e.isolate);
+  Subject<LogRecord?> get logRecord => has2('logRecord', (e) => e.logRecord);
+  Subject<String?> get bytes => has2('bytes', (e) => e.bytes);
   Subject<String> get decodedBytes =>
-      has((e) => utf8.decode(base64Decode(e.bytes!)), 'decodedBytes');
+      has2('decodedBytes', (e) => utf8.decode(base64Decode(e.bytes!)));
 }
 
 extension VmServiceExtensionDataChecks on Subject<ExtensionData> {
-  Subject<Map<String, dynamic>?> get data => has((d) => d.data, 'data');
+  Subject<Map<String, dynamic>?> get data => has2('data', (d) => d.data);
 }
 
 extension VmServiceIsolateRefChecks on Subject<IsolateRef> {
-  Subject<String?> get id => has((i) => i.id, 'id');
-  Subject<String?> get name => has((i) => i.name, 'name');
+  Subject<String?> get id => has2('id', (i) => i.id);
+  Subject<String?> get name => has2('name', (i) => i.name);
 }
 
 extension VmServiceLogRecordChecks on Subject<LogRecord> {
-  Subject<InstanceRef?> get message => has((r) => r.message, 'message');
+  Subject<InstanceRef?> get message => has2('message', (r) => r.message);
   Subject<InstanceRef?> get loggerName =>
-      has((r) => r.loggerName, 'loggerName');
-  Subject<int?> get level => has((r) => r.level, 'level');
+      has2('loggerName', (r) => r.loggerName);
+  Subject<int?> get level => has2('level', (r) => r.level);
   Subject<int?> get sequenceNumber =>
-      has((r) => r.sequenceNumber, 'sequenceNumber');
-  Subject<InstanceRef?> get error => has((r) => r.error, 'error');
+      has2('sequenceNumber', (r) => r.sequenceNumber);
+  Subject<InstanceRef?> get error => has2('error', (r) => r.error);
   Subject<InstanceRef?> get stackTrace =>
-      has((r) => r.stackTrace, 'stackTrace');
+      has2('stackTrace', (r) => r.stackTrace);
 }
 
 extension VmServiceInstanceRefChecks on Subject<InstanceRef> {
   Subject<String?> get valueAsString =>
-      has((i) => i.valueAsString, 'valueAsString');
+      has2('valueAsString', (i) => i.valueAsString);
 }
 
 extension StringCheckExt on Subject<String> {
