@@ -1277,8 +1277,8 @@ abstract class StateMachineCodeGenerator extends AstCodeGenerator {
     if (inner == null) return super.visitWhileStatement(node);
     StateTarget after = afterTargets[node]!;
 
-    allocateContext(node);
     emitTargetLabel(inner);
+    allocateContext(node);
     _jumpToTarget(after, condition: node.condition, negated: true);
     translateStatement(node.body);
     _jumpToTarget(inner);
