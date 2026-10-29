@@ -22,6 +22,8 @@ class FindNode extends _FindNodeBase {
 
   BlockClassBody get singleBlockClassBody => _single();
 
+  BlockEnumBody get singleBlockEnumBody => _single();
+
   ClassDeclaration get singleClassDeclaration => _single();
 
   ClassTypeAlias get singleClassTypeAlias => _single();
@@ -34,11 +36,17 @@ class FindNode extends _FindNodeBase {
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
 
+  EmptyClassBody get singleEmptyClassBody => _single();
+
+  EmptyEnumBody get singleEmptyEnumBody => _single();
+
   EnumConstantDeclaration get singleEnumConstantDeclaration => _single();
 
   EnumDeclaration get singleEnumDeclaration => _single();
 
   ExtensionDeclaration get singleExtensionDeclaration => _single();
+
+  ExtensionOverride get singleExtensionOverride => _single();
 
   ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
@@ -327,6 +335,8 @@ class FindNode2 extends _FindNodeBase {
   EnumDeclaration2 get singleEnumDeclaration => _single();
 
   ExtensionDeclaration2 get singleExtensionDeclaration => _single();
+
+  ExtensionOverride2 get singleExtensionOverride => _single();
 
   ExtensionTypeDeclaration2 get singleExtensionTypeDeclaration => _single();
 
@@ -856,6 +866,20 @@ abstract class _FindNodeBase {
 
   ParenthesizedPattern get singleParenthesizedPattern => _single();
 
+  ParsedCascadeName get singleParsedCascadeName => _single();
+
+  ParsedDotShorthandExpression get singleParsedDotShorthandExpression =>
+      _single();
+
+  ParsedDotShorthandName get singleParsedDotShorthandName => _single();
+
+  ParsedNameAccessAssignmentTarget get singleParsedNameAccessAssignmentTarget =>
+      _single();
+
+  ParsedTypeArguments get singleParsedTypeArguments => _single();
+
+  ParsedUnqualifiedName get singleParsedUnqualifiedName => _single();
+
   PartDirective get singlePartDirective => _single();
 
   PartOfDirective get singlePartOfDirective => _single();
@@ -1356,6 +1380,14 @@ abstract class _FindNodeBase {
       search,
       (n) => n is ParsedExpression && n.parent2 is! ParsedExpression,
     );
+  }
+
+  ParsedNameAccess parsedNameAccess(String search) {
+    return _node(search, (n) => n is ParsedNameAccess);
+  }
+
+  ParsedValueArguments parsedValueArguments(String search) {
+    return _node(search, (n) => n is ParsedValueArguments);
   }
 
   PartDirective part(String search) {
