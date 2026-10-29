@@ -1,4 +1,4 @@
-## 14.7.0-dev
+## 14.7.0
 
 * Experiments are enabled for the language version of the host SDK,
   whether they come from `analyzer: enable-experiment:` in analysis
