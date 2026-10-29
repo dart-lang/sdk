@@ -6,6 +6,7 @@ import 'dart:convert' show jsonDecode;
 
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
+import 'package:front_end/src/base/messages.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart';
 
@@ -26,8 +27,6 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/property_builder.dart';
-import '../codes/cfe_codes.dart'
-    show LocatedMessage, Message, CfeSeverity, noLength;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../source/name_scheme.dart';
@@ -48,34 +47,16 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   new(this._dillLibraryBuilder);
 
   @override
+  // Coverage-ignore(suite): Not run.
+  ProblemReporting get problemReporting => _dillLibraryBuilder;
+
+  @override
   void addExporter(
     SourceCompilationUnit exporter,
     List<CombinatorBuilder>? combinators,
     int charOffset,
   ) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void addProblem(
-    Message message,
-    int charOffset,
-    int length,
-    Uri? fileUri, {
-    bool wasHandled = false,
-    List<LocatedMessage>? context,
-    CfeSeverity? severity,
-  }) {
-    _dillLibraryBuilder.addProblem(
-      message,
-      charOffset,
-      length,
-      fileUri,
-      wasHandled: wasHandled,
-      context: context,
-      severity: severity,
-    );
   }
 
   @override

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show CfeSeverity;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
 
@@ -16,8 +14,7 @@ import '../base/directives.dart';
 import '../base/export.dart' show Export;
 import '../base/extension_scope.dart';
 import '../base/loader.dart' show Loader;
-import '../base/messages.dart'
-    show LocatedMessage, Message, ProblemReporting, noLength;
+import '../base/messages.dart' show Message, ProblemReporting, noLength;
 import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../fragment/fragment.dart';
@@ -97,21 +94,7 @@ sealed class CompilationUnit {
     int charOffset,
   );
 
-  /// Add a problem with a severity determined by the severity of the message.
-  ///
-  /// If [fileUri] is null, it defaults to `this.fileUri`.
-  ///
-  /// See `Loader.addMessage` for an explanation of the
-  /// arguments passed to this method.
-  void addProblem(
-    Message message,
-    int charOffset,
-    int length,
-    Uri? fileUri, {
-    bool wasHandled = false,
-    List<LocatedMessage>? context,
-    CfeSeverity? severity,
-  });
+  ProblemReporting get problemReporting;
 }
 
 abstract class DillCompilationUnit implements CompilationUnit {}
