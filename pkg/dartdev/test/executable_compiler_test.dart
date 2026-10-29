@@ -67,13 +67,18 @@ void main() {
       File file(String name, String contents) =>
           File(p.join(dir.path, name))..writeAsStringSync(contents);
 
+      // Depfiles escape backslashes and spaces in paths, as the frontend
+      // server does when it writes them.
+      String escape(String path) =>
+          path.replaceAll(r'\', r'\\').replaceAll(' ', r'\ ');
+
       final source = file('hello.dart', 'void main() {}');
       final packageConfig = file('package_config.json', '{}');
       final platformDill = file('vm_platform.dill', 'platform');
       final snapshot = file('hello.dart.snapshot', 'dill');
       final depfile = file(
         'hello.dart.snapshot${ExecutableCompiler.depfileExtension}',
-        '${snapshot.path}: ${source.path}\n',
+        '${escape(snapshot.path)}: ${escape(source.path)}\n',
       );
       final metadata = file(
         'hello.dart.snapshot${ExecutableCompiler.metadataExtension}',
