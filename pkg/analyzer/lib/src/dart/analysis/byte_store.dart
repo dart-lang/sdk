@@ -73,7 +73,7 @@ class CiderByteStore implements ByteStore {
       if (entry == null) {
         // TODO(scheglov): enable and fix
         // throw StateError('No entry: $key');
-        return;
+        continue;
       }
       entry.refCount--;
       if (entry.refCount == 0) {
