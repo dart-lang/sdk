@@ -2591,6 +2591,23 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
   }
 
+  void smov(Register rd, VectorElement vn, [OperandSize sz = .s64]) {
+    assert(sz.is32or64);
+    assert(vn.sz.sizeInBytes < sz.sizeInBytes);
+    emit(
+      B10 |
+          B11 |
+          B13 |
+          B25 |
+          B26 |
+          B27 |
+          rd.encodingRd() |
+          vn.reg.encodingRn |
+          (vn.encodingImm5 << 16) |
+          (sz.is64 ? B30 : 0),
+    );
+  }
+
   void ins(VectorElement vd, Operand o) {
     final sz = vd.sz;
     switch (o) {

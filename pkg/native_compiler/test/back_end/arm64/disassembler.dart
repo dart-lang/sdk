@@ -1860,6 +1860,12 @@ class ARM64Decoder {
       } else {
         format(instr, "vmovrd 'rd, 'vn'idx5");
       }
+    } else if ((op == 0) && (imm4 == 5)) {
+      if (bitQ == 0) {
+        format(instr, "smovrs 'rd, 'vn'idx5");
+      } else {
+        format(instr, "smovrd 'rd, 'vn'idx5");
+      }
     } else if ((bitQ == 1) && (op == 0) && (imm4 == 0)) {
       format(instr, "vdup'csz 'vd, 'vn'idx5");
     } else if ((bitQ == 1) && (op == 0) && (imm4 == 3)) {

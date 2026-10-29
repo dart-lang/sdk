@@ -1300,7 +1300,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
         final resultReg = outputFPReg(instr);
         _asm.fldr(resultReg, elementAddr, sz);
         _asm.fcvt(resultReg, resultReg, .s32, .s64);
-      case .float64List || .float64ListView || .float64ByteData:
+      case .float64List ||
+          .float64ListView ||
+          .float64ByteData ||
+          .float32x4List ||
+          .float32x4ListView ||
+          .float32x4ByteData ||
+          .float64x2List ||
+          .float64x2ListView ||
+          .float64x2ByteData ||
+          .int32x4List ||
+          .int32x4ListView ||
+          .int32x4ByteData:
         _asm.fldr(outputFPReg(instr), elementAddr, sz);
       default:
         _asm.ldr(outputReg(instr), elementAddr, sz);
@@ -1339,7 +1350,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.fcvt(fpTempReg, inputFPReg(instr, 2), .s64, .s32);
         _asm.fstr(fpTempReg, elementAddr, sz);
 
-      case .float64List || .float64ListView || .float64ByteData:
+      case .float64List ||
+          .float64ListView ||
+          .float64ByteData ||
+          .float32x4List ||
+          .float32x4ListView ||
+          .float32x4ByteData ||
+          .float64x2List ||
+          .float64x2ListView ||
+          .float64x2ByteData ||
+          .int32x4List ||
+          .int32x4ListView ||
+          .int32x4ByteData:
         _asm.fstr(inputFPReg(instr, 2), elementAddr, sz);
 
       default:
@@ -2672,6 +2694,33 @@ final class Arm64CodeGenerator extends CodeGenerator {
         for (var i = 0; i < 4; ++i) {
           _asm.ins(VectorElement(resultReg, i, .s32), inputReg(instr, i));
         }
+      case .float32x4GetX || .float32x4GetY || .float32x4GetZ || .float32x4GetW:
+        final resultReg = outputFPReg(instr);
+        final operandReg = inputFPReg(instr, 0);
+        final index = instr.op.index - SimdOpcode.float32x4GetX.index;
+        if (index == 0) {
+          _asm.fcvt(resultReg, operandReg, .s32, .s64);
+        } else {
+          _asm.ins(
+            VectorElement(resultReg, 0, .s32),
+            VectorElement(operandReg, index, .s32),
+          );
+          _asm.fcvt(resultReg, resultReg, .s32, .s64);
+        }
+      case .float64x2GetX || .float64x2GetY:
+        final resultReg = outputFPReg(instr);
+        final operandReg = inputFPReg(instr, 0);
+        final index = instr.op.index - SimdOpcode.float64x2GetX.index;
+        if (index != 0 || resultReg != operandReg) {
+          _asm.ins(
+            VectorElement(resultReg, 0, .s64),
+            VectorElement(operandReg, index, .s64),
+          );
+        }
+      case .int32x4GetX || .int32x4GetY || .int32x4GetZ || .int32x4GetW:
+        final resultReg = outputReg(instr);
+        final index = instr.op.index - SimdOpcode.int32x4GetX.index;
+        _asm.smov(resultReg, VectorElement(inputFPReg(instr, 0), index, .s32));
     }
   }
 

@@ -2222,9 +2222,29 @@ final class UnboxSimd extends Unbox {
 enum SimdOpcode(final String name) {
   float32x4Factory('Float32x4 factory'),
   float64x2Factory('Float64x2 factory'),
-  int32x4Factory('Int32x4 factory');
+  int32x4Factory('Int32x4 factory'),
+  float32x4GetX('Float32x4.x'),
+  float32x4GetY('Float32x4.y'),
+  float32x4GetZ('Float32x4.z'),
+  float32x4GetW('Float32x4.w'),
+  float64x2GetX('Float64x2.x'),
+  float64x2GetY('Float64x2.y'),
+  int32x4GetX('Int32x4.x'),
+  int32x4GetY('Int32x4.y'),
+  int32x4GetZ('Int32x4.z'),
+  int32x4GetW('Int32x4.w');
 
   int get inputCount => switch (this) {
+    float32x4GetX ||
+    float32x4GetY ||
+    float32x4GetZ ||
+    float32x4GetW ||
+    float64x2GetX ||
+    float64x2GetY ||
+    int32x4GetX ||
+    int32x4GetY ||
+    int32x4GetZ ||
+    int32x4GetW => 1,
     float64x2Factory => 2,
     float32x4Factory || int32x4Factory => 4,
   };
@@ -2233,6 +2253,13 @@ enum SimdOpcode(final String name) {
     float32x4Factory => const Float32x4Type(),
     float64x2Factory => const Float64x2Type(),
     int32x4Factory => const Int32x4Type(),
+    float32x4GetX ||
+    float32x4GetY ||
+    float32x4GetZ ||
+    float32x4GetW ||
+    float64x2GetX ||
+    float64x2GetY => const DoubleType(),
+    int32x4GetX || int32x4GetY || int32x4GetZ || int32x4GetW => const IntType(),
   };
 }
 

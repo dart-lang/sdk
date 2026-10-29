@@ -618,6 +618,12 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
         for (var i = 0, n = instr.inputCount; i < n; ++i) {
           assert(instr.inputDefAt(i).type is IntType);
         }
+      case .float32x4GetX || .float32x4GetY || .float32x4GetZ || .float32x4GetW:
+        assert(instr.inputDefAt(0).type is Float32x4Type);
+      case .float64x2GetX || .float64x2GetY:
+        assert(instr.inputDefAt(0).type is Float64x2Type);
+      case .int32x4GetX || .int32x4GetY || .int32x4GetZ || .int32x4GetW:
+        assert(instr.inputDefAt(0).type is Int32x4Type);
     }
   }
 

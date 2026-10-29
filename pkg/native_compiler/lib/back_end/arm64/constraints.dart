@@ -289,11 +289,20 @@ final class Arm64Constraints extends Constraints {
   InstructionConstraints? visitLoadArrayElement(LoadArrayElement instr) =>
       switch (instr.kind) {
         .float32List ||
-        .float64List ||
         .float32ListView ||
-        .float64ListView ||
         .float32ByteData ||
-        .float64ByteData => InstructionConstraints(anyFpuRegister, [
+        .float64List ||
+        .float64ListView ||
+        .float64ByteData ||
+        .float32x4List ||
+        .float32x4ListView ||
+        .float32x4ByteData ||
+        .float64x2List ||
+        .float64x2ListView ||
+        .float64x2ByteData ||
+        .int32x4List ||
+        .int32x4ListView ||
+        .int32x4ByteData => InstructionConstraints(anyFpuRegister, [
           anyCpuRegister,
           anyRegisterOrImmediate(instr.inputDefAt(1)),
         ]),
@@ -318,11 +327,20 @@ final class Arm64Constraints extends Constraints {
           const [anyCpuRegister],
         ),
         .float32List ||
-        .float64List ||
         .float32ListView ||
-        .float64ListView ||
         .float32ByteData ||
-        .float64ByteData => InstructionConstraints(null, [
+        .float64List ||
+        .float64ListView ||
+        .float64ByteData ||
+        .float32x4List ||
+        .float32x4ListView ||
+        .float32x4ByteData ||
+        .float64x2List ||
+        .float64x2ListView ||
+        .float64x2ByteData ||
+        .int32x4List ||
+        .int32x4ListView ||
+        .int32x4ByteData => InstructionConstraints(null, [
           anyCpuRegister,
           anyRegisterOrImmediate(instr.index),
           anyFpuRegister,
@@ -636,6 +654,16 @@ final class Arm64Constraints extends Constraints {
       anyCpuRegister,
       anyCpuRegister,
     ]),
+    .float32x4GetX ||
+    .float32x4GetY ||
+    .float32x4GetZ ||
+    .float32x4GetW ||
+    .float64x2GetX ||
+    .float64x2GetY => const InstructionConstraints(anyFpuRegister, [
+      anyFpuRegister,
+    ]),
+    .int32x4GetX || .int32x4GetY || .int32x4GetZ || .int32x4GetW =>
+      const InstructionConstraints(anyCpuRegister, [anyFpuRegister]),
   };
 
   @override

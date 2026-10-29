@@ -2386,6 +2386,26 @@ void main() {
       });
     });
 
+    test('smov', () {
+      asm.smov(R3, VectorElement(V5, 1, .s32));
+      asm.smov(R0, VectorElement(V0, 5, .s8));
+      asm.smov(R1, VectorElement(V31, 0, .s16), .s32);
+      expectDisassembly(
+        'smovrd r3, v5[1]\n'
+        'smovrd r0, v0[5]\n'
+        'smovrs r1, v31[0]\n',
+      );
+      expectThrows(() {
+        asm.smov(SP, VectorElement(V5, 1, .s32));
+      });
+      expectThrows(() {
+        asm.smov(R3, VectorElement(V5, 1, .s8), .s16);
+      });
+      expectThrows(() {
+        asm.smov(R3, VectorElement(V5, 1, .s64));
+      });
+    });
+
     test('ins', () {
       asm.ins(VectorElement(V0, 0, .s64), VectorElement(V0, 1, .s64));
       asm.ins(VectorElement(V1, 3, .s32), VectorElement(V0, 2, .s32));
