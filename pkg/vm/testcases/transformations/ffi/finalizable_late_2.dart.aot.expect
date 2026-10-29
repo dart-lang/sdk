@@ -89,6 +89,7 @@ static method main() → void {
     late self::Foo foo11;
     _in::reachabilityFence(:foo11:finalizableValue);
   }
+  [@vm.inferred-type.metadata=? (receiver not int)] bar(){() → Null};
   _in::reachabilityFence(:foo:finalizableValue);
 }
 constants  {

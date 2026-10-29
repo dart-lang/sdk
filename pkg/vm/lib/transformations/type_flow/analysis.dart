@@ -2172,6 +2172,13 @@ class TypeFlowAnalysis
     }
   }
 
+  /// Returns true if analysis found that given local [function] could be
+  /// executed.
+  bool isLocalFunctionUsed(Member enclosingMember, LocalFunction function) {
+    final callMethod = _callMethodByClosure[Closure(enclosingMember, function)];
+    return callMethod != null && isMemberUsed(callMethod);
+  }
+
   /// Returns true if analysis found that initializer of the given [field]
   /// could be executed.
   bool isFieldInitializerUsed(Field field) {
